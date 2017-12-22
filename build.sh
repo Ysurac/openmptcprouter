@@ -34,7 +34,7 @@ _get_repo feeds/packages https://github.com/openwrt/packages "master"
 _get_repo feeds/luci https://github.com/openwrt/luci "for-15.05"
 
 if [ -z "$OMR_FEED" ]; then
-	OMR_FEED=feeds/openmtcprouter
+	OMR_FEED=feeds/openmptcprouter
 	_get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
 fi
 
