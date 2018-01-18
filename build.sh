@@ -29,7 +29,7 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	exit 1
 fi
 
-_get_repo source https://github.com/ovh/overthebox-lede "otb-master-17.11.03"
+_get_repo source https://github.com/ysurac/openmptcprouter "master"
 _get_repo feeds/packages https://github.com/openwrt/packages "master"
 _get_repo feeds/luci https://github.com/openwrt/luci "for-15.05"
 
@@ -59,8 +59,6 @@ EOF
 cat > source/feeds.conf <<EOF
 src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
-src-git routing https://git.lede-project.org/feed/routing.git
-src-git management https://github.com/openwrt-management/packages.git
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
