@@ -44,7 +44,7 @@ if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
 fi
 
 rm -rf source/bin source/files source/tmp
-cp -rf root source/files
+#cp -rf root source/files
 
 cat >> source/files/etc/banner <<EOF
 -----------------------------------------------------
