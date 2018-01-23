@@ -4081,7 +4081,7 @@ diff -aurN linux-4.4.88/net/ipv4/tcp_input.c mptcp-0.92.2/net/ipv4/tcp_input.c
 @@ -4943,8 +5024,9 @@
  		sock_reset_flag(sk, SOCK_QUEUE_SHRUNK);
  		/* pairs with tcp_poll() */
- 		smp_mb__after_atomic();
+ 		smp_mb();
 -		if (sk->sk_socket &&
 -		    test_bit(SOCK_NOSPACE, &sk->sk_socket->flags))
 +		if (mptcp(tcp_sk(sk)) ||
@@ -4735,7 +4735,7 @@ diff -aurN linux-4.4.88/net/ipv4/tcp_ipv4.c mptcp-0.92.2/net/ipv4/tcp_ipv4.c
 @@ -1198,6 +1235,8 @@
  	sk_daddr_set(req_to_sk(req), ip_hdr(skb)->saddr);
  	ireq->no_srccheck = inet_sk(sk_listener)->transparent;
- 	ireq->opt = tcp_v4_save_options(skb);
+ 	RCU_INIT_POINTER(ireq->opt, tcp_v4_save_options(skb));
 +
 +	return 0;
  }
@@ -6484,7 +6484,7 @@ diff -aurN linux-4.4.88/net/ipv6/tcp_ipv6.c mptcp-0.92.2/net/ipv6/tcp_ipv6.c
 +			tcp_rsk(req)->rcv_nxt, 0,
  			req->rsk_rcv_wnd >> inet_rsk(req)->rcv_wscale,
  			tcp_time_stamp, req->ts_recent, sk->sk_bound_dev_if,
- 			tcp_v6_md5_do_lookup(sk, &ipv6_hdr(skb)->daddr),
+ 			tcp_v6_md5_do_lookup(sk, &ipv6_hdr(skb)->saddr),
 -			0, 0);
 +			0, 0, 0);
  }
