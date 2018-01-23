@@ -14,7 +14,7 @@ _get_repo() {
 }
 
 OMR_DIST=${OMR_DIST:-omr}
-OMR_HOST=${OMR_HOST:-$(curl -sS ipaddr.ovh)}
+OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/$OMR_PATH}
 
@@ -29,9 +29,10 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	exit 1
 fi
 
-_get_repo source https://github.com/ysurac/openmptcprouter "master"
+#_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
+_get_repo source https://github.com/openwrt/openwrt "lede-17.01"
 _get_repo feeds/packages https://github.com/openwrt/packages "master"
-_get_repo feeds/luci https://github.com/openwrt/luci "for-15.05"
+_get_repo feeds/luci https://github.com/openwrt/luci "lede-17.01"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -44,7 +45,7 @@ if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
 fi
 
 rm -rf source/bin source/files source/tmp
-#cp -rf root source/files
+cp -rf root source/files
 
 cat >> source/files/etc/banner <<EOF
 -----------------------------------------------------

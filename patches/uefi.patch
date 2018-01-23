@@ -1,0 +1,134 @@
+From 84532089eb8dc4cb322afbe7af150aa5bb1d37a3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Adrien=20Gallou=C3=ABt?= <adrien@gallouet.fr>
+Date: Tue, 1 Aug 2017 15:06:04 +0200
+Subject: [PATCH] x86: Add UEFI
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Adrien Gallouët <adrien@gallouet.fr>
+---
+ target/linux/x86/base-files/lib/preinit/79_move_config |  2 +-
+ target/linux/x86/base-files/lib/upgrade/platform.sh    |  2 +-
+ target/linux/x86/image/Makefile                        |  8 +++++---
+ target/linux/x86/image/gen_image_generic.sh            | 17 +++++++----------
+ target/linux/x86/image/grub.cfg                        |  4 ++--
+ target/linux/x86/image/startup.nsh                     |  7 +++++++
+ 6 files changed, 23 insertions(+), 17 deletions(-)
+ create mode 100644 target/linux/x86/image/startup.nsh
+
+diff --git a/target/linux/x86/base-files/lib/preinit/79_move_config b/target/linux/x86/base-files/lib/preinit/79_move_config
+index 143ca5147b..83171b3ba9 100644
+--- a/target/linux/x86/base-files/lib/preinit/79_move_config
++++ b/target/linux/x86/base-files/lib/preinit/79_move_config
+@@ -7,7 +7,7 @@ move_config() {
+ 	. /lib/upgrade/common.sh
+ 
+ 	if export_bootdevice && export_partdevice partdev 1; then
+-		if mount -t ext4 -o rw,noatime "/dev/$partdev" /mnt; then
++		if mount -t vfat -o rw,noatime "/dev/$partdev" /mnt; then
+ 			if [ -f /mnt/sysupgrade.tgz ]; then
+ 				mv -f /mnt/sysupgrade.tgz /
+ 			fi
+diff --git a/target/linux/x86/base-files/lib/upgrade/platform.sh b/target/linux/x86/base-files/lib/upgrade/platform.sh
+index d3e9f360aa..b475fd5435 100644
+--- a/target/linux/x86/base-files/lib/upgrade/platform.sh
++++ b/target/linux/x86/base-files/lib/upgrade/platform.sh
+@@ -14,7 +14,7 @@ platform_copy_config() {
+ 	local partdev
+ 
+ 	if export_partdevice partdev 1; then
+-		mount -t ext4 -o rw,noatime "/dev/$partdev" /mnt
++		mount -t vfat -o rw,noatime "/dev/$partdev" /mnt
+ 		cp -af "$CONF_TAR" /mnt/
+ 		umount /mnt
+ 	fi
+diff --git a/target/linux/x86/image/Makefile b/target/linux/x86/image/Makefile
+index 965737ac63..d2a9e0ec0e 100644
+--- a/target/linux/x86/image/Makefile
++++ b/target/linux/x86/image/Makefile
+@@ -9,7 +9,7 @@ include $(INCLUDE_DIR)/image.mk
+ 
+ export PATH=$(TARGET_PATH):/sbin
+ 
+-GRUB2_MODULES = biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
++GRUB2_MODULES = biosdisk boot chain configfile fat linux ls part_msdos reboot serial vga
+ GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial vga
+ GRUB_TERMINALS =
+ GRUB_SERIAL_CONFIG =
+@@ -65,8 +65,10 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
+ 
+   define Image/Build/grub2
+ 	# left here because the image builder doesnt need these
+-	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
+-	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
++	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/root.grub/efi/boot $(KDIR)/grub2
++	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/efi/boot/linux.efi
++	echo 'linux.efi $(strip $(call Image/cmdline/$(1)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))' > $(KDIR)/root.grub/efi/boot/boot.nsh
++	$(CP) ./startup.nsh $(KDIR)/root.grub/
+ 	grub-mkimage \
+ 		-p /boot/grub \
+ 		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+diff --git a/target/linux/x86/image/gen_image_generic.sh b/target/linux/x86/image/gen_image_generic.sh
+index 17d969b96b..abb1abf5d1 100755
+--- a/target/linux/x86/image/gen_image_generic.sh
++++ b/target/linux/x86/image/gen_image_generic.sh
+@@ -15,23 +15,20 @@ ALIGN="$6"
+ 
+ rm -f "$OUTPUT"
+ 
+-head=16
+-sect=63
+-cyl=$(( ($KERNELSIZE + $ROOTFSSIZE) * 1024 * 1024 / ($head * $sect * 512)))
+-
+-# create partition table
+-set `ptgen -o "$OUTPUT" -h $head -s $sect -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE}`
++# shellcheck disable=2046
++set $(ptgen -o "$OUTPUT" -h 16 -s 63 -t 0xef -p "${KERNELSIZE}m" -t 0x83 -p "${ROOTFSSIZE}m" ${ALIGN:+-l "$ALIGN"} ${SIGNATURE:+-S "0x$SIGNATURE"})
+ 
+ KERNELOFFSET="$(($1 / 512))"
+-KERNELSIZE="$2"
++KERNELCOUNT="$(($2 / 1024))" # mkfs.fat BLOCK_SIZE=1024
+ ROOTFSOFFSET="$(($3 / 512))"
+-ROOTFSSIZE="$(($4 / 512))"
++ROOTFSCOUNT="$(($4 / 512))"
+ 
+-[ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc count="$ROOTFSSIZE"
++[ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" count="$ROOTFSCOUNT"
+ dd if="$ROOTFSIMAGE" of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc
+ 
+ [ -n "$NOGRUB" ] && exit 0
+ 
+-make_ext4fs -J -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
++mkfs.fat -C -n BOOT "$OUTPUT.kernel" "$KERNELCOUNT"
++mcopy -s -i "$OUTPUT.kernel" "$KERNELDIR"/* ::/
+ dd if="$OUTPUT.kernel" of="$OUTPUT" bs=512 seek="$KERNELOFFSET" conv=notrunc
+ rm -f "$OUTPUT.kernel"
+diff --git a/target/linux/x86/image/grub.cfg b/target/linux/x86/image/grub.cfg
+index acca036a2e..8169108ac4 100644
+--- a/target/linux/x86/image/grub.cfg
++++ b/target/linux/x86/image/grub.cfg
+@@ -6,8 +6,8 @@ set timeout="@TIMEOUT@"
+ set root='(@ROOT@)'
+ 
+ menuentry "LEDE" {
+-	linux /boot/vmlinuz @CMDLINE@ noinitrd
++	linux /efi/boot/linux.efi @CMDLINE@ noinitrd
+ }
+ menuentry "LEDE (failsafe)" {
+-	linux /boot/vmlinuz failsafe=true @CMDLINE@ noinitrd
++	linux /efi/boot/linux.efi failsafe=true @CMDLINE@ noinitrd
+ }
+diff --git a/target/linux/x86/image/startup.nsh b/target/linux/x86/image/startup.nsh
+new file mode 100644
+index 0000000000..3bf618d892
+--- /dev/null
++++ b/target/linux/x86/image/startup.nsh
+@@ -0,0 +1,7 @@
++for %d in 9 8 7 6 5 4 3 2 1 0
++   set bootapp "fs%d:\efi\boot\boot.nsh"
++   if exist %bootapp% then
++      %bootapp%
++   endif
++endfor
++exit
