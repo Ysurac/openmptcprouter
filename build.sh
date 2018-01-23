@@ -45,9 +45,9 @@ if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
 fi
 
 rm -rf source/bin source/files source/tmp
-cp -rf root source/files
+cp -rf root/* source
 
-cat >> source/files/etc/banner <<EOF
+cat >> source/package/base-files/files/etc/banner <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
  VERSION:     $(git describe --tag --always)
