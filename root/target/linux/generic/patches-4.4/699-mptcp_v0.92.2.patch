@@ -4735,7 +4735,7 @@ diff -aurN linux-4.4.88/net/ipv4/tcp_ipv4.c mptcp-0.92.2/net/ipv4/tcp_ipv4.c
 @@ -1198,6 +1235,8 @@
  	sk_daddr_set(req_to_sk(req), ip_hdr(skb)->saddr);
  	ireq->no_srccheck = inet_sk(sk_listener)->transparent;
- 	RCU_INIT_POINTER(ireq->opt, tcp_v4_save_options(skb));
+ 	RCU_INIT_POINTER(ireq->ireq_opt, tcp_v4_save_options(skb));
 +
 +	return 0;
  }
