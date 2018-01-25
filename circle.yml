@@ -2,23 +2,20 @@ machine:
     timezone: Europe/Paris
     environment:
         OMR_PATH: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_BRANCH
+        CPUS: $(grep -c processor /proc/cpuinfo)
 
 dependencies:
     override:
         - sudo apt-get update
         - sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
-        - sh build.sh prepare {tools,toolchain}/install -j4 :
-            timeout: 7200
-        - sh build.sh package/{compile,install,index} -j4 :
-            timeout: 7200
+        - sh build.sh prepare {tools,toolchain}/install -j $CPUS
+        - sh build.sh package/{compile,install,index} -j $CPUS
     cache_directories:
-        - "source"
         - "feeds"
 
 compile:
     override:
-        - make -C source target/install -j1 V=s :
-            timeout: 9200
+        - make -C source target/install -j1 V=s
 
 test:
     override:
