@@ -8,14 +8,11 @@ dependencies:
     override:
         - sudo apt-get update
         - sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
-        - sh build.sh prepare {tools,toolchain}/install -j $CPUS
-        - sh build.sh package/{compile,install,index} -j $CPUS
-    cache_directories:
-        - "feeds"
 
 compile:
     override:
-        - make -C source target/install -j1 V=s
+        - sh build.sh -j$CPUS :
+	    timeout: 10800
 
 test:
     override:
