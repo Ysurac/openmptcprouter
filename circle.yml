@@ -17,8 +17,8 @@ dependencies:
 
 compile:
     override:
-        - make -C source target/install -j4 :
-            timeout: 7200
+        - make -C source target/install -j1 V=s :
+            timeout: 9200
 
 test:
     override:
