@@ -29,4 +29,4 @@ deployment:
         branch: /.*/
         commands:
             - ssh -p $OMR_DEPLOY_PORT deploy@$OMR_DEPLOY_HOST mkdir -p deploy/$OMR_PATH
-            - rsync -av --delete-after source/bin/ -e "ssh -s -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/$OMR_PATH
+            - rsync -av --delete-after source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/$OMR_PATH
