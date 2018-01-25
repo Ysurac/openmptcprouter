@@ -1,0 +1,32 @@
+machine:
+    timezone: Europe/Paris
+    environment:
+        OMR_PATH: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_BRANCH
+
+dependencies:
+    override:
+        - sudo apt-get update
+        - sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
+        - sh build.sh prepare {tools,toolchain}/install -j2 :
+            timeout: 7200
+        - sh build.sh package/{compile,install,index} -j2 :
+            timeout: 7200
+    cache_directories:
+        - "source"
+        - "feeds"
+
+compile:
+    override:
+        - make -C source target/install -j2 :
+            timeout: 7200
+
+test:
+    override:
+        - "true"
+
+deployment:
+    dev:
+        branch: /.*/
+        commands:
+            - ssh -p $OMR_DEPLOY_PORT deploy@$OMR_DEPLOY_HOST mkdir -p deploy/$OMR_PATH
+            - rsync -av --delete-after source/bin/ -e "ssh -s -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/$OMR_PATH
