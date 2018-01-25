@@ -7,9 +7,9 @@ dependencies:
     override:
         - sudo apt-get update
         - sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
-        - sh build.sh prepare {tools,toolchain}/install -j2 :
+        - sh build.sh prepare {tools,toolchain}/install -j4 :
             timeout: 7200
-        - sh build.sh package/{compile,install,index} -j2 :
+        - sh build.sh package/{compile,install,index} -j4 :
             timeout: 7200
     cache_directories:
         - "source"
@@ -17,7 +17,7 @@ dependencies:
 
 compile:
     override:
-        - make -C source target/install -j2 :
+        - make -C source target/install -j4 :
             timeout: 7200
 
 test:
