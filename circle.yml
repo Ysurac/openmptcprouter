@@ -2,7 +2,6 @@ machine:
     timezone: Europe/Paris
     environment:
         OMR_PATH: $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/$CIRCLE_BRANCH
-        CPUS: $(grep -c processor /proc/cpuinfo)
 
 dependencies:
     override:
@@ -11,8 +10,8 @@ dependencies:
 
 compile:
     override:
-        - sh build.sh -j$CPUS :
-            timeout: 7200
+        - sh build.sh -j6 :
+            timeout: 14400
 
 test:
     override:
