@@ -18,6 +18,8 @@ dependencies:
 
 compile:
     override:
+        - make -C source package/{compile,install,index} -j$CPUS :
+            timeout: 7200
         - make -C source target/install -j$CPUS :
             timeout: 7200
 
