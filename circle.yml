@@ -7,11 +7,17 @@ dependencies:
     override:
         - sudo apt-get update
         - sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
-
-compile:
-    override:
-        - sh build.sh -j6 :
+        - sh build.sh -j4 :
             timeout: 14400
+            environment:
+                OMR_TARGET: x86_64
+        - sh build.sh -j4 :
+            timeout: 14400
+            environment:
+                OMR_TARGET: rpi3
+    cache_directoried:
+        - "source"
+        - "feeds"
 
 test:
     override:
