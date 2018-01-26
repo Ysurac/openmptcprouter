@@ -44,7 +44,9 @@ if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
 	shift 1
 fi
 
-if [ "$OMR_KEEPBIN" = "no" ]; then rm -rf source/bin
+if [ "$OMR_KEEPBIN" = "no" ]; then 
+	rm -rf source/bin
+fi
 rm -rf source/files source/tmp
 cp -rf root/* source
 
