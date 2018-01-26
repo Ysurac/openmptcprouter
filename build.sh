@@ -17,7 +17,7 @@ OMR_DIST=${OMR_DIST:-omr}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/$OMR_PATH}
-
+OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 
@@ -44,7 +44,8 @@ if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
 	shift 1
 fi
 
-rm -rf source/bin source/files source/tmp
+if [ "$OMR_KEEPBIN" = "no" ]; then rm -rf source/bin
+rm -rf source/files source/tmp
 cp -rf root/* source
 
 cat >> source/package/base-files/files/etc/banner <<EOF

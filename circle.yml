@@ -15,6 +15,7 @@ dependencies:
             timeout: 14400
             environment:
                 OMR_TARGET: rpi3
+                OMR_KEEPBIN: yes
     cache_directoried:
         - "source"
         - "feeds"
