@@ -8,19 +8,10 @@ dependencies:
     override:
         - sudo apt-get update
         - sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
-        - sh build.sh prepare {tools,toolchain}/install -j$CPUS :
-            timeout: 7200
-        - sh build.sh package/{compile,install,index} -j$CPUS :
-            timeout: 7200
-    cache_directories:
-        - "source"
-        - "feeds"
 
 compile:
     override:
-        - make -C source package/{compile,install,index} -j$CPUS :
-            timeout: 7200
-        - make -C source target/install -j$CPUS :
+        - sh build.sh -j$CPUS :
             timeout: 7200
 
 test:
