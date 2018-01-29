@@ -7,18 +7,42 @@ dependencies:
     override:
         - sudo apt-get update
         - sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
-        - sh build.sh -j4 :
-            timeout: 14400
+        - sh build.sh prepare {tools,toolchain}/install -j4 :
             environment:
                 OMR_TARGET: x86_64
-        - sh build.sh -j4 :
-            timeout: 14400
+                OMR_KEEPBIN: yes
+            timeout: 7200
+        - sh build.sh prepare {tools,toolchain}/install -j4 :
+            environment:
+                OMR_TARGET: rpi3
+                OMR_KEEPBIN: yes
+            timeout: 7200
+        - sh build.sh package/{compile,install,index} -j2 :
+            timeout: 7200
+            environment:
+                OMR_TARGET: x86_64
+                OMR_KEEPBIN: yes
+        - sh build.sh package/{compile,install,index} -j2 :
+            timeout: 7200
             environment:
                 OMR_TARGET: rpi3
                 OMR_KEEPBIN: yes
     cache_directoried:
         - "source"
         - "feeds"
+
+compile:
+    override:
+        - sh build.sh target/install -j2 :
+            timeout: 7200
+            environment:
+                OMR_TARGET: x86_64
+                OMR_KEEPBIN: yes
+        - sh build.sh target/install -j2 :
+            timeout: 7200
+            environment:
+                OMR_TARGET: rpi3
+                OMR_KEEPBIN: yes
 
 test:
     override:
