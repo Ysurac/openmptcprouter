@@ -9,7 +9,8 @@ cache:
   - source
   - feeds
 script:
-- sh build.sh -j4
+-  OMR_TARGET="x86_64" travis_wait 240 sh build.sh -j4
+-  OMR_TARGET="rpi3" OMR_KEEPBIN="yes" travis_wait 240 sh build.sh -j4
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_fb4fbc400178_key -iv $encrypted_fb4fbc400178_iv -in deploy_rsa.enc -out /tmp/deploy_rsa -d
 - eval "$(ssh-agent -s)"
