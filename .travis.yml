@@ -1,0 +1,22 @@
+sudo: false
+language: c
+compiler: gcc
+before_script:
+- sudo apt-get update
+- sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
+cache:
+  directories:
+  - source
+  - feeds
+script:
+- sh build.sh -j4
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_fb4fbc400178_key -iv $encrypted_fb4fbc400178_iv -in deploy_rsa.enc -out /tmp/deploy_rsa -d
+- eval "$(ssh-agent -s)"
+- chmod 600 /tmp/deploy_rsa
+- ssh-add /tmp/deploy_rsa
+deploy:
+- provider: script
+  script: rsync -av --delete-after source/bin/ -e "ssh -s -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/travisci
+  on:
+    branch: master
