@@ -18,6 +18,7 @@ OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/$OMR_PATH}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
+OMR_UEFI=${OMR_UEFI:-yes}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 
@@ -73,13 +74,18 @@ CONFIG_VERSION_DIST="$OMR_DIST"
 CONFIG_VERSION_REPO="$OMR_REPO"
 CONFIG_VERSION_NUMBER="$(git describe --tag --always)"
 CONFIG_VERSION_CODE="$(git -C "$OMR_FEED" describe --tag --always)"
-CONFIG_PACKAGE_$OMR_DIST=y
-CONFIG_PACKAGE_${OMR_DIST}-full=m
+CONFIG_PACKAGE_${OMR_DIST}-full=y
 EOF
 
 echo "Building $OMR_DIST for the target $OMR_TARGET"
 
 cd source
+
+if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
+	patch -N -p1 < ../patches/uefi.patch
+else
+	patch -N -R -p1 < ../patches/uefi.patch
+fi
 
 cp .config .config.keep
 scripts/feeds clean

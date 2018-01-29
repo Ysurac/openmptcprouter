@@ -25,10 +25,13 @@ index 143ca5147b..83171b3ba9 100644
  	. /lib/upgrade/common.sh
  
  	if export_bootdevice && export_partdevice partdev 1; then
--		if mount -t ext4 -o rw,noatime "/dev/$partdev" /mnt; then
-+		if mount -t vfat -o rw,noatime "/dev/$partdev" /mnt; then
- 			if [ -f /mnt/sysupgrade.tgz ]; then
- 				mv -f /mnt/sysupgrade.tgz /
+ 		mkdir -p /boot
+-		if mount -t ext4 -o ro,noatime "/dev/$partdev" /boot; then
++		if mount -t vfat -o ro,noatime "/dev/$partdev" /boot; then
+ 			if [ -f /boot/sysupgrade.tgz ]; then
+ 				mount /boot -o remount,rw,noatime
+ 				mv -f /boot/sysupgrade.tgz /
+ 				mount /boot -o remount,ro,noatime
  			fi
 diff --git a/target/linux/x86/base-files/lib/upgrade/platform.sh b/target/linux/x86/base-files/lib/upgrade/platform.sh
 index d3e9f360aa..b475fd5435 100644
