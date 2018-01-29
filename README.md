@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/Ysurac/openmptcprouter.svg?style=svg)](https://circleci.com/gh/Ysurac/openmptcprouter)
+
 # OpenMPTCProuter
 
 OpenMPTCProuter is an open source solution to aggregate and encrypt multiple internet connections and terminates it over any VPS which make clients benefit security, reliability, net neutrality, as well as dedicated public IP.

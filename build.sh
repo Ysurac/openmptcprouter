@@ -82,11 +82,15 @@ echo "Building $OMR_DIST for the target $OMR_TARGET"
 cd source
 
 if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
-	patch -N -p1 < ../patches/uefi.patch
+	if ! patch -Rf -N -p1 -s --dry-run < ../patches/uefi.patch; then
+		patch -N -p1 -s < ../patches/uefi.patch
+	fi
 else
-	patch -N -R -p1 < ../patches/uefi.patch
+	if ! patch -Nf -p1 -s --dry-run < ../patches/uefi.patch; then
+		patch -N -R -p1 -s < ../patches/uefi.patch
+	fi
 fi
-
+echo "Done"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
