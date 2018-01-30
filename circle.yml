@@ -17,7 +17,7 @@ dependencies:
                 OMR_TARGET: rpi3
                 OMR_KEEPBIN: yes
             timeout: 7200
-    cache_directoried:
+    cache_directories:
         - "source"
         - "feeds"
 
@@ -35,6 +35,8 @@ compile:
             environment:
                 OMR_TARGET: rpi3
                 OMR_KEEPBIN: yes
+        - make -C source target/compile -j4 :
+            timeout: 7200
         - make -C source package/compile -j4 :
             timeout: 7200
         - make -C source target/install -j4 :
