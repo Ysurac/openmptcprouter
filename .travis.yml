@@ -4,13 +4,17 @@ compiler: gcc
 before_script:
 - sudo apt-get update
 - sudo apt-get install -yq build-essential git unzip ncurses-dev libz-dev libssl-dev python subversion gettext gawk wget curl rsync perl
+- OMR_TARGET="x86_64" OMR_KEEPBIN="yes" travis_wait 120 sh build.sh prepare {tools,toolchain}/install -j6
+- OMR_TARGET="rpi3" OMR_KEEPBIN="yes" travis_wait 120 sh build.sh prepare {tools,toolchain}/install -j6
+- OMR_TARGET="x86_64" OMR_KEEPBIN="yes" travis_wait 120 sh build.sh package/{compile,install,index} -j6
+- OMR_TARGET="rpi3" OMR_KEEPBIN="yes" travis_wait 120 sh build.sh package/{compile,install,index} -j6
 cache:
   directories:
   - source
   - feeds
 script:
--  OMR_TARGET="x86_64" travis_wait 240 sh build.sh -j4
--  OMR_TARGET="rpi3" OMR_KEEPBIN="yes" travis_wait 240 sh build.sh -j4
+-  OMR_TARGET="x86_64" travis_wait 240 sh build.sh target/install -j6
+-  OMR_TARGET="rpi3" OMR_KEEPBIN="yes" travis_wait 240 sh build.sh target/install -j6
 before_deploy:
 - openssl aes-256-cbc -K $encrypted_fb4fbc400178_key -iv $encrypted_fb4fbc400178_iv -in deploy_rsa.enc -out /tmp/deploy_rsa -d
 - eval "$(ssh-agent -s)"

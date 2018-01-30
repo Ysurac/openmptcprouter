@@ -38,7 +38,7 @@ compile:
             environment:
                 OMR_TARGET: x86_64
                 OMR_KEEPBIN: yes
-        - sh build.sh target/install -j4 :
+        - sh build.sh target/install -j1 V=s :
             timeout: 7200
             environment:
                 OMR_TARGET: rpi3
