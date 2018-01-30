@@ -30,19 +30,15 @@ compile:
                 OMR_KEEPBIN: yes
         - make -C source target/install -j4 :
             timeout: 7200
-            environment:
-                OMR_TARGET: x86_64
-                OMR_KEEPBIN: yes
         - sh build.sh package/{compile,install,preconfig,index} -j4 :
             timeout: 7200
             environment:
                 OMR_TARGET: rpi3
                 OMR_KEEPBIN: yes
+        - make -C source package/compile -j4 :
+            timeout: 7200
         - make -C source target/install -j4 :
             timeout: 7200
-            environment:
-                OMR_TARGET: rpi3
-                OMR_KEEPBIN: yes
 
 test:
     override:
