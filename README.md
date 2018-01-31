@@ -10,7 +10,14 @@ The solution takes advantage of the OpenWRT/LEDE system, which is user friendly 
 
 ## Install from pre-compiled images
 
-Soon
+You can download precompiled images from [https://www.openmptcprouter.com/](https://www.openmptcprouter.com/)
+
+Then copy it to a sdcard:
+
+```sh
+gunzip omr-*.img.gz
+dd bs=4M if=omr-*.img of=/dev/sdX conv=fsync
+```
 
 ## Install from source
 
