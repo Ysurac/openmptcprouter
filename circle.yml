@@ -52,3 +52,8 @@ deployment:
         commands:
             - ssh -p $OMR_DEPLOY_PORT deploy@$OMR_DEPLOY_HOST mkdir -p deploy/$OMR_PATH
             - rsync -av --delete-after source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/$OMR_PATH
+    release:
+        tag: /v[0-9]+(\.[0-9]+)*/
+        commands:
+            - ssh -p $OMR_DEPLOY_PORT deploy@$OMR_DEPLOY_HOST mkdir -p deploy/release
+            - rsync -av --delete-after source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/release
