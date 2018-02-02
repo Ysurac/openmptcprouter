@@ -13,7 +13,7 @@ _get_repo() {
 	git -C "$1" checkout "origin/$3" -B "build" || git -C "$1" checkout "$3" -B "build"
 }
 
-OMR_DIST=${OMR_DIST:-omr}
+OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/$OMR_PATH}
