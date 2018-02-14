@@ -18,6 +18,7 @@ OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/$OMR_PATH}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
+OMR_IMG=${OMR_IMG:-no}
 OMR_UEFI=${OMR_UEFI:-yes}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
@@ -76,6 +77,11 @@ CONFIG_VERSION_NUMBER="$(git describe --tag --always)"
 CONFIG_VERSION_CODE="$(git -C "$OMR_FEED" describe --tag --always)"
 CONFIG_PACKAGE_${OMR_DIST}-full=y
 EOF
+
+if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
+	echo 'CONFIG_VDI_IMAGES=y' >> source/.config
+	echo 'CONFIG_VMDK_IMAGES=y' >> source/.config
+fi
 
 echo "Building $OMR_DIST for the target $OMR_TARGET"
 
