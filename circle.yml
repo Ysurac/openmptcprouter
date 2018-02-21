@@ -35,6 +35,10 @@ compile:
     override:
         - make -C x86_64/source target/install -j2 :
             timeout: 7200
+        - make -C rpi3/source target/compile -j2 :
+            timeout: 7200
+        - make -C rpi3/source package/compile -j2 :
+            timeout: 7200
         - make -C rpi3/source target/install -j2 :
             timeout: 7200
 
