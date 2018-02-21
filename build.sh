@@ -52,7 +52,7 @@ fi
 rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp"
 cp -rf root/* "$OMR_TARGET/source"
 
-cat >> source/package/base-files/files/etc/banner <<EOF
+cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
  VERSION:     $(git describe --tag --always)
@@ -62,7 +62,7 @@ cat >> source/package/base-files/files/etc/banner <<EOF
 -----------------------------------------------------
 EOF
 
-cat > source/feeds.conf <<EOF
+cat > "$OMR_TARGET/source/feeds.conf" <<EOF
 src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
