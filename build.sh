@@ -32,7 +32,7 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo source https://github.com/lede-project/source.git "lede-17.01"
+_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "lede-17.01"
 _get_repo feeds/packages https://github.com/openwrt/packages "master"
 _get_repo feeds/luci https://github.com/openwrt/luci "lede-17.01"
 
@@ -47,10 +47,10 @@ if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
 fi
 
 if [ "$OMR_KEEPBIN" = "no" ]; then 
-	rm -rf source/bin
+	rm -rf "$OMR_TARGET/source/bin"
 fi
-rm -rf source/files source/tmp
-cp -rf root/* source
+rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp"
+cp -rf root/* "$OMR_TARGET/source"
 
 cat >> source/package/base-files/files/etc/banner <<EOF
 -----------------------------------------------------
@@ -68,7 +68,7 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
-cat "$OMR_TARGET_CONFIG" config -> source/.config <<EOF
+cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/source/.config" <<EOF
 CONFIG_IMAGEOPT=y
 CONFIG_VERSIONOPT=y
 CONFIG_VERSION_DIST="$OMR_DIST"
@@ -79,21 +79,21 @@ CONFIG_PACKAGE_${OMR_DIST}-full=y
 EOF
 
 if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
-	echo 'CONFIG_VDI_IMAGES=y' >> source/.config
-	echo 'CONFIG_VMDK_IMAGES=y' >> source/.config
+	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/source/.config"
+	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
 fi
 
 echo "Building $OMR_DIST for the target $OMR_TARGET"
 
-cd source
+cd "$OMR_TARGET/source"
 
 if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
-	if ! patch -Rf -N -p1 -s --dry-run < ../patches/uefi.patch; then
-		patch -N -p1 -s < ../patches/uefi.patch
+	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/uefi.patch; then
+		patch -N -p1 -s < ../../patches/uefi.patch
 	fi
 else
-	if ! patch -Nf -p1 -s --dry-run < ../patches/uefi.patch; then
-		patch -N -R -p1 -s < ../patches/uefi.patch
+	if ! patch -Nf -p1 -s --dry-run < ../../patches/uefi.patch; then
+		patch -N -R -p1 -s < ../../patches/uefi.patch
 	fi
 fi
 echo "Done"

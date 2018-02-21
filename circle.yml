@@ -12,34 +12,30 @@ dependencies:
                 OMR_TARGET: x86_64
                 OMR_KEEPBIN: yes
             timeout: 7200
+        - sh build.sh package/{compile,install,preconfig,index} -j2 :
+            timeout: 7200
+            environment:
+                OMR_TARGET: x86_64
+                OMR_KEEPBIN: yes
         - sh build.sh prepare {tools,toolchain}/install -j2 :
             environment:
                 OMR_TARGET: rpi3
                 OMR_KEEPBIN: yes
             timeout: 7200
+        - sh build.sh package/{compile,install,preconfig,index} -j2 :
+            timeout: 7200
+            environment:
+                OMR_TARGET: rpi3
+                OMR_KEEPBIN: yes
     cache_directories:
         - "source"
         - "feeds"
 
 compile:
     override:
-        - sh build.sh package/{compile,install,preconfig,index} -j2 :
+        - make -C x86_64/source target/install -j2 :
             timeout: 7200
-            environment:
-                OMR_TARGET: x86_64
-                OMR_KEEPBIN: yes
-        - make -C source target/install -j2 :
-            timeout: 7200
-        - sh build.sh package/{compile,install,preconfig,index} -j2 :
-            timeout: 7200
-            environment:
-                OMR_TARGET: rpi3
-                OMR_KEEPBIN: yes
-        - make -C source target/compile -j2 :
-            timeout: 7200
-        - make -C source package/compile -j2 :
-            timeout: 7200
-        - make -C source target/install -j2 :
+        - make -C rpi3/source target/install -j2 :
             timeout: 7200
 
 test:
@@ -51,9 +47,11 @@ deployment:
         branch: /.*/
         commands:
             - ssh -p $OMR_DEPLOY_PORT deploy@$OMR_DEPLOY_HOST mkdir -p deploy/$OMR_PATH
-            - rsync -av --delete-after source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/$OMR_PATH
+            - rsync -av --delete-after x86_64/source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/dev/x86_64
+            - rsync -av --delete-after rpi3/source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/dev/rpi3
     release:
         tag: /v[0-9]+(\.[0-9]+)*/
         commands:
             - ssh -p $OMR_DEPLOY_PORT deploy@$OMR_DEPLOY_HOST mkdir -p deploy/release
-            - rsync -av --delete-after source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/release
+            - rsync -av --delete-after x86_64/source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/release/x86_64
+            - rsync -av --delete-after rpi3/source/bin/ -e "ssh -q -p $OMR_DEPLOY_PORT" deploy@$OMR_DEPLOY_HOST:deploy/release/rpi3
