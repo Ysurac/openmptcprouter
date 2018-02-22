@@ -28,7 +28,8 @@ dependencies:
                 OMR_TARGET: rpi3
                 OMR_KEEPBIN: yes
     cache_directories:
-        - "source"
+        - "rpi3"
+        - "x86_64"
         - "feeds"
 
 compile:
