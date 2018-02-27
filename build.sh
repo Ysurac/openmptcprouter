@@ -32,9 +32,10 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "lede-17.01"
+_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "master"
 _get_repo feeds/packages https://github.com/openwrt/packages "master"
-_get_repo feeds/luci https://github.com/openwrt/luci "lede-17.01"
+#_get_repo feeds/luci https://github.com/openwrt/luci "lede-17.01"
+_get_repo feeds/luci https://github.com/openwrt/luci "master"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -83,10 +84,10 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
 fi
 
-echo "Building $OMR_DIST for the target $OMR_TARGET"
 
 cd "$OMR_TARGET/source"
 
+echo "Checking if UEFI patch is set or not"
 if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/uefi.patch; then
 		patch -N -p1 -s < ../../patches/uefi.patch
@@ -97,11 +98,20 @@ else
 	fi
 fi
 echo "Done"
+
+echo "Set to kernel 4.9 for all arch"
+find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.9%g' {} \;
+echo "Done"
+
+echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
 scripts/feeds install -a -d y -f -p openmptcprouter
 cp .config.keep .config
+echo "Done"
 
+echo "Building $OMR_DIST for the target $OMR_TARGET"
 make defconfig
 make "$@"
+echo "Done"

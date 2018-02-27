@@ -72,11 +72,11 @@ index 965737ac63..d2a9e0ec0e 100644
  	grub-mkimage \
  		-p /boot/grub \
  		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
-diff --git a/target/linux/x86/image/gen_image_generic.sh b/target/linux/x86/image/gen_image_generic.sh
+diff --git a/scripts/gen_image_generic.sh b/scripts/gen_image_generic.sh
 index 17d969b96b..abb1abf5d1 100755
---- a/target/linux/x86/image/gen_image_generic.sh
-+++ b/target/linux/x86/image/gen_image_generic.sh
-@@ -15,23 +15,20 @@ ALIGN="$6"
+--- a/scripts/gen_image_generic.sh
++++ b/scripts/gen_image_generic.sh
+@@ -15,21 +15,18 @@ ALIGN="$6"
  
  rm -f "$OUTPUT"
  
@@ -100,8 +100,6 @@ index 17d969b96b..abb1abf5d1 100755
 +[ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" count="$ROOTFSCOUNT"
  dd if="$ROOTFSIMAGE" of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc
  
- [ -n "$NOGRUB" ] && exit 0
- 
 -make_ext4fs -J -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
 +mkfs.fat -C -n BOOT "$OUTPUT.kernel" "$KERNELCOUNT"
 +mcopy -s -i "$OUTPUT.kernel" "$KERNELDIR"/* ::/
@@ -114,11 +112,11 @@ index acca036a2e..8169108ac4 100644
 @@ -6,8 +6,8 @@ set timeout="@TIMEOUT@"
  set root='(@ROOT@)'
  
- menuentry "LEDE" {
+ menuentry "OpenWrt" {
 -	linux /boot/vmlinuz @CMDLINE@ noinitrd
 +	linux /efi/boot/linux.efi @CMDLINE@ noinitrd
  }
- menuentry "LEDE (failsafe)" {
+ menuentry "OpenWrt (failsafe)" {
 -	linux /boot/vmlinuz failsafe=true @CMDLINE@ noinitrd
 +	linux /efi/boot/linux.efi failsafe=true @CMDLINE@ noinitrd
  }
