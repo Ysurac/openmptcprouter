@@ -10,7 +10,6 @@ _get_repo() {
 	git -C "$1" remote set-url origin "$2"
 	git -C "$1" fetch origin
 	git -C "$1" fetch origin --tags
-	git -C "$1" reset --hard "origin/$3"
 	git -C "$1" checkout "origin/$3" -B "build" || git -C "$1" checkout "$3" -B "build"
 }
 
