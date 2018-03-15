@@ -9196,7 +9196,7 @@ index 0000000..9491983
 +	tcp_prequeue_init(master_tp);
 +	INIT_LIST_HEAD(&master_tp->tsq_node);
 +
-+	master_tp->tsq_flags = 0;
++	master_sk->sk_tsq_flags = 0;
 +
 +	mutex_init(&mpcb->mpcb_mutex);
 +
@@ -10156,7 +10156,7 @@ index 0000000..9491983
 +	child_tp->mptcp->rcv_isn = tcp_rsk(req)->rcv_isn;
 +	child_tp->mptcp->init_rcv_wnd = req->rsk_rcv_wnd;
 +
-+	child_tp->tsq_flags = 0;
++	child->sk_tsq_flags = 0;
 +	child_tp->out_of_order_queue = RB_ROOT;
 +
 +	sock_rps_save_rxhash(child, skb);
@@ -10311,7 +10311,7 @@ index 0000000..9491983
 +		sock_hold(sk);
 +	}
 +
-+	if (!test_and_set_bit(MPTCP_SUB_DEFERRED, &tcp_sk(meta_sk)->tsq_flags))
++	if (!test_and_set_bit(MPTCP_SUB_DEFERRED, &meta_sk->sk_tsq_flags))
 +		sock_hold(meta_sk);
 +}
 +
