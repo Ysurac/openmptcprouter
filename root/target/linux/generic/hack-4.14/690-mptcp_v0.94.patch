@@ -6929,7 +6929,7 @@ new file mode 100644
 index 0000000..73f365b
 --- /dev/null
 +++ b/net/mptcp/mptcp_balia.c
-@@ -0,0 +1,267 @@
+@@ -0,0 +1,268 @@
 +/*
 + *	MPTCP implementation - Balia Congestion Control
 + *	(Balanced Linked Adaptation Algorithm)
@@ -7173,6 +7173,7 @@ index 0000000..73f365b
 +	.init		= mptcp_balia_init,
 +	.ssthresh	= mptcp_balia_ssthresh,
 +	.cong_avoid	= mptcp_balia_cong_avoid,
++	.undo_cwnd	= tcp_reno_undo_cwnd,
 +	.cwnd_event	= mptcp_balia_cwnd_event,
 +	.set_state	= mptcp_balia_set_state,
 +	.owner		= THIS_MODULE,
@@ -7694,7 +7695,7 @@ new file mode 100644
 index 0000000..9d97947
 --- /dev/null
 +++ b/net/mptcp/mptcp_coupled.c
-@@ -0,0 +1,270 @@
+@@ -0,0 +1,271 @@
 +/*
 + *	MPTCP implementation - Linked Increase congestion control Algorithm (LIA)
 + *
@@ -7941,6 +7942,7 @@ index 0000000..9d97947
 +	.init		= mptcp_ccc_init,
 +	.ssthresh	= tcp_reno_ssthresh,
 +	.cong_avoid	= mptcp_ccc_cong_avoid,
++	.undo_cwnd	= tcp_reno_undo_cwnd,
 +	.cwnd_event	= mptcp_ccc_cwnd_event,
 +	.set_state	= mptcp_ccc_set_state,
 +	.owner		= THIS_MODULE,
@@ -16463,7 +16465,7 @@ new file mode 100644
 index 0000000..201b595
 --- /dev/null
 +++ b/net/mptcp/mptcp_olia.c
-@@ -0,0 +1,309 @@
+@@ -0,0 +1,310 @@
 +/*
 + * MPTCP implementation - OPPORTUNISTIC LINKED INCREASES CONGESTION CONTROL:
 + *
@@ -16750,6 +16752,7 @@ index 0000000..201b595
 +	.init		= mptcp_olia_init,
 +	.ssthresh	= tcp_reno_ssthresh,
 +	.cong_avoid	= mptcp_olia_cong_avoid,
++	.undo_cwnd	= tcp_reno_undo_cwnd,
 +	.set_state	= mptcp_olia_set_state,
 +	.owner		= THIS_MODULE,
 +	.name		= "olia",
@@ -20076,7 +20079,7 @@ new file mode 100644
 index 0000000..87a4968
 --- /dev/null
 +++ b/net/mptcp/mptcp_wvegas.c
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,270 @@
 +/*
 + *	MPTCP implementation - WEIGHTED VEGAS
 + *
@@ -20319,6 +20322,7 @@ index 0000000..87a4968
 +	.init		= mptcp_wvegas_init,
 +	.ssthresh	= tcp_reno_ssthresh,
 +	.cong_avoid	= mptcp_wvegas_cong_avoid,
++	.undo_cwnd	= tcp_reno_undo_cwnd,
 +	.pkts_acked	= mptcp_wvegas_pkts_acked,
 +	.set_state	= mptcp_wvegas_state,
 +	.cwnd_event	= mptcp_wvegas_cwnd_event,
