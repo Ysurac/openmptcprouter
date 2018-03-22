@@ -32,7 +32,7 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "master"
+_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "3db9d6e57def2912314c7ce0bc0c282f313ed654"
 _get_repo feeds/packages https://github.com/openwrt/packages "master"
 #_get_repo feeds/luci https://github.com/openwrt/luci "lede-17.01"
 _get_repo feeds/luci https://github.com/openwrt/luci "master"
@@ -98,8 +98,11 @@ else
 fi
 echo "Done"
 
-echo "Set to kernel 4.9 for all arch"
-find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.9%g' {} \;
+#echo "Set to kernel 4.9 for all arch"
+#find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.9%g' {} \;
+#echo "Done"
+echo "Set to kernel 4.14 for rpi3 arch"
+find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.9%KERNEL_PATCHVER:=4.14%g' {} \;
 echo "Done"
 
 echo "Update feeds index"
