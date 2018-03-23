@@ -1,0 +1,38 @@
+From d7fbd99128b4cab714448607951def3ea4d3e027 Mon Sep 17 00:00:00 2001
+From: Ahmet Inan <inan@aicodix.de>
+Date: Fri, 1 Sep 2017 15:14:23 +0200
+Subject: [PATCH 182/277] config: Add EETI EXC3000 touch controller module
+
+Signed-off-by: Ahmet Inan <inan@aicodix.de>
+---
+ arch/arm/configs/bcm2709_defconfig | 1 +
+ arch/arm/configs/bcmrpi_defconfig  | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 3cc3a9745c13..f1dcc7d974b6 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -554,6 +554,7 @@ CONFIG_JOYSTICK_RPISENSE=m
+ CONFIG_INPUT_TOUCHSCREEN=y
+ CONFIG_TOUCHSCREEN_ADS7846=m
+ CONFIG_TOUCHSCREEN_EGALAX=m
++CONFIG_TOUCHSCREEN_EXC3000=m
+ CONFIG_TOUCHSCREEN_GOODIX=m
+ CONFIG_TOUCHSCREEN_EDT_FT5X06=m
+ CONFIG_TOUCHSCREEN_RPI_FT5406=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 4cfd4e6a3390..f2563f6824b6 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -549,6 +549,7 @@ CONFIG_JOYSTICK_RPISENSE=m
+ CONFIG_INPUT_TOUCHSCREEN=y
+ CONFIG_TOUCHSCREEN_ADS7846=m
+ CONFIG_TOUCHSCREEN_EGALAX=m
++CONFIG_TOUCHSCREEN_EXC3000=m
+ CONFIG_TOUCHSCREEN_GOODIX=m
+ CONFIG_TOUCHSCREEN_EDT_FT5X06=m
+ CONFIG_TOUCHSCREEN_RPI_FT5406=m
+-- 
+2.16.1
+

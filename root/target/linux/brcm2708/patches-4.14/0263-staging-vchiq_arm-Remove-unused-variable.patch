@@ -1,0 +1,38 @@
+From 76799523a5c7b92ef112bd02d79d5ab8298809b8 Mon Sep 17 00:00:00 2001
+From: Nathan Chancellor <natechancellor@gmail.com>
+Date: Sat, 3 Mar 2018 23:34:50 -0700
+Subject: [PATCH 263/277] staging: vchiq_arm: Remove unused variable
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This warning appears with GCC 6.4.0 from toolchains.bootlin.com:
+
+../drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c: In function ‘vchiq_open’:
+../drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c:1735:7: warning: unused variable ‘ret’ [-Wunused-variable]
+   int ret;
+       ^~~
+
+This variable's usage was removed by commit 3c980263c592 ("staging:
+vchiq_arm: Make debugfs failure non-fatal"), making it useless.
+
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+index e4bad872b7e5..fe99c96fc6fc 100644
+--- a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
++++ b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+@@ -1732,7 +1732,6 @@ vchiq_open(struct inode *inode, struct file *file)
+ 	vchiq_log_info(vchiq_arm_log_level, "vchiq_open");
+ 	switch (dev) {
+ 	case VCHIQ_MINOR: {
+-		int ret;
+ 		VCHIQ_STATE_T *state = vchiq_get_state();
+ 		VCHIQ_INSTANCE_T instance;
+ 
+-- 
+2.16.1
+

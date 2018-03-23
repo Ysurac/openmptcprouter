@@ -1,0 +1,28 @@
+From 875905001eafde766add7229605f3b80ecf8b8d5 Mon Sep 17 00:00:00 2001
+From: Simon van der Veldt <simon.vanderveldt@gmail.com>
+Date: Tue, 6 Feb 2018 15:36:25 +0100
+Subject: [PATCH 216/277] Add missing SND_PISOUND selects dependency to
+ SND_RAWMIDI
+
+Without it the Pisound module fails to compile.
+See https://github.com/raspberrypi/linux/issues/2366
+
+Signed-off-by: Simon van der Veldt <simon.vanderveldt@gmail.com>
+---
+ sound/soc/bcm/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/sound/soc/bcm/Kconfig b/sound/soc/bcm/Kconfig
+index 381d32bb9deb..630285e4c9a3 100644
+--- a/sound/soc/bcm/Kconfig
++++ b/sound/soc/bcm/Kconfig
+@@ -193,5 +193,6 @@ config SND_BCM2708_SOC_FE_PI_AUDIO
+ config SND_PISOUND
+ 	tristate "Support for Blokas Labs pisound"
+ 	depends on SND_BCM2708_SOC_I2S || SND_BCM2835_SOC_I2S
++	select SND_RAWMIDI
+ 	help
+ 	  Say Y or M if you want to add support for Blokas Labs pisound.
+-- 
+2.16.1
+

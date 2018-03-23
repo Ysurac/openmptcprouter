@@ -1,0 +1,26 @@
+From 27e3a36040b5cdc579ca293dc2a929818fc8b13e Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Thu, 15 Feb 2018 16:03:04 +0000
+Subject: [PATCH 227/277] overlay: Add missing pinctrl reference to gpio-ir
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/boot/dts/overlays/gpio-ir-overlay.dts | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/overlays/gpio-ir-overlay.dts b/arch/arm/boot/dts/overlays/gpio-ir-overlay.dts
+index bfa3cb5fd4dd..1bd9bb950efa 100644
+--- a/arch/arm/boot/dts/overlays/gpio-ir-overlay.dts
++++ b/arch/arm/boot/dts/overlays/gpio-ir-overlay.dts
+@@ -10,6 +10,8 @@
+                 __overlay__ {
+                         gpio_ir: ir-receiver@12 {
+                                 compatible = "gpio-ir-receiver";
++                                pinctrl-names = "default";
++                                pinctrl-0 = <&gpio_ir_pins>;
+ 
+                                 // pin number, high or low
+                                 gpios = <&gpio 18 1>;
+-- 
+2.16.1
+

@@ -1,0 +1,37 @@
+From 5f40f561772bfe9868af19a04e0df053938fb93e Mon Sep 17 00:00:00 2001
+From: Sugizaki Yukimasa <i.can.speak.c.and.basic@gmail.com>
+Date: Mon, 8 Jan 2018 21:07:17 +0900
+Subject: [PATCH 169/277] vcsm: Fix obscure conditions
+
+Signed-off-by: Sugizaki Yukimasa <i.can.speak.c.and.basic@gmail.com>
+---
+ drivers/char/broadcom/vc_sm/vmcs_sm.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/char/broadcom/vc_sm/vmcs_sm.c b/drivers/char/broadcom/vc_sm/vmcs_sm.c
+index b6cdc1934ad2..95963ffba51a 100644
+--- a/drivers/char/broadcom/vc_sm/vmcs_sm.c
++++ b/drivers/char/broadcom/vc_sm/vmcs_sm.c
+@@ -278,8 +278,8 @@ static unsigned int vmcs_sm_vc_handle_from_pid_and_address(unsigned int pid,
+ 		list_for_each_entry(map, &sm_state->map_list, map_list) {
+ 			if (map->res_pid != pid)
+ 				continue;
+-			if (!(map->res_addr <= addr &&
+-						addr < map->res_addr + map->resource->res_size))
++			if (addr < map->res_addr ||
++						addr >= (map->res_addr + map->resource->res_size))
+ 				continue;
+ 
+ 			pr_debug("[%s]: global map %p (pid %u, addr %lx) -> vc-hdl %x (usr-hdl %x)\n",
+@@ -1263,7 +1263,7 @@ static int clean_invalid_mem_2d(const void __user *addr,
+ 	size_t i;
+ 	void (*op_fn)(const void*, const void*);
+ 
+-	if (block_size <= 0) {
++	if (!block_size) {
+ 		pr_err("[%s]: size cannot be 0\n", __func__);
+ 		return -EINVAL;
+ 	}
+-- 
+2.16.1
+

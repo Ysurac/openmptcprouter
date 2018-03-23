@@ -1,0 +1,56 @@
+From d35408f261909b8bd50052294ff0fc3405849680 Mon Sep 17 00:00:00 2001
+From: hdoverobinson <hdoverobinson@gmail.com>
+Date: Tue, 13 Mar 2018 06:58:39 -0400
+Subject: [PATCH 270/277] added capture_clear option to pps-gpio via dtoverlay
+ (#2433)
+
+---
+ arch/arm/boot/dts/overlays/README               | 5 ++++-
+ arch/arm/boot/dts/overlays/pps-gpio-overlay.dts | 1 +
+ drivers/pps/clients/pps-gpio.c                  | 3 +++
+ 3 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index a850674f6d74..8c8239c1a654 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -1287,7 +1287,10 @@ Info:   Configures the pps-gpio (pulse-per-second time signal via GPIO).
+ Load:   dtoverlay=pps-gpio,<param>=<val>
+ Params: gpiopin                 Input GPIO (default "18")
+         assert_falling_edge     When present, assert is indicated by a falling
+-                                edge, rather than by a rising edge
++                                edge, rather than by a rising edge (default
++                                off)
++        capture_clear           Generate clear events on the trailing edge
++                                (default off)
+ 
+ 
+ Name:   pwm
+diff --git a/arch/arm/boot/dts/overlays/pps-gpio-overlay.dts b/arch/arm/boot/dts/overlays/pps-gpio-overlay.dts
+index 9ee4bdfa6167..af29b870f1a1 100644
+--- a/arch/arm/boot/dts/overlays/pps-gpio-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pps-gpio-overlay.dts
+@@ -33,5 +33,6 @@
+ 			  <&pps_pins>,"brcm,pins:0",
+ 			  <&pps_pins>,"reg:0";
+ 		assert_falling_edge = <&pps>,"assert-falling-edge?";
++		capture_clear = <&pps>,"capture-clear?";
+ 	};
+ };
+diff --git a/drivers/pps/clients/pps-gpio.c b/drivers/pps/clients/pps-gpio.c
+index 333ad7d5b45b..ec9c4de48070 100644
+--- a/drivers/pps/clients/pps-gpio.c
++++ b/drivers/pps/clients/pps-gpio.c
+@@ -119,6 +119,9 @@ static int pps_gpio_probe(struct platform_device *pdev)
+ 
+ 		if (of_get_property(np, "assert-falling-edge", NULL))
+ 			data->assert_falling_edge = true;
++
++                if (of_get_property(np, "capture-clear", NULL))
++                        data->capture_clear = true;
+ 	}
+ 
+ 	/* GPIO setup */
+-- 
+2.16.1
+

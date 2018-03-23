@@ -1,0 +1,48 @@
+From 3bd7b3259f5d10e36bfec1bfaf61de10c2d5e497 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 24 Jan 2018 20:00:48 +0000
+Subject: [PATCH 190/277] overlays: Allow multiple pps-gpio instantiations
+
+See: https://github.com/raspberrypi/linux/issues/2352
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/boot/dts/overlays/pps-gpio-overlay.dts | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/overlays/pps-gpio-overlay.dts b/arch/arm/boot/dts/overlays/pps-gpio-overlay.dts
+index 50143a4bb215..9ee4bdfa6167 100644
+--- a/arch/arm/boot/dts/overlays/pps-gpio-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pps-gpio-overlay.dts
+@@ -6,7 +6,7 @@
+ 	fragment@0 {
+ 		target-path = "/";
+ 		__overlay__ {
+-			pps: pps {
++			pps: pps@12 {
+ 				compatible = "pps-gpio";
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pps_pins>;
+@@ -19,7 +19,7 @@
+ 	fragment@1 {
+ 		target = <&gpio>;
+ 		__overlay__ {
+-			pps_pins: pps_pins {
++			pps_pins: pps_pins@12 {
+ 				brcm,pins =     <18>;
+ 				brcm,function = <0>;    // in
+ 				brcm,pull =     <0>;    // off
+@@ -29,7 +29,9 @@
+ 
+ 	__overrides__ {
+ 		gpiopin = <&pps>,"gpios:4",
+-			  <&pps_pins>,"brcm,pins:0";
++			  <&pps>,"reg:0",
++			  <&pps_pins>,"brcm,pins:0",
++			  <&pps_pins>,"reg:0";
+ 		assert_falling_edge = <&pps>,"assert-falling-edge?";
+ 	};
+ };
+-- 
+2.16.1
+

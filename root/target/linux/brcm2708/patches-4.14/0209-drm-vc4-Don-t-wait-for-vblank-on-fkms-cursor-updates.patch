@@ -1,0 +1,33 @@
+From d85fe1169b8141b648c6daa746b7ac807e4cdaba Mon Sep 17 00:00:00 2001
+From: Eric Anholt <eric@anholt.net>
+Date: Mon, 5 Feb 2018 18:53:18 +0000
+Subject: [PATCH 209/277] drm/vc4: Don't wait for vblank on fkms cursor
+ updates.
+
+We don't use the same async update path between fkms and normal kms,
+and the normal kms workaround ended up making us wait.  This became a
+larger problem in rpi-4.14.y, as the USB HID update rate throttling
+got (accidentally?) dropped.
+
+Signed-off-by: Eric Anholt <eric@anholt.net>
+---
+ drivers/gpu/drm/vc4/vc4_kms.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_kms.c b/drivers/gpu/drm/vc4/vc4_kms.c
+index 50c4959b5bd3..f73343e08fe6 100644
+--- a/drivers/gpu/drm/vc4/vc4_kms.c
++++ b/drivers/gpu/drm/vc4/vc4_kms.c
+@@ -53,7 +53,8 @@ vc4_atomic_complete_commit(struct drm_atomic_state *state)
+ 	 * display lists before we free it and potentially reallocate
+ 	 * and overwrite the dlist memory with a new modeset.
+ 	 */
+-	state->legacy_cursor_update = false;
++	if (!vc4->firmware_kms)
++		state->legacy_cursor_update = false;
+ 
+ 	drm_atomic_helper_commit_hw_done(state);
+ 
+-- 
+2.16.1
+

@@ -1,0 +1,41 @@
+From 298dba7bacbb55d907f955cfb70a69d10e5cfc93 Mon Sep 17 00:00:00 2001
+From: popcornmix <popcornmix@gmail.com>
+Date: Fri, 2 Mar 2018 13:26:51 +0000
+Subject: [PATCH 259/277] config: Enable CONFIG_GPIO_MOCKUP module
+
+---
+ arch/arm/configs/bcm2709_defconfig | 2 +-
+ arch/arm/configs/bcmrpi_defconfig  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index d7594861aeb6..cbc3a785848f 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -615,9 +615,9 @@ CONFIG_PPS=m
+ CONFIG_PPS_CLIENT_LDISC=m
+ CONFIG_PPS_CLIENT_GPIO=m
+ CONFIG_PINCTRL_MCP23S08=m
+-CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_BCM_EXP=y
+ CONFIG_GPIO_BCM_VIRT=y
++CONFIG_GPIO_MOCKUP=m
+ CONFIG_GPIO_PCF857X=m
+ CONFIG_GPIO_ARIZONA=m
+ CONFIG_GPIO_STMPE=y
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 0df538006521..e2cb9979eebd 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -610,7 +610,7 @@ CONFIG_PPS=m
+ CONFIG_PPS_CLIENT_LDISC=m
+ CONFIG_PPS_CLIENT_GPIO=m
+ CONFIG_PINCTRL_MCP23S08=m
+-CONFIG_GPIO_SYSFS=y
++CONFIG_GPIO_MOCKUP=m
+ CONFIG_GPIO_PCF857X=m
+ CONFIG_GPIO_ARIZONA=m
+ CONFIG_GPIO_STMPE=y
+-- 
+2.16.1
+

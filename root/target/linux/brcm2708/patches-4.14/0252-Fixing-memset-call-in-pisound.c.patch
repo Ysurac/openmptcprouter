@@ -1,0 +1,26 @@
+From beb6e6453a23b3941cd5dce724909b989e622da6 Mon Sep 17 00:00:00 2001
+From: Giedrius <giedrius@blokas.io>
+Date: Sat, 24 Feb 2018 14:47:02 +0200
+Subject: [PATCH 252/277] Fixing memset call in pisound.c
+
+Signed-off-by: Giedrius Trainavicius <giedrius@blokas.io>
+---
+ sound/soc/bcm/pisound.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sound/soc/bcm/pisound.c b/sound/soc/bcm/pisound.c
+index 09739d51b70b..00ae628acdd2 100644
+--- a/sound/soc/bcm/pisound.c
++++ b/sound/soc/bcm/pisound.c
+@@ -313,7 +313,7 @@ static void spi_transfer(const uint8_t *txbuf, uint8_t *rxbuf, int len)
+ 	struct spi_transfer transfer;
+ 	struct spi_message msg;
+ 
+-	memset(rxbuf, 0, sizeof(txbuf));
++	memset(rxbuf, 0, len);
+ 
+ 	if (!pisnd_spi_device) {
+ 		printe("pisnd_spi_device null, returning\n");
+-- 
+2.16.1
+

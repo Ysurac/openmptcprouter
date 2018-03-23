@@ -1,0 +1,30 @@
+From 5b0d431bd87468f13f7ba8c96eb791c4c4bee467 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Mon, 13 Feb 2017 13:11:41 +0000
+Subject: [PATCH 218/277] BCM2835-V4L2: Correctly denote key frames in encoded
+ data
+
+Forward MMAL key frame flags to the V4L2 buffers.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c b/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
+index e383cb0f5462..23b785e22098 100644
+--- a/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
++++ b/drivers/staging/vc04_services/bcm2835-camera/bcm2835-camera.c
+@@ -398,6 +398,9 @@ static void buffer_cb(struct vchiq_mmal_instance *instance,
+ 			dev->capture.last_timestamp = buf->vb.vb2_buf.timestamp;
+ 
+ 			vb2_set_plane_payload(&buf->vb.vb2_buf, 0, length);
++			if (mmal_flags & MMAL_BUFFER_HEADER_FLAG_KEYFRAME)
++				buf->vb.flags |= V4L2_BUF_FLAG_KEYFRAME;
++
+ 			v4l2_dbg(1, bcm2835_v4l2_debug, &dev->v4l2_dev,
+ 				"Buffer has ts %llu",
+ 				dev->capture.last_timestamp);
+-- 
+2.16.1
+
