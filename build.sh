@@ -32,7 +32,8 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "3db9d6e57def2912314c7ce0bc0c282f313ed654"
+#_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "3db9d6e57def2912314c7ce0bc0c282f313ed654"
+_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "master"
 _get_repo feeds/packages https://github.com/openwrt/packages "master"
 #_get_repo feeds/luci https://github.com/openwrt/luci "lede-17.01"
 _get_repo feeds/luci https://github.com/openwrt/luci "master"
