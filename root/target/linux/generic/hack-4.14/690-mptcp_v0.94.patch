@@ -3561,13 +3561,14 @@ index fe11128..f5c905d 100644
  
  	if (!sock_flag(sk, SOCK_DEAD)) {
  		sk->sk_err = err;
-@@ -3443,9 +3686,9 @@ int tcp_abort(struct sock *sk, int err)
+@@ -3443,10 +3686,10 @@ int tcp_abort(struct sock *sk, int err)
  		tcp_done(sk);
  	}
  
 -	bh_unlock_sock(sk);
 +	bh_unlock_sock(meta_sk);
  	local_bh_enable();
+	tcp_write_queue_purge(sk);
 -	release_sock(sk);
 +	release_sock(meta_sk);
  	return 0;
