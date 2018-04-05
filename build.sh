@@ -20,6 +20,7 @@ OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 OMR_UEFI=${OMR_UEFI:-yes}
+OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 
@@ -78,7 +79,9 @@ CONFIG_VERSION_REPO="$OMR_REPO"
 CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
 CONFIG_PACKAGE_${OMR_DIST}-full=y
 EOF
-
+if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
+	echo 'CONFIG_ALL=y' >> "$OMR_TARGET/source/.config"
+fi
 if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
@@ -110,11 +113,15 @@ echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
+if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
+	scripts/feeds install -a -p packages
+	scripts/feeds install -a -p luci
+fi
 scripts/feeds install -a -d y -f -p openmptcprouter
 cp .config.keep .config
 echo "Done"
 
 echo "Building $OMR_DIST for the target $OMR_TARGET"
 make defconfig
-make "$@"
+make "$@" IGNORE_ERRORS=m
 echo "Done"
