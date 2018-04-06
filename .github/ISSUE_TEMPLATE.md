@@ -1,5 +1,6 @@
 ## Expected Behavior
 
+  In English please.
 
 ## Actual Behavior
 
@@ -14,4 +15,4 @@
 
   - OpenMPTCProuter version:
   - OpenMPTCProuter VPS version:
-  - Platform:
+  - OpenMPTCProuter platform: (RPI3/x86_64)
