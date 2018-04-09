@@ -3568,6 +3568,7 @@ index fe11128..f5c905d 100644
 -	bh_unlock_sock(sk);
 +	bh_unlock_sock(meta_sk);
  	local_bh_enable();
+ 	tcp_write_queue_purge(sk);
 -	release_sock(sk);
 +	release_sock(meta_sk);
  	return 0;
