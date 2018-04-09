@@ -58,7 +58,7 @@ define Download/start_elf
   FILE:=$(RPI_FIRMWARE_FILE)-start.elf
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=start.elf
-  HASH:=83109aff303b871ae68e8a5e214639d4795bdaebfaa7de58cd680065b7822c5f
+  HASH:=98acec15da036604a202bcfae4a2f5edff5a0e5f6f8c5d7c23469fe462db0658
 endef
 $(eval $(call Download,start_elf))
 
