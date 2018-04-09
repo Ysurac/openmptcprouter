@@ -1,0 +1,36 @@
+From b5b6bb9bdb5e62bc7dfc64b40bd833bffd971693 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 4 Apr 2018 16:39:44 +0100
+Subject: [PATCH 294/297] lan78xx: Don't reset the interface on open
+
+With Alexander Graf's patch ("lan78xx: Connect phy early") applied,
+the call to lan78xx_reset within lan78xx_open prevents the phy
+interrupt from being generated (even though the link is up).
+
+Avoid this issue by removing the lan78xx_reset call.
+
+See: https://github.com/raspberrypi/linux/issues/2437
+     https://github.com/raspberrypi/linux/issues/2442
+     https://github.com/raspberrypi/linux/issues/2457
+---
+ drivers/net/usb/lan78xx.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
+index 5c6972871b7b..b57e86f45434 100644
+--- a/drivers/net/usb/lan78xx.c
++++ b/drivers/net/usb/lan78xx.c
+@@ -2553,10 +2553,6 @@ static int lan78xx_open(struct net_device *net)
+ 	if (ret < 0)
+ 		goto out;
+ 
+-	ret = lan78xx_reset(dev);
+-	if (ret < 0)
+-		goto done;
+-
+ 	phy_start(net->phydev);
+ 
+ 	netif_dbg(dev, ifup, dev->net, "phy initialised successfully");
+-- 
+2.16.1
+

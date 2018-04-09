@@ -1,0 +1,32 @@
+From bc80536c9c9a429db34f96d98549b98ee026df63 Mon Sep 17 00:00:00 2001
+From: hexameron <hexameron>
+Date: Tue, 20 Mar 2018 12:48:10 +0000
+Subject: [PATCH 278/297] overlays: use all seven dwc2 gadget fifos.
+
+Linux 4.9 needed fifos to be set to their default values,
+ leaving the last one (silently) set to zero size.
+From 4.12 Linux allows fifos to be set to any size EXCEPT zero.
+
+Resolves https://github.com/raspberrypi/linux/issues/2390
+
+Signed-off-by: John Greb <h3x4m3r0n@gmail.com>
+---
+ arch/arm/boot/dts/overlays/dwc2-overlay.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/overlays/dwc2-overlay.dts b/arch/arm/boot/dts/overlays/dwc2-overlay.dts
+index 265a16bab008..d6c223bc559a 100644
+--- a/arch/arm/boot/dts/overlays/dwc2-overlay.dts
++++ b/arch/arm/boot/dts/overlays/dwc2-overlay.dts
+@@ -15,7 +15,7 @@
+ 			dr_mode = "otg";
+ 			g-np-tx-fifo-size = <32>;
+ 			g-rx-fifo-size = <256>;
+-			g-tx-fifo-size = <512 512 512 512 512 768>;
++			g-tx-fifo-size = <512 512 512 512 512 256 256>;
+ 			status = "okay";
+ 		};
+ 	};
+-- 
+2.16.1
+

@@ -1,0 +1,59 @@
+From 9696aab22bb8163fb3a2a262dd6c67f6d05b70a1 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 28 Mar 2018 12:18:13 +0100
+Subject: [PATCH 284/297] lan78xx: Ignore DT MAC address if already valid
+
+The patch to set the lan78xx MAC address from DT does so regardless of
+whether or not the interface already has a valid address. As the
+initialisation function is called from the reset handler when the
+interface is brought up, it is impossible to change the MAC address
+in a way that persists across the interface being brought up.
+
+Fix the problem by moving the DT reading code after the check for a
+valid address.
+
+See: https://www.raspberrypi.org/forums/viewtopic.php?f=28&t=209309
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ drivers/net/usb/lan78xx.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
+index 52593368a48d..981cc5bf2df4 100644
+--- a/drivers/net/usb/lan78xx.c
++++ b/drivers/net/usb/lan78xx.c
+@@ -1641,14 +1641,6 @@ static void lan78xx_init_mac_address(struct lan78xx_net *dev)
+ 	u32 addr_lo, addr_hi;
+ 	int ret;
+ 	u8 addr[6];
+-	const u8 *mac_addr;
+-
+-	/* maybe the boot loader passed the MAC address in devicetree */
+-	mac_addr = of_get_mac_address(dev->udev->dev.of_node);
+-	if (mac_addr) {
+-		ether_addr_copy(addr, mac_addr);
+-		goto set_mac_addr;
+-	}
+ 
+ 	ret = lan78xx_read_reg(dev, RX_ADDRL, &addr_lo);
+ 	ret = lan78xx_read_reg(dev, RX_ADDRH, &addr_hi);
+@@ -1661,6 +1653,15 @@ static void lan78xx_init_mac_address(struct lan78xx_net *dev)
+ 	addr[5] = (addr_hi >> 8) & 0xFF;
+ 
+ 	if (!is_valid_ether_addr(addr)) {
++		const u8 *mac_addr;
++
++		/* maybe the boot loader passed the MAC address in devicetree */
++		mac_addr = of_get_mac_address(dev->udev->dev.of_node);
++		if (mac_addr) {
++			ether_addr_copy(addr, mac_addr);
++			goto set_mac_addr;
++		}
++
+ 		/* reading mac address from EEPROM or OTP */
+ 		if ((lan78xx_read_eeprom(dev, EEPROM_MAC_OFFSET, ETH_ALEN,
+ 					 addr) == 0) ||
+-- 
+2.16.1
+

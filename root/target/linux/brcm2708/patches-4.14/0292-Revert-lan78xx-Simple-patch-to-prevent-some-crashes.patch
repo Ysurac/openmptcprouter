@@ -1,0 +1,62 @@
+From 8d51cdad7dfe77c6b5dfeb95e675d7c4036c9f0f Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 4 Apr 2018 16:56:49 +0100
+Subject: [PATCH 292/297] Revert "lan78xx: Simple patch to prevent some
+ crashes"
+
+This reverts commit 661230038a8736ba9023978c53cd21cd65739406.
+---
+ drivers/net/usb/lan78xx.c | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
+index 099c7a06e365..70490995022b 100644
+--- a/drivers/net/usb/lan78xx.c
++++ b/drivers/net/usb/lan78xx.c
+@@ -2023,9 +2023,6 @@ static int lan78xx_phy_init(struct lan78xx_net *dev)
+ 	int i;
+ 	struct phy_device *phydev = dev->net->phydev;
+ 
+-	/* Return early if already initialised */
+-	if (phydev)
+-	    return 0;
+ 	phydev = phy_find_first(dev->mdiobus);
+ 	if (!phydev) {
+ 		netdev_err(dev->net, "no PHY found\n");
+@@ -2643,8 +2640,13 @@ static int lan78xx_stop(struct net_device *net)
+ 	if (timer_pending(&dev->stat_monitor))
+ 		del_timer_sync(&dev->stat_monitor);
+ 
+-	if (net->phydev)
+-		phy_stop(net->phydev);
++	phy_unregister_fixup_for_uid(PHY_KSZ9031RNX, 0xfffffff0);
++	phy_unregister_fixup_for_uid(PHY_LAN8835, 0xfffffff0);
++
++	phy_stop(net->phydev);
++	phy_disconnect(net->phydev);
++
++	net->phydev = NULL;
+ 
+ 	clear_bit(EVENT_DEV_OPEN, &dev->flags);
+ 	netif_stop_queue(net);
+@@ -3542,16 +3544,10 @@ static void lan78xx_disconnect(struct usb_interface *intf)
+ 	udev = interface_to_usbdev(intf);
+ 
+ 	net = dev->net;
++	unregister_netdev(net);
+ 
+ 	cancel_delayed_work_sync(&dev->wq);
+ 
+-	phy_unregister_fixup_for_uid(PHY_KSZ9031RNX, 0xfffffff0);
+-	phy_unregister_fixup_for_uid(PHY_LAN8835, 0xfffffff0);
+-
+-	phy_disconnect(net->phydev);
+-	net->phydev = NULL;
+-	unregister_netdev(net);
+-
+ 	usb_scuttle_anchored_urbs(&dev->deferred);
+ 
+ 	lan78xx_unbind(dev, intf);
+-- 
+2.16.1
+

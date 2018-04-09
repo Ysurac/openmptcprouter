@@ -1,0 +1,70 @@
+From 661230038a8736ba9023978c53cd21cd65739406 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 28 Mar 2018 17:32:20 +0100
+Subject: [PATCH 285/297] lan78xx: Simple patch to prevent some crashes
+
+Alexander Graf submitted a patch to solve a problem when connecting to
+the device before the interface is brought up, but with that patch
+applied the interface fails to work (for me and others). This simpler
+patch should be considered a stepping stone that may prevent some of the
+crashes seen when the interface is reset but without solving the early
+access problem.
+
+See:  https://github.com/raspberrypi/linux/issues/2449
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ drivers/net/usb/lan78xx.c | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
+index 981cc5bf2df4..e7bdbd1accad 100644
+--- a/drivers/net/usb/lan78xx.c
++++ b/drivers/net/usb/lan78xx.c
+@@ -2023,6 +2023,9 @@ static int lan78xx_phy_init(struct lan78xx_net *dev)
+ 	int i;
+ 	struct phy_device *phydev = dev->net->phydev;
+ 
++	/* Return early if already initialised */
++	if (phydev)
++	    return 0;
+ 	phydev = phy_find_first(dev->mdiobus);
+ 	if (!phydev) {
+ 		netdev_err(dev->net, "no PHY found\n");
+@@ -2639,13 +2642,8 @@ static int lan78xx_stop(struct net_device *net)
+ 	if (timer_pending(&dev->stat_monitor))
+ 		del_timer_sync(&dev->stat_monitor);
+ 
+-	phy_unregister_fixup_for_uid(PHY_KSZ9031RNX, 0xfffffff0);
+-	phy_unregister_fixup_for_uid(PHY_LAN8835, 0xfffffff0);
+-
+-	phy_stop(net->phydev);
+-	phy_disconnect(net->phydev);
+-
+-	net->phydev = NULL;
++	if (net->phydev)
++		phy_stop(net->phydev);
+ 
+ 	clear_bit(EVENT_DEV_OPEN, &dev->flags);
+ 	netif_stop_queue(net);
+@@ -3543,10 +3541,16 @@ static void lan78xx_disconnect(struct usb_interface *intf)
+ 	udev = interface_to_usbdev(intf);
+ 
+ 	net = dev->net;
+-	unregister_netdev(net);
+ 
+ 	cancel_delayed_work_sync(&dev->wq);
+ 
++	phy_unregister_fixup_for_uid(PHY_KSZ9031RNX, 0xfffffff0);
++	phy_unregister_fixup_for_uid(PHY_LAN8835, 0xfffffff0);
++
++	phy_disconnect(net->phydev);
++	net->phydev = NULL;
++	unregister_netdev(net);
++
+ 	usb_scuttle_anchored_urbs(&dev->deferred);
+ 
+ 	lan78xx_unbind(dev, intf);
+-- 
+2.16.1
+
