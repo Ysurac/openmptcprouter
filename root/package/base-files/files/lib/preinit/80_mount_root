@@ -1,0 +1,21 @@
+#!/bin/sh
+# Copyright (C) 2006 OpenWrt.org
+# Copyright (C) 2010 Vertical Communications
+# Copyright (C) 2018 Ycarus (Yannick Chabanois) <ycarus@zugaina.org>
+
+do_mount_root() {
+	mount_root
+	boot_run_hook preinit_mount_root
+	[ -e /dev/sda1 ] && mount /dev/sda1 /boot
+	[ -f /boot/sysupgrade.tgz ] && {
+		mv /boot/sysupgrade.tgz /
+	}
+	[ -e /dev/sda1 ] && umount /boot
+	[ -f /sysupgrade.tgz ] && {
+		echo "- config restore -"
+		cd /
+		tar xzf sysupgrade.tgz
+	}
+}
+
+[ "$INITRAMFS" = "1" ] || boot_hook_add preinit_main do_mount_root
