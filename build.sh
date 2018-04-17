@@ -32,6 +32,12 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	exit 1
 fi
 
+if [ "$OMR_TARGET" == "rpi3" ]; then
+	OMR_REAL_TARGET = "aarch64_cortex-a53"
+else
+	OMR_REAL_TARGET = $OMR_TARGET
+fi
+
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 #_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "3db9d6e57def2912314c7ce0bc0c282f313ed654"
 _get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "master"
@@ -69,6 +75,14 @@ cat > "$OMR_TARGET/source/feeds.conf" <<EOF
 src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
+EOF
+
+cat >> "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
+src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
+src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
+src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
+src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
+src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
 EOF
 
 cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/source/.config" <<EOF
@@ -123,5 +137,5 @@ echo "Done"
 
 echo "Building $OMR_DIST for the target $OMR_TARGET"
 make defconfig
-make "$@" IGNORE_ERRORS=m
+make IGNORE_ERRORS=m "$@"
 echo "Done"
