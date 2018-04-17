@@ -33,9 +33,9 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 fi
 
 if [ "$OMR_TARGET" = "rpi3" ]; then
-	OMR_REAL_TARGET = "aarch64_cortex-a53"
+	OMR_REAL_TARGET="aarch64_cortex-a53"
 else
-	OMR_REAL_TARGET = $OMR_TARGET
+	OMR_REAL_TARGET=${OMR_TARGET}
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
