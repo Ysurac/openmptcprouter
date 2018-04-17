@@ -32,7 +32,7 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	exit 1
 fi
 
-if [ "$OMR_TARGET" == "rpi3" ]; then
+if [ "$OMR_TARGET" = "rpi3" ]; then
 	OMR_REAL_TARGET = "aarch64_cortex-a53"
 else
 	OMR_REAL_TARGET = $OMR_TARGET
