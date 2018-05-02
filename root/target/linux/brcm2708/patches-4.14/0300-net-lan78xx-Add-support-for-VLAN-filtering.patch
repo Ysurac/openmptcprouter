@@ -1,0 +1,41 @@
+From 7a6e7a4c6b944b384d768924d59726e4d6141623 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Tue, 10 Apr 2018 12:39:06 +0100
+Subject: [PATCH 300/321] net: lan78xx: Add support for VLAN filtering.
+
+HW_VLAN_CTAG_FILTER was partially implemented, but not fully to Linux.
+Complete the implementation of this.
+
+See #2458.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ drivers/net/usb/lan78xx.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
+index f11cff7664c3..b7b1e2e46dd0 100644
+--- a/drivers/net/usb/lan78xx.c
++++ b/drivers/net/usb/lan78xx.c
+@@ -2295,7 +2295,7 @@ static int lan78xx_set_features(struct net_device *netdev,
+ 		pdata->rfe_ctl &= ~(RFE_CTL_ICMP_COE_ | RFE_CTL_IGMP_COE_);
+ 	}
+ 
+-	if (features & NETIF_F_HW_VLAN_CTAG_RX)
++	if (features & NETIF_F_HW_VLAN_CTAG_FILTER)
+ 		pdata->rfe_ctl |= RFE_CTL_VLAN_FILTER_;
+ 	else
+ 		pdata->rfe_ctl &= ~RFE_CTL_VLAN_FILTER_;
+@@ -2909,6 +2909,9 @@ static int lan78xx_bind(struct lan78xx_net *dev, struct usb_interface *intf)
+ 	if (DEFAULT_TSO_CSUM_ENABLE)
+ 		dev->net->features |= NETIF_F_TSO | NETIF_F_TSO6 | NETIF_F_SG;
+ 
++	if (DEFAULT_VLAN_FILTER_ENABLE)
++		dev->net->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
++
+ 	dev->net->hw_features = dev->net->features;
+ 
+ 	ret = lan78xx_setup_irq_domain(dev);
+-- 
+2.16.1
+

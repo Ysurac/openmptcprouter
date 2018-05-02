@@ -1,0 +1,40 @@
+From 435b6e07850c14afb03ab9a55418001c8fdb1c57 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Sun, 15 Apr 2018 10:35:22 +0100
+Subject: [PATCH 303/321] config: Enable the DS1621 I2C temperature sensor
+
+See: https://github.com/raspberrypi/linux/issues/2509
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/configs/bcm2709_defconfig | 1 +
+ arch/arm/configs/bcmrpi_defconfig  | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index cb348578d44f..deccc426d99b 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -647,6 +647,7 @@ CONFIG_POWER_RESET=y
+ CONFIG_POWER_RESET_GPIO=y
+ CONFIG_BATTERY_DS2760=m
+ CONFIG_HWMON=m
++CONFIG_SENSORS_DS1621=m
+ CONFIG_SENSORS_JC42=m
+ CONFIG_SENSORS_LM75=m
+ CONFIG_SENSORS_SHT21=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 12f20a105638..e5aae4616caf 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -640,6 +640,7 @@ CONFIG_POWER_RESET=y
+ CONFIG_POWER_RESET_GPIO=y
+ CONFIG_BATTERY_DS2760=m
+ CONFIG_HWMON=m
++CONFIG_SENSORS_DS1621=m
+ CONFIG_SENSORS_JC42=m
+ CONFIG_SENSORS_LM75=m
+ CONFIG_SENSORS_SHT21=m
+-- 
+2.16.1
+
