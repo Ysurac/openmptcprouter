@@ -77,7 +77,7 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
-cat >> "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
+cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
 src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
 src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
 src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
@@ -115,6 +115,13 @@ else
 	fi
 fi
 echo "Done"
+
+echo "Reverse gtime patch"
+if ! patch -Nf -p1 -s --dry-run < ../../patches/gtime.patch; then
+	patch -N -R -p1 -s < ../../patches/gtime.patch
+fi
+echo "Done"
+
 
 #echo "Set to kernel 4.9 for all arch"
 #find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.9%g' {} \;
