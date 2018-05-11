@@ -2050,7 +2050,7 @@ index caf35e0..9e1e50a 100644
  #define TCPOPT_FASTOPEN		34	/* Fast open (RFC7413) */
  #define TCPOPT_EXP		254	/* Experimental */
  /* Magic number to be after the option value for sharing TCP
-@@ -231,6 +232,28 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
+@@ -231,6 +232,29 @@ void tcp_time_wait(struct sock *sk, int state, int timeo);
   */
  #define	TFO_SERVER_WO_SOCKOPT1	0x400
  
@@ -2069,7 +2069,8 @@ index caf35e0..9e1e50a 100644
 +#define FLAG_DSACKING_ACK       0x800 /* SACK blocks contained D-SACK info */
 +#define FLAG_SACK_RENEGING      0x2000 /* snd_una advanced to a sacked seq */
 +#define FLAG_UPDATE_TS_RECENT   0x4000 /* tcp_replace_ts_recent() */
-+#define MPTCP_FLAG_DATA_ACKED	0x8000
++#define FLAG_NO_CHALLENGE_ACK   0x8000 /* do not call tcp_send_challenge_ack() */
++#define MPTCP_FLAG_DATA_ACKED	0x10000
 +
 +#define FLAG_ACKED              (FLAG_DATA_ACKED|FLAG_SYN_ACKED)
 +#define FLAG_NOT_DUP            (FLAG_DATA|FLAG_WIN_UPDATE|FLAG_ACKED)
@@ -3678,7 +3679,7 @@ index 2f107e4..1bd0ac7 100644
  
  int sysctl_tcp_timestamps __read_mostly = 1;
  int sysctl_tcp_window_scaling __read_mostly = 1;
-@@ -101,26 +104,6 @@ int sysctl_tcp_moderate_rcvbuf __read_mostly = 1;
+@@ -101,27 +104,6 @@ int sysctl_tcp_moderate_rcvbuf __read_mostly = 1;
  int sysctl_tcp_early_retrans __read_mostly = 3;
  int sysctl_tcp_invalid_ratelimit __read_mostly = HZ/2;
  
@@ -3696,6 +3697,7 @@ index 2f107e4..1bd0ac7 100644
 -#define FLAG_DSACKING_ACK	0x800 /* SACK blocks contained D-SACK info */
 -#define FLAG_SACK_RENEGING	0x2000 /* snd_una advanced to a sacked seq */
 -#define FLAG_UPDATE_TS_RECENT	0x4000 /* tcp_replace_ts_recent() */
+-#define FLAG_NO_CHALLENGE_ACK	0x8000 /* do not call tcp_send_challenge_ack()	*/
 -
 -#define FLAG_ACKED		(FLAG_DATA_ACKED|FLAG_SYN_ACKED)
 -#define FLAG_NOT_DUP		(FLAG_DATA|FLAG_WIN_UPDATE|FLAG_ACKED)
@@ -4264,10 +4266,11 @@ index 2f107e4..1bd0ac7 100644
  		tcp_for_write_queue_from(data, sk) {
  			if (data == tcp_send_head(sk) ||
  			    __tcp_retransmit_skb(sk, data, 1))
-@@ -5678,8 +5789,11 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
+@@ -5678,9 +5789,12 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
  	struct tcp_sock *tp = tcp_sk(sk);
  	struct tcp_fastopen_cookie foc = { .len = -1 };
  	int saved_clamp = tp->rx_opt.mss_clamp;
+ 	bool fastopen_fail;
 +	struct mptcp_options_received mopt;
 +	mptcp_init_mp_opt(&mopt);
  
@@ -4320,10 +4323,9 @@ index 2f107e4..1bd0ac7 100644
  		if (tcp_is_sack(tp) && sysctl_tcp_fack)
  			tcp_enable_fack(tp);
  
-@@ -5785,9 +5928,12 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
- 		    tcp_rcv_fastopen_synack(sk, skb, &foc))
+@@ -5785,8 +5928,11 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
+ 		if (fastopne_fail)
  			return -1;
- 
 -		if (sk->sk_write_pending ||
 +		/* With MPTCP we cannot send data on the third ack due to the
 +		 * lack of option-space to combine with an MP_CAPABLE.
