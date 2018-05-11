@@ -29,7 +29,7 @@ OMR_FEED_SRC="${OMR_FEED_SRC:-master}"
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
-	exit 1
+	#exit 1
 fi
 
 if [ "$OMR_TARGET" = "rpi3" ]; then
@@ -141,6 +141,11 @@ fi
 scripts/feeds install -a -d y -f -p openmptcprouter
 cp .config.keep .config
 echo "Done"
+
+if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
+	echo "Target $OMR_TARGET not found ! You have to configure and compile your kernel manually."
+	exit 1
+fi
 
 echo "Building $OMR_DIST for the target $OMR_TARGET"
 make defconfig
