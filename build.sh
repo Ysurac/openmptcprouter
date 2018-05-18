@@ -34,6 +34,8 @@ fi
 
 if [ "$OMR_TARGET" = "rpi3" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
+elif [ "$OMR_TARGET" = "rpi2" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 else
 	OMR_REAL_TARGET=${OMR_TARGET}
 fi
@@ -137,7 +139,7 @@ echo "Done"
 #echo "Set to kernel 4.9 for all arch"
 #find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.9%g' {} \;
 #echo "Done"
-echo "Set to kernel 4.14 for rpi3 arch"
+echo "Set to kernel 4.14 for rpi arch"
 find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.9%KERNEL_PATCHVER:=4.14%g' {} \;
 echo "Done"
 
