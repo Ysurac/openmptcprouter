@@ -85,14 +85,25 @@ src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REA
 src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
 EOF
 
-cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/source/.config" <<EOF
-CONFIG_IMAGEOPT=y
-CONFIG_VERSIONOPT=y
-CONFIG_VERSION_DIST="$OMR_DIST"
-CONFIG_VERSION_REPO="$OMR_REPO"
-CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
-CONFIG_PACKAGE_${OMR_DIST}-full=y
-EOF
+if [ -f "$OMR_TARGET_CONFIG" ]; then
+	cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/source/.config" <<-EOF
+	CONFIG_IMAGEOPT=y
+	CONFIG_VERSIONOPT=y
+	CONFIG_VERSION_DIST="$OMR_DIST"
+	CONFIG_VERSION_REPO="$OMR_REPO"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
+	CONFIG_PACKAGE_${OMR_DIST}-full=y
+	EOF
+else
+	cat config -> "$OMR_TARGET/source/.config" <<-EOF
+	CONFIG_IMAGEOPT=y
+	CONFIG_VERSIONOPT=y
+	CONFIG_VERSION_DIST="$OMR_DIST"
+	CONFIG_VERSION_REPO="$OMR_REPO"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
+	CONFIG_PACKAGE_${OMR_DIST}-full=y
+	EOF
+fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	echo 'CONFIG_ALL=y' >> "$OMR_TARGET/source/.config"
 fi
