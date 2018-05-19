@@ -34,7 +34,7 @@ fi
 
 if [ "$OMR_TARGET" = "rpi3" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
-elif [ "$OMR_TARGET" = "rpi2" ]; then
+elif [ "$OMR_TARGET" = "rpi2" ] || [ "$OMR_TARGET" = "rpi" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 else
 	OMR_REAL_TARGET=${OMR_TARGET}
