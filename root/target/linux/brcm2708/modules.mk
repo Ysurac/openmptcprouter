@@ -8,7 +8,7 @@
 define KernelPackage/drm-vc4
   SUBMENU:=$(VIDEO_MENU)
   TITLE:=Broadcom VC4 Graphics
-  DEPENDS:=@TARGET_brcm2708 +kmod-drm
+  DEPENDS:=@TARGET_brcm2708 +kmod-drm +kmod-sound-soc-core
   KCONFIG:=CONFIG_DRM_VC4
   FILES:= \
 	$(LINUX_DIR)/drivers/gpu/drm/vc4/vc4.ko \
