@@ -8,7 +8,7 @@
 define KernelPackage/drm-vc4
   SUBMENU:=$(VIDEO_MENU)
   TITLE:=Broadcom VC4 Graphics
-  DEPENDS:=@TARGET_brcm2708 +kmod-pcm +kmod-sound-soc-core +kmod-drm
+  DEPENDS:=@TARGET_brcm2708 +kmod-drm
   KCONFIG:=CONFIG_DRM_VC4
   FILES:= \
 	$(LINUX_DIR)/drivers/gpu/drm/vc4/vc4.ko \
@@ -30,8 +30,8 @@ define KernelPackage/sound-arm-bcm2835
 	CONFIG_SND_BCM2835 \
 	CONFIG_SND_ARMAACI=n
   FILES:= \
-	$(LINUX_DIR)/sound/arm/snd-bcm2835.ko@lt4.12 \
-	$(LINUX_DIR)/drivers/staging/vc04_services/bcm2835-audio/snd-bcm2835.ko@ge4.12
+	$(LINUX_DIR)/sound/arm/snd-bcm2835.ko@lt4.14 \
+	$(LINUX_DIR)/drivers/staging/vc04_services/bcm2835-audio/snd-bcm2835.ko@ge4.14
   AUTOLOAD:=$(call AutoLoad,68,snd-bcm2835)
   DEPENDS:=@TARGET_brcm2708
   $(call AddDepends/sound)
@@ -421,6 +421,33 @@ endef
 
 $(eval $(call KernelPackage,sound-soc-pisound))
 
+define KernelPackage/sound-soc-raspidac3
+  TITLE:=Support for RaspiDAC Rev.3x
+  KCONFIG:= \
+    CONFIG_SND_BCM2708_SOC_RASPIDAC3 \
+    CONFIG_SND_SOC_PCM512x \
+    CONFIG_SND_SOC_PCM512x_I2C \
+    CONFIG_SND_SOC_TPA6130A2
+  FILES:= \
+    $(LINUX_DIR)/sound/soc/bcm/snd-soc-raspidac3.ko \
+    $(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm512x.ko \
+    $(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm512x-i2c.ko \
+    $(LINUX_DIR)/sound/soc/codecs/snd-soc-tpa6130a2.ko
+  AUTOLOAD:=$(call AutoLoad,68,snd-soc-pcm512x snd-soc-pcm512x-i2c \
+    snd-soc-tpa6130a2 snd-soc-raspidac3)
+  DEPENDS:= \
+    @ge4.14 \
+    kmod-sound-soc-bcm2835-i2s \
+    +kmod-i2c-bcm2708
+  $(call AddDepends/sound)
+endef
+
+define KernelPackage/sound-soc-raspidac3/description
+  This package contains support for RaspiDAC Rev.3x
+endef
+
+$(eval $(call KernelPackage,sound-soc-raspidac3))
+
 define KernelPackage/sound-soc-rpi-dac
   TITLE:=Support for RPi-DAC
   KCONFIG:= \
@@ -604,8 +631,8 @@ define KernelPackage/video-bcm2835
   KCONFIG:= \
 	CONFIG_VIDEO_BCM2835=y \
 	CONFIG_VIDEO_BCM2835_MMAL
-  FILES:= $(LINUX_DIR)/drivers/media/platform/bcm2835/bcm2835-v4l2.ko@lt4.12 \
-	$(LINUX_DIR)/drivers/staging/vc04_services/bcm2835-camera/bcm2835-v4l2.ko@ge4.12
+  FILES:= $(LINUX_DIR)/drivers/media/platform/bcm2835/bcm2835-v4l2.ko@lt4.14 \
+	$(LINUX_DIR)/drivers/staging/vc04_services/bcm2835-camera/bcm2835-v4l2.ko@ge4.14
   AUTOLOAD:=$(call AutoLoad,65,bcm2835-v4l2)
   $(call AddDepends/video,@TARGET_brcm2708 +kmod-video-videobuf2)
 endef
