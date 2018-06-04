@@ -1,7 +1,6 @@
 #
 # Copyright (C) 2012-2016 OpenWrt.org
 # Copyright (C) 2017 LEDE project
-# Copyright (C) 2018 Ycarus (Yannick Chabanois) <ycarus@zugaina.org>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -10,8 +9,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=brcm2708-gpu-fw
-PKG_VERSION:=2018-05-21
-PKG_RELEASE:=6a3ac305d65cff090d1a8d4444d12d5c81989ab9
+PKG_VERSION:=2018-06-03
+PKG_RELEASE:=ab802d365130f21f6897c7e1bc2f432d87803337
 
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_NAME)/rpi-firmware-$(PKG_RELEASE)
 
@@ -42,7 +41,7 @@ define Download/fixup_dat
   FILE:=$(RPI_FIRMWARE_FILE)-fixup.dat
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=fixup.dat
-  HASH:=b6b03a65001e216de162b7e21b599c6da2645747961658eb071a23adf607b76b
+  HASH:=0cd8dac2bfdf9819e068c67e95a0daaf17d1546c1ead96ecec74462c608acac2
 endef
 $(eval $(call Download,fixup_dat))
 
@@ -50,7 +49,7 @@ define Download/fixup_cd_dat
   FILE:=$(RPI_FIRMWARE_FILE)-fixup_cd.dat
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=fixup_cd.dat
-  HASH:=d2766b5965cd77879822149cf063b63e3a41c3d5868c9027d086af019f538e9b
+  HASH:=c5ae4d84f98e7bdbc5c79cc4a380b9330ec952705f3d94fe2e67b6976cbb7b25
 endef
 $(eval $(call Download,fixup_cd_dat))
 
@@ -58,7 +57,7 @@ define Download/start_elf
   FILE:=$(RPI_FIRMWARE_FILE)-start.elf
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=start.elf
-  HASH:=c6d36b8abf8ab988566482e426f97f490e0ccc5652b0d18378bb2a1e2af68e5e
+  HASH:=df93e8e8696e6b39b46e84b6a460a37020e2d5e7081d6baead88c4b7cf20ce26
 endef
 $(eval $(call Download,start_elf))
 
@@ -66,7 +65,7 @@ define Download/start_cd_elf
   FILE:=$(RPI_FIRMWARE_FILE)-start_cd.elf
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=start_cd.elf
-  HASH:=557e15b1e03ae900ebb3c60026a02151d1120f563b85620355486c93e905c68e
+  HASH:=9b1006231f9520774e3ae283430815137d701ad80510c3736c55deb8aa4f27d9
 endef
 $(eval $(call Download,start_cd_elf))
 
