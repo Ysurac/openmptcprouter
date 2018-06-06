@@ -38,16 +38,6 @@ index ee95fc957e1f..76674d8881b5 100644
  	ret = lan78xx_write_reg(dev, HW_CFG, buf);
  
  	ret = lan78xx_read_reg(dev, USB_CFG0, &buf);
-@@ -2461,6 +2469,9 @@ static int lan78xx_reset(struct lan78xx_net *dev)
- 	/* LAN7801 only has RGMII mode */
- 	if (dev->chipid == ID_REV_CHIP_ID_7801_)
- 		buf &= ~MAC_CR_GMII_EN_;
-+	/* If no valid EEPROM and no valid OTP, enable AUTO negotiation */
-+	if (!has_eeprom && !has_otp)
-+	    buf |= MAC_CR_AUTO_DUPLEX_ | MAC_CR_AUTO_SPEED_;
- 	ret = lan78xx_write_reg(dev, MAC_CR, buf);
- 
- 	ret = lan78xx_read_reg(dev, MAC_TX, &buf);
 -- 
 2.16.1
 
