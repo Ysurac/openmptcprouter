@@ -1,0 +1,57 @@
+From d8b4a08cafd4d235a49e96244427232e147de9ac Mon Sep 17 00:00:00 2001
+From: James Hughes <james.hughes@raspberrypi.org>
+Date: Tue, 8 May 2018 15:03:36 +0100
+Subject: [PATCH 327/340] Revert "Sets the BCDC priority to constant 0"
+
+This reverts commit 8e4cdcb1c2ff7e991044e2ee01dba7f572ab29a2.
+
+Testing the latest wireless firmware and unable to replicate the
+bug once this change is reverted.
+
+Test used is :
+
+Connect a Pi wirelessly to an AP (PiA), with another device
+connected either wirelessly or via ethernet to the same
+network (PiB).
+
+On PiB run
+
+sudo tcpdump -n 'udp port 7' -v -i wlan0
+
+On PiA,
+
+nc -T 0x10 -u <PiB ipaddress> 7
+
+This sends a UDP packet to port 7, with the TOS flag set to 0x10.
+
+Previously this would NOT arrive (or sometime be very badly delayed
+ - 10's of seconds)
+
+Sending TOS as 0
+
+nc -T 0x0 -u <PiB ipaddress> 7
+
+would arrive.
+
+Now with the change reverted but the latest wireless firmware present
+the tests works in all cases.
+---
+ drivers/net/wireless/broadcom/brcm80211/brcmfmac/bcdc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/bcdc.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/bcdc.c
+index b009f3083490..9f2d0b0cf6e5 100644
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/bcdc.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/bcdc.c
+@@ -274,7 +274,7 @@ brcmf_proto_bcdc_hdrpush(struct brcmf_pub *drvr, int ifidx, u8 offset,
+ 	if (pktbuf->ip_summed == CHECKSUM_PARTIAL)
+ 		h->flags |= BCDC_FLAG_SUM_NEEDED;
+ 
+-	h->priority = 0;
++	h->priority = (pktbuf->priority & BCDC_PRIORITY_MASK);
+ 	h->flags2 = 0;
+ 	h->data_offset = offset;
+ 	BCDC_SET_IF_IDX(h, ifidx);
+-- 
+2.16.1
+
