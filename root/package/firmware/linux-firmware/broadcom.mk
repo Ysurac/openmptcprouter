@@ -49,6 +49,9 @@ define Package/brcmfmac-firmware-43455-sdio/install
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/brcm/brcmfmac43455-sdio.bin \
 		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.bin
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/brcm/brcmfmac43455-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.clm_blob
 endef
 $(eval $(call BuildPackage,brcmfmac-firmware-43455-sdio))
 
