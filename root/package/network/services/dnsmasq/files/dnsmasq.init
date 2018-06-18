@@ -1070,7 +1070,7 @@ service_triggers()
 
 boot()
 {
-	BOOT=1
+	#BOOT=1
 	start "$@"
 }
 
