@@ -129,11 +129,11 @@ else
 fi
 echo "Done"
 
-echo "Reverse gtime patch"
-if ! patch -Nf -p1 -s --dry-run < ../../patches/gtime.patch; then
-	patch -N -R -p1 -s < ../../patches/gtime.patch
-fi
-echo "Done"
+#echo "Reverse gtime patch"
+#if ! patch -Nf -p1 -s --dry-run < ../../patches/gtime.patch; then
+#	patch -N -R -p1 -s < ../../patches/gtime.patch
+#fi
+#echo "Done"
 
 
 #echo "Set to kernel 4.9 for all arch"
