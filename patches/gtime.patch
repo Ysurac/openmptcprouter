@@ -1,44 +1,10 @@
-From ff6e62b288cab103f9dd4200b49ec6dc47375eb8 Mon Sep 17 00:00:00 2001
-From: Etienne Champetier <champetier.etienne@gmail.com>
-Date: Mon, 30 Apr 2018 12:55:12 -0700
-Subject: [PATCH] build: log time taken by each packages/steps
-
-The idea is to easily get the list of packages taking the most time to build,
-and see if we can improve them
-
-v1: Use SetupHostCommand as recommended by John
-v2: add space after 'time:', remove useless /usr/bin/time from SetupHostCommand
-
-Signed-off-by: Etienne Champetier <champetier.etienne@gmail.com>
----
- include/prereq-build.mk | 4 ++++
- include/subdir.mk       | 1 +
- 2 files changed, 5 insertions(+)
-
-diff --git a/include/prereq-build.mk b/include/prereq-build.mk
-index 5b9a7e049d1..bac5fdc84c6 100644
---- a/include/prereq-build.mk
-+++ b/include/prereq-build.mk
-@@ -138,6 +138,10 @@ $(eval $(call SetupHostCommand,bzip2,Please install 'bzip2', \
- $(eval $(call SetupHostCommand,wget,Please install GNU 'wget', \
- 	wget --version | grep GNU))
- 
-+$(eval $(call SetupHostCommand,gtime,Please install GNU 'time', \
-+	gtime --version 2>&1 | grep GNU, \
-+	time --version 2>&1 | grep GNU))
-+
- $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \
- 	perl --version | grep "perl.*v5"))
- 
-diff --git a/include/subdir.mk b/include/subdir.mk
-index 79a80528aef..ed4f7537d5c 100644
---- a/include/subdir.mk
-+++ b/include/subdir.mk
-@@ -43,6 +43,7 @@ log_make = \
+--- a/include/subdir.mk	2018-06-29 15:42:35.249190676 +0200
++++ b/include/b/include/subdir.mk	2018-06-29 15:42:42.373119326 +0200
+@@ -43,7 +43,6 @@
  	 $(if $(BUILD_LOG), \
  		set -o pipefail; \
  		mkdir -p $(BUILD_LOG_DIR)/$(1)$(if $(4),/$(4));) \
-+	gtime -f "time: $(1)$(if $(4),/$(4))/$(if $(3),$(3)-)$(2)\#%U\#%S\#%e" -- \
+-	env time -f "time: $(1)$(if $(4),/$(4))/$(if $(3),$(3)-)$(2)\#%U\#%S\#%e" -- \
  	$$(SUBMAKE) $(subdir_make_opts) $(if $(3),$(3)-)$(2) \
  		$(if $(BUILD_LOG),SILENT= 2>&1 | tee $(BUILD_LOG_DIR)/$(1)$(if $(4),/$(4))/$(if $(3),$(3)-)$(2).txt)
  
