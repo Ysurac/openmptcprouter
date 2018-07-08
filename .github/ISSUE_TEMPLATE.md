@@ -13,6 +13,6 @@
 
 ## Specifications
 
-  - OpenMPTCProuter version:
-  - OpenMPTCProuter VPS version:
-  - OpenMPTCProuter platform: (RPI3/x86_64)
+  - OpenMPTCProuter version: (Last is not a version)
+  - OpenMPTCProuter VPS version: (Last is not a version)
+  - OpenMPTCProuter platform: (RPI2/RPI3/x86/x86_64)
