@@ -20269,3 +20269,76 @@ diff -aurN linux-4.14.41/net/mptcp/mptcp_wvegas.c mptcp-mptcp_v0.94/net/mptcp/mp
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("MPTCP wVegas");
 +MODULE_VERSION("0.1");
+diff --git a/include/net/mptcp.h b/include/net/mptcp.h
+index 9328d004f458..80ca6a7cec77 100644
+--- a/include/net/mptcp.h
++++ b/include/net/mptcp.h
+@@ -794,7 +794,7 @@ void mptcp_options_write(__be32 *ptr, struct tcp_sock *tp,
+	     const struct tcp_out_options *opts,
+	     struct sk_buff *skb);
+ void mptcp_close(struct sock *meta_sk, long timeout);
+-int mptcp_doit(struct sock *sk);
++bool mptcp_doit(struct sock *sk);
+ int mptcp_create_master_sk(struct sock *meta_sk, __u64 remote_key,
+	       __u8 mptcp_ver, u32 window);
+ int mptcp_check_req_fastopen(struct sock *child, struct request_sock *req);
+@@ -1360,9 +1360,9 @@ static inline void mptcp_options_write(__be32 *ptr, struct tcp_sock *tp,
+		       const struct tcp_out_options *opts,
+		       struct sk_buff *skb) {}
+ static inline void mptcp_close(struct sock *meta_sk, long timeout) {}
+-static inline int mptcp_doit(struct sock *sk)
++static inline bool mptcp_doit(struct sock *sk)
+ {
+-	return 0;
++	return false;
+ }
+ static inline int mptcp_check_req_fastopen(struct sock *child,
+		       struct request_sock *req)
+diff --git a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
+index e222841c61ea..e54c75c6837b 100644
+--- a/net/mptcp/mptcp_ctrl.c
++++ b/net/mptcp/mptcp_ctrl.c
+@@ -1857,31 +1857,36 @@ void mptcp_disconnect(struct sock *sk)
+ }
+ 
+ 
+-/* Returns 1 if we should enable MPTCP for that socket. */
+-int mptcp_doit(struct sock *sk)
++/* Returns True if we should enable MPTCP for that socket. */
++bool mptcp_doit(struct sock *sk)
+ {
++	const struct dst_entry *dst = __sk_dst_get(sk);
++
+ 	/* Don't do mptcp over loopback */
+ 	if (sk->sk_family == AF_INET &&
+ 	    (ipv4_is_loopback(inet_sk(sk)->inet_daddr) ||
+ 	     ipv4_is_loopback(inet_sk(sk)->inet_saddr)))
+-		return 0;
++		return false;
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	if (sk->sk_family == AF_INET6 &&
+ 	    (ipv6_addr_loopback(&sk->sk_v6_daddr) ||
+ 	     ipv6_addr_loopback(&inet6_sk(sk)->saddr)))
+-		return 0;
++		return false;
+ #endif
+ 	if (mptcp_v6_is_v4_mapped(sk) &&
+ 	    ipv4_is_loopback(inet_sk(sk)->inet_saddr))
+-		return 0;
++		return false;
+ 
+ #ifdef CONFIG_TCP_MD5SIG
+ 	/* If TCP_MD5SIG is enabled, do not do MPTCP - there is no Option-Space */
+ 	if (tcp_sk(sk)->af_specific->md5_lookup(sk, sk))
+-		return 0;
++		return false;
+ #endif
+ 
+-	return 1;
++	if (dst->dev && (dst->dev->flags & IFF_NOMULTIPATH))
++		return false;
++
++	return true;
+ }
+ 
+ int mptcp_create_master_sk(struct sock *meta_sk, __u64 remote_key,
