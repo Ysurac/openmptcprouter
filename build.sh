@@ -5,13 +5,19 @@ set -e
 umask 0022
 unset GREP_OPTIONS SED
 
-_get_repo() {
-	git clone "$2" "$1" 2>/dev/null || true
-	git -C "$1" remote set-url origin "$2"
-	git -C "$1" fetch origin
-	git -C "$1" fetch origin --tags
-	git -C "$1" checkout "origin/$3" -B "build" || git -C "$1" checkout "$3" -B "build"
-}
+_get_repo() (
+	mkdir -p "$1"
+	cd "$1"
+	[ -d .git ] || git init
+	if git remote get-url origin >/dev/null 2>/dev/null; then
+		git remote set-url origin "$2"
+	else
+		git remote add origin "$2"
+	fi
+	git fetch origin
+	git fetch origin --tags
+	git checkout "origin/$3" -B "build" 2>/dev/null || git checkout "$3" -B "build"
+)
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
