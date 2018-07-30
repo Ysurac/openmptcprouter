@@ -16,7 +16,7 @@ _get_repo() (
 	fi
 	git fetch origin
 	git fetch origin --tags
-	git checkout "origin/$3" -B "build" 2>/dev/null || git checkout "$3" -B "build"
+	git checkout -f "origin/$3" -B "build" 2>/dev/null || git checkout "$3" -B "build"
 )
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
