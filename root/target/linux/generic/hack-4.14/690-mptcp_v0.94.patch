@@ -2055,7 +2055,7 @@ diff -aurN linux-4.14.41/include/net/tcp.h mptcp-mptcp_v0.94/include/net/tcp.h
  
  /* sysctl variables for tcp */
  extern int sysctl_tcp_fastopen;
-@@ -339,6 +364,97 @@
+@@ -339,6 +364,96 @@
  #define TCP_DEC_STATS(net, field)	SNMP_DEC_STATS((net)->mib.tcp_statistics, field)
  #define TCP_ADD_STATS(net, field, val)	SNMP_ADD_STATS((net)->mib.tcp_statistics, field, val)
  
@@ -2067,7 +2067,6 @@ diff -aurN linux-4.14.41/include/net/tcp.h mptcp-mptcp_v0.94/include/net/tcp.h
 +
 +void tcp_cleanup_rbuf(struct sock *sk, int copied);
 +void tcp_cwnd_validate(struct sock *sk, bool is_cwnd_limited);
-+void tcp_enter_quickack_mode(struct sock *sk);
 +int tcp_close_state(struct sock *sk);
 +void tcp_minshall_update(struct tcp_sock *tp, unsigned int mss_now,
 +			 const struct sk_buff *skb);
@@ -3615,15 +3614,6 @@ diff -aurN linux-4.14.41/net/ipv4/tcp_input.c mptcp-mptcp_v0.94/net/ipv4/tcp_inp
  #define TCP_REMNANT (TCP_FLAG_FIN|TCP_FLAG_URG|TCP_FLAG_SYN|TCP_FLAG_PSH)
  #define TCP_HP_BITS (~(TCP_RESERVED_BITS|TCP_FLAG_PSH))
  
-@@ -209,7 +190,7 @@
- 		icsk->icsk_ack.quick = min(quickacks, TCP_MAX_QUICKACKS);
- }
- 
--static void tcp_enter_quickack_mode(struct sock *sk)
-+void tcp_enter_quickack_mode(struct sock *sk)
- {
- 	struct inet_connection_sock *icsk = inet_csk(sk);
- 	tcp_incr_quickack(sk);
 @@ -324,8 +305,12 @@
  	per_mss = roundup_pow_of_two(per_mss) +
  		  SKB_DATA_ALIGN(sizeof(struct sk_buff));
@@ -5403,18 +5393,7 @@ diff -aurN linux-4.14.41/net/ipv4/tcp_output.c mptcp-mptcp_v0.94/net/ipv4/tcp_ou
  }
  EXPORT_SYMBOL(tcp_release_cb);
  
-@@ -984,8 +1022,8 @@
-  * We are working here with either a clone of the original
-  * SKB, or a fresh unique copy made by the retransmit engine.
-  */
--static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
--			    gfp_t gfp_mask)
-+int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
-+		        gfp_t gfp_mask)
- {
- 	const struct inet_connection_sock *icsk = inet_csk(sk);
- 	struct inet_sock *inet;
-@@ -1075,10 +1113,10 @@
+@@ -1100,10 +1213,10 @@
  		}
  	}
  
@@ -5427,6 +5406,12 @@ diff -aurN linux-4.14.41/net/ipv4/tcp_output.c mptcp-mptcp_v0.94/net/ipv4/tcp_ou
  		tcp_ecn_send(sk, skb, th, tcp_header_size);
  	} else {
  		/* RFC1323: The window in SYN & SYN/ACK segments
+@@ -1180,3 +1222,3 @@
+-static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
+-			    gfp_t gfp_mask)
++int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
++		        gfp_t gfp_mask)
+ {
 @@ -1140,7 +1178,7 @@
   * NOTE: probe0 timer is not checked, do not forget tcp_push_pending_frames,
   * otherwise socket can stall.
