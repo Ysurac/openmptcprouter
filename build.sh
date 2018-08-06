@@ -133,7 +133,7 @@ cd "$OMR_TARGET/source"
 echo "Checking if UEFI patch is set or not"
 if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/uefi.patch; then
-		rm target/linux/x86/image/startup.nsh
+		rm -f target/linux/x86/image/startup.nsh
 		patch -N -p1 -s < ../../patches/uefi.patch
 	fi
 else
