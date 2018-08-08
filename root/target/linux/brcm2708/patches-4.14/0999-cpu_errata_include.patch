@@ -1,0 +1,13 @@
+diff --git a/arch/arm64/kernel/cpu_errata.c b/arch/arm64/kernel/cpu_errata.c
+index 2b9a31a6a16a..1d2b6d768efe 100644
+--- a/arch/arm64/kernel/cpu_errata.c
++++ b/arch/arm64/kernel/cpu_errata.c
+@@ -16,6 +16,8 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/arm-smccc.h>
++#include <linux/psci.h>
+ #include <linux/types.h>
+ #include <asm/cpu.h>
+ #include <asm/cputype.h>
