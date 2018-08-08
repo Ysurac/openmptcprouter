@@ -133,11 +133,11 @@ cd "$OMR_TARGET/source"
 echo "Checking if UEFI patch is set or not"
 if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 	if [ ! -f "target/linux/x86/image/startup.nsh" ]; then
-		patch --force --posix -N -p1 -s < ../../patches/uefi.patch
+		patch -N -p1 -s < ../../patches/uefi.patch
 	fi
 else
 	if [ -f "target/linux/x86/image/startup.nsh" ]; then
-		patch --force --posix -N -R -p1 -s < ../../patches/uefi.patch
+		patch -N -R -p1 -s < ../../patches/uefi.patch
 	fi
 fi
 echo "Done"
@@ -154,6 +154,9 @@ echo "Done"
 #echo "Done"
 echo "Set to kernel 4.14 for rpi arch"
 find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.9%KERNEL_PATCHVER:=4.14%g' {} \;
+echo "Done"
+echo "Remove old RPI firmware"
+rm -rf target/linux/brcm2708/base-files/lib/firmware
 echo "Done"
 
 echo "Update feeds index"
