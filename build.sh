@@ -48,7 +48,7 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 #_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "3db9d6e57def2912314c7ce0bc0c282f313ed654"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "openwrt-18.06"
 _get_repo feeds/packages https://github.com/openwrt/packages "openwrt-18.06"
 #_get_repo feeds/luci https://github.com/openwrt/luci "lede-17.01"
 _get_repo feeds/luci https://github.com/openwrt/luci "openwrt-18.06"
@@ -133,12 +133,11 @@ cd "$OMR_TARGET/source"
 echo "Checking if UEFI patch is set or not"
 if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/uefi.patch; then
-		rm -f target/linux/x86/image/startup.nsh
-		patch -N -p1 -s < ../../patches/uefi.patch
+		patch --force --posix -N -p1 -s < ../../patches/uefi.patch
 	fi
 else
 	if ! patch -Nf -p1 -s --dry-run < ../../patches/uefi.patch; then
-		patch -N -R -p1 -s < ../../patches/uefi.patch
+		patch --force --posix -N -R -p1 -s < ../../patches/uefi.patch
 	fi
 fi
 echo "Done"
