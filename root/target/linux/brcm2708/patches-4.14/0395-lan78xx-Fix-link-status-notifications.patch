@@ -1,0 +1,43 @@
+From 1c70d2de54534eb78728fb405b187a5ec525f7fc Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 18 Jul 2018 09:31:17 +0100
+Subject: [PATCH 395/401] lan78xx: Fix link status notifications
+
+The patch to allow packet reception before the first transmission broke
+the notification and handling of link status changes. Move the new call
+to tasklet_schedule into lan78xx_link_reset to fix it.
+
+See: https://github.com/raspberrypi/linux/issues/2617
+
+Fixes: d407fc229cdc ("net: lan78xx: fix rx handling before first packet is send")
+Suggested-by: Stefan Wahren <stefan.wahren@i2se.com>
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ drivers/net/usb/lan78xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
+index e45a7f750bee..8761bc74cd5a 100644
+--- a/drivers/net/usb/lan78xx.c
++++ b/drivers/net/usb/lan78xx.c
+@@ -1227,6 +1227,8 @@ static int lan78xx_link_reset(struct lan78xx_net *dev)
+ 			mod_timer(&dev->stat_monitor,
+ 				  jiffies + STAT_UPDATE_TIMER);
+ 		}
++
++		tasklet_schedule(&dev->bh);
+ 	}
+ 
+ 	return ret;
+@@ -2606,8 +2608,6 @@ static int lan78xx_open(struct net_device *net)
+ 
+ 	dev->link_on = false;
+ 
+-	tasklet_schedule(&dev->bh);
+-
+ 	lan78xx_defer_kevent(dev, EVENT_LINK_RESET);
+ done:
+ 	usb_autopm_put_interface(dev->intf);
+-- 
+2.16.1
+

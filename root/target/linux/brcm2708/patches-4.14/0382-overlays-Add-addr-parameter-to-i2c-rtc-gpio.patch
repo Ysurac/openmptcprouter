@@ -1,0 +1,84 @@
+From 1fa25792a2e83012e91de333034b9c9033adc1c3 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Mon, 9 Jul 2018 21:11:32 +0100
+Subject: [PATCH 382/401] overlays: Add addr parameter to i2c-rtc (& -gpio)
+
+See: https://github.com/raspberrypi/linux/issues/2611
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ .../arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts | 28 ++++++++++++++++++++++
+ arch/arm/boot/dts/overlays/i2c-rtc-overlay.dts     | 11 +++++++++
+ 3 files changed, 49 insertions(+)
+
+diff --git a/arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts b/arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts
+index 8415e6081428..4fd47ffa8575 100644
+--- a/arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts
++++ b/arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts
+@@ -159,6 +159,21 @@
+ 		};
+ 	};
+ 
++	fragment@10 {
++		target = <&i2c_arm>;
++		__dormant__ {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			status = "okay";
++
++			m41t62: m41t62@68 {
++				compatible = "st,m41t62";
++				reg = <0x68>;
++				status = "okay";
++			};
++		};
++	};
++
+ 	__overrides__ {
+ 		abx80x = <0>,"+1";
+ 		ds1307 = <0>,"+2";
+@@ -169,6 +184,19 @@
+ 		pcf2127 = <0>,"+7";
+ 		pcf8523 = <0>,"+8";
+ 		pcf8563 = <0>,"+9";
++		m41t62 = <0>,"+10";
++
++		addr = <&abx80x>, "reg:0",
++		       <&ds1307>, "reg:0",
++		       <&ds1339>, "reg:0",
++		       <&ds3231>, "reg:0",
++		       <&mcp7940x>, "reg:0",
++		       <&mcp7941x>, "reg:0",
++		       <&pcf2127>, "reg:0",
++		       <&pcf8523>, "reg:0",
++		       <&pcf8563>, "reg:0",
++		       <&m41t62>, "reg:0";
++
+ 		trickle-diode-type = <&abx80x>,"abracon,tc-diode";
+ 		trickle-resistor-ohms = <&ds1339>,"trickle-resistor-ohms:0",
+ 					<&abx80x>,"abracon,tc-resistor";
+diff --git a/arch/arm/boot/dts/overlays/i2c-rtc-overlay.dts b/arch/arm/boot/dts/overlays/i2c-rtc-overlay.dts
+index fcb846a50d19..7f11b7c64638 100644
+--- a/arch/arm/boot/dts/overlays/i2c-rtc-overlay.dts
++++ b/arch/arm/boot/dts/overlays/i2c-rtc-overlay.dts
+@@ -169,6 +169,17 @@
+ 		pcf8523 = <0>,"+7";
+ 		pcf8563 = <0>,"+8";
+ 		m41t62 = <0>,"+9";
++
++		addr = <&abx80x>, "reg:0",
++		       <&ds1307>, "reg:0",
++		       <&ds1339>, "reg:0",
++		       <&ds3231>, "reg:0",
++		       <&mcp7940x>, "reg:0",
++		       <&mcp7941x>, "reg:0",
++		       <&pcf2127>, "reg:0",
++		       <&pcf8523>, "reg:0",
++		       <&pcf8563>, "reg:0",
++		       <&m41t62>, "reg:0";
+ 		trickle-diode-type = <&abx80x>,"abracon,tc-diode";
+ 		trickle-resistor-ohms = <&ds1339>,"trickle-resistor-ohms:0",
+ 					<&abx80x>,"abracon,tc-resistor";
+-- 
+2.16.1
+
