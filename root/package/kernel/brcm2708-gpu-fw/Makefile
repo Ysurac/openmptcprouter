@@ -9,8 +9,8 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=brcm2708-gpu-fw
-PKG_VERSION:=2018-06-03
-PKG_RELEASE:=ab802d365130f21f6897c7e1bc2f432d87803337
+PKG_VERSION:=2018-08-10
+PKG_RELEASE:=953a33962f0e3a33f7627248f47b8378cb40e6e4
 
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_NAME)/rpi-firmware-$(PKG_RELEASE)
 
@@ -33,7 +33,7 @@ define Download/bootcode_bin
   FILE:=$(RPI_FIRMWARE_FILE)-bootcode.bin
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=bootcode.bin
-  HASH:=c9eb5258766fabf7127e790b257f106e2717f0ccaaed37544b970b0d113956fc
+  HASH:=6db7df3cc3c18080fd80fee93346e0d517cb2fe8a467aee1db39bacf9215aff8
 endef
 $(eval $(call Download,bootcode_bin))
 
@@ -41,7 +41,7 @@ define Download/fixup_dat
   FILE:=$(RPI_FIRMWARE_FILE)-fixup.dat
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=fixup.dat
-  HASH:=0cd8dac2bfdf9819e068c67e95a0daaf17d1546c1ead96ecec74462c608acac2
+  HASH:=b73850a4eac7ab2c0a3b614781648359836c9be082a05c7df3129dbb53bbf650
 endef
 $(eval $(call Download,fixup_dat))
 
@@ -49,7 +49,7 @@ define Download/fixup_cd_dat
   FILE:=$(RPI_FIRMWARE_FILE)-fixup_cd.dat
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=fixup_cd.dat
-  HASH:=c5ae4d84f98e7bdbc5c79cc4a380b9330ec952705f3d94fe2e67b6976cbb7b25
+  HASH:=dae619130c7467113dcaf0c74154684fcf6ccbdd44b597e440c55e8470f6120f
 endef
 $(eval $(call Download,fixup_cd_dat))
 
@@ -57,7 +57,7 @@ define Download/start_elf
   FILE:=$(RPI_FIRMWARE_FILE)-start.elf
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=start.elf
-  HASH:=df93e8e8696e6b39b46e84b6a460a37020e2d5e7081d6baead88c4b7cf20ce26
+  HASH:=539a365d63922a7f5e505b15170b523693cc687fb8bf6199bbdf80fd7ea3ff72
 endef
 $(eval $(call Download,start_elf))
 
@@ -65,7 +65,7 @@ define Download/start_cd_elf
   FILE:=$(RPI_FIRMWARE_FILE)-start_cd.elf
   URL:=$(RPI_FIRMWARE_URL)
   URL_FILE:=start_cd.elf
-  HASH:=9b1006231f9520774e3ae283430815137d701ad80510c3736c55deb8aa4f27d9
+  HASH:=b9a77e555f557a10c4468ce4cb96b2b90d0ecc6d1ff6b3eb91a5e128a80676a5
 endef
 $(eval $(call Download,start_cd_elf))
 
