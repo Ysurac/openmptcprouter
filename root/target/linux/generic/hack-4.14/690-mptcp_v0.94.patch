@@ -20387,3 +20387,16 @@ index 1e73b4e857f8..b5344c176f75 100644
  		if (unlikely(sk_add_backlog(meta_sk, skb,
  					    meta_sk->sk_rcvbuf + meta_sk->sk_sndbuf)))
  			__NET_INC_STATS(net, LINUX_MIB_TCPBACKLOGDROP);
+diff --git a/net/ipv4/tcp_minisocks.c b/net/ipv4/tcp_minisocks.c
+index c8a295b0f966..a66920d65b19 100644
+--- a/net/ipv4/tcp_minisocks.c
++++ b/net/ipv4/tcp_minisocks.c
+@@ -888,7 +888,7 @@ int tcp_child_process(struct sock *parent, struct sock *child,
+ 		 * socket does not protect us more.
+ 		 */
+ 		if (mptcp(tcp_sk(child)))
+-			skb->sk = child;
++			mptcp_prepare_for_backlog(child, skb);
+ 		__sk_add_backlog(meta_sk, skb);
+ 	}
+ 
