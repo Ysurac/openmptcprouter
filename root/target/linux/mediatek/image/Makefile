@@ -32,6 +32,19 @@ define Build/sysupgrade-emmc
   dd if=/dev/zero of="$@" bs=128k count=1 oflag=append conv=notrunc
 endef
 
+define Build/sysupgrade-bpi-r2-sd
+  dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-preloader-sd.bin" of="$@" seek="0"
+  dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-uboot.bin" of="$@" seek="320"
+  dd bs="1024" if="$(IMAGE_KERNEL)" of="$@" seek="2048"
+  dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
+endef
+define Build/sysupgrade-bpi-r2-emmc
+  dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-preloader-emmc.bin" of="$@" seek="0"
+  dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-uboot.bin" of="$@" seek="320"
+  dd bs="1024" if="$(IMAGE_KERNEL)" of="$@" seek="2048"
+  dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
+endef
+
 # default all platform image(fit) build 
 define Device/Default
   PROFILES = Default $$(DEVICE_NAME)
