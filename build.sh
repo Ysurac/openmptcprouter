@@ -42,6 +42,8 @@ if [ "$OMR_TARGET" = "rpi3" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "bpi-r2" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 else
 	OMR_REAL_TARGET=${OMR_TARGET}
 fi
@@ -67,6 +69,7 @@ if [ "$OMR_KEEPBIN" = "no" ]; then
 	rm -rf "$OMR_TARGET/source/bin"
 fi
 rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp"
+rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-4.14"
 cp -rf root/* "$OMR_TARGET/source"
 
 cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
