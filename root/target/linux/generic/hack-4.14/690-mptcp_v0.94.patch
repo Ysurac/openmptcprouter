@@ -20289,3 +20289,17 @@ diff -aurN a/net/mptcp/mptcp_wvegas.c b/net/mptcp/mptcp_wvegas.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("MPTCP wVegas");
 +MODULE_VERSION("0.1");
+diff --git a/net/mptcp/mptcp_output.c b/net/mptcp/mptcp_output.c
+index 49e947ce94e4..ac064b63e903 100644
+--- a/net/mptcp/mptcp_output.c
++++ b/net/mptcp/mptcp_output.c
+@@ -240,6 +240,9 @@ static void __mptcp_reinject_data(struct sk_buff *orig_skb, struct sock *meta_sk
+	if (!after(end_seq, TCP_SKB_CB(skb1)->seq))
+	    break;
+ 
++		if (before(end_seq, TCP_SKB_CB(skb1)->end_seq))
++			break;
++
+	__skb_unlink(skb1, &mpcb->reinject_queue);
+	__kfree_skb(skb1);
+    }
