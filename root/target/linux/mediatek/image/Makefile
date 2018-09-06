@@ -58,8 +58,10 @@ define Device/Default
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata 
 ifeq ($(SUBTARGET),mt7623)
   KERNEL_NAME := zImage
-  KERNEL := dtb | kernel-bin | append-dtb | uImage none
-  KERNEL_INITRAMFS := dtb | kernel-bin | append-dtb | uImage none
+#  KERNEL := dtb | kernel-bin | append-dtb | uImage none
+  KERNEL := kernel-bin | append-dtb | uImage none
+#  KERNEL_INITRAMFS := dtb | kernel-bin | append-dtb | uImage none
+  KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
 endif
 ifeq ($(SUBTARGET),mt7622)
   KERNEL_NAME := Image

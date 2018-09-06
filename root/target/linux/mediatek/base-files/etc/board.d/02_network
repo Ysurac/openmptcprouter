@@ -16,8 +16,6 @@ mediatek_setup_interfaces()
 	'bananapi,bpi-r2'|\
 	"unielec,u7623"*)
 		ucidef_set_interface_lan "lan"
-		ucidef_set_interface_wan "wan1 wan2 wan3 wan4"
-		#ucidef_set_interfaces_lan_wan "wan1 wan2 wan3 wan4" "lan"
 		;;
 	esac
 }
