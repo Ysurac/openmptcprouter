@@ -4,3 +4,4 @@ CONFIG_TARGET_mediatek_mt7623_DEVICE_7623n-bananapi-bpi-r2=y
 CONFIG_PACKAGE_cryptodev=y
 CONFIG_PACKAGE_wmt=y
 CONFIG_PACKAGE_kmod-mt6625l-wlan-gen2=y
+CONFIG_PACKAGE_u-boot-bpi_r2=y
