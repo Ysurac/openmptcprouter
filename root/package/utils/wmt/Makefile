@@ -39,7 +39,7 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wmt_loopback $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/system/etc/firmware
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/config/WMT_SOC.cfg $(1)/system/etc/firmware
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/config/WMT.cfg $(1)/system/etc/firmware
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/config/WMT_SOC.cfg $(1)/system/etc/firmware/WMT.cfg
 	$(INSTALL_DIR) $(1)/etc/firmware
 	$(CP) -r $(PKG_BUILD_DIR)/firmware/* $(1)/etc/firmware/
 	$(INSTALL_DIR) $(1)/etc/init.d
