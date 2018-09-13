@@ -1,10 +1,19 @@
 #!/bin/sh /etc/rc.common
 
-START=19
+START=69
 
 check_mtk_device() {
 	config_get phy "$1" phy
-	[ "$phy" = "mtkp2p0" ] && radiop2p="$1"
+	[ "$phy" = "mtkp2p0" ] && {
+		radiop2p="$1"
+		[ -z "$(uci -q get wireless.default_$1.ifname)" ] && {
+			uci -q batch <<-EOF
+				set wireless.default_$1.ifname=mtkap0
+				set wireless.default_$1.bss_load_update_period=0
+				commit wireless
+			EOF
+		}
+	}
 }
 
 find_radio() {

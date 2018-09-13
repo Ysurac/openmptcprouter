@@ -39,12 +39,13 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wmt_loopback $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/system/etc/firmware
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/config/WMT_SOC.cfg $(1)/system/etc/firmware
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/config/WMT.cfg $(1)/system/etc/firmware
 	$(INSTALL_DIR) $(1)/etc/firmware
 	$(CP) -r $(PKG_BUILD_DIR)/firmware/* $(1)/etc/firmware/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/wmt.init $(1)/etc/init.d/wmt
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./files/wmt.defaults $(1)/etc/uci-defaults/03wmt
+	$(INSTALL_BIN) ./files/wmt.defaults $(1)/etc/uci-defaults/8803-wmt
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
