@@ -42,9 +42,12 @@ define Build/sysupgrade-bpi-r2-sd
   dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
 endef
 define Build/sysupgrade-bpi-r2-emmc
+  rm -f $@.recovery
+  mkfs.fat -C $@.recovery 3070
   dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-preloader-emmc.bin" of="$@" seek="0"
   dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-uboot.bin" of="$@" seek="320"
   dd bs="1024" if="$(IMAGE_KERNEL)" of="$@" seek="2048"
+  dd bs="1024" if="$@.recovery" of="$@" seek="33792"
   dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
 endef
 
@@ -52,7 +55,7 @@ endef
 define Device/Default
   PROFILES = Default $$(DEVICE_NAME)
   KERNEL_NAME := zImage
-#  FILESYSTEMS := squashfs
+  FILESYSTEMS := squashfs
   DEVICE_DTS_DIR := $(DTS_DIR)
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata 
