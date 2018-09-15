@@ -10,20 +10,24 @@ check_mtk_device() {
 			uci -q batch <<-EOF
 				set wireless.default_$1.ifname=mtkap0
 				set wireless.default_$1.bss_load_update_period=0
+				rename wireless.$1=ap
+				rename wireless.default_$1=default_ap
 			EOF
 		}
 	}
 	[ "$phy" = "mtkphy0" ] && {
 		[ "$(uci -q get wireless.$1.disabled)" = "1" ] || wlanmode="$1"
+		[ "$(uci -q get wireless.default_$1.mode)" = "ap" ] && {
+			uci -q batch <<-EOF
+				set wireless.default_$1.mode=sta
+			EOF
+		}
 		[ -z "$(uci -q get wireless.default_$1.ifname)" ] && {
 			uci -q batch <<-EOF
 				set wireless.default_$1.ifname=mtkwlan0
 				set wireless.default_$1.bss_load_update_period=0
-			EOF
-		}
-		[ "$(uci -q get wireless.default_$1.mode)" = "ap" ] && {
-			uci -q batch <<-EOF
-				set wireless.default_$1.mode=sta
+				rename wireless.$1=client
+				rename wireless.default_$1=default_client
 			EOF
 		}
 	}
