@@ -20303,3 +20303,46 @@ index 49e947ce94e4..ac064b63e903 100644
  		__skb_unlink(skb1, &mpcb->reinject_queue);
  		__kfree_skb(skb1);
  	}
+diff --git a/net/mptcp/mptcp_sched.c b/net/mptcp/mptcp_sched.c
+index 063970052c91..891984d0bbd4 100644
+--- a/net/mptcp/mptcp_sched.c
++++ b/net/mptcp/mptcp_sched.c
+@@ -217,7 +217,7 @@ struct sock *get_available_subflow(struct sock *meta_sk, struct sk_buff *skb,
+ {
+ 	struct mptcp_cb *mpcb = tcp_sk(meta_sk)->mpcb;
+ 	struct sock *sk;
+-	bool force;
++	bool looping = false, force;
+ 
+ 	/* if there is only one subflow, bypass the scheduling function */
+ 	if (mpcb->cnt_subflows == 1) {
+@@ -238,6 +238,7 @@ struct sock *get_available_subflow(struct sock *meta_sk, struct sk_buff *skb,
+ 	}
+ 
+ 	/* Find the best subflow */
++restart:
+ 	sk = get_subflow_from_selectors(mpcb, skb, &subflow_is_active,
+					zero_wnd_test, &force);
+    if (force)
+@@ -248,7 +249,7 @@ struct sock *get_available_subflow(struct sock *meta_sk, struct sk_buff *skb,
+ 
+ 	sk = get_subflow_from_selectors(mpcb, skb, &subflow_is_backup,
+ 					zero_wnd_test, &force);
+-	if (!force && skb)
++	if (!force && skb) {
+ 		/* one used backup sk or one NULL sk where there is no one
+ 		 * temporally unavailable unused backup sk
+ 		 *
+@@ -256,6 +257,12 @@ struct sock *get_available_subflow(struct sock *meta_sk, struct sk_buff *skb,
+ 		 * sks, so clean the path mask
+ 		 */
+ 		TCP_SKB_CB(skb)->path_mask = 0;
++
++		if (!looping) {
++			looping = true;
++			goto restart;
++		}
++	}
+ 	return sk;
+ }
+ EXPORT_SYMBOL_GPL(get_available_subflow);
