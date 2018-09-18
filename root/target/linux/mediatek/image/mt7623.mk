@@ -12,7 +12,7 @@ TARGET_DEVICES += 7623a-unielec-u7623-02-emmc-512m
 define Device/7623n-bananapi-bpi-r2
   DEVICE_TITLE := MTK7623n BananaPi R2
   DEVICE_DTS := mt7623n-bananapi-bpi-r2
-  DEVICE_PACKAGES := wmt uboot-mtk-bpi_r2
+  DEVICE_PACKAGES := wmt uboot-mtk-bpi-r2 kmod-crypto-hw-mtk kmod-nat-hw-mtk
   SUPPORTED_DEVICES := bananapi,bpi-r2
   IMAGES := sysupgrade.tar sysupgrade-sd.bin.gz sysupgrade-emmc.bin.gz
   IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
