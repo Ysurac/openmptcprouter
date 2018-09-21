@@ -33,21 +33,15 @@ define Build/sysupgrade-emmc
 endef
 
 define Build/sysupgrade-bpi-r2-sd
-  rm -f $@.recovery
-  mkfs.fat -C $@.recovery 3070
   dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-preloader-sd.bin" of="$@" seek="0"
   dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-uboot.bin" of="$@" seek="320"
   dd bs="1024" if="$(IMAGE_KERNEL)" of="$@" seek="2048"
-  dd bs="1024" if="$@.recovery" of="$@" seek="33792"
   dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
 endef
 define Build/sysupgrade-bpi-r2-emmc
-  rm -f $@.recovery
-  mkfs.fat -C $@.recovery 3070
   dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-preloader-emmc.bin" of="$@" seek="0"
   dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-uboot.bin" of="$@" seek="320"
   dd bs="1024" if="$(IMAGE_KERNEL)" of="$@" seek="2048"
-  dd bs="1024" if="$@.recovery" of="$@" seek="33792"
   dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
 endef
 
@@ -61,9 +55,7 @@ define Device/Default
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata 
 ifeq ($(SUBTARGET),mt7623)
   KERNEL_NAME := zImage
-#  KERNEL := dtb | kernel-bin | append-dtb | uImage none
   KERNEL := kernel-bin | append-dtb | uImage none
-#  KERNEL_INITRAMFS := dtb | kernel-bin | append-dtb | uImage none
   KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
 endif
 ifeq ($(SUBTARGET),mt7622)
