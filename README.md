@@ -1,4 +1,5 @@
 [![CircleCI](https://circleci.com/gh/Ysurac/openmptcprouter-feeds.svg?style=svg)](https://circleci.com/gh/Ysurac/openmptcprouter-feeds)
+![Latest tag](https://img.shields.io/github/tag/ysurac/openmptcprouter-feeds.svg)
 
 # OpenMPTCProuter
 
