@@ -12,6 +12,7 @@ check_mtk_device() {
 				set wireless.default_$1.bss_load_update_period=0
 				rename wireless.$1=ap
 				rename wireless.default_$1=default_ap
+				set wireless.default_$1.device=ap
 			EOF
 		}
 	}
@@ -28,6 +29,7 @@ check_mtk_device() {
 				set wireless.default_$1.bss_load_update_period=0
 				rename wireless.$1=client
 				rename wireless.default_$1=default_client
+				set wireless.default_$1.device=client
 			EOF
 		}
 	}
