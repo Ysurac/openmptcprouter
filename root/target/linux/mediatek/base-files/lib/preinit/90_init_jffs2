@@ -1,0 +1,7 @@
+#!/bin/sh
+do_firstboot() {
+	if [ "$(mount | grep jffs2)" = "" ]; then
+		/sbin/firstboot -y
+	fi
+}
+boot_hook_add preinit_main do_firstboot
