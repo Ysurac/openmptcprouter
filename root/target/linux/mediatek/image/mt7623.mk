@@ -14,7 +14,7 @@ define Device/7623n-bananapi-bpi-r2
   DEVICE_DTS := mt7623n-bananapi-bpi-r2
   DEVICE_PACKAGES := wmt uboot-mtk-bpi-r2 kmod-crypto-hw-mtk kmod-nat-hw-mtk
   SUPPORTED_DEVICES := bananapi,bpi-r2
-  IMAGES := sysupgrade.tar sysupgrade-sd.bin.gz sysupgrade-emmc.bin.gz
+  IMAGES := sysupgrade.tar sysupgrade-sd.img.gz sysupgrade-emmc.img.gz
   IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
   IMAGE/sysupgrade-sd.bin.gz := sysupgrade-bpi-r2-sd | gzip | append-metadata
   IMAGE/sysupgrade-emmc.bin.gz := sysupgrade-bpi-r2-emmc | gzip | append-metadata
