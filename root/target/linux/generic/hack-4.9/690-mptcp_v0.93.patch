@@ -4558,7 +4558,7 @@ diff -aurN ../linux-4.9.131/net/ipv4/tcp_ipv4.c ./net/ipv4/tcp_ipv4.c
 +			if (!sock_owned_by_user(meta_sk)) {
  				tcp_v4_mtu_reduced(sk);
  			} else {
- 				if (!test_and_set_bit(TCP_MTU_REDUCED_DEFERRED, &tp->tsq_flags))
+ 				if (!test_and_set_bit(TCP_MTU_REDUCED_DEFERRED, &sk->sk_tsq_flags))
  					sock_hold(sk);
 +				if (mptcp(tp))
 +					mptcp_tsq_flags(sk);
@@ -5401,43 +5401,47 @@ diff -aurN ../linux-4.9.131/net/ipv4/tcp_output.c ./net/ipv4/tcp_output.c
  
  	local_irq_save(flags);
  	list_splice_init(&tsq->head, &list);
-@@ -774,15 +786,25 @@
- 		list_del(&tp->tsq_node);
+@@ -785,14 +796,28 @@
+ 		smp_mb__before_atomic();
+ 		clear_bit(TSQ_QUEUED, &sk->sk_tsq_flags);
  
- 		sk = (struct sock *)tp;
--		bh_lock_sock(sk);
+-		if (!sk->sk_lock.owned &&
 +		meta_sk = mptcp(tp) ? mptcp_meta_sk(sk) : sk;
-+		bh_lock_sock(meta_sk);
- 
--		if (!sock_owned_by_user(sk)) {
-+		if (!sock_owned_by_user(meta_sk)) {
- 			tcp_tsq_handler(sk);
-+			if (mptcp(tp))
-+				tcp_tsq_handler(meta_sk);
- 		} else {
-+			if (mptcp(tp) && sk->sk_state == TCP_CLOSE)
-+				goto exit;
 +
- 			/* defer the work to tcp_release_cb() */
- 			set_bit(TCP_TSQ_DEFERRED, &tp->tsq_flags);
-+
-+			if (mptcp(tp))
-+				mptcp_tsq_flags(sk);
++		if (!meta_sk->sk_lock.owned &&
+ 		    test_bit(TCP_TSQ_DEFERRED, &sk->sk_tsq_flags)) {
+-			bh_lock_sock(sk);
+-			if (!sock_owned_by_user(sk)) {
++			bh_lock_sock(meta_sk);
++			if (!sock_owned_by_user(meta_sk)) {
+ 				clear_bit(TCP_TSQ_DEFERRED, &sk->sk_tsq_flags);
+ 				tcp_tsq_handler(sk);
++				if (mptcp(tp))
++					tcp_tsq_handler(meta_sk);
++			} else if (mptcp(tp)) {
++				if (sk->sk_state != TCP_CLOSE)
++					mptcp_tsq_flags(sk);
++			}
++			bh_unlock_sock(meta_sk);
++		} else {
++			if (mptcp(tp)) {
++				bh_lock_sock(meta_sk);
++				if (sk->sk_state != TCP_CLOSE)
++					mptcp_tsq_flags(sk);
++				bh_unlock_sock(meta_sk);
+ 			}
+-			bh_unlock_sock(sk);
  		}
--		bh_unlock_sock(sk);
-+exit:
-+		bh_unlock_sock(meta_sk);
  
- 		clear_bit(TSQ_QUEUED, &tp->tsq_flags);
  		sk_free(sk);
 @@ -792,7 +814,10 @@
- #define TCP_DEFERRED_ALL ((1UL << TCP_TSQ_DEFERRED) |		\
- 			  (1UL << TCP_WRITE_TIMER_DEFERRED) |	\
- 			  (1UL << TCP_DELACK_TIMER_DEFERRED) |	\
--			  (1UL << TCP_MTU_REDUCED_DEFERRED))
-+			  (1UL << TCP_MTU_REDUCED_DEFERRED) |   \
-+			  (1UL << MPTCP_PATH_MANAGER_DEFERRED) |\
-+			  (1UL << MPTCP_SUB_DEFERRED))
+ #define TCP_DEFERRED_ALL (TCPF_TSQ_DEFERRED |		\
+ 			  TCPF_WRITE_TIMER_DEFERRED |	\
+ 			  TCPF_DELACK_TIMER_DEFERRED |	\
+-			  TCPF_MTU_REDUCED_DEFERRED)
++			  TCPF_MTU_REDUCED_DEFERRED |   \
++			  MPTCP_PATH_MANAGER_DEFERRED |\
++			  MPTCP_SUB_DEFERRED)
 +
  /**
   * tcp_release_cb - tcp release_sock() callback
@@ -5873,7 +5877,7 @@ diff -aurN ../linux-4.9.131/net/ipv4/tcp_timer.c ./net/ipv4/tcp_timer.c
 -		__NET_INC_STATS(sock_net(sk), LINUX_MIB_DELAYEDACKLOCKED);
 +		__NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_DELAYEDACKLOCKED);
  		/* deleguate our work to tcp_release_cb() */
- 		if (!test_and_set_bit(TCP_DELACK_TIMER_DEFERRED, &tcp_sk(sk)->tsq_flags))
+ 		if (!test_and_set_bit(TCP_DELACK_TIMER_DEFERRED, &sk->sk_tsq_flags))
  			sock_hold(sk);
 +		if (mptcp(tp))
 +			mptcp_tsq_flags(sk);
@@ -5905,7 +5909,7 @@ diff -aurN ../linux-4.9.131/net/ipv4/tcp_timer.c ./net/ipv4/tcp_timer.c
  		tcp_write_timer_handler(sk);
  	} else {
  		/* delegate our work to tcp_release_cb() */
- 		if (!test_and_set_bit(TCP_WRITE_TIMER_DEFERRED, &tcp_sk(sk)->tsq_flags))
+ 		if (!test_and_set_bit(TCP_WRITE_TIMER_DEFERRED, &sk->sk_tsq_flags))
  			sock_hold(sk);
 +		if (mptcp(tcp_sk(sk)))
 +			mptcp_tsq_flags(sk);
@@ -6268,7 +6272,7 @@ diff -aurN ../linux-4.9.131/net/ipv6/tcp_ipv6.c ./net/ipv6/tcp_ipv6.c
 -		else if (!test_and_set_bit(TCP_MTU_REDUCED_DEFERRED,
 +		else {
 +			if (!test_and_set_bit(TCP_MTU_REDUCED_DEFERRED,
- 					   &tp->tsq_flags))
+ 					   &sk->sk_tsq_flags))
 -			sock_hold(sk);
 +				sock_hold(sk);
 +			if (mptcp(tp))
