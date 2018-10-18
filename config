@@ -61,6 +61,7 @@ CONFIG_PACKAGE_kmod-ata-ahci=y
 CONFIG_PACKAGE_kmod-ata-core=y
 CONFIG_PACKAGE_kmod-block2mtd=y
 CONFIG_PACKAGE_kmod-bridge=y
+CONFIG_PACKAGE_kmod-crypto-gcm=y
 CONFIG_PACKAGE_kmod-gpio-button-hotplug=y
 CONFIG_PACKAGE_kmod-hid=y
 CONFIG_PACKAGE_kmod-hid-generic=y
