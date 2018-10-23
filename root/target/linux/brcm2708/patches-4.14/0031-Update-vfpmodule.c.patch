@@ -104,10 +104,9 @@ index a71a48e71fff..d6c0a5a0a5ae 100644
  		vfp_save_state(&thread->vfpstate, fpexc | FPEXC_EN);
  		fmxr(FPEXC, fpexc);
  	}
-@@ -604,6 +611,7 @@ int vfp_restore_user_hwstate(struct user_vfp __user *ufp,
+@@ -604,5 +611,6 @@ int vfp_restore_user_hwstate(struct user_vfp __user *ufp,
  	struct vfp_hard_struct *hwstate = &thread->vfpstate.hard;
  	unsigned long fpexc;
- 	int err = 0;
 +	u32 fpsid = fmrx(FPSID);
  
  	/* Disable VFP to avoid corrupting the new thread state. */
