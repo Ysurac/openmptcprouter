@@ -20312,18 +20312,3 @@ diff -aurN a/net/mptcp/mptcp_wvegas.c b/net/mptcp/mptcp_wvegas.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("MPTCP wVegas");
 +MODULE_VERSION("0.1");
-diff --git a/net/sched/sch_netem.c b/net/sched/sch_netem.c
-index 2a2ab6bfe5d8..3d325b840802 100644
---- a/net/sched/sch_netem.c
-+++ b/net/sched/sch_netem.c
-@@ -624,6 +624,10 @@ static struct sk_buff *netem_dequeue(struct Qdisc *sch)
- 			skb->next = NULL;
- 			skb->prev = NULL;
- 			skb->tstamp = netem_skb_cb(skb)->tstamp_save;
-+			/* skb->dev shares skb->rbnode area,
-+			 * we need to restore its value.
-+			 */
-+			skb->dev = qdisc_dev(sch);
- 
- #ifdef CONFIG_NET_CLS_ACT
- 			/*
