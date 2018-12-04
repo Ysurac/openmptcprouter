@@ -1,0 +1,4 @@
+CONFIG_TARGET_mvebu=y
+CONFIG_TARGET_mvebu_cortexa9=y
+CONFIG_TARGET_mvebu_cortexa9_DEVICE_linksys-wrt3200acm=y
+CONFIG_PACKAGE_kmod-6lowpan=y
