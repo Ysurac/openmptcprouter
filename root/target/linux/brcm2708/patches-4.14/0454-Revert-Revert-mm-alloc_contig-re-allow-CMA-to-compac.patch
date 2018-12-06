@@ -1,0 +1,26 @@
+From 91c64870bb6f940011e723f4a7d499f7d40a2923 Mon Sep 17 00:00:00 2001
+From: popcornmix <popcornmix@gmail.com>
+Date: Fri, 14 Sep 2018 20:13:29 +0100
+Subject: [PATCH 454/496] Revert "Revert "mm: alloc_contig: re-allow CMA to
+ compact FS pages""
+
+This reverts commit 00f0e834c44c492555e43fdaf9c112ed269db01f.
+---
+ mm/page_alloc.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 023e12c6e5cb..9b31af7654d3 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -7527,6 +7527,7 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 		.zone = page_zone(pfn_to_page(start)),
+ 		.mode = MIGRATE_SYNC,
+ 		.ignore_skip_hint = true,
++		.gfp_mask = current_gfp_context(gfp_mask),
+ 	};
+ 	INIT_LIST_HEAD(&cc.migratepages);
+ 
+-- 
+2.19.1
+

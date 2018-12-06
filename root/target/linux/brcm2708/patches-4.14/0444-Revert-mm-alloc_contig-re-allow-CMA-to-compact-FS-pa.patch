@@ -1,0 +1,33 @@
+From 00f0e834c44c492555e43fdaf9c112ed269db01f Mon Sep 17 00:00:00 2001
+From: popcornmix <popcornmix@gmail.com>
+Date: Wed, 15 Aug 2018 12:25:32 +0100
+Subject: [PATCH 444/496] Revert "mm: alloc_contig: re-allow CMA to compact FS
+ pages"
+
+The upstream commit caused poor video playback performance
+on a busy system for many users.
+
+See: https://github.com/raspberrypi/linux/issues/2503
+
+This reverts commit 424f6c4818bbf1b8ccf58aa012ecc19c0bb9b446.
+
+Signed-off-by: popcornmix <popcornmix@gmail.com>
+---
+ mm/page_alloc.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 9b31af7654d3..023e12c6e5cb 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -7527,7 +7527,6 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 		.zone = page_zone(pfn_to_page(start)),
+ 		.mode = MIGRATE_SYNC,
+ 		.ignore_skip_hint = true,
+-		.gfp_mask = current_gfp_context(gfp_mask),
+ 	};
+ 	INIT_LIST_HEAD(&cc.migratepages);
+ 
+-- 
+2.19.1
+
