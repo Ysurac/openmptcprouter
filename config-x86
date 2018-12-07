@@ -4,3 +4,4 @@ CONFIG_TARGET_x86_generic_Generic=y
 # CONFIG_TARGET_ROOTFS_EXT4FS is not set
 # CONFIG_TARGET_ROOTFS_TARGZ is not set
 CONFIG_PACKAGE_open-vm-tools=m
+CONFIG_PACKAGE_kmod-ath9k=y
