@@ -13,7 +13,7 @@
  			proc-supply = <&mt6323_vproc_reg>;
 @@ -103,6 +107,10 @@
  		device_type = "memory";
- 		reg = <0 0x80000000 0 0x40000000>;
+ 		reg = <0 0x80000000 0 0x80000000>;
  	};
 +
 +	mt7530: switch@0 {
