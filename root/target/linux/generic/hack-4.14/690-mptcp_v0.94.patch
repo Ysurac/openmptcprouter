@@ -5573,14 +5573,13 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  {
  	u32 end_seq = TCP_SKB_CB(skb)->end_seq;
  
-@@ -1893,7 +1933,7 @@
+@@ -1893,4 +1933,7 @@
  	struct sk_buff *head;
  	int win_divisor;
  
--	if (TCP_SKB_CB(skb)->tcp_flags & TCPHDR_FIN)
 +	if ((TCP_SKB_CB(skb)->tcp_flags & TCPHDR_FIN) || mptcp_is_data_fin(skb))
- 		goto send_now;
- 
++		goto send_now;
++
  	if (icsk->icsk_ca_state >= TCP_CA_Recovery)
 @@ -2266,7 +2306,7 @@
   * Returns true, if no segments are in flight and we have queued segments,
