@@ -21,18 +21,16 @@ diff --git a/target/linux/x86/base-files/lib/preinit/79_move_config b/target/lin
 index 143ca5147b..83171b3ba9 100644
 --- a/target/linux/x86/base-files/lib/preinit/79_move_config
 +++ b/target/linux/x86/base-files/lib/preinit/79_move_config
-@@ -7,7 +7,7 @@ move_config() {
+@@ -7,8 +7,8 @@ move_config() {
  	. /lib/upgrade/common.sh
  
  	if export_bootdevice && export_partdevice partdev 1; then
  		mkdir -p /boot
--		if mount -t ext4 -o ro,noatime "/dev/$partdev" /boot; then
-+		if mount -t vfat -o ro,noatime "/dev/$partdev" /boot; then
- 			if [ -f /boot/sysupgrade.tgz ]; then
- 				mount /boot -o remount,rw,noatime
- 				mv -f /boot/sysupgrade.tgz /
- 				mount /boot -o remount,ro,noatime
- 			fi
+-		mount -t ext4 -o rw,noatime "/dev/$partdev" /boot
++		mount -t vfat -o rw,noatime "/dev/$partdev" /boot
+ 		if [ -f /boot/sysupgrade.tgz ]; then
+ 			mv -f /boot/sysupgrade.tgz /
+ 		fi
 diff --git a/target/linux/x86/base-files/lib/upgrade/platform.sh b/target/linux/x86/base-files/lib/upgrade/platform.sh
 index d3e9f360aa..b475fd5435 100644
 --- a/target/linux/x86/base-files/lib/upgrade/platform.sh
@@ -112,11 +110,11 @@ index acca036a2e..8169108ac4 100644
 @@ -6,8 +6,8 @@ set timeout="@TIMEOUT@"
  set root='(@ROOT@)'
  
- menuentry "OpenWrt" {
+ menuentry "@TITLE@" {
 -	linux /boot/vmlinuz @CMDLINE@ noinitrd
 +	linux /efi/boot/linux.efi @CMDLINE@ noinitrd
  }
- menuentry "OpenWrt (failsafe)" {
+ menuentry "@TITLE@ (failsafe)" {
 -	linux /boot/vmlinuz failsafe=true @CMDLINE@ noinitrd
 +	linux /efi/boot/linux.efi failsafe=true @CMDLINE@ noinitrd
  }
