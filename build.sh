@@ -70,7 +70,7 @@ fi
 if [ "$OMR_KEEPBIN" = "no" ]; then 
 	rm -rf "$OMR_TARGET/source/bin"
 fi
-rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp" "$OMR_TARGET/source/package/network/services/hostapd"
+rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp"
 #rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-4.14"
 cp -rf root/* "$OMR_TARGET/source"
 
