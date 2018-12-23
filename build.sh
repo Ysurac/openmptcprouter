@@ -42,6 +42,10 @@ if [ "$OMR_TARGET" = "rpi3" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
+	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
+elif [ "$OMR_TARGET" = "wrt32x" ]; then
+	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 else
@@ -49,10 +53,8 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-#_get_repo "$OMR_TARGET/source" https://github.com/lede-project/source.git "3db9d6e57def2912314c7ce0bc0c282f313ed654"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "openwrt-18.06"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "386803a006edafd54cef20b4b99b033b1b52cf5c"
 _get_repo feeds/packages https://github.com/openwrt/packages "openwrt-18.06"
-#_get_repo feeds/luci https://github.com/openwrt/luci "lede-17.01"
 _get_repo feeds/luci https://github.com/openwrt/luci "openwrt-18.06"
 
 if [ -z "$OMR_FEED" ]; then
@@ -69,7 +71,7 @@ if [ "$OMR_KEEPBIN" = "no" ]; then
 	rm -rf "$OMR_TARGET/source/bin"
 fi
 rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp" "$OMR_TARGET/source/package/network/services/hostapd"
-rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-4.14"
+#rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-4.14"
 cp -rf root/* "$OMR_TARGET/source"
 
 cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
@@ -145,11 +147,11 @@ else
 fi
 echo "Done"
 
-echo "Remove gtime dependency"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/gtime.patch; then
-	patch -N -p1 -s < ../../patches/gtime.patch
-fi
-echo "Done"
+#echo "Remove gtime dependency"
+#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/gtime.patch; then
+#	patch -N -p1 -s < ../../patches/gtime.patch
+#fi
+#echo "Done"
 
 
 #echo "Set to kernel 4.9 for all arch"
