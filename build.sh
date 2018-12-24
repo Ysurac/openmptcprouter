@@ -157,12 +157,12 @@ echo "Done"
 #echo "Set to kernel 4.9 for all arch"
 #find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.9%g' {} \;
 #echo "Done"
-echo "Set to kernel 4.14 for rpi arch"
-find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.9%KERNEL_PATCHVER:=4.14%g' {} \;
-echo "Done"
-echo "Remove old RPI firmware"
-rm -rf target/linux/brcm2708/base-files/lib/firmware
-echo "Done"
+#echo "Set to kernel 4.14 for rpi arch"
+#find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.9%KERNEL_PATCHVER:=4.14%g' {} \;
+#echo "Done"
+#echo "Remove old RPI firmware"
+#rm -rf target/linux/brcm2708/base-files/lib/firmware
+#echo "Done"
 
 echo "Update feeds index"
 cp .config .config.keep
