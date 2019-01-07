@@ -27,7 +27,7 @@ index 143ca5147b..83171b3ba9 100644
  	if export_bootdevice && export_partdevice partdev 1; then
  		mkdir -p /boot
 -		mount -t ext4 -o rw,noatime "/dev/$partdev" /boot
-+		mount -t vfat -o rw,noatime "/dev/$partdev" /boot
++		mount -o rw,noatime "/dev/$partdev" /boot
  		if [ -f /boot/sysupgrade.tgz ]; then
  			mv -f /boot/sysupgrade.tgz /
  		fi
@@ -40,7 +40,7 @@ index d3e9f360aa..b475fd5435 100644
  
  	if export_partdevice partdev 1; then
 -		mount -t ext4 -o rw,noatime "/dev/$partdev" /mnt
-+		mount -t vfat -o rw,noatime "/dev/$partdev" /mnt
++		mount -o rw,noatime "/dev/$partdev" /mnt
  		cp -af "$CONF_TAR" /mnt/
  		umount /mnt
  	fi
