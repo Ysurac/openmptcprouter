@@ -53,7 +53,7 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "529c95cc15dc9fcc7709400cc921f2a3c03cd263"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "0465e41e0532ae54c2018ddbfa01927a9b594769"
 _get_repo feeds/packages https://github.com/openwrt/packages "openwrt-18.06"
 _get_repo feeds/luci https://github.com/openwrt/luci "openwrt-18.06"
 
@@ -159,6 +159,9 @@ echo "Done"
 #echo "Done"
 #echo "Set to kernel 4.14 for rpi arch"
 #find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.9%KERNEL_PATCHVER:=4.14%g' {} \;
+#echo "Done"
+#echo "Set to kernel 4.14 for all arch"
+#find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=4.14%g' {} \;
 #echo "Done"
 #echo "Remove old RPI firmware"
 #rm -rf target/linux/brcm2708/base-files/lib/firmware
