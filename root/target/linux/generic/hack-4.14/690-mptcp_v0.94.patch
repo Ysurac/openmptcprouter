@@ -20328,3 +20328,22 @@ diff -aurN a/net/mptcp/mptcp_wvegas.c b/net/mptcp/mptcp_wvegas.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("MPTCP wVegas");
 +MODULE_VERSION("0.1");
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index 32fe0f94feca..b516f2fc19c9 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -6186,10 +6186,13 @@ int tcp_rcv_state_process(struct sock *sk, struct sk_buff *skb)
+ 		* using an MP_JOIN subtype.
+ 		*/
+ 		if (mptcp(tp)) {
+-			if (is_master_tp(tp))
++			if (is_master_tp(tp)) {
+ 				mptcp_update_metasocket(mptcp_meta_sk(sk));
+-			else
++			} else {
+ 				tcp_send_ack(sk);
++
++				mptcp_push_pending_frames(mptcp_meta_sk(sk));
++			}
+ 		}
+ 		break;
