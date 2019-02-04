@@ -1,6 +1,6 @@
-diff -aurN linux-4.14.94/Documentation/networking/ip-sysctl.txt b/Documentation/networking/ip-sysctl.txt
---- a/Documentation/networking/ip-sysctl.txt	2019-01-16 22:07:13.000000000 +0100
-+++ b/Documentation/networking/ip-sysctl.txt	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/Documentation/networking/ip-sysctl.txt mptcp-mptcp_v0.94/Documentation/networking/ip-sysctl.txt
+--- linux-4.14.94/Documentation/networking/ip-sysctl.txt	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/Documentation/networking/ip-sysctl.txt	2019-02-04 14:41:14.000000000 +0100
 @@ -725,6 +725,18 @@
  	in RFC 5961 (Improving TCP's Robustness to Blind In-Window Attacks)
  	Default: 100
@@ -20,9 +20,9 @@ diff -aurN linux-4.14.94/Documentation/networking/ip-sysctl.txt b/Documentation/
  UDP variables:
  
  udp_l3mdev_accept - BOOLEAN
-diff -aurN a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
---- a/drivers/infiniband/hw/cxgb4/cm.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/drivers/infiniband/hw/cxgb4/cm.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/drivers/infiniband/hw/cxgb4/cm.c mptcp-mptcp_v0.94/drivers/infiniband/hw/cxgb4/cm.c
+--- linux-4.14.94/drivers/infiniband/hw/cxgb4/cm.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/drivers/infiniband/hw/cxgb4/cm.c	2019-02-04 14:41:14.000000000 +0100
 @@ -3752,7 +3752,7 @@
  	 */
  	memset(&tmp_opt, 0, sizeof(tmp_opt));
@@ -32,9 +32,9 @@ diff -aurN a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
  
  	req = __skb_push(skb, sizeof(*req));
  	memset(req, 0, sizeof(*req));
-diff -aurN a/include/linux/skbuff.h b/include/linux/skbuff.h
---- a/include/linux/skbuff.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/linux/skbuff.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/linux/skbuff.h mptcp-mptcp_v0.94/include/linux/skbuff.h
+--- linux-4.14.94/include/linux/skbuff.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/linux/skbuff.h	2019-02-04 14:41:14.000000000 +0100
 @@ -690,7 +690,7 @@
  	 * want to keep them across layers you have to do a skb_clone()
  	 * first. This is owned by whoever has the skb queued ATM.
@@ -44,9 +44,9 @@ diff -aurN a/include/linux/skbuff.h b/include/linux/skbuff.h
  
  	unsigned long		_skb_refdst;
  	void			(*destructor)(struct sk_buff *skb);
-diff -aurN a/include/linux/tcp.h b/include/linux/tcp.h
---- a/include/linux/tcp.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/linux/tcp.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/linux/tcp.h mptcp-mptcp_v0.94/include/linux/tcp.h
+--- linux-4.14.94/include/linux/tcp.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/linux/tcp.h	2019-02-04 14:41:14.000000000 +0100
 @@ -58,7 +58,7 @@
  /* TCP Fast Open */
  #define TCP_FASTOPEN_COOKIE_MIN	4	/* Min Fast Open Cookie size in bytes */
@@ -203,9 +203,9 @@ diff -aurN a/include/linux/tcp.h b/include/linux/tcp.h
  };
  
  static inline struct tcp_timewait_sock *tcp_twsk(const struct sock *sk)
-diff -aurN a/include/net/inet_common.h b/include/net/inet_common.h
---- a/include/net/inet_common.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/inet_common.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/inet_common.h mptcp-mptcp_v0.94/include/net/inet_common.h
+--- linux-4.14.94/include/net/inet_common.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/inet_common.h	2019-02-04 14:41:14.000000000 +0100
 @@ -2,6 +2,8 @@
  #ifndef _INET_COMMON_H
  #define _INET_COMMON_H
@@ -224,9 +224,9 @@ diff -aurN a/include/net/inet_common.h b/include/net/inet_common.h
  int inet_release(struct socket *sock);
  int inet_stream_connect(struct socket *sock, struct sockaddr *uaddr,
  			int addr_len, int flags);
-diff -aurN a/include/net/inet_connection_sock.h b/include/net/inet_connection_sock.h
---- a/include/net/inet_connection_sock.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/inet_connection_sock.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/inet_connection_sock.h mptcp-mptcp_v0.94/include/net/inet_connection_sock.h
+--- linux-4.14.94/include/net/inet_connection_sock.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/inet_connection_sock.h	2019-02-04 14:41:14.000000000 +0100
 @@ -30,6 +30,7 @@
  
  struct inet_bind_bucket;
@@ -235,9 +235,9 @@ diff -aurN a/include/net/inet_connection_sock.h b/include/net/inet_connection_so
  
  /*
   * Pointers to address related TCP functions
-diff -aurN a/include/net/inet_sock.h b/include/net/inet_sock.h
---- a/include/net/inet_sock.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/inet_sock.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/inet_sock.h mptcp-mptcp_v0.94/include/net/inet_sock.h
+--- linux-4.14.94/include/net/inet_sock.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/inet_sock.h	2019-02-04 14:41:14.000000000 +0100
 @@ -90,7 +90,9 @@
  				wscale_ok  : 1,
  				ecn_ok	   : 1,
@@ -249,9 +249,9 @@ diff -aurN a/include/net/inet_sock.h b/include/net/inet_sock.h
  	u32                     ir_mark;
  	union {
  		struct ip_options_rcu __rcu	*ireq_opt;
-diff -aurN a/include/net/mptcp.h b/include/net/mptcp.h
---- a/include/net/mptcp.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/include/net/mptcp.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/mptcp.h mptcp-mptcp_v0.94/include/net/mptcp.h
+--- linux-4.14.94/include/net/mptcp.h	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/mptcp.h	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,1510 @@
 +/*
 + *	MPTCP implementation
@@ -1763,9 +1763,9 @@ diff -aurN a/include/net/mptcp.h b/include/net/mptcp.h
 +#endif /* CONFIG_MPTCP */
 +
 +#endif /* _MPTCP_H */
-diff -aurN a/include/net/mptcp_v4.h b/include/net/mptcp_v4.h
---- a/include/net/mptcp_v4.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/include/net/mptcp_v4.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/mptcp_v4.h mptcp-mptcp_v0.94/include/net/mptcp_v4.h
+--- linux-4.14.94/include/net/mptcp_v4.h	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/mptcp_v4.h	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,68 @@
 +/*
 + *	MPTCP implementation
@@ -1835,9 +1835,9 @@ diff -aurN a/include/net/mptcp_v4.h b/include/net/mptcp_v4.h
 +#endif /* CONFIG_MPTCP */
 +
 +#endif /* MPTCP_V4_H_ */
-diff -aurN a/include/net/mptcp_v6.h b/include/net/mptcp_v6.h
---- a/include/net/mptcp_v6.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/include/net/mptcp_v6.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/mptcp_v6.h mptcp-mptcp_v0.94/include/net/mptcp_v6.h
+--- linux-4.14.94/include/net/mptcp_v6.h	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/mptcp_v6.h	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,69 @@
 +/*
 + *	MPTCP implementation
@@ -1908,9 +1908,9 @@ diff -aurN a/include/net/mptcp_v6.h b/include/net/mptcp_v6.h
 +#endif /* CONFIG_MPTCP */
 +
 +#endif /* _MPTCP_V6_H */
-diff -aurN a/include/net/net_namespace.h b/include/net/net_namespace.h
---- a/include/net/net_namespace.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/net_namespace.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/net_namespace.h mptcp-mptcp_v0.94/include/net/net_namespace.h
+--- linux-4.14.94/include/net/net_namespace.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/net_namespace.h	2019-02-04 14:41:14.000000000 +0100
 @@ -18,6 +18,7 @@
  #include <net/netns/packet.h>
  #include <net/netns/ipv4.h>
@@ -1929,9 +1929,9 @@ diff -aurN a/include/net/net_namespace.h b/include/net/net_namespace.h
  #if IS_ENABLED(CONFIG_IEEE802154_6LOWPAN)
  	struct netns_ieee802154_lowpan	ieee802154_lowpan;
  #endif
-diff -aurN a/include/net/netns/mptcp.h b/include/net/netns/mptcp.h
---- a/include/net/netns/mptcp.h	1970-01-01 01:00:00.000000000 +0100
-+++ b/include/net/netns/mptcp.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/netns/mptcp.h mptcp-mptcp_v0.94/include/net/netns/mptcp.h
+--- linux-4.14.94/include/net/netns/mptcp.h	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/netns/mptcp.h	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,52 @@
 +/*
 + *	MPTCP implementation - MPTCP namespace
@@ -1985,9 +1985,9 @@ diff -aurN a/include/net/netns/mptcp.h b/include/net/netns/mptcp.h
 +};
 +
 +#endif /* __NETNS_MPTCP_H__ */
-diff -aurN a/include/net/snmp.h b/include/net/snmp.h
---- a/include/net/snmp.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/snmp.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/snmp.h mptcp-mptcp_v0.94/include/net/snmp.h
+--- linux-4.14.94/include/net/snmp.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/snmp.h	2019-02-04 14:41:14.000000000 +0100
 @@ -91,7 +91,6 @@
  	atomic_long_t	mibs[ICMP6MSG_MIB_MAX];
  };
@@ -1996,9 +1996,9 @@ diff -aurN a/include/net/snmp.h b/include/net/snmp.h
  /* TCP */
  #define TCP_MIB_MAX	__TCP_MIB_MAX
  struct tcp_mib {
-diff -aurN a/include/net/sock.h b/include/net/sock.h
---- a/include/net/sock.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/sock.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/sock.h mptcp-mptcp_v0.94/include/net/sock.h
+--- linux-4.14.94/include/net/sock.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/sock.h	2019-02-04 14:41:14.000000000 +0100
 @@ -775,6 +775,7 @@
  	SOCK_FILTER_LOCKED, /* Filter cannot be changed anymore */
  	SOCK_SELECT_ERR_QUEUE, /* Wake select on error queue */
@@ -2025,9 +2025,9 @@ diff -aurN a/include/net/sock.h b/include/net/sock.h
  }
  
  static inline bool sock_owned_by_user(const struct sock *sk)
-diff -aurN a/include/net/tcp.h b/include/net/tcp.h
---- a/include/net/tcp.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/tcp.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/tcp.h mptcp-mptcp_v0.94/include/net/tcp.h
+--- linux-4.14.94/include/net/tcp.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/tcp.h	2019-02-04 14:41:14.000000000 +0100
 @@ -185,6 +185,7 @@
  #define TCPOPT_SACK             5       /* SACK Block */
  #define TCPOPT_TIMESTAMP	8	/* Better RTT estimations/PAWS */
@@ -2279,7 +2279,27 @@ diff -aurN a/include/net/tcp.h b/include/net/tcp.h
  /* Note: caller must be prepared to deal with negative returns */
  static inline int tcp_space(const struct sock *sk)
  {
-@@ -1885,6 +2040,30 @@
+@@ -1611,18 +1766,7 @@
+ }
+ 
+ /* write queue abstraction */
+-static inline void tcp_write_queue_purge(struct sock *sk)
+-{
+-	struct sk_buff *skb;
+-
+-	tcp_chrono_stop(sk, TCP_CHRONO_BUSY);
+-	while ((skb = __skb_dequeue(&sk->sk_write_queue)) != NULL)
+-		sk_wmem_free_skb(sk, skb);
+-	sk_mem_reclaim(sk);
+-	tcp_clear_all_retrans_hints(tcp_sk(sk));
+-	tcp_init_send_head(sk);
+-	tcp_sk(sk)->packets_out = 0;
+-}
++void tcp_write_queue_purge(struct sock *sk);
+ 
+ static inline struct sk_buff *tcp_write_queue_head(const struct sock *sk)
+ {
+@@ -1885,6 +2029,30 @@
  #endif
  };
  
@@ -2310,7 +2330,7 @@ diff -aurN a/include/net/tcp.h b/include/net/tcp.h
  struct tcp_request_sock_ops {
  	u16 mss_clamp;
  #ifdef CONFIG_TCP_MD5SIG
-@@ -1895,12 +2074,13 @@
+@@ -1895,12 +2063,13 @@
  					  const struct sock *sk,
  					  const struct sk_buff *skb);
  #endif
@@ -2329,7 +2349,7 @@ diff -aurN a/include/net/tcp.h b/include/net/tcp.h
  #endif
  	struct dst_entry *(*route_req)(const struct sock *sk, struct flowi *fl,
  				       const struct request_sock *req);
-@@ -1914,15 +2094,17 @@
+@@ -1914,15 +2083,17 @@
  
  #ifdef CONFIG_SYN_COOKIES
  static inline __u32 cookie_init_sequence(const struct tcp_request_sock_ops *ops,
@@ -2348,9 +2368,9 @@ diff -aurN a/include/net/tcp.h b/include/net/tcp.h
  					 const struct sock *sk, struct sk_buff *skb,
  					 __u16 *mss)
  {
-diff -aurN a/include/net/tcp_states.h b/include/net/tcp_states.h
---- a/include/net/tcp_states.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/tcp_states.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/tcp_states.h mptcp-mptcp_v0.94/include/net/tcp_states.h
+--- linux-4.14.94/include/net/tcp_states.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/tcp_states.h	2019-02-04 14:41:14.000000000 +0100
 @@ -26,6 +26,7 @@
  	TCP_LISTEN,
  	TCP_CLOSING,	/* Now a valid state */
@@ -2367,9 +2387,9 @@ diff -aurN a/include/net/tcp_states.h b/include/net/tcp_states.h
  };
  
  #endif	/* _LINUX_TCP_STATES_H */
-diff -aurN a/include/net/transp_v6.h b/include/net/transp_v6.h
---- a/include/net/transp_v6.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/net/transp_v6.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/net/transp_v6.h mptcp-mptcp_v0.94/include/net/transp_v6.h
+--- linux-4.14.94/include/net/transp_v6.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/net/transp_v6.h	2019-02-04 14:41:14.000000000 +0100
 @@ -59,6 +59,8 @@
  
  /* address family specific functions */
@@ -2379,9 +2399,9 @@ diff -aurN a/include/net/transp_v6.h b/include/net/transp_v6.h
  
  void inet6_destroy_sock(struct sock *sk);
  
-diff -aurN a/include/uapi/linux/if.h b/include/uapi/linux/if.h
---- a/include/uapi/linux/if.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/uapi/linux/if.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/uapi/linux/if.h mptcp-mptcp_v0.94/include/uapi/linux/if.h
+--- linux-4.14.94/include/uapi/linux/if.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/uapi/linux/if.h	2019-02-04 14:41:14.000000000 +0100
 @@ -132,6 +132,9 @@
  #define IFF_ECHO			IFF_ECHO
  #endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO */
@@ -2392,9 +2412,9 @@ diff -aurN a/include/uapi/linux/if.h b/include/uapi/linux/if.h
  #define IFF_VOLATILE	(IFF_LOOPBACK|IFF_POINTOPOINT|IFF_BROADCAST|IFF_ECHO|\
  		IFF_MASTER|IFF_SLAVE|IFF_RUNNING|IFF_LOWER_UP|IFF_DORMANT)
  
-diff -aurN a/include/uapi/linux/tcp.h b/include/uapi/linux/tcp.h
---- a/include/uapi/linux/tcp.h	2019-01-16 22:07:13.000000000 +0100
-+++ b/include/uapi/linux/tcp.h	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/include/uapi/linux/tcp.h mptcp-mptcp_v0.94/include/uapi/linux/tcp.h
+--- linux-4.14.94/include/uapi/linux/tcp.h	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/include/uapi/linux/tcp.h	2019-02-04 14:41:14.000000000 +0100
 @@ -18,9 +18,15 @@
  #ifndef _UAPI_LINUX_TCP_H
  #define _UAPI_LINUX_TCP_H
@@ -2479,9 +2499,9 @@ diff -aurN a/include/uapi/linux/tcp.h b/include/uapi/linux/tcp.h
  /* for TCP_MD5SIG socket option */
  #define TCP_MD5SIG_MAXKEYLEN	80
  
-diff -aurN a/kernel/rcu/Kconfig.debug b/kernel/rcu/Kconfig.debug
---- a/kernel/rcu/Kconfig.debug	2019-01-16 22:07:13.000000000 +0100
-+++ b/kernel/rcu/Kconfig.debug	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/kernel/rcu/Kconfig.debug mptcp-mptcp_v0.94/kernel/rcu/Kconfig.debug
+--- linux-4.14.94/kernel/rcu/Kconfig.debug	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/kernel/rcu/Kconfig.debug	2019-02-04 14:41:14.000000000 +0100
 @@ -4,9 +4,6 @@
  
  menu "RCU Debugging"
@@ -2492,9 +2512,9 @@ diff -aurN a/kernel/rcu/Kconfig.debug b/kernel/rcu/Kconfig.debug
  config TORTURE_TEST
  	tristate
  	default n
-diff -aurN a/net/core/dev.c b/net/core/dev.c
---- a/net/core/dev.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/core/dev.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/core/dev.c mptcp-mptcp_v0.94/net/core/dev.c
+--- linux-4.14.94/net/core/dev.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/core/dev.c	2019-02-04 14:41:14.000000000 +0100
 @@ -6766,7 +6766,7 @@
  
  	dev->flags = (flags & (IFF_DEBUG | IFF_NOTRAILERS | IFF_NOARP |
@@ -2504,9 +2524,9 @@ diff -aurN a/net/core/dev.c b/net/core/dev.c
  		     (dev->flags & (IFF_UP | IFF_VOLATILE | IFF_PROMISC |
  				    IFF_ALLMULTI));
  
-diff -aurN a/net/core/skbuff.c b/net/core/skbuff.c
---- a/net/core/skbuff.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/core/skbuff.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/core/skbuff.c mptcp-mptcp_v0.94/net/core/skbuff.c
+--- linux-4.14.94/net/core/skbuff.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/core/skbuff.c	2019-02-04 14:41:14.000000000 +0100
 @@ -532,7 +532,7 @@
  	skb_drop_list(&skb_shinfo(skb)->frag_list);
  }
@@ -2525,9 +2545,9 @@ diff -aurN a/net/core/skbuff.c b/net/core/skbuff.c
  {
  	__copy_skb_header(new, old);
  
-diff -aurN a/net/core/sock.c b/net/core/sock.c
---- a/net/core/sock.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/core/sock.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/core/sock.c mptcp-mptcp_v0.94/net/core/sock.c
+--- linux-4.14.94/net/core/sock.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/core/sock.c	2019-02-04 14:41:14.000000000 +0100
 @@ -139,6 +139,11 @@
  
  #include <trace/events/sock.h>
@@ -2587,9 +2607,9 @@ diff -aurN a/net/core/sock.c b/net/core/sock.c
  		mem_cgroup_sk_alloc(newsk);
  		cgroup_sk_alloc(&newsk->sk_cgrp_data);
  
-diff -aurN a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
---- a/net/ipv4/af_inet.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/af_inet.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/af_inet.c mptcp-mptcp_v0.94/net/ipv4/af_inet.c
+--- linux-4.14.94/net/ipv4/af_inet.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/af_inet.c	2019-02-04 14:41:14.000000000 +0100
 @@ -104,6 +104,7 @@
  #include <net/ip_fib.h>
  #include <net/inet_connection_sock.h>
@@ -2652,9 +2672,9 @@ diff -aurN a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
  	/* Setup TCP slab cache for open requests. */
  	tcp_init();
  
-diff -aurN a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
---- a/net/ipv4/inet_connection_sock.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/inet_connection_sock.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/inet_connection_sock.c mptcp-mptcp_v0.94/net/ipv4/inet_connection_sock.c
+--- linux-4.14.94/net/ipv4/inet_connection_sock.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/inet_connection_sock.c	2019-02-04 14:41:14.000000000 +0100
 @@ -23,6 +23,7 @@
  #include <net/route.h>
  #include <net/tcp_states.h>
@@ -2708,9 +2728,9 @@ diff -aurN a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
  		sock_put(child);
  
  		cond_resched();
-diff -aurN a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
---- a/net/ipv4/ip_sockglue.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/ip_sockglue.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/ip_sockglue.c mptcp-mptcp_v0.94/net/ipv4/ip_sockglue.c
+--- linux-4.14.94/net/ipv4/ip_sockglue.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/ip_sockglue.c	2019-02-04 14:41:14.000000000 +0100
 @@ -44,6 +44,8 @@
  #endif
  #include <net/ip_fib.h>
@@ -2738,9 +2758,9 @@ diff -aurN a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
  		}
  		break;
  	case IP_TTL:
-diff -aurN a/net/ipv4/Kconfig b/net/ipv4/Kconfig
---- a/net/ipv4/Kconfig	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/Kconfig	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/Kconfig mptcp-mptcp_v0.94/net/ipv4/Kconfig
+--- linux-4.14.94/net/ipv4/Kconfig	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/Kconfig	2019-02-04 14:41:14.000000000 +0100
 @@ -675,6 +675,38 @@
  	bufferbloat, policers, or AQM schemes that do not provide a delay
  	signal. It requires the fq ("Fair Queue") pacing packet scheduler.
@@ -2810,9 +2830,9 @@ diff -aurN a/net/ipv4/Kconfig b/net/ipv4/Kconfig
  	default "reno" if DEFAULT_RENO
  	default "dctcp" if DEFAULT_DCTCP
  	default "cdg" if DEFAULT_CDG
-diff -aurN a/net/ipv4/syncookies.c b/net/ipv4/syncookies.c
---- a/net/ipv4/syncookies.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/syncookies.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/syncookies.c mptcp-mptcp_v0.94/net/ipv4/syncookies.c
+--- linux-4.14.94/net/ipv4/syncookies.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/syncookies.c	2019-02-04 14:41:14.000000000 +0100
 @@ -16,6 +16,8 @@
  #include <linux/siphash.h>
  #include <linux/kernel.h>
@@ -2925,9 +2945,9 @@ diff -aurN a/net/ipv4/syncookies.c b/net/ipv4/syncookies.c
  
  	ireq->rcv_wscale  = rcv_wscale;
  	ireq->ecn_ok = cookie_ecn_ok(&tcp_opt, sock_net(sk), &rt->dst);
-diff -aurN a/net/ipv4/tcp.c b/net/ipv4/tcp.c
---- a/net/ipv4/tcp.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/tcp.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/tcp.c mptcp-mptcp_v0.94/net/ipv4/tcp.c
+--- linux-4.14.94/net/ipv4/tcp.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/tcp.c	2019-02-04 14:41:14.000000000 +0100
 @@ -273,6 +273,7 @@
  
  #include <net/icmp.h>
@@ -3555,9 +3575,9 @@ diff -aurN a/net/ipv4/tcp.c b/net/ipv4/tcp.c
  	return 0;
  }
  EXPORT_SYMBOL_GPL(tcp_abort);
-diff -aurN a/net/ipv4/tcp_fastopen.c b/net/ipv4/tcp_fastopen.c
---- a/net/ipv4/tcp_fastopen.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/tcp_fastopen.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/tcp_fastopen.c mptcp-mptcp_v0.94/net/ipv4/tcp_fastopen.c
+--- linux-4.14.94/net/ipv4/tcp_fastopen.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/tcp_fastopen.c	2019-02-04 14:41:14.000000000 +0100
 @@ -9,6 +9,7 @@
  #include <linux/rculist.h>
  #include <net/inetpeer.h>
@@ -3610,9 +3630,9 @@ diff -aurN a/net/ipv4/tcp_fastopen.c b/net/ipv4/tcp_fastopen.c
  	/* tcp_conn_request() is sending the SYNACK,
  	 * and queues the child into listener accept queue.
  	 */
-diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
---- a/net/ipv4/tcp_input.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/tcp_input.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/tcp_input.c mptcp-mptcp_v0.94/net/ipv4/tcp_input.c
+--- linux-4.14.94/net/ipv4/tcp_input.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/tcp_input.c	2019-02-04 14:41:14.000000000 +0100
 @@ -76,6 +76,9 @@
  #include <linux/ipsec.h>
  #include <asm/unaligned.h>
@@ -4313,7 +4333,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  
  		if (req) {
  			/* Re-arm the timer because data may have been sent out.
-@@ -6030,6 +6181,16 @@
+@@ -6030,6 +6181,19 @@
  
  		tcp_initialize_rcv_mss(sk);
  		tcp_fast_path_on(tp);
@@ -4322,15 +4342,18 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
 +		 * using an MP_JOIN subtype.
 +		 */
 +		if (mptcp(tp)) {
-+			if (is_master_tp(tp))
++			if (is_master_tp(tp)) {
 +				mptcp_update_metasocket(mptcp_meta_sk(sk));
-+			else
++			} else {
 +				tcp_send_ack(sk);
++
++				mptcp_push_pending_frames(mptcp_meta_sk(sk));
++			}
 +		}
  		break;
  
  	case TCP_FIN_WAIT1: {
-@@ -6077,7 +6238,8 @@
+@@ -6077,7 +6241,8 @@
  		tmo = tcp_fin_time(sk);
  		if (tmo > TCP_TIMEWAIT_LEN) {
  			inet_csk_reset_keepalive_timer(sk, tmo - TCP_TIMEWAIT_LEN);
@@ -4340,7 +4363,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  			/* Bad case. We could lose such FIN otherwise.
  			 * It is not a big problem, but it looks confusing
  			 * and not so rare event. We still can lose it now,
-@@ -6086,7 +6248,7 @@
+@@ -6086,7 +6251,7 @@
  			 */
  			inet_csk_reset_keepalive_timer(sk, tmo);
  		} else {
@@ -4349,7 +4372,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  			goto discard;
  		}
  		break;
-@@ -6094,7 +6256,7 @@
+@@ -6094,7 +6259,7 @@
  
  	case TCP_CLOSING:
  		if (tp->snd_una == tp->write_seq) {
@@ -4358,7 +4381,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  			goto discard;
  		}
  		break;
-@@ -6106,6 +6268,9 @@
+@@ -6106,6 +6271,9 @@
  			goto discard;
  		}
  		break;
@@ -4368,7 +4391,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  	}
  
  	/* step 6: check the URG bit */
-@@ -6126,7 +6291,8 @@
+@@ -6126,7 +6294,8 @@
  		 */
  		if (sk->sk_shutdown & RCV_SHUTDOWN) {
  			if (TCP_SKB_CB(skb)->end_seq != TCP_SKB_CB(skb)->seq &&
@@ -4378,7 +4401,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  				NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPABORTONDATA);
  				tcp_reset(sk);
  				return 1;
-@@ -6223,6 +6389,8 @@
+@@ -6223,6 +6392,8 @@
  	ireq->wscale_ok = rx_opt->wscale_ok;
  	ireq->acked = 0;
  	ireq->ecn_ok = 0;
@@ -4387,7 +4410,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  	ireq->ir_rmt_port = tcp_hdr(skb)->source;
  	ireq->ir_num = ntohs(tcp_hdr(skb)->dest);
  	ireq->ir_mark = inet_request_mark(sk, skb);
-@@ -6317,12 +6485,17 @@
+@@ -6317,12 +6488,17 @@
  	/* TW buckets are converted to open requests without
  	 * limitations, they conserve resources and peer is
  	 * evidently real one.
@@ -4406,7 +4429,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  	}
  
  	if (sk_acceptq_is_full(sk)) {
-@@ -6340,8 +6513,8 @@
+@@ -6340,8 +6516,8 @@
  	tcp_clear_options(&tmp_opt);
  	tmp_opt.mss_clamp = af_ops->mss_clamp;
  	tmp_opt.user_mss  = tp->rx_opt.user_mss;
@@ -4417,7 +4440,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  
  	if (want_cookie && !tmp_opt.saw_tstamp)
  		tcp_clear_options(&tmp_opt);
-@@ -6353,7 +6526,8 @@
+@@ -6353,7 +6529,8 @@
  	/* Note: tcp_v6_init_req() might override ir_iif for link locals */
  	inet_rsk(req)->ir_iif = inet_request_bound_dev_if(sk, skb);
  
@@ -4427,7 +4450,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  
  	if (security_inet_conn_request(sk, skb, req))
  		goto drop_and_free;
-@@ -6389,7 +6563,7 @@
+@@ -6389,7 +6566,7 @@
  	tcp_ecn_create_request(req, skb, sk, dst);
  
  	if (want_cookie) {
@@ -4436,7 +4459,7 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  		req->cookie_ts = tmp_opt.tstamp_ok;
  		if (!tmp_opt.tstamp_ok)
  			inet_rsk(req)->ecn_ok = 0;
-@@ -6403,12 +6577,18 @@
+@@ -6403,12 +6580,18 @@
  		fastopen_sk = tcp_try_fastopen(sk, skb, req, &foc);
  	}
  	if (fastopen_sk) {
@@ -4456,9 +4479,9 @@ diff -aurN a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
  		sock_put(fastopen_sk);
  	} else {
  		tcp_rsk(req)->tfo_listener = false;
-diff -aurN a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/tcp_ipv4.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/tcp_ipv4.c mptcp-mptcp_v0.94/net/ipv4/tcp_ipv4.c
+--- linux-4.14.94/net/ipv4/tcp_ipv4.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/tcp_ipv4.c	2019-02-04 14:41:14.000000000 +0100
 @@ -67,6 +67,8 @@
  #include <net/icmp.h>
  #include <net/inet_hashtables.h>
@@ -4946,9 +4969,9 @@ diff -aurN a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
  };
  EXPORT_SYMBOL(tcp_prot);
  
-diff -aurN a/net/ipv4/tcp_minisocks.c b/net/ipv4/tcp_minisocks.c
---- a/net/ipv4/tcp_minisocks.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/tcp_minisocks.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/tcp_minisocks.c mptcp-mptcp_v0.94/net/ipv4/tcp_minisocks.c
+--- linux-4.14.94/net/ipv4/tcp_minisocks.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/tcp_minisocks.c	2019-02-04 14:41:14.000000000 +0100
 @@ -18,11 +18,13 @@
   *		Jorge Cwik, <jorge@laser.satlink.net>
   */
@@ -5159,9 +5182,9 @@ diff -aurN a/net/ipv4/tcp_minisocks.c b/net/ipv4/tcp_minisocks.c
  	sock_put(child);
  	return ret;
  }
-diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
---- a/net/ipv4/tcp_output.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/tcp_output.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/tcp_output.c mptcp-mptcp_v0.94/net/ipv4/tcp_output.c
+--- linux-4.14.94/net/ipv4/tcp_output.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/tcp_output.c	2019-02-04 14:41:14.000000000 +0100
 @@ -36,6 +36,12 @@
  
  #define pr_fmt(fmt) "TCP: " fmt
@@ -5595,7 +5618,30 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  		goto send_now;
  
  	return true;
-@@ -2282,7 +2322,7 @@
+@@ -2268,6 +2308,22 @@
+ 		tcp_chrono_set(tp, TCP_CHRONO_BUSY);
+ }
+ 
++void tcp_write_queue_purge(struct sock *sk)
++{
++	struct sk_buff *skb;
++
++	if (mptcp(tcp_sk(sk)) && !is_meta_sk(sk) && !tcp_write_queue_empty(sk))
++		mptcp_reinject_data(sk, 0);
++
++	tcp_chrono_stop(sk, TCP_CHRONO_BUSY);
++	while ((skb = __skb_dequeue(&sk->sk_write_queue)) != NULL)
++		sk_wmem_free_skb(sk, skb);
++	sk_mem_reclaim(sk);
++	tcp_clear_all_retrans_hints(tcp_sk(sk));
++	tcp_init_send_head(sk);
++	tcp_sk(sk)->packets_out = 0;
++}
++
+ /* This routine writes packets to the network.  It advances the
+  * send_head.  This happens as incoming acks open up the remote
+  * window for us.
+@@ -2282,7 +2338,7 @@
   * Returns true, if no segments are in flight and we have queued segments,
   * but cannot send anything now because of SWS or another problem.
   */
@@ -5604,7 +5650,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  			   int push_one, gfp_t gfp)
  {
  	struct tcp_sock *tp = tcp_sk(sk);
-@@ -2296,7 +2336,12 @@
+@@ -2296,7 +2352,12 @@
  	sent_pkts = 0;
  
  	tcp_mstamp_refresh(tp);
@@ -5618,7 +5664,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  		/* Do MTU probing. */
  		result = tcp_mtu_probe(sk);
  		if (!result) {
-@@ -2394,7 +2439,8 @@
+@@ -2394,7 +2455,8 @@
  		if (push_one != 2)
  			tcp_schedule_loss_probe(sk, false);
  		is_cwnd_limited |= (tcp_packets_in_flight(tp) >= tp->snd_cwnd);
@@ -5628,7 +5674,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  		return false;
  	}
  	return !tp->packets_out && tcp_send_head(sk);
-@@ -2479,7 +2525,7 @@
+@@ -2479,7 +2541,7 @@
  	if (skb) {
  		if (tcp_snd_wnd_test(tp, skb, mss)) {
  			pcount = tp->packets_out;
@@ -5637,7 +5683,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  			if (tp->packets_out > pcount)
  				goto probe_sent;
  			goto rearm_timer;
-@@ -2546,8 +2592,8 @@
+@@ -2546,8 +2608,8 @@
  	if (unlikely(sk->sk_state == TCP_CLOSE))
  		return;
  
@@ -5648,7 +5694,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  		tcp_check_probe_timer(sk);
  }
  
-@@ -2560,7 +2606,8 @@
+@@ -2560,7 +2622,8 @@
  
  	BUG_ON(!skb || skb->len < mss_now);
  
@@ -5658,7 +5704,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  }
  
  /* This function returns the amount that we can raise the
-@@ -2793,6 +2840,10 @@
+@@ -2793,6 +2856,10 @@
  	if (TCP_SKB_CB(skb)->tcp_flags & TCPHDR_SYN)
  		return;
  
@@ -5669,7 +5715,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  	tcp_for_write_queue_from_safe(skb, tmp, sk) {
  		if (!tcp_can_collapse(sk, skb))
  			break;
-@@ -3250,7 +3301,7 @@
+@@ -3250,7 +3317,7 @@
  
  	/* RFC1323: The window in SYN & SYN/ACK segments is never scaled. */
  	th->window = htons(min(req->rsk_rcv_wnd, 65535U));
@@ -5678,7 +5724,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  	th->doff = (tcp_header_size >> 2);
  	__TCP_INC_STATS(sock_net(sk), TCP_MIB_OUTSEGS);
  
-@@ -3331,13 +3382,13 @@
+@@ -3331,13 +3398,13 @@
  	if (rcv_wnd == 0)
  		rcv_wnd = dst_metric(dst, RTAX_INITRWND);
  
@@ -5699,7 +5745,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  
  	tp->rx_opt.rcv_wscale = rcv_wscale;
  	tp->rcv_ssthresh = tp->rcv_wnd;
-@@ -3362,6 +3413,36 @@
+@@ -3362,6 +3429,36 @@
  	inet_csk(sk)->icsk_rto = tcp_timeout_init(sk);
  	inet_csk(sk)->icsk_retransmits = 0;
  	tcp_clear_retrans(tp);
@@ -5736,7 +5782,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  }
  
  static void tcp_connect_queue_skb(struct sock *sk, struct sk_buff *skb)
-@@ -3622,6 +3703,7 @@
+@@ -3622,6 +3719,7 @@
  {
  	__tcp_send_ack(sk, tcp_sk(sk)->rcv_nxt);
  }
@@ -5744,7 +5790,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  
  /* This routine sends a packet with an out of date sequence
   * number. It assumes the other end will try to ack it.
-@@ -3634,7 +3716,7 @@
+@@ -3634,7 +3732,7 @@
   * one is with SEG.SEQ=SND.UNA to deliver urgent pointer, another is
   * out-of-date with SND.UNA-1 to probe window.
   */
@@ -5753,7 +5799,7 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  {
  	struct tcp_sock *tp = tcp_sk(sk);
  	struct sk_buff *skb;
-@@ -3720,7 +3802,7 @@
+@@ -3720,7 +3818,7 @@
  	unsigned long probe_max;
  	int err;
  
@@ -5762,9 +5808,9 @@ diff -aurN a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
  
  	if (tp->packets_out || !tcp_send_head(sk)) {
  		/* Cancel probe timer, if it is not required. */
-diff -aurN a/net/ipv4/tcp_timer.c b/net/ipv4/tcp_timer.c
---- a/net/ipv4/tcp_timer.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv4/tcp_timer.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv4/tcp_timer.c mptcp-mptcp_v0.94/net/ipv4/tcp_timer.c
+--- linux-4.14.94/net/ipv4/tcp_timer.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv4/tcp_timer.c	2019-02-04 14:41:14.000000000 +0100
 @@ -20,6 +20,7 @@
  
  #include <linux/module.h>
@@ -5962,9 +6008,9 @@ diff -aurN a/net/ipv4/tcp_timer.c b/net/ipv4/tcp_timer.c
  	sock_put(sk);
  }
  
-diff -aurN a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
---- a/net/ipv6/addrconf.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv6/addrconf.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv6/addrconf.c mptcp-mptcp_v0.94/net/ipv6/addrconf.c
+--- linux-4.14.94/net/ipv6/addrconf.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv6/addrconf.c	2019-02-04 14:41:14.000000000 +0100
 @@ -928,6 +928,7 @@
  
  	kfree_rcu(ifp, rcu);
@@ -5973,9 +6019,9 @@ diff -aurN a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
  
  static void
  ipv6_link_dev_addr(struct inet6_dev *idev, struct inet6_ifaddr *ifp)
-diff -aurN a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
---- a/net/ipv6/af_inet6.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv6/af_inet6.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv6/af_inet6.c mptcp-mptcp_v0.94/net/ipv6/af_inet6.c
+--- linux-4.14.94/net/ipv6/af_inet6.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv6/af_inet6.c	2019-02-04 14:41:14.000000000 +0100
 @@ -107,8 +107,7 @@
  	return (struct ipv6_pinfo *)(((u8 *)sk) + offset);
  }
@@ -5986,9 +6032,9 @@ diff -aurN a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
  {
  	struct inet_sock *inet;
  	struct ipv6_pinfo *np;
-diff -aurN a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
---- a/net/ipv6/ipv6_sockglue.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv6/ipv6_sockglue.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv6/ipv6_sockglue.c mptcp-mptcp_v0.94/net/ipv6/ipv6_sockglue.c
+--- linux-4.14.94/net/ipv6/ipv6_sockglue.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv6/ipv6_sockglue.c	2019-02-04 14:41:14.000000000 +0100
 @@ -48,6 +48,8 @@
  #include <net/addrconf.h>
  #include <net/inet_common.h>
@@ -6012,9 +6058,9 @@ diff -aurN a/net/ipv6/ipv6_sockglue.c b/net/ipv6/ipv6_sockglue.c
  				sk->sk_socket->ops = &inet_stream_ops;
  				sk->sk_family = PF_INET;
  				tcp_sync_mss(sk, icsk->icsk_pmtu_cookie);
-diff -aurN a/net/ipv6/syncookies.c b/net/ipv6/syncookies.c
---- a/net/ipv6/syncookies.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv6/syncookies.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv6/syncookies.c mptcp-mptcp_v0.94/net/ipv6/syncookies.c
+--- linux-4.14.94/net/ipv6/syncookies.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv6/syncookies.c	2019-02-04 14:41:14.000000000 +0100
 @@ -20,6 +20,8 @@
  #include <linux/kernel.h>
  #include <net/secure_seq.h>
@@ -6096,9 +6142,9 @@ diff -aurN a/net/ipv6/syncookies.c b/net/ipv6/syncookies.c
  
  	ireq->rcv_wscale = rcv_wscale;
  	ireq->ecn_ok = cookie_ecn_ok(&tcp_opt, sock_net(sk), dst);
-diff -aurN a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
---- a/net/ipv6/tcp_ipv6.c	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/ipv6/tcp_ipv6.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/ipv6/tcp_ipv6.c mptcp-mptcp_v0.94/net/ipv6/tcp_ipv6.c
+--- linux-4.14.94/net/ipv6/tcp_ipv6.c	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/ipv6/tcp_ipv6.c	2019-02-04 14:41:14.000000000 +0100
 @@ -61,6 +61,8 @@
  #include <net/timewait_sock.h>
  #include <net/inet_common.h>
@@ -6720,9 +6766,9 @@ diff -aurN a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
  };
  
  /* thinking of making this const? Don't.
-diff -aurN a/net/Kconfig b/net/Kconfig
---- a/net/Kconfig	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/Kconfig	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/Kconfig mptcp-mptcp_v0.94/net/Kconfig
+--- linux-4.14.94/net/Kconfig	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/Kconfig	2019-02-04 14:41:14.000000000 +0100
 @@ -88,6 +88,7 @@
  source "net/ipv4/Kconfig"
  source "net/ipv6/Kconfig"
@@ -6731,9 +6777,9 @@ diff -aurN a/net/Kconfig b/net/Kconfig
  
  endif # if INET
  
-diff -aurN a/net/Makefile b/net/Makefile
---- a/net/Makefile	2019-01-16 22:07:13.000000000 +0100
-+++ b/net/Makefile	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/Makefile mptcp-mptcp_v0.94/net/Makefile
+--- linux-4.14.94/net/Makefile	2019-01-16 22:07:13.000000000 +0100
++++ mptcp-mptcp_v0.94/net/Makefile	2019-02-04 14:41:14.000000000 +0100
 @@ -20,6 +20,7 @@
  obj-$(CONFIG_XFRM)		+= xfrm/
  obj-$(CONFIG_UNIX)		+= unix/
@@ -6742,9 +6788,9 @@ diff -aurN a/net/Makefile b/net/Makefile
  obj-$(CONFIG_PACKET)		+= packet/
  obj-$(CONFIG_NET_KEY)		+= key/
  obj-$(CONFIG_BRIDGE)		+= bridge/
-diff -aurN a/net/mptcp/Kconfig b/net/mptcp/Kconfig
---- a/net/mptcp/Kconfig	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/Kconfig	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/Kconfig mptcp-mptcp_v0.94/net/mptcp/Kconfig
+--- linux-4.14.94/net/mptcp/Kconfig	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/Kconfig	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,129 @@
 +#
 +# MPTCP configuration
@@ -6875,9 +6921,9 @@ diff -aurN a/net/mptcp/Kconfig b/net/mptcp/Kconfig
 +	default "redundant" if DEFAULT_REDUNDANT
 +	default "default"
 +
-diff -aurN a/net/mptcp/Makefile b/net/mptcp/Makefile
---- a/net/mptcp/Makefile	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/Makefile	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/Makefile mptcp-mptcp_v0.94/net/mptcp/Makefile
+--- linux-4.14.94/net/mptcp/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/Makefile	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,22 @@
 +#
 +## Makefile for MultiPath TCP support code.
@@ -6901,9 +6947,9 @@ diff -aurN a/net/mptcp/Makefile b/net/mptcp/Makefile
 +
 +mptcp-$(subst m,y,$(CONFIG_IPV6)) += mptcp_ipv6.o
 +
-diff -aurN a/net/mptcp/mptcp_balia.c b/net/mptcp/mptcp_balia.c
---- a/net/mptcp/mptcp_balia.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_balia.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_balia.c mptcp-mptcp_v0.94/net/mptcp/mptcp_balia.c
+--- linux-4.14.94/net/mptcp/mptcp_balia.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_balia.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,268 @@
 +/*
 + *	MPTCP implementation - Balia Congestion Control
@@ -7173,9 +7219,9 @@ diff -aurN a/net/mptcp/mptcp_balia.c b/net/mptcp/mptcp_balia.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("MPTCP BALIA CONGESTION CONTROL ALGORITHM");
 +MODULE_VERSION("0.1");
-diff -aurN a/net/mptcp/mptcp_binder.c b/net/mptcp/mptcp_binder.c
---- a/net/mptcp/mptcp_binder.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_binder.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_binder.c mptcp-mptcp_v0.94/net/mptcp/mptcp_binder.c
+--- linux-4.14.94/net/mptcp/mptcp_binder.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_binder.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,486 @@
 +#include <linux/module.h>
 +
@@ -7663,9 +7709,9 @@ diff -aurN a/net/mptcp/mptcp_binder.c b/net/mptcp/mptcp_binder.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("BINDER MPTCP");
 +MODULE_VERSION("0.1");
-diff -aurN a/net/mptcp/mptcp_coupled.c b/net/mptcp/mptcp_coupled.c
---- a/net/mptcp/mptcp_coupled.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_coupled.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_coupled.c mptcp-mptcp_v0.94/net/mptcp/mptcp_coupled.c
+--- linux-4.14.94/net/mptcp/mptcp_coupled.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_coupled.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,271 @@
 +/*
 + *	MPTCP implementation - Linked Increase congestion control Algorithm (LIA)
@@ -7938,9 +7984,9 @@ diff -aurN a/net/mptcp/mptcp_coupled.c b/net/mptcp/mptcp_coupled.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("MPTCP LINKED INCREASE CONGESTION CONTROL ALGORITHM");
 +MODULE_VERSION("0.1");
-diff -aurN a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
---- a/net/mptcp/mptcp_ctrl.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_ctrl.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_ctrl.c mptcp-mptcp_v0.94/net/mptcp/mptcp_ctrl.c
+--- linux-4.14.94/net/mptcp/mptcp_ctrl.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_ctrl.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,2931 @@
 +/*
 + *	MPTCP implementation - MPTCP-control
@@ -10873,9 +10919,9 @@ diff -aurN a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
 +mptcp_sock_cache_failed:
 +	mptcp_init_failed = true;
 +}
-diff -aurN a/net/mptcp/mptcp_fullmesh.c b/net/mptcp/mptcp_fullmesh.c
---- a/net/mptcp/mptcp_fullmesh.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_fullmesh.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_fullmesh.c mptcp-mptcp_v0.94/net/mptcp/mptcp_fullmesh.c
+--- linux-4.14.94/net/mptcp/mptcp_fullmesh.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_fullmesh.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,2013 @@
 +#include <linux/module.h>
 +#include <linux/proc_fs.h>
@@ -12890,9 +12936,9 @@ diff -aurN a/net/mptcp/mptcp_fullmesh.c b/net/mptcp/mptcp_fullmesh.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("Full-Mesh MPTCP");
 +MODULE_VERSION("0.88");
-diff -aurN a/net/mptcp/mptcp_input.c b/net/mptcp/mptcp_input.c
---- a/net/mptcp/mptcp_input.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_input.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_input.c mptcp-mptcp_v0.94/net/mptcp/mptcp_input.c
+--- linux-4.14.94/net/mptcp/mptcp_input.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_input.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,2466 @@
 +/*
 + *	MPTCP implementation - Sending side
@@ -15360,9 +15406,9 @@ diff -aurN a/net/mptcp/mptcp_input.c b/net/mptcp/mptcp_input.c
 +	tcp_set_rto(sk);
 +	mptcp_set_rto(sk);
 +}
-diff -aurN a/net/mptcp/mptcp_ipv4.c b/net/mptcp/mptcp_ipv4.c
---- a/net/mptcp/mptcp_ipv4.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_ipv4.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_ipv4.c mptcp-mptcp_v0.94/net/mptcp/mptcp_ipv4.c
+--- linux-4.14.94/net/mptcp/mptcp_ipv4.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_ipv4.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,436 @@
 +/*
 + *	MPTCP implementation - IPv4-specific functions
@@ -15800,9 +15846,9 @@ diff -aurN a/net/mptcp/mptcp_ipv4.c b/net/mptcp/mptcp_ipv4.c
 +	kmem_cache_destroy(mptcp_request_sock_ops.slab);
 +	kfree(mptcp_request_sock_ops.slab_name);
 +}
-diff -aurN a/net/mptcp/mptcp_ipv6.c b/net/mptcp/mptcp_ipv6.c
---- a/net/mptcp/mptcp_ipv6.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_ipv6.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_ipv6.c mptcp-mptcp_v0.94/net/mptcp/mptcp_ipv6.c
+--- linux-4.14.94/net/mptcp/mptcp_ipv6.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_ipv6.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,465 @@
 +/*
 + *	MPTCP implementation - IPv6-specific functions
@@ -16269,9 +16315,9 @@ diff -aurN a/net/mptcp/mptcp_ipv6.c b/net/mptcp/mptcp_ipv6.c
 +	kmem_cache_destroy(mptcp6_request_sock_ops.slab);
 +	kfree(mptcp6_request_sock_ops.slab_name);
 +}
-diff -aurN a/net/mptcp/mptcp_ndiffports.c b/net/mptcp/mptcp_ndiffports.c
---- a/net/mptcp/mptcp_ndiffports.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_ndiffports.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_ndiffports.c mptcp-mptcp_v0.94/net/mptcp/mptcp_ndiffports.c
+--- linux-4.14.94/net/mptcp/mptcp_ndiffports.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_ndiffports.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,169 @@
 +#include <linux/module.h>
 +
@@ -16442,9 +16488,9 @@ diff -aurN a/net/mptcp/mptcp_ndiffports.c b/net/mptcp/mptcp_ndiffports.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("NDIFF-PORTS MPTCP");
 +MODULE_VERSION("0.88");
-diff -aurN a/net/mptcp/mptcp_olia.c b/net/mptcp/mptcp_olia.c
---- a/net/mptcp/mptcp_olia.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_olia.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_olia.c mptcp-mptcp_v0.94/net/mptcp/mptcp_olia.c
+--- linux-4.14.94/net/mptcp/mptcp_olia.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_olia.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,310 @@
 +/*
 + * MPTCP implementation - OPPORTUNISTIC LINKED INCREASES CONGESTION CONTROL:
@@ -16756,9 +16802,9 @@ diff -aurN a/net/mptcp/mptcp_olia.c b/net/mptcp/mptcp_olia.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("MPTCP COUPLED CONGESTION CONTROL");
 +MODULE_VERSION("0.1");
-diff -aurN a/net/mptcp/mptcp_output.c b/net/mptcp/mptcp_output.c
---- a/net/mptcp/mptcp_output.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_output.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_output.c mptcp-mptcp_v0.94/net/mptcp/mptcp_output.c
+--- linux-4.14.94/net/mptcp/mptcp_output.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_output.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,1816 @@
 +/*
 + *	MPTCP implementation - Sending side
@@ -18576,9 +18622,9 @@ diff -aurN a/net/mptcp/mptcp_output.c b/net/mptcp/mptcp_output.c
 +	return max(xmit_size_goal, mss_now);
 +}
 +
-diff -aurN a/net/mptcp/mptcp_pm.c b/net/mptcp/mptcp_pm.c
---- a/net/mptcp/mptcp_pm.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_pm.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_pm.c mptcp-mptcp_v0.94/net/mptcp/mptcp_pm.c
+--- linux-4.14.94/net/mptcp/mptcp_pm.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_pm.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,226 @@
 +/*
 + *     MPTCP implementation - MPTCP-subflow-management
@@ -18806,9 +18852,9 @@ diff -aurN a/net/mptcp/mptcp_pm.c b/net/mptcp/mptcp_pm.c
 +	return mptcp_set_default_path_manager(CONFIG_DEFAULT_MPTCP_PM);
 +}
 +late_initcall(mptcp_path_manager_default);
-diff -aurN a/net/mptcp/mptcp_redundant.c b/net/mptcp/mptcp_redundant.c
---- a/net/mptcp/mptcp_redundant.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_redundant.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_redundant.c mptcp-mptcp_v0.94/net/mptcp/mptcp_redundant.c
+--- linux-4.14.94/net/mptcp/mptcp_redundant.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_redundant.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,301 @@
 +/*
 + *	MPTCP Scheduler to reduce latency and jitter.
@@ -19111,9 +19157,9 @@ diff -aurN a/net/mptcp/mptcp_redundant.c b/net/mptcp/mptcp_redundant.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("REDUNDANT MPTCP");
 +MODULE_VERSION("0.90");
-diff -aurN a/net/mptcp/mptcp_rr.c b/net/mptcp/mptcp_rr.c
---- a/net/mptcp/mptcp_rr.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_rr.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_rr.c mptcp-mptcp_v0.94/net/mptcp/mptcp_rr.c
+--- linux-4.14.94/net/mptcp/mptcp_rr.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_rr.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,301 @@
 +/* MPTCP Scheduler module selector. Highly inspired by tcp_cong.c */
 +
@@ -19416,9 +19462,9 @@ diff -aurN a/net/mptcp/mptcp_rr.c b/net/mptcp/mptcp_rr.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("ROUNDROBIN MPTCP");
 +MODULE_VERSION("0.89");
-diff -aurN a/net/mptcp/mptcp_sched.c b/net/mptcp/mptcp_sched.c
---- a/net/mptcp/mptcp_sched.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_sched.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_sched.c mptcp-mptcp_v0.94/net/mptcp/mptcp_sched.c
+--- linux-4.14.94/net/mptcp/mptcp_sched.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_sched.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,634 @@
 +/* MPTCP Scheduler module selector. Highly inspired by tcp_cong.c */
 +
@@ -20054,9 +20100,9 @@ diff -aurN a/net/mptcp/mptcp_sched.c b/net/mptcp/mptcp_sched.c
 +	return mptcp_set_default_scheduler(CONFIG_DEFAULT_MPTCP_SCHED);
 +}
 +late_initcall(mptcp_scheduler_default);
-diff -aurN a/net/mptcp/mptcp_wvegas.c b/net/mptcp/mptcp_wvegas.c
---- a/net/mptcp/mptcp_wvegas.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/net/mptcp/mptcp_wvegas.c	2019-01-23 00:56:55.000000000 +0100
+diff -aurN linux-4.14.94/net/mptcp/mptcp_wvegas.c mptcp-mptcp_v0.94/net/mptcp/mptcp_wvegas.c
+--- linux-4.14.94/net/mptcp/mptcp_wvegas.c	1970-01-01 01:00:00.000000000 +0100
++++ mptcp-mptcp_v0.94/net/mptcp/mptcp_wvegas.c	2019-02-04 14:41:14.000000000 +0100
 @@ -0,0 +1,270 @@
 +/*
 + *	MPTCP implementation - WEIGHTED VEGAS
@@ -20328,22 +20374,3 @@ diff -aurN a/net/mptcp/mptcp_wvegas.c b/net/mptcp/mptcp_wvegas.c
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("MPTCP wVegas");
 +MODULE_VERSION("0.1");
-diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
-index 32fe0f94feca..b516f2fc19c9 100644
---- a/net/ipv4/tcp_input.c
-+++ b/net/ipv4/tcp_input.c
-@@ -6186,10 +6186,13 @@ int tcp_rcv_state_process(struct sock *sk, struct sk_buff *skb)
- 		* using an MP_JOIN subtype.
- 		*/
- 		if (mptcp(tp)) {
--			if (is_master_tp(tp))
-+			if (is_master_tp(tp)) {
- 				mptcp_update_metasocket(mptcp_meta_sk(sk));
--			else
-+			} else {
- 				tcp_send_ack(sk);
-+
-+				mptcp_push_pending_frames(mptcp_meta_sk(sk));
-+			}
- 		}
- 		break;
