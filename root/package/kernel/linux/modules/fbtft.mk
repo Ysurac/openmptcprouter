@@ -12,13 +12,12 @@ VIDEO_MENU:=Video Support
 # FB TFT Display
 #
 
-define KernelPackage/fb-tft
+define KernelPackage/fb-tft-all
   SUBMENU:=$(VIDEO_MENU)
-  TITLE:=Framebuffer support for small TFT displays
-  DEPENDS:=@DISPLAY_SUPPORT
+  TITLE:=Framebuffer support for all TFT displays
+  DEPENDS:=+kmod-fb-tft
   KCONFIG:= \
 	CONFIG_STAGING=y \
-	CONFIG_FB_TFT=y \
 	CONFIG_FB_TFT_AGM1264K_FL=m \
 	CONFIG_FB_TFT_BD663474=m \
 	CONFIG_FB_TFT_HX8340BN=m \
@@ -55,7 +54,6 @@ define KernelPackage/fb-tft
 	CONFIG_FB_TFT_FBTFT_DEVICE=m
   FILES:=\
 	$(LINUX_DIR)/drivers/staging/fbtft/fbtft_device.ko \
-	$(LINUX_DIR)/drivers/staging/fbtft/fbtft.ko \
 	$(LINUX_DIR)/drivers/staging/fbtft/flexfb.ko \
 	$(LINUX_DIR)/drivers/staging/fbtft/fb_agm1264k-fl.ko \
 	$(LINUX_DIR)/drivers/staging/fbtft/fb_bd663474.ko \
@@ -93,8 +91,8 @@ define KernelPackage/fb-tft
   AUTOLOAD:=$(call AutoLoad,06,fbtft_device)
 endef
 
-define KernelPackage/fb-tft/description
+define KernelPackage/fb-tft-all/description
  Kernel support for small TFT LCD display modules
 endef
 
-$(eval $(call KernelPackage,fb-tft))
+$(eval $(call KernelPackage,fb-tft-all))
