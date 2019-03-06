@@ -53,7 +53,8 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a3ccac6b1d693527befa73532a6cf5abda7134c0"
+#_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a3ccac6b1d693527befa73532a6cf5abda7134c0"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "64bb88841fbc2d9a9dfee12775a18e5dc89ac16e"
 _get_repo feeds/packages https://github.com/openwrt/packages "openwrt-18.06"
 _get_repo feeds/luci https://github.com/openwrt/luci "openwrt-18.06"
 
@@ -146,6 +147,10 @@ else
 	fi
 fi
 echo "Done"
+
+#echo "Patch protobuf wrong hash"
+#patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
+#echo "Done"
 
 #echo "Remove gtime dependency"
 #if ! patch -Rf -N -p1 -s --dry-run < ../../patches/gtime.patch; then
