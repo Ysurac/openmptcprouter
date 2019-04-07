@@ -6,6 +6,7 @@
 [![LinkedIn](https://www.openmptcprouter.com/img/linkedin.png)](https://www.linkedin.com/in/yannick-chabanois-550330146/)
 [![Twitter](https://www.openmptcprouter.com/img/twitter.jpg)](https://twitter.com/OpenMPTCProuter)
 [![Atom](https://www.openmptcprouter.com/img/feed.png)](https://www.openmptcprouter.com/atom)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FYsurac%2Fopenmptcprouter.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FYsurac%2Fopenmptcprouter?ref=badge_shield)
 
 # OpenMPTCProuter
 
@@ -82,3 +83,6 @@ Our solution is mainly based on:
 * [MultiPath TCP (MPTCP)](https://multipath-tcp.org)
 * [Shadowsocks](https://shadowsocks.org)
 * [Glorytun](https://github.com/angt/glorytun)
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FYsurac%2Fopenmptcprouter.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FYsurac%2Fopenmptcprouter?ref=badge_large)
