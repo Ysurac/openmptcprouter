@@ -4714,26 +4714,6 @@ diff -aurN linux-4.19.27/net/ipv4/tcp_input.c mptcp-mptcp_v0.95/net/ipv4/tcp_inp
  		req->cookie_ts = tmp_opt.tstamp_ok;
  		if (!tmp_opt.tstamp_ok)
  			inet_rsk(req)->ecn_ok = 0;
-@@ -6511,12 +6707,18 @@
- 		fastopen_sk = tcp_try_fastopen(sk, skb, req, &foc, dst);
- 	}
- 	if (fastopen_sk) {
-+		struct sock *meta_sk = fastopen_sk;
-+
-+		if (mptcp(tcp_sk(fastopen_sk)))
-+			meta_sk = mptcp_meta_sk(fastopen_sk);
- 		af_ops->send_synack(fastopen_sk, dst, &fl, req,
- 				    &foc, TCP_SYNACK_FASTOPEN);
- 		/* Add the child socket directly into the accept queue */
--		inet_csk_reqsk_queue_add(sk, req, fastopen_sk);
-+		inet_csk_reqsk_queue_add(sk, req, meta_sk);
- 		sk->sk_data_ready(sk);
- 		bh_unlock_sock(fastopen_sk);
-+		if (meta_sk != fastopen_sk)
-+			bh_unlock_sock(meta_sk);
- 		sock_put(fastopen_sk);
- 	} else {
- 		tcp_rsk(req)->tfo_listener = false;
 diff -aurN linux-4.19.27/net/ipv4/tcp_ipv4.c mptcp-mptcp_v0.95/net/ipv4/tcp_ipv4.c
 --- linux-4.19.27/net/ipv4/tcp_ipv4.c	2019-03-05 17:58:54.000000000 +0100
 +++ mptcp-mptcp_v0.95/net/ipv4/tcp_ipv4.c	2019-04-05 23:12:06.000000000 +0200
