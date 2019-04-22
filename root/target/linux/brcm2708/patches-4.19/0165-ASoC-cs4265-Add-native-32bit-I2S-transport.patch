@@ -1,0 +1,34 @@
+From 55a3d525586e0f8b6f5f324983688c21f2e630c4 Mon Sep 17 00:00:00 2001
+From: Matt Flax <flatmax@flatmax.org>
+Date: Thu, 30 Aug 2018 09:38:01 +1000
+Subject: [PATCH 165/432] ASoC: cs4265: Add native 32bit I2S transport
+
+commit be47e75eb1419ffc1d9c26230963fd5fa3055097 upstream.
+
+The cs4265 uses 32 bit transport on the I2S bus. This patch enables native
+32 bit mode for machine drivers which use this sound card driver.
+
+Signed-off-by: Matt Flax <flatmax@flatmax.org>
+Reviewed-by: Charles Keepax <ckeepax@opensource.cirrus.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/codecs/cs4265.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/sound/soc/codecs/cs4265.c b/sound/soc/codecs/cs4265.c
+index c90959d7adf6..6d0843386948 100644
+--- a/sound/soc/codecs/cs4265.c
++++ b/sound/soc/codecs/cs4265.c
+@@ -497,7 +497,8 @@ static int cs4265_set_bias_level(struct snd_soc_component *component,
+ 			SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000)
+ 
+ #define CS4265_FORMATS (SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_U16_LE | \
+-			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_U24_LE)
++			SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_U24_LE | \
++			SNDRV_PCM_FMTBIT_S32_LE | SNDRV_PCM_FMTBIT_U32_LE)
+ 
+ static const struct snd_soc_dai_ops cs4265_ops = {
+ 	.hw_params	= cs4265_pcm_hw_params,
+-- 
+2.19.1
+

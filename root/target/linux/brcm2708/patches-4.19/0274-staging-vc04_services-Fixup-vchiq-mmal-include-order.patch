@@ -1,0 +1,43 @@
+From 1a2c83075d1efe33e36463a1c6cb46247a4e5c21 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Tue, 25 Sep 2018 16:57:40 +0100
+Subject: [PATCH 274/432] staging: vc04_services: Fixup vchiq-mmal include
+ ordering
+
+There were dependencies on including the headers in the correct
+order. Fix up the headers so that they include the other
+headers that they depend on themselves.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ drivers/staging/vc04_services/vchiq-mmal/mmal-msg.h   | 1 +
+ drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.h | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/staging/vc04_services/vchiq-mmal/mmal-msg.h b/drivers/staging/vc04_services/vchiq-mmal/mmal-msg.h
+index f39bbdd66e3c..0a9a6b771d0d 100644
+--- a/drivers/staging/vc04_services/vchiq-mmal/mmal-msg.h
++++ b/drivers/staging/vc04_services/vchiq-mmal/mmal-msg.h
+@@ -38,6 +38,7 @@
+ #include "mmal-msg-common.h"
+ #include "mmal-msg-format.h"
+ #include "mmal-msg-port.h"
++#include "mmal-vchiq.h"
+ 
+ enum mmal_msg_type {
+ 	MMAL_MSG_TYPE_QUIT = 1,
+diff --git a/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.h b/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.h
+index e54e7bf73712..476cff6d60e6 100644
+--- a/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.h
++++ b/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.h
+@@ -16,6 +16,7 @@
+ #ifndef MMAL_VCHIQ_H
+ #define MMAL_VCHIQ_H
+ 
++#include "mmal-common.h"
+ #include "mmal-msg-format.h"
+ 
+ #define MAX_PORT_COUNT 4
+-- 
+2.19.1
+

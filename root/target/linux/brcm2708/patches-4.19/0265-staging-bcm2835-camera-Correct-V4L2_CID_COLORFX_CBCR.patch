@@ -1,0 +1,39 @@
+From 09c5989d6023395dd632d1bd093406e601bf36f8 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Mon, 8 Oct 2018 18:26:15 +0100
+Subject: [PATCH 265/432] staging: bcm2835-camera: Correct
+ V4L2_CID_COLORFX_CBCR behaviour
+
+With V4L2_CID_COLORFX_CBCR calling ctrl_set_colfx it was incorrectly
+assigning the colour values to the enable field of dev->colourfx
+instead of the u and v fields.
+
+Correct the assignments.
+
+Reported as a Coverity issue
+Detected by CoverityScan CID#1419711 ("Unused value")
+
+Reported-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ drivers/staging/vc04_services/bcm2835-camera/controls.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/vc04_services/bcm2835-camera/controls.c b/drivers/staging/vc04_services/bcm2835-camera/controls.c
+index 21409f3729a4..c4c1c191bce8 100644
+--- a/drivers/staging/vc04_services/bcm2835-camera/controls.c
++++ b/drivers/staging/vc04_services/bcm2835-camera/controls.c
+@@ -578,8 +578,8 @@ static int ctrl_set_colfx(struct bm2835_mmal_dev *dev,
+ 
+ 	control = &dev->component[COMP_CAMERA]->control;
+ 
+-	dev->colourfx.enable = (ctrl->val & 0xff00) >> 8;
+-	dev->colourfx.enable = ctrl->val & 0xff;
++	dev->colourfx.u = (ctrl->val & 0xff00) >> 8;
++	dev->colourfx.v = ctrl->val & 0xff;
+ 
+ 	ret = vchiq_mmal_port_parameter_set(dev->instance, control,
+ 					    MMAL_PARAMETER_COLOUR_EFFECT,
+-- 
+2.19.1
+

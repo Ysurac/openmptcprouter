@@ -1,0 +1,31 @@
+From 6e8edce17cea09a661c4c0e78dcddf5de8ff16cd Mon Sep 17 00:00:00 2001
+From: Serge Schneider <serge@raspberrypi.org>
+Date: Tue, 29 Jan 2019 12:05:49 +0000
+Subject: [PATCH 325/432] mfd: Add rpi_sense_core of compatible string
+
+---
+ drivers/mfd/rpisense-core.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/mfd/rpisense-core.c b/drivers/mfd/rpisense-core.c
+index eea9312dc96a..6cfd63e5e8b8 100644
+--- a/drivers/mfd/rpisense-core.c
++++ b/drivers/mfd/rpisense-core.c
+@@ -138,6 +138,14 @@ static const struct i2c_device_id rpisense_i2c_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, rpisense_i2c_id);
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id rpisense_core_id[] = {
++	{ .compatible = "rpi,rpi-sense" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, rpisense_core_id);
++#endif
++
+ 
+ static struct i2c_driver rpisense_driver = {
+ 	.driver = {
+-- 
+2.19.1
+

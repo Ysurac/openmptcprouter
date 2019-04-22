@@ -1,0 +1,57 @@
+From 1cf0a902ed7664e739148679006baa5a312fb09d Mon Sep 17 00:00:00 2001
+From: popcornmix <popcornmix@gmail.com>
+Date: Fri, 25 Aug 2017 19:18:13 +0100
+Subject: [PATCH 102/432] cache: export clean and invalidate
+
+---
+ arch/arm/mm/cache-v6.S | 4 ++--
+ arch/arm/mm/cache-v7.S | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mm/cache-v6.S b/arch/arm/mm/cache-v6.S
+index 24659952c278..1ee5bc3a1018 100644
+--- a/arch/arm/mm/cache-v6.S
++++ b/arch/arm/mm/cache-v6.S
+@@ -201,7 +201,7 @@ ENTRY(v6_flush_kern_dcache_area)
+  *	- start   - virtual start address of region
+  *	- end     - virtual end address of region
+  */
+-v6_dma_inv_range:
++ENTRY(v6_dma_inv_range)
+ #ifdef CONFIG_DMA_CACHE_RWFO
+ 	ldrb	r2, [r0]			@ read for ownership
+ 	strb	r2, [r0]			@ write for ownership
+@@ -246,7 +246,7 @@ v6_dma_inv_range:
+  *	- start   - virtual start address of region
+  *	- end     - virtual end address of region
+  */
+-v6_dma_clean_range:
++ENTRY(v6_dma_clean_range)
+ 	bic	r0, r0, #D_CACHE_LINE_SIZE - 1
+ 1:
+ #ifdef CONFIG_DMA_CACHE_RWFO
+diff --git a/arch/arm/mm/cache-v7.S b/arch/arm/mm/cache-v7.S
+index 2149b47a0c5a..7a4c92ec7d91 100644
+--- a/arch/arm/mm/cache-v7.S
++++ b/arch/arm/mm/cache-v7.S
+@@ -350,7 +350,7 @@ ENDPROC(v7_flush_kern_dcache_area)
+  *	- start   - virtual start address of region
+  *	- end     - virtual end address of region
+  */
+-v7_dma_inv_range:
++ENTRY(v7_dma_inv_range)
+ 	dcache_line_size r2, r3
+ 	sub	r3, r2, #1
+ 	tst	r0, r3
+@@ -380,7 +380,7 @@ ENDPROC(v7_dma_inv_range)
+  *	- start   - virtual start address of region
+  *	- end     - virtual end address of region
+  */
+-v7_dma_clean_range:
++ENTRY(v7_dma_clean_range)
+ 	dcache_line_size r2, r3
+ 	sub	r3, r2, #1
+ 	bic	r0, r0, r3
+-- 
+2.19.1
+

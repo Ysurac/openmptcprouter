@@ -1,0 +1,34 @@
+From fdbd38a9ac14146d1e7a4b7741f79aac442679e4 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Wed, 13 Feb 2019 12:51:03 +0000
+Subject: [PATCH 360/432] staging: mmal-vchiq: If the VPU returns an error,
+ don't negate it
+
+There is an enum for the errors that the VPU can return.
+port_parameter_get was negating that value, but also using -EINVAL
+from the Linux error codes.
+Pass the VPU error code as positive values. Should the function
+need to pass a Linux failure, then return that as negative.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c b/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c
+index 3ef173f2d18b..108df9b7f834 100644
+--- a/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c
++++ b/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c
+@@ -1400,7 +1400,8 @@ static int port_parameter_get(struct vchiq_mmal_instance *instance,
+ 		goto release_msg;
+ 	}
+ 
+-	ret = -rmsg->u.port_parameter_get_reply.status;
++	ret = rmsg->u.port_parameter_get_reply.status;
++
+ 	/* port_parameter_get_reply.size includes the header,
+ 	 * whilst *value_size doesn't.
+ 	 */
+-- 
+2.19.1
+

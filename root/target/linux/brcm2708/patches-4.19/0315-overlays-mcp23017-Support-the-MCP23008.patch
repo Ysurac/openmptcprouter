@@ -1,0 +1,56 @@
+From 75cb657ae6058102be49257f8b88776e78490f12 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Mon, 21 Jan 2019 12:19:57 +0000
+Subject: [PATCH 315/432] overlays: mcp23017: Support the MCP23008
+
+Add an 'mcp23008' parameter to enable support for the MCP23008 device.
+
+See: https://github.com/raspberrypi/linux/issues/2818
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/boot/dts/overlays/README               |  2 ++
+ arch/arm/boot/dts/overlays/mcp23017-overlay.dts | 10 +++++++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 707ea49cb6b3..6aa0059e3c6e 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -1212,6 +1212,8 @@ Params: gpiopin                 Gpio pin connected to the INTA output of the
+ 
+         addr                    I2C address of the MCP23017 (default: 0x20)
+ 
++        mcp23008                Configure an MCP23008 instead.
++
+ 
+ Name:   mcp23s17
+ Info:   Configures the MCP23S08/17 SPI GPIO expanders.
+diff --git a/arch/arm/boot/dts/overlays/mcp23017-overlay.dts b/arch/arm/boot/dts/overlays/mcp23017-overlay.dts
+index 412f966a3cc0..42f2d0f4ea66 100644
+--- a/arch/arm/boot/dts/overlays/mcp23017-overlay.dts
++++ b/arch/arm/boot/dts/overlays/mcp23017-overlay.dts
+@@ -44,11 +44,19 @@
+ 			};
+ 		};
+ 	};
+-	
++
++	fragment@3 {
++		target = <&mcp23017>;
++		__dormant__ {
++			compatible = "microchip,mcp23008";
++		};
++	};
++
+ 	__overrides__ {
+ 		gpiopin = <&mcp23017_pins>,"brcm,pins:0",
+ 				<&mcp23017>,"interrupts:0";
+ 		addr = <&mcp23017>,"reg:0";
++		mcp23008 = <0>,"=3";
+ 	};
+ };
+ 
+-- 
+2.19.1
+

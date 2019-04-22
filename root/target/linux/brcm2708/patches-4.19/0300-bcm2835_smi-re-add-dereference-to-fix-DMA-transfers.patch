@@ -1,0 +1,25 @@
+From ac8b00a371f4cc49dc114a8d637e40d789f53c8d Mon Sep 17 00:00:00 2001
+From: Ezekiel Bethel <zek@9net.org>
+Date: Wed, 12 Dec 2018 19:11:13 +0000
+Subject: [PATCH 300/432] bcm2835_smi: re-add dereference to fix DMA transfers
+
+---
+ drivers/misc/bcm2835_smi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/misc/bcm2835_smi.c b/drivers/misc/bcm2835_smi.c
+index 126154070312..f1a7f6a3e966 100644
+--- a/drivers/misc/bcm2835_smi.c
++++ b/drivers/misc/bcm2835_smi.c
+@@ -879,7 +879,7 @@ static int bcm2835_smi_probe(struct platform_device *pdev)
+ 		goto err;
+ 	}
+ 	addr = of_get_address(node, 0, NULL, NULL);
+-	inst->smi_regs_busaddr = be32_to_cpu(addr);
++	inst->smi_regs_busaddr = be32_to_cpu(*addr);
+ 
+ 	err = bcm2835_smi_dma_setup(inst);
+ 	if (err)
+-- 
+2.19.1
+

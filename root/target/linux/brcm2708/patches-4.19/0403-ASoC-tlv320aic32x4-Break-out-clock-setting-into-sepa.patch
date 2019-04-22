@@ -1,0 +1,69 @@
+From 7d27680affc36adebb6c343f4c046f277c62bfe7 Mon Sep 17 00:00:00 2001
+From: Annaliese McDermond <nh6z@nh6z.net>
+Date: Mon, 18 Mar 2019 20:37:44 -0700
+Subject: [PATCH 403/432] ASoC: tlv320aic32x4: Break out clock setting into
+ separate function
+
+commit bf31cbfbe25001036e1e096b1c260bf871766ea5 upstream.
+
+Break the clock setting logic out from the main hw_params.  It's
+rather large and unweildy and makes for a large function.  This
+also better enables some of the following changes to the clock
+tree access in the driver.
+
+Signed-off-by: Annaliese McDermond <nh6z@nh6z.net>
+Signed-off-by: Mark Brown <broonie@kernel.org>
+---
+ sound/soc/codecs/tlv320aic32x4.c | 26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
+
+diff --git a/sound/soc/codecs/tlv320aic32x4.c b/sound/soc/codecs/tlv320aic32x4.c
+index e1bfba62fc08..ed6eabe78fd4 100644
+--- a/sound/soc/codecs/tlv320aic32x4.c
++++ b/sound/soc/codecs/tlv320aic32x4.c
+@@ -696,17 +696,13 @@ static int aic32x4_set_dai_fmt(struct snd_soc_dai *codec_dai, unsigned int fmt)
+ 	return 0;
+ }
+ 
+-static int aic32x4_hw_params(struct snd_pcm_substream *substream,
+-			     struct snd_pcm_hw_params *params,
+-			     struct snd_soc_dai *dai)
++static int aic32x4_setup_clocks(struct snd_soc_component *component,
++				unsigned int sample_rate,
++				unsigned int parent_rate)
+ {
+-	struct snd_soc_component *component = dai->component;
+-	struct aic32x4_priv *aic32x4 = snd_soc_component_get_drvdata(component);
+-	u8 iface1_reg = 0;
+-	u8 dacsetup_reg = 0;
+ 	int i;
+ 
+-	i = aic32x4_get_divs(aic32x4->sysclk, params_rate(params));
++	i = aic32x4_get_divs(parent_rate, sample_rate);
+ 	if (i < 0) {
+ 		printk(KERN_ERR "aic32x4: sampling rate not supported\n");
+ 		return i;
+@@ -763,6 +759,20 @@ static int aic32x4_hw_params(struct snd_pcm_substream *substream,
+ 	snd_soc_component_update_bits(component, AIC32X4_BCLKN,
+ 			    AIC32X4_BCLK_MASK, aic32x4_divs[i].blck_N);
+ 
++	return 0;
++}
++
++static int aic32x4_hw_params(struct snd_pcm_substream *substream,
++			     struct snd_pcm_hw_params *params,
++			     struct snd_soc_dai *dai)
++{
++	struct snd_soc_component *component = dai->component;
++	struct aic32x4_priv *aic32x4 = snd_soc_component_get_drvdata(component);
++	u8 iface1_reg = 0;
++	u8 dacsetup_reg = 0;
++
++	aic32x4_setup_clocks(component, params_rate(params), aic32x4->sysclk);
++
+ 	switch (params_width(params)) {
+ 	case 16:
+ 		iface1_reg |= (AIC32X4_WORD_LEN_16BITS <<
+-- 
+2.19.1
+

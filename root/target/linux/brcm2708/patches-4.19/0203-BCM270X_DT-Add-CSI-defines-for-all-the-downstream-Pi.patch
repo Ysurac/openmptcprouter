@@ -1,0 +1,138 @@
+From 29c03ada119fc221ee5f48f20f4c835eff60166b Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Wed, 31 Oct 2018 15:00:45 +0000
+Subject: [PATCH 203/432] BCM270X_DT: Add CSI defines for all the downstream Pi
+ platforms
+
+Adds the CSI device includes for the bcm27xx platform DTS files
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ arch/arm/boot/dts/bcm2708-rpi-0-w.dts      | 1 +
+ arch/arm/boot/dts/bcm2708-rpi-b-plus.dts   | 1 +
+ arch/arm/boot/dts/bcm2708-rpi-b.dts        | 1 +
+ arch/arm/boot/dts/bcm2708-rpi-cm.dts       | 2 ++
+ arch/arm/boot/dts/bcm2708-rpi.dtsi         | 8 ++++++++
+ arch/arm/boot/dts/bcm2709-rpi-2-b.dts      | 1 +
+ arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts | 1 +
+ arch/arm/boot/dts/bcm2710-rpi-3-b.dts      | 1 +
+ arch/arm/boot/dts/bcm2710-rpi-cm3.dts      | 2 ++
+ 9 files changed, 18 insertions(+)
+
+diff --git a/arch/arm/boot/dts/bcm2708-rpi-0-w.dts b/arch/arm/boot/dts/bcm2708-rpi-0-w.dts
+index ef0b0f040ca5..68316404aab2 100644
+--- a/arch/arm/boot/dts/bcm2708-rpi-0-w.dts
++++ b/arch/arm/boot/dts/bcm2708-rpi-0-w.dts
+@@ -1,6 +1,7 @@
+ /dts-v1/;
+ 
+ #include "bcm2708.dtsi"
++#include "bcm283x-rpi-csi1-2lane.dtsi"
+ 
+ / {
+ 	compatible = "raspberrypi,model-zero-w", "brcm,bcm2835";
+diff --git a/arch/arm/boot/dts/bcm2708-rpi-b-plus.dts b/arch/arm/boot/dts/bcm2708-rpi-b-plus.dts
+index 31db4fd917a4..ef0beea3a3a3 100644
+--- a/arch/arm/boot/dts/bcm2708-rpi-b-plus.dts
++++ b/arch/arm/boot/dts/bcm2708-rpi-b-plus.dts
+@@ -2,6 +2,7 @@
+ 
+ #include "bcm2708.dtsi"
+ #include "bcm283x-rpi-smsc9514.dtsi"
++#include "bcm283x-rpi-csi1-2lane.dtsi"
+ 
+ / {
+ 	model = "Raspberry Pi Model B+";
+diff --git a/arch/arm/boot/dts/bcm2708-rpi-b.dts b/arch/arm/boot/dts/bcm2708-rpi-b.dts
+index ffe5d14feb9f..dea70fae90e6 100644
+--- a/arch/arm/boot/dts/bcm2708-rpi-b.dts
++++ b/arch/arm/boot/dts/bcm2708-rpi-b.dts
+@@ -2,6 +2,7 @@
+ 
+ #include "bcm2708.dtsi"
+ #include "bcm283x-rpi-smsc9512.dtsi"
++#include "bcm283x-rpi-csi1-2lane.dtsi"
+ 
+ / {
+ 	model = "Raspberry Pi Model B";
+diff --git a/arch/arm/boot/dts/bcm2708-rpi-cm.dts b/arch/arm/boot/dts/bcm2708-rpi-cm.dts
+index 0b0d23256edd..1a3975b35630 100644
+--- a/arch/arm/boot/dts/bcm2708-rpi-cm.dts
++++ b/arch/arm/boot/dts/bcm2708-rpi-cm.dts
+@@ -1,6 +1,8 @@
+ /dts-v1/;
+ 
+ #include "bcm2708-rpi-cm.dtsi"
++#include "bcm283x-rpi-csi0-2lane.dtsi"
++#include "bcm283x-rpi-csi1-4lane.dtsi"
+ 
+ / {
+ 	model = "Raspberry Pi Compute Module";
+diff --git a/arch/arm/boot/dts/bcm2708-rpi.dtsi b/arch/arm/boot/dts/bcm2708-rpi.dtsi
+index 131be649e146..1b5ab163cd6b 100644
+--- a/arch/arm/boot/dts/bcm2708-rpi.dtsi
++++ b/arch/arm/boot/dts/bcm2708-rpi.dtsi
+@@ -161,3 +161,11 @@ sdhost_pins: &sdhost_gpio48 {
+ &vec {
+ 	status = "disabled";
+ };
++
++&csi0 {
++	power-domains = <&power RPI_POWER_DOMAIN_UNICAM0>;
++};
++
++&csi1 {
++	power-domains = <&power RPI_POWER_DOMAIN_UNICAM1>;
++};
+diff --git a/arch/arm/boot/dts/bcm2709-rpi-2-b.dts b/arch/arm/boot/dts/bcm2709-rpi-2-b.dts
+index 442d2ebbdd36..34659505055a 100644
+--- a/arch/arm/boot/dts/bcm2709-rpi-2-b.dts
++++ b/arch/arm/boot/dts/bcm2709-rpi-2-b.dts
+@@ -2,6 +2,7 @@
+ 
+ #include "bcm2709.dtsi"
+ #include "bcm283x-rpi-smsc9514.dtsi"
++#include "bcm283x-rpi-csi1-2lane.dtsi"
+ 
+ / {
+ 	compatible = "raspberrypi,2-model-b", "brcm,bcm2836";
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts b/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
+index fa95f4e3653f..fe1e2d2daf62 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
+@@ -2,6 +2,7 @@
+ 
+ #include "bcm2710.dtsi"
+ #include "bcm283x-rpi-lan7515.dtsi"
++#include "bcm283x-rpi-csi1-2lane.dtsi"
+ 
+ / {
+ 	compatible = "raspberrypi,3-model-b-plus", "brcm,bcm2837";
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+index 951292d2ad16..36c567517186 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+@@ -2,6 +2,7 @@
+ 
+ #include "bcm2710.dtsi"
+ #include "bcm283x-rpi-smsc9514.dtsi"
++#include "bcm283x-rpi-csi1-2lane.dtsi"
+ 
+ / {
+ 	compatible = "raspberrypi,3-model-b", "brcm,bcm2837";
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-cm3.dts b/arch/arm/boot/dts/bcm2710-rpi-cm3.dts
+index 1103b5465521..2ed05b73e824 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-cm3.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-cm3.dts
+@@ -1,6 +1,8 @@
+ /dts-v1/;
+ 
+ #include "bcm2710.dtsi"
++#include "bcm283x-rpi-csi0-2lane.dtsi"
++#include "bcm283x-rpi-csi1-4lane.dtsi"
+ 
+ / {
+ 	model = "Raspberry Pi Compute Module 3";
+-- 
+2.19.1
+

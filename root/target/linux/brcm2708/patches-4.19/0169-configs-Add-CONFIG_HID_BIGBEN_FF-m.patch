@@ -1,0 +1,40 @@
+From 04291735ce7bb3e7d8d563107c7c7b9edc48d571 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Mon, 24 Sep 2018 14:56:58 +0100
+Subject: [PATCH 169/432] configs: Add CONFIG_HID_BIGBEN_FF=m
+
+See: https://github.com/raspberrypi/linux/issues/2690
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/configs/bcm2709_defconfig | 1 +
+ arch/arm/configs/bcmrpi_defconfig  | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 4eaa666c8497..2f4d08ac6a05 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -938,6 +938,7 @@ CONFIG_HID_APPLE=m
+ CONFIG_HID_ASUS=m
+ CONFIG_HID_BELKIN=m
+ CONFIG_HID_BETOP_FF=m
++CONFIG_HID_BIGBEN_FF=m
+ CONFIG_HID_CHERRY=m
+ CONFIG_HID_CHICONY=m
+ CONFIG_HID_CYPRESS=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index cf4c81f975a8..ada667342bfb 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -931,6 +931,7 @@ CONFIG_HID_APPLE=m
+ CONFIG_HID_ASUS=m
+ CONFIG_HID_BELKIN=m
+ CONFIG_HID_BETOP_FF=m
++CONFIG_HID_BIGBEN_FF=m
+ CONFIG_HID_CHERRY=m
+ CONFIG_HID_CHICONY=m
+ CONFIG_HID_CYPRESS=m
+-- 
+2.19.1
+
