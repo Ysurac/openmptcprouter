@@ -55,8 +55,8 @@ fi
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 #_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a3ccac6b1d693527befa73532a6cf5abda7134c0"
 _get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "43e8c37cb4da64a12a3cb88a84b19db7f2fc640c"
-_get_repo feeds/packages https://github.com/openwrt/packages "openwrt-18.06"
-_get_repo feeds/luci https://github.com/openwrt/luci "openwrt-18.06"
+_get_repo feeds/packages https://github.com/openwrt/packages "c9926b55d747ce5359aee79427a40ef93be0e9cf"
+_get_repo feeds/luci https://github.com/openwrt/luci "0c7031bb1fa544959da521bb0c722118c5d1d08e"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -91,20 +91,20 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
-#cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
-#src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
-#src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
-#src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
-#src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
-#src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
-#EOF
 cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
-src/gz openwrt_luci http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/luci
-src/gz openwrt_packages http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/packages
-src/gz openwrt_base http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/base
-src/gz openwrt_routing http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/routing
-src/gz openwrt_telephony http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/telephony
+src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
+src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
+src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
+src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
+src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
 EOF
+#cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
+#src/gz openwrt_luci http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/luci
+#src/gz openwrt_packages http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/packages
+#src/gz openwrt_base http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/base
+#src/gz openwrt_routing http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/routing
+#src/gz openwrt_telephony http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/telephony
+#EOF
 
 if [ -f "$OMR_TARGET_CONFIG" ]; then
 	cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/source/.config" <<-EOF
@@ -171,6 +171,17 @@ echo "Done"
 #echo "Remove old RPI firmware"
 #rm -rf target/linux/brcm2708/base-files/lib/firmware
 #echo "Done"
+echo "Set to kernel 4.19 for rpi arch"
+find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+echo "Done"
+echo "Set to kernel 4.19 for x86 arch"
+find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+echo "Done"
+echo "Set to kernel 4.19 for mvebu arch (WRT)"
+find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+echo "Done"
+
+
 
 echo "Update feeds index"
 cp .config .config.keep
