@@ -378,7 +378,8 @@ define KernelPackage/sound-soc-dionaudio-loco-v2
         snd-soc-dionaudio-loco)
   DEPENDS:= \
         kmod-sound-soc-bcm2835-i2s \
-        +kmod-regmap-i2c
+        +kmod-regmap-i2c \
+	@!LINUX_4_19
   $(call AddDepends/sound)
 endef
 
