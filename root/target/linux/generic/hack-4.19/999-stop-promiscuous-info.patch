@@ -1,0 +1,14 @@
+--- a/net/core/dev.c	2018-08-10 10:31:41.199494561 +0200
++++ b/net/core/dev.c	2018-08-10 10:32:03.635272509 +0200
+@@ -6613,9 +6613,11 @@
+ 		}
+ 	}
+ 	if (dev->flags != old_flags) {
++		/*
+ 		pr_info("device %s %s promiscuous mode\n",
+ 			dev->name,
+ 			dev->flags & IFF_PROMISC ? "entered" : "left");
++		*/
+ 		if (audit_enabled) {
+ 			current_uid_gid(&uid, &gid);
+ 			audit_log(current->audit_context, GFP_ATOMIC,
