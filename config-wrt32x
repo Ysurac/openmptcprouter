@@ -2,3 +2,4 @@ CONFIG_TARGET_mvebu=y
 CONFIG_TARGET_mvebu_cortexa9=y
 CONFIG_TARGET_mvebu_cortexa9_DEVICE_linksys-wrt32x=y
 CONFIG_PACKAGE_kmod-6lowpan=y
+CONFIG_PACKAGE_luci-app-advanced-reboot=y
