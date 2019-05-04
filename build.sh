@@ -54,7 +54,7 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 #_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a3ccac6b1d693527befa73532a6cf5abda7134c0"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a9190ee3a41e49e085ab7ad520b757313c2bdf31"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 _get_repo feeds/packages https://github.com/openwrt/packages "master"
 _get_repo feeds/luci https://github.com/openwrt/luci "master"
 
@@ -171,15 +171,15 @@ echo "Done"
 #echo "Remove old RPI firmware"
 #rm -rf target/linux/brcm2708/base-files/lib/firmware
 #echo "Done"
-#echo "Set to kernel 4.19 for rpi arch"
-#find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
-#echo "Done"
-#echo "Set to kernel 4.19 for x86 arch"
-#find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
-#echo "Done"
-#echo "Set to kernel 4.19 for mvebu arch (WRT)"
-#find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
-#echo "Done"
+echo "Set to kernel 4.19 for rpi arch"
+find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+echo "Done"
+echo "Set to kernel 4.19 for x86 arch"
+find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+echo "Done"
+echo "Set to kernel 4.19 for mvebu arch (WRT)"
+find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+echo "Done"
 
 
 
