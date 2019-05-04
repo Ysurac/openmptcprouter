@@ -3950,43 +3950,6 @@ diff -aurN linux-4.19.36/net/ipv4/tcp_input.c mptcp-mptcp_v0.95/net/ipv4/tcp_inp
  }
  
  /* 2. Tuning advertised window (window_clamp, rcv_ssthresh)
-@@ -402,10 +394,15 @@
- static void tcp_grow_window(struct sock *sk, const struct sk_buff *skb)
- {
- 	struct tcp_sock *tp = tcp_sk(sk);
-+	struct sock *meta_sk = mptcp(tp) ? mptcp_meta_sk(sk) : sk;
-+	struct tcp_sock *meta_tp = tcp_sk(meta_sk);
-+
-+	if (is_meta_sk(sk))
-+		return;
- 
- 	/* Check #1 */
--	if (tp->rcv_ssthresh < tp->window_clamp &&
--	    (int)tp->rcv_ssthresh < tcp_space(sk) &&
-+	if (meta_tp->rcv_ssthresh < meta_tp->window_clamp &&
-+	    (int)meta_tp->rcv_ssthresh < tcp_space(meta_sk) &&
- 	    !tcp_under_memory_pressure(sk)) {
- 		int incr;
- 
-@@ -413,14 +410,14 @@
- 		 * will fit to rcvbuf in future.
- 		 */
- 		if (tcp_win_from_space(sk, skb->truesize) <= skb->len)
--			incr = 2 * tp->advmss;
-+			incr = 2 * meta_tp->advmss;
- 		else
--			incr = __tcp_grow_window(sk, skb);
-+			incr = __tcp_grow_window(meta_sk, skb);
- 
- 		if (incr) {
- 			incr = max_t(int, incr, 2 * skb->len);
--			tp->rcv_ssthresh = min(tp->rcv_ssthresh + incr,
--					       tp->window_clamp);
-+			meta_tp->rcv_ssthresh = min(meta_tp->rcv_ssthresh + incr,
-+					            meta_tp->window_clamp);
- 			inet_csk(sk)->icsk_ack.quick |= 1;
- 		}
- 	}
 @@ -621,7 +618,10 @@
  
  	tcp_mstamp_refresh(tp);
