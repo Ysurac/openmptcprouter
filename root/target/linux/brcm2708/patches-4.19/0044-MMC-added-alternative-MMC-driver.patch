@@ -1,7 +1,7 @@
-From 4d1939addc4ac55db7cb0bbbb6df87417cf25ce8 Mon Sep 17 00:00:00 2001
+From 0b468d7ad239197ea5a24aef3ec74756ea3731e1 Mon Sep 17 00:00:00 2001
 From: gellert <gellert@raspberrypi.org>
 Date: Fri, 15 Aug 2014 16:35:06 +0100
-Subject: [PATCH 044/432] MMC: added alternative MMC driver
+Subject: [PATCH 044/493] MMC: added alternative MMC driver
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -293,7 +293,7 @@ index ce8398e6f2c0..b402128375b6 100644
  obj-$(CONFIG_MMC_MTK)		+= mtk-sd.o
 diff --git a/drivers/mmc/host/bcm2835-mmc.c b/drivers/mmc/host/bcm2835-mmc.c
 new file mode 100644
-index 000000000000..08a700e0639a
+index 000000000000..905075c94232
 --- /dev/null
 +++ b/drivers/mmc/host/bcm2835-mmc.c
 @@ -0,0 +1,1582 @@
@@ -550,7 +550,7 @@ index 000000000000..08a700e0639a
 +		bcm2835_mmc_readl(host, SDHCI_INT_ENABLE),
 +		bcm2835_mmc_readl(host, SDHCI_SIGNAL_ENABLE));
 +	pr_debug(DRIVER_NAME ": AC12 err: 0x%08x | Slot int: 0x%08x\n",
-+		bcm2835_mmc_readw(host, SDHCI_ACMD12_ERR),
++		bcm2835_mmc_readw(host, SDHCI_AUTO_CMD_STATUS),
 +		bcm2835_mmc_readw(host, SDHCI_SLOT_INT_STATUS));
 +	pr_debug(DRIVER_NAME ": Caps:     0x%08x | Caps_1:   0x%08x\n",
 +		bcm2835_mmc_readl(host, SDHCI_CAPABILITIES),

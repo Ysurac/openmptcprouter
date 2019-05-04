@@ -1,0 +1,32 @@
+From cd07072158b104f2e30a14bf5162095bb3b9c230 Mon Sep 17 00:00:00 2001
+From: P33M <p33m@github.com>
+Date: Wed, 1 May 2019 15:00:05 +0100
+Subject: [PATCH 483/493] dts: Increase default coherent pool size
+
+dwc_otg allocates DMA-coherent buffers in atomic context for misaligned
+transfer buffers. The pool that these allocations come from is set up
+at boot-time but can be overridden by a commandline parameter -
+increase this for now to prevent failures seen on 4.19 with multiple
+USB Ethernet devices.
+
+see: https://github.com/raspberrypi/linux/issues/2924
+---
+ arch/arm/boot/dts/bcm270x.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/bcm270x.dtsi b/arch/arm/boot/dts/bcm270x.dtsi
+index 55a03c0d5e1c..ecdb36e69c87 100644
+--- a/arch/arm/boot/dts/bcm270x.dtsi
++++ b/arch/arm/boot/dts/bcm270x.dtsi
+@@ -3,7 +3,7 @@
+ 
+ / {
+ 	chosen {
+-		bootargs = "";
++		bootargs = "coherent_pool=1M";
+ 		/delete-property/ stdout-path;
+ 	};
+ 
+-- 
+2.19.1
+
