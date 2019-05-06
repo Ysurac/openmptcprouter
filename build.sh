@@ -29,6 +29,7 @@ OMR_UEFI=${OMR_UEFI:-yes}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
+OMR_KERNEL=${OMR_KERNEL:-4.14}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-master}"
@@ -132,6 +133,9 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
 fi
+if [ "$OMR_KERNEL" = "4.19" ]; then
+	echo '# CONFIG_TARGET_ROOTFS_SQUASHFS is not set' >> "$OMR_TARGET/source/.config"
+fi
 
 
 cd "$OMR_TARGET/source"
@@ -158,29 +162,17 @@ echo "Done"
 #fi
 #echo "Done"
 
-
-#echo "Set to kernel 4.9 for all arch"
-#find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.9%g' {} \;
-#echo "Done"
-#echo "Set to kernel 4.14 for rpi arch"
-#find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.9%KERNEL_PATCHVER:=4.14%g' {} \;
-#echo "Done"
-#echo "Set to kernel 4.14 for all arch"
-#find target/linux/ -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=4.14%g' {} \;
-#echo "Done"
-#echo "Remove old RPI firmware"
-#rm -rf target/linux/brcm2708/base-files/lib/firmware
-#echo "Done"
-#echo "Set to kernel 4.19 for rpi arch"
-#find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
-#echo "Done"
-#echo "Set to kernel 4.19 for x86 arch"
-#find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
-#echo "Done"
-#echo "Set to kernel 4.19 for mvebu arch (WRT)"
-#find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
-#echo "Done"
-
+if [ "$OMR_KERNEL" = "4.19" ]; then
+	echo "Set to kernel 4.19 for rpi arch"
+	find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	echo "Done"
+	echo "Set to kernel 4.19 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	echo "Done"
+	echo "Set to kernel 4.19 for mvebu arch (WRT)"
+	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	echo "Done"
+fi
 
 
 echo "Update feeds index"
