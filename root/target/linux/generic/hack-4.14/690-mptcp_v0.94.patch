@@ -8139,7 +8139,7 @@ diff -aurN linux-4.14.121/net/mptcp/mptcp_coupled.c mptcp-mptcp_v0.94/net/mptcp/
 diff -aurN linux-4.14.121/net/mptcp/mptcp_ctrl.c mptcp-mptcp_v0.94/net/mptcp/mptcp_ctrl.c
 --- linux-4.14.121/net/mptcp/mptcp_ctrl.c	1970-01-01 01:00:00.000000000 +0100
 +++ mptcp-mptcp_v0.94/net/mptcp/mptcp_ctrl.c	2019-05-23 20:14:17.000000000 +0200
-@@ -0,0 +1,3001 @@
+@@ -0,0 +1,3000 @@
 +/*
 + *	MPTCP implementation - MPTCP-control
 + *
@@ -9511,8 +9511,6 @@ diff -aurN linux-4.14.121/net/mptcp/mptcp_ctrl.c mptcp-mptcp_v0.94/net/mptcp/mpt
 +	tp->mptcp->attached = 1;
 +
 +	mpcb->cnt_subflows++;
-+	atomic_add(atomic_read(&((struct sock *)tp)->sk_rmem_alloc),
-+		   &meta_sk->sk_rmem_alloc);
 +
 +	mptcp_sub_inherit_sockopts(meta_sk, sk);
 +	INIT_DELAYED_WORK(&tp->mptcp->work, mptcp_sub_close_wq);
@@ -9779,6 +9777,7 @@ diff -aurN linux-4.14.121/net/mptcp/mptcp_ctrl.c mptcp-mptcp_v0.94/net/mptcp/mpt
 +		if (!cancel_delayed_work(work))
 +			return;
 +		sock_put(sk);
++		mptcp_mpcb_put(tp->mpcb);
 +	}
 +
 +	if (!delay) {
@@ -17043,7 +17042,7 @@ diff -aurN linux-4.14.121/net/mptcp/mptcp_olia.c mptcp-mptcp_v0.94/net/mptcp/mpt
 diff -aurN linux-4.14.121/net/mptcp/mptcp_output.c mptcp-mptcp_v0.94/net/mptcp/mptcp_output.c
 --- linux-4.14.121/net/mptcp/mptcp_output.c	1970-01-01 01:00:00.000000000 +0100
 +++ mptcp-mptcp_v0.94/net/mptcp/mptcp_output.c	2019-05-23 20:14:17.000000000 +0200
-@@ -0,0 +1,1822 @@
+@@ -0,0 +1,1824 @@
 +/*
 + *	MPTCP implementation - Sending side
 + *
@@ -18523,6 +18522,8 @@ diff -aurN linux-4.14.121/net/mptcp/mptcp_output.c mptcp-mptcp_v0.94/net/mptcp/m
 +					    UINT_MAX / mss_now,
 +					    TCP_NAGLE_OFF);
 +
++	limit = min(limit, tcp_wnd_end(meta_tp) - TCP_SKB_CB(skb)->seq);
++
 +	if (skb->len > limit &&
 +	    unlikely(mptcp_fragment(meta_sk, skb, limit,
 +				    GFP_ATOMIC, 0)))
@@ -19800,7 +19801,7 @@ diff -aurN linux-4.14.121/net/mptcp/mptcp_sched.c mptcp-mptcp_v0.94/net/mptcp/mp
 +	 * calculated end_seq (because here at this point end_seq is still at
 +	 * the meta-level).
 +	 */
-+	if (skb && !zero_wnd_test &&
++	if (skb && zero_wnd_test &&
 +	    after(tp->write_seq + min(skb->len, mss_now), tcp_wnd_end(tp)))
 +		return true;
 +
