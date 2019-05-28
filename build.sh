@@ -132,6 +132,7 @@ fi
 if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
+	echo 'CONFIG_VHDX_IMAGES=y' >> "$OMR_TARGET/source/.config"
 fi
 if [ "$OMR_KERNEL" = "4.19" ]; then
 	echo '# CONFIG_TARGET_ROOTFS_SQUASHFS is not set' >> "$OMR_TARGET/source/.config"
