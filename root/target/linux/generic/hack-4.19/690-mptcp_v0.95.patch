@@ -8885,7 +8885,7 @@ diff -aurN linux-4.19.44/net/mptcp/mptcp_coupled.c mptcp-mptcp_v0.95/net/mptcp/m
 diff -aurN linux-4.19.44/net/mptcp/mptcp_ctrl.c mptcp-mptcp_v0.95/net/mptcp/mptcp_ctrl.c
 --- linux-4.19.44/net/mptcp/mptcp_ctrl.c	1970-01-01 01:00:00.000000000 +0100
 +++ mptcp-mptcp_v0.95/net/mptcp/mptcp_ctrl.c	2019-05-23 10:38:14.000000000 +0200
-@@ -0,0 +1,3110 @@
+@@ -0,0 +1,3121 @@
 +/*
 + *	MPTCP implementation - MPTCP-control
 + *
@@ -11104,14 +11104,25 @@ diff -aurN linux-4.19.44/net/mptcp/mptcp_ctrl.c mptcp-mptcp_v0.95/net/mptcp/mptc
 +	 */
 +	if (drop) {
 +		tcp_synack_rtt_meas(child, req);
-+		inet_csk_complete_hashdance(sk, meta_sk, req, true);
++
++		inet_csk_reqsk_queue_drop(sk, req);
++		reqsk_queue_removed(&inet_csk(sk)->icsk_accept_queue, req);
++		if (!inet_csk_reqsk_queue_add(sk, req, meta_sk)) {
++			bh_unlock_sock(meta_sk);
++			/* No sock_put() of the meta needed. The reference has
++			 * already been dropped in __mptcp_check_req_master().
++			 */
++			sock_put(child);
++			return -1;
++		}
 +	} else {
 +		/* Thus, we come from syn-cookies */
 +		refcount_set(&req->rsk_refcnt, 1);
 +		tcp_sk(meta_sk)->tsoffset = tsoff;
 +		if (!inet_csk_reqsk_queue_add(sk, req, meta_sk)) {
 +			bh_unlock_sock(meta_sk);
-+			sock_put(meta_sk);
++			sock_put(child);
++			reqsk_put(req);
 +			return -1;
 +		}
 +	}
