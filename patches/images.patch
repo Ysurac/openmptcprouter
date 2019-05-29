@@ -1,0 +1,41 @@
+--- config/Config-images.in.orig	2019-05-28 14:40:45.246749741 +0200
++++ config/Config-images.in	2019-05-28 14:41:14.866378695 +0200
+@@ -251,6 +251,13 @@
+ 		select TARGET_IMAGES_PAD
+ 		select PACKAGE_kmod-e1000
+ 
++	config VHDX_IMAGES
++		bool "Build Hyper-V image files (VHDX)"
++		depends on TARGET_x86
++		select GRUB_IMAGES
++		select TARGET_IMAGES_PAD
++		select PACKAGE_kmod-e1000
++
+ 	config TARGET_IMAGES_PAD
+ 		bool "Pad images to filesystem size (for JFFS2)"
+ 		depends on GRUB_IMAGES
+--- target/linux/x86/image/Makefile.orig	2019-05-28 14:35:00.895067331 +0200
++++ target/linux/x86/image/Makefile	2019-05-28 14:42:40.461306376 +0200
+@@ -137,12 +137,21 @@
+ ifneq ($(CONFIG_VMDK_IMAGES),)
+   define Image/Build/vmdk
+ 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk || true
+-	qemu-img convert -f raw -O vmdk \
++	qemu-img convert -f raw -O vmdk -o subformat=streamOptimized,adapter_type=lsilogic,compat6 \
+ 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
+ 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk
+   endef
+ endif
+ 
++ifneq ($(CONFIG_HYPERV_IMAGES),)
++  define Image/Build/hyperv
++	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vhdx || true
++	qemu-img convert -f raw -O vhdx \
++		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
++		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vhdx
++  endef
++endif
++
+ define Image/Build/gzip
+ 	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img
+ 	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
