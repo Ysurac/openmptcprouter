@@ -173,6 +173,9 @@ if [ "$OMR_KERNEL" = "4.19" ]; then
 	echo "Set to kernel 4.19 for mvebu arch (WRT)"
 	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
 	echo "Done"
+	echo "Set to kernel 4.19 for mediatek arch (BPI-R2)"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	echo "Done"
 fi
 
 

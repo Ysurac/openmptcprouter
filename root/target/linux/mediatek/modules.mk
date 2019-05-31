@@ -52,7 +52,7 @@ $(eval $(call KernelPackage,crypto-hw-mtk))
 
 define KernelPackage/nat-hw-mtk
   TITLE:= MediaTek's hardware NAT module
-  DEPENDS:=@TARGET_mediatek
+  DEPENDS:=@TARGET_mediatek @!LINUX_4_19
   KCONFIG:= \
 	CONFIG_NET_MEDIATEK_HNAT=y
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/mediatek/mtk_hnat/mtkhnat.ko
@@ -64,3 +64,23 @@ define KernelPackage/nat-hw-mtk/description
 endef
 
 $(eval $(call KernelPackage,nat-hw-mtk))
+
+define KernelPackage/mt6625l-wlan-gen2
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Mediatek mt66xx wlan_gen2 driver
+  DEPENDS:=@TARGET_mediatek +kmod-mac80211 +@DRIVER_11N_SUPPORT
+  KCONFIG:= \
+    CONFIG_MTK_WAPI_SUPPORT=y \
+    CONFIG_MTK_PASSPOINT_R1_SUPPORT=y \
+    CONFIG_MTK_PASSPOINT_R2_SUPPORT=y \
+    CONFIG_MTK_WIFI_MCC_SUPPORT=y \
+    CONFIG_MTK_COMBO_WIFI
+  FILES:=$(LINUX_DIR)/drivers/misc/mediatek/connectivity/wlan/gen2/wlan_gen2.ko
+  AUTOLOAD:=$(call AutoProbe,wlan_gen2)
+endef
+
+define KernelPackage/wlan-gen2/description
+ This package contains the Mediatek mt66xx wlan_gen2 kernel module
+endef
+
+$(eval $(call KernelPackage,mt6625l-wlan-gen2))
