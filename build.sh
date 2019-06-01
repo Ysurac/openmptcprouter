@@ -153,6 +153,14 @@ else
 fi
 echo "Done"
 
+if [ "$OMR_TARGET" = "x86_64" ]; then 
+	echo "Checking if Hyper-V patch is set or not"
+	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/images.patch; then
+		patch -N -p1 -s < ../../patches/images.patch
+	fi
+	echo "Done"
+fi
+
 #echo "Patch protobuf wrong hash"
 #patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
 #echo "Done"
