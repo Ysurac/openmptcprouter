@@ -55,9 +55,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 #_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a3ccac6b1d693527befa73532a6cf5abda7134c0"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a1210f88882415f629cec272a0017fcb5a2ced3c"
-_get_repo feeds/packages https://github.com/openwrt/packages "e053ce17c766c5adedb1c8bc472a9ca53ca802d3"
-_get_repo feeds/luci https://github.com/openwrt/luci "4bbc033a968478d54a6c4bc2d8529abbfffdec6f"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
+_get_repo feeds/packages https://github.com/openwrt/packages "master"
+_get_repo feeds/luci https://github.com/openwrt/luci "master"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -160,6 +160,13 @@ if [ "$OMR_TARGET" = "x86_64" ]; then
 	fi
 	echo "Done"
 fi
+
+echo "Checking if No check patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nocheck.patch; then
+	patch -N -p1 -s < ../../patches/nocheck.patch
+fi
+echo "Done"
+
 
 #echo "Patch protobuf wrong hash"
 #patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
