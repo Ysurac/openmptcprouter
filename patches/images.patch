@@ -14,20 +14,14 @@
  	config TARGET_IMAGES_PAD
  		bool "Pad images to filesystem size (for JFFS2)"
  		depends on GRUB_IMAGES
---- a/target/linux/x86/image/Makefile	2019-05-28 14:35:00.895067331 +0200
-+++ b/target/linux/x86/image/Makefile	2019-05-28 14:42:40.461306376 +0200
-@@ -137,12 +137,21 @@
- ifneq ($(CONFIG_VMDK_IMAGES),)
-   define Image/Build/vmdk
- 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk || true
- 	qemu-img convert -f raw -O vmdk \
- 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
- 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk
+--- a/target/linux/x86/image/Makefile.orig	2019-06-02 16:35:18.593501507 +0200
++++ b/target/linux/x86/image/Makefile	2019-06-02 16:39:23.242404445 +0200
+@@ -141,6 +141,15 @@
    endef
  endif
  
 +ifneq ($(CONFIG_HYPERV_IMAGES),)
-+  define Image/Build/hyperv
++    define Image/Build/hyperv
 +	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vhdx || true
 +	qemu-img convert -f raw -O vhdx \
 +		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
