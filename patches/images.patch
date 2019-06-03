@@ -14,8 +14,8 @@
  	config TARGET_IMAGES_PAD
  		bool "Pad images to filesystem size (for JFFS2)"
  		depends on GRUB_IMAGES
---- target/linux/x86/image/Makefile.orig	2019-06-03 14:32:39.094356089 +0200
-+++ target/linux/x86/image/Makefile	2019-06-03 19:04:23.875965073 +0200
+--- a/target/linux/x86/image/Makefile.orig	2019-06-03 14:32:39.094356089 +0200
++++ b/target/linux/x86/image/Makefile	2019-06-03 19:04:23.875965073 +0200
 @@ -143,6 +143,15 @@
    endef
  endif
