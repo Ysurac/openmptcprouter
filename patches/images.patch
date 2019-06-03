@@ -20,7 +20,7 @@
    endef
  endif
  
-+ifneq ($(CONFIG_HYPERV_IMAGES),)
++ifneq ($(CONFIG_VHDX_IMAGES),)
 +    define Image/Build/hyperv
 +	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vhdx || true
 +	qemu-img convert -f raw -O vhdx \
