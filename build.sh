@@ -143,11 +143,11 @@ cd "$OMR_TARGET/source"
 
 echo "Checking if UEFI patch is set or not"
 if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
-	if [ -z "$(grep EFI target/linux/x86/image/Makefile)" ]; then
+	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" = "" ]; then
 		patch -N -p1 -s < ../../patches/uefi.patch
 	fi
 else
-	if [ -n "$(grep EFI target/linux/x86/image/Makefile)" ]; then
+	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" != "" ]; then
 		patch -N -R -p1 -s < ../../patches/uefi.patch
 	fi
 fi
