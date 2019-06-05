@@ -1,0 +1,60 @@
+From 6f91b5dbfdb62a434571a73f2dc15181963e3bea Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Tue, 28 May 2019 16:36:04 +0100
+Subject: [PATCH 516/520] BCM270X_DT: Rename Pi Zero W DT files
+
+The downtream Pi Zero W dts file uses the digit 0, whereas upstream
+chose to spell it out - "zero-w". The firmware has, for a long time,
+looked for bcm2708-rpi-zero-w.dtb first before falling back to the
+numerical version. Therefore it is better to follow upstream and
+make the switch to "bcm2708-rpi-zero-w".
+
+At the same time, remove some overrides that duplicate values
+inherited from the shared .dtsi files.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/boot/dts/Makefile                                   | 2 +-
+ .../boot/dts/{bcm2708-rpi-0-w.dts => bcm2708-rpi-zero-w.dts} | 5 -----
+ 2 files changed, 1 insertion(+), 6 deletions(-)
+ rename arch/arm/boot/dts/{bcm2708-rpi-0-w.dts => bcm2708-rpi-zero-w.dts} (97%)
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index ffd515b94cb8..8ba7c562ccfc 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -4,7 +4,7 @@ dtb-$(CONFIG_ARCH_BCM2835) += \
+ 	bcm2708-rpi-b.dtb \
+ 	bcm2708-rpi-b-plus.dtb \
+ 	bcm2708-rpi-cm.dtb \
+-	bcm2708-rpi-0-w.dtb \
++	bcm2708-rpi-zero-w.dtb \
+ 	bcm2709-rpi-2-b.dtb \
+ 	bcm2710-rpi-3-b.dtb \
+ 	bcm2710-rpi-3-b-plus.dtb \
+diff --git a/arch/arm/boot/dts/bcm2708-rpi-0-w.dts b/arch/arm/boot/dts/bcm2708-rpi-zero-w.dts
+similarity index 97%
+rename from arch/arm/boot/dts/bcm2708-rpi-0-w.dts
+rename to arch/arm/boot/dts/bcm2708-rpi-zero-w.dts
+index 23ff3e4970ae..087f39106bef 100644
+--- a/arch/arm/boot/dts/bcm2708-rpi-0-w.dts
++++ b/arch/arm/boot/dts/bcm2708-rpi-zero-w.dts
+@@ -132,15 +132,10 @@
+ };
+ 
+ &i2s {
+-	#sound-dai-cells = <0>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2s_pins>;
+ };
+ 
+-&random {
+-	status = "okay";
+-};
+-
+ &leds {
+ 	act_led: act {
+ 		label = "led0";
+-- 
+2.19.1
+
