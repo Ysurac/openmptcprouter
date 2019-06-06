@@ -55,7 +55,7 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 #_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a3ccac6b1d693527befa73532a6cf5abda7134c0"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "3209f5ae3d54e6f028e2e54314180a1be5b4896e"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "b8a72dfd28e510614121acae2e8cde8b28d07597"
 _get_repo feeds/packages https://github.com/openwrt/packages "5093dc4bc3b58b4ff38b367e006d686a2cf9a5ad"
 _get_repo feeds/luci https://github.com/openwrt/luci "5fd071aadbcaa3b136a37fa2cbcb9799b0153e2a"
 
@@ -134,10 +134,6 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_VHDX_IMAGES=y' >> "$OMR_TARGET/source/.config"
 fi
-if [ "$OMR_KERNEL" = "4.19" ]; then
-	echo '# CONFIG_TARGET_ROOTFS_SQUASHFS is not set' >> "$OMR_TARGET/source/.config"
-fi
-
 
 cd "$OMR_TARGET/source"
 
