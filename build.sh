@@ -54,9 +54,9 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "aa3f9736ea67200dd840093b848606ced27d388e"
-_get_repo feeds/packages https://github.com/openwrt/packages "ae5c8603a7cf4a5b9c7215a3768007f256f51b1c"
-_get_repo feeds/luci https://github.com/openwrt/luci "cffeee49d7be19743cc40459fa1f423517f215c0"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "eaad2211dbfb9fdf0815c8d19423069ec099bad2"
+_get_repo feeds/packages https://github.com/openwrt/packages "d68afee955cc3829b953b19bafc86570cba514fe"
+_get_repo feeds/luci https://github.com/openwrt/luci "1154c4198a763aabd7c2fbe0f5419af7c2d04681"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -188,6 +188,7 @@ if [ "$OMR_KERNEL" = "4.19" ]; then
 	echo "Done"
 fi
 
+rm -rf target/linux/mediatek/patches-4.14/0027-*.patch
 
 echo "Update feeds index"
 cp .config .config.keep
