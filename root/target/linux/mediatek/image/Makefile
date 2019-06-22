@@ -8,6 +8,9 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
+FAT32_BLOCK_SIZE=1024
+FAT32_BLOCKS=$(shell echo $$((32*1024*1024/$(FAT32_BLOCK_SIZE))))
+
 # for arm
 KERNEL_LOADADDR := 0x80008000
 
@@ -15,6 +18,22 @@ KERNEL_LOADADDR := 0x80008000
 ifeq ($(SUBTARGET),mt7622)
 KERNEL_LOADADDR = 0x41080000
 endif
+
+define Build/mediatek-sdcard
+    rm -f $@.boot
+    mkfs.fat $@.boot -C $(FAT32_BLOCKS)
+
+    mcopy -i $@.boot $(STAGING_DIR_IMAGE)/$(DEVICE_NAME)-uEnv.txt ::uEnv.txt
+    mcopy -i $@.boot $(IMAGE_KERNEL) ::uImage
+    ./gen_mediatek_sdcard_img.sh $@ \
+            $(STAGING_DIR_IMAGE)/bpi-r2-preloader.bin \
+            $(STAGING_DIR_IMAGE)/$(DEVICE_NAME)-uboot-mediatek.bin \
+            $@.boot \
+            $(IMAGE_ROOTFS) \
+            32 \
+            $(CONFIG_TARGET_ROOTFS_PARTSIZE)
+    rm -f $@.boot
+endef
 
 define Build/sysupgrade-emmc
   rm -f $@.recovery
@@ -30,6 +49,7 @@ define Build/sysupgrade-bpi-r2-sd
   dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-preloader-sd.bin" of="$@" seek="0"
   dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-uboot.bin" of="$@" seek="320"
   dd bs="1024" if="$(IMAGE_KERNEL)" of="$@" seek="2048"
+  #dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
   dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
 endef
 define Build/sysupgrade-bpi-r2-emmc
@@ -48,9 +68,11 @@ define Device/Default
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata 
 ifeq ($(SUBTARGET),mt7623)
+  DEVICE_VARS := MEDIATEK_UBOOT
   KERNEL_NAME := zImage
   KERNEL := kernel-bin | append-dtb | uImage none
   KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
+  FILESYSTEMS += ext4
 endif
 ifeq ($(SUBTARGET),mt7622)
   KERNEL_NAME := Image
