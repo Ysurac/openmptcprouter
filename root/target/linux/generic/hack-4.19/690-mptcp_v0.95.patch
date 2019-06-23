@@ -259,7 +259,7 @@ diff -aurN linux-4.19.53/include/net/inet_sock.h mptcp-mptcp_v0.95/include/net/i
 diff -aurN linux-4.19.53/include/net/mptcp.h mptcp-mptcp_v0.95/include/net/mptcp.h
 --- linux-4.19.53/include/net/mptcp.h	1970-01-01 01:00:00.000000000 +0100
 +++ mptcp-mptcp_v0.95/include/net/mptcp.h	2019-06-22 05:42:25.000000000 +0200
-@@ -0,0 +1,1490 @@
+@@ -0,0 +1,1491 @@
 +/*
 + *	MPTCP implementation
 + *
@@ -1458,6 +1458,7 @@ diff -aurN linux-4.19.53/include/net/mptcp.h mptcp-mptcp_v0.95/include/net/mptcp
 +
 +		if ((mptcp_sk_can_send(sk_it) || sk_it->sk_state == TCP_SYN_RECV) &&
 +		    inet_csk(sk_it)->icsk_retransmits == 0 &&
++		    inet_csk(sk_it)->icsk_backoff == 0 &&
 +		    inet_csk(sk_it)->icsk_rto > max_rto)
 +			max_rto = inet_csk(sk_it)->icsk_rto;
 +	}
