@@ -43,7 +43,7 @@ UBOOT_MAKE_FLAGS = \
 
 define Build/Prepare
         $(call Build/Prepare/Default)
-	$(CP) uEnv-$(UENV).txt ${PKG_BUILD_DIR}/uEnv.txt
+	$(CP) uEnv-$(UENV).txt $(PKG_BUILD_DIR)/uEnv.txt
 endef
 
 define Build/InstallDev
