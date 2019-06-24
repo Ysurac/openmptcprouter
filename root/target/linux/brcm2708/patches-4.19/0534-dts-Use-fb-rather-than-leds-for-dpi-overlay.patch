@@ -1,0 +1,39 @@
+From ac938a20520a9e80899c13c695660c7fdf50cfaa Mon Sep 17 00:00:00 2001
+From: popcornmix <popcornmix@gmail.com>
+Date: Thu, 12 Oct 2017 18:11:32 +0100
+Subject: [PATCH 534/678] dts: Use fb rather than leds for dpi overlay
+
+---
+ arch/arm/boot/dts/overlays/dpi18-overlay.dts | 2 +-
+ arch/arm/boot/dts/overlays/dpi24-overlay.dts | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/overlays/dpi18-overlay.dts b/arch/arm/boot/dts/overlays/dpi18-overlay.dts
+index 64dc2dd42150..4bf5ef832747 100644
+--- a/arch/arm/boot/dts/overlays/dpi18-overlay.dts
++++ b/arch/arm/boot/dts/overlays/dpi18-overlay.dts
+@@ -9,7 +9,7 @@
+ 	// reference on - leds will do
+ 
+ 	fragment@0 {
+-		target = <&leds>;
++		target = <&fb>;
+ 		__overlay__ {
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&dpi18_pins>;
+diff --git a/arch/arm/boot/dts/overlays/dpi24-overlay.dts b/arch/arm/boot/dts/overlays/dpi24-overlay.dts
+index 6021bc33b5af..d5f7c3f58890 100644
+--- a/arch/arm/boot/dts/overlays/dpi24-overlay.dts
++++ b/arch/arm/boot/dts/overlays/dpi24-overlay.dts
+@@ -9,7 +9,7 @@
+ 	// reference on - leds will do
+ 
+ 	fragment@0 {
+-		target = <&leds>;
++		target = <&fb>;
+ 		__overlay__ {
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&dpi24_pins>;
+-- 
+2.19.1
+

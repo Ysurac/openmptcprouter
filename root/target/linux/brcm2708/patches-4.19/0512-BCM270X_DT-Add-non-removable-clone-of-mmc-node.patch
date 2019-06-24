@@ -1,0 +1,223 @@
+From e1272fcce7564b066995ebe92da132cec8e77656 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Tue, 7 May 2019 14:29:38 +0100
+Subject: [PATCH 512/678] BCM270X_DT: Add non-removable clone of mmc node
+
+non-removable is a boolean property, and as such can't be unset by an
+overlay if it is set in a base DTB. Until now the workaround for this
+problem has been for overlays to clone non-removable nodes without
+the offending property, but this involves a lot of unnecessary
+replication. Instead, add a clone of the mmc node with non-removable
+already set to the base DTB, selecting the required version using
+the status properties.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/boot/dts/bcm2708-rpi-0-w.dts       |  4 +--
+ arch/arm/boot/dts/bcm2708-rpi.dtsi          |  3 +-
+ arch/arm/boot/dts/bcm270x.dtsi              | 13 ++++++++
+ arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts  |  5 ++--
+ arch/arm/boot/dts/bcm2710-rpi-3-b.dts       |  5 ++--
+ arch/arm/boot/dts/overlays/mmc-overlay.dts  |  7 +++++
+ arch/arm/boot/dts/overlays/sdio-overlay.dts | 33 +++++++--------------
+ 7 files changed, 38 insertions(+), 32 deletions(-)
+
+diff --git a/arch/arm/boot/dts/bcm2708-rpi-0-w.dts b/arch/arm/boot/dts/bcm2708-rpi-0-w.dts
+index aa33646fcf53..23ff3e4970ae 100644
+--- a/arch/arm/boot/dts/bcm2708-rpi-0-w.dts
++++ b/arch/arm/boot/dts/bcm2708-rpi-0-w.dts
+@@ -14,6 +14,7 @@
+ 	aliases {
+ 		serial0 = &uart1;
+ 		serial1 = &uart0;
++		mmc1 = &mmcnr;
+ 	};
+ };
+ 
+@@ -73,10 +74,9 @@
+ 	};
+ };
+ 
+-&mmc {
++&mmcnr {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&sdio_pins>;
+-	non-removable;
+ 	bus-width = <4>;
+ 	status = "okay";
+ };
+diff --git a/arch/arm/boot/dts/bcm2708-rpi.dtsi b/arch/arm/boot/dts/bcm2708-rpi.dtsi
+index 9e1492186728..0cce7d1b99d3 100644
+--- a/arch/arm/boot/dts/bcm2708-rpi.dtsi
++++ b/arch/arm/boot/dts/bcm2708-rpi.dtsi
+@@ -118,7 +118,8 @@
+ 		sd_force_pio = <&sdhost>,"brcm,force-pio?";
+ 		sd_pio_limit = <&sdhost>,"brcm,pio-limit:0";
+ 		sd_debug     = <&sdhost>,"brcm,debug";
+-		sdio_overclock = <&mmc>,"brcm,overclock-50:0";
++		sdio_overclock = <&mmc>,"brcm,overclock-50:0",
++				 <&mmcnr>,"brcm,overclock-50:0";
+ 		axiperf      = <&axiperf>,"status";
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/bcm270x.dtsi b/arch/arm/boot/dts/bcm270x.dtsi
+index ecdb36e69c87..6d2563b25a42 100644
+--- a/arch/arm/boot/dts/bcm270x.dtsi
++++ b/arch/arm/boot/dts/bcm270x.dtsi
+@@ -79,6 +79,19 @@
+ 			status = "disabled";
+ 		};
+ 
++		/* A clone of mmc but with non-removable set */
++		mmcnr: mmcnr@7e300000 {
++			compatible = "brcm,bcm2835-mmc", "brcm,bcm2835-sdhci";
++			reg = <0x7e300000 0x100>;
++			interrupts = <2 30>;
++			clocks = <&clocks BCM2835_CLOCK_EMMC>;
++			dmas = <&dma 11>;
++			dma-names = "rx-tx";
++			brcm,overclock-50 = <0>;
++			non-removable;
++			status = "disabled";
++		};
++
+ 		hvs: hvs@7e400000 {
+ 			/* Add alias */
+ 			status = "disabled";
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts b/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
+index b5f125296e1e..6e526d7e4989 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-3-b-plus.dts
+@@ -15,6 +15,7 @@
+ 	aliases {
+ 		serial0 = &uart1;
+ 		serial1 = &uart0;
++		mmc1 = &mmcnr;
+ 	};
+ };
+ 
+@@ -74,13 +75,11 @@
+ 	};
+ };
+ 
+-&mmc {
++&mmcnr {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&sdio_pins>;
+-	non-removable;
+ 	bus-width = <4>;
+ 	status = "okay";
+-	brcm,overclock-50 = <0>;
+ };
+ 
+ &firmware {
+diff --git a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+index d9d9505c6693..9d77cb1e9b0b 100644
+--- a/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
++++ b/arch/arm/boot/dts/bcm2710-rpi-3-b.dts
+@@ -15,6 +15,7 @@
+ 	aliases {
+ 		serial0 = &uart1;
+ 		serial1 = &uart0;
++		mmc1 = &mmcnr;
+ 	};
+ };
+ 
+@@ -74,13 +75,11 @@
+ 	};
+ };
+ 
+-&mmc {
++&mmcnr {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&sdio_pins>;
+-	non-removable;
+ 	bus-width = <4>;
+ 	status = "okay";
+-	brcm,overclock-50 = <0>;
+ };
+ 
+ &soc {
+diff --git a/arch/arm/boot/dts/overlays/mmc-overlay.dts b/arch/arm/boot/dts/overlays/mmc-overlay.dts
+index 85994b099bc0..c1a2f691aa1e 100644
+--- a/arch/arm/boot/dts/overlays/mmc-overlay.dts
++++ b/arch/arm/boot/dts/overlays/mmc-overlay.dts
+@@ -33,6 +33,13 @@
+ 		};
+ 	};
+ 
++	fragment@3 {
++		target = <&mmcnr>;
++		__overlay__ {
++			status = "disabled";
++		};
++	};
++
+ 	__overrides__ {
+ 		overclock_50     = <&frag0>,"brcm,overclock-50:0";
+ 	};
+diff --git a/arch/arm/boot/dts/overlays/sdio-overlay.dts b/arch/arm/boot/dts/overlays/sdio-overlay.dts
+index d63df20afdf7..873e49056379 100644
+--- a/arch/arm/boot/dts/overlays/sdio-overlay.dts
++++ b/arch/arm/boot/dts/overlays/sdio-overlay.dts
+@@ -1,39 +1,26 @@
+ /dts-v1/;
+ /plugin/;
+ 
+-/* Enable SDIO from MMC interface via GPIOs 22-27. Includes sdhost overlay. */
++/* Enable SDIO from MMC interface via various GPIO groups */
+ 
+ /{
+ 	compatible = "brcm,bcm2708";
+ 
+ 	fragment@0 {
+-		target = <&mmc>;
++		target = <&mmcnr>;
+ 		__overlay__ {
+ 			status = "disabled";
+ 		};
+ 	};
+ 
+ 	fragment@1 {
+-		target = <&soc>;
+-		__overlay__ {
+-			#address-cells = <1>;
+-			#size-cells = <1>;
+-
+-			sdio_ovl: sdio@7e300000 {
+-				compatible = "brcm,bcm2835-mmc",
+-					     "brcm,bcm2835-sdhci";
+-				reg = <0x7e300000 0x100>;
+-				interrupts = <2 30>;
+-				clocks = <&clocks 28/*BCM2835_CLOCK_EMMC*/>;
+-				dmas = <&dma 11>;
+-				dma-names = "rx-tx";
+-				brcm,overclock-50 = <0>;
+-				status = "okay";
+-				pinctrl-names = "default";
+-				pinctrl-0 = <&sdio_ovl_pins>;
+-				non-removable;
+-				bus-width = <4>;
+-			};
++		target = <&mmc>;
++		sdio_ovl: __overlay__ {
++			pinctrl-0 = <&sdio_ovl_pins>;
++			pinctrl-names = "default";
++			non-removable;
++			bus-width = <4>;
++			status = "okay";
+ 		};
+ 	};
+ 
+@@ -75,7 +62,7 @@
+ 	fragment@6 {
+ 		target-path = "/aliases";
+ 		__overlay__ {
+-			mmc1 = "/soc/sdio@7e300000";
++			mmc1 = "/soc/mmc@7e300000";
+ 		};
+ 	};
+ 
+-- 
+2.19.1
+

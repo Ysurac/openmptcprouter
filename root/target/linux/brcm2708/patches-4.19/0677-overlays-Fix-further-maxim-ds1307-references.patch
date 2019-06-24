@@ -1,0 +1,56 @@
+From f5315c901bd7ab58d683a6bad621f9c123fc47f3 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Tue, 18 Jun 2019 11:16:13 +0100
+Subject: [PATCH 677/678] overlays: Fix further maxim,ds1307 references
+
+See: https://github.com/raspberrypi/linux/issues/3013
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/boot/dts/overlays/balena-fin-overlay.dts   | 2 +-
+ arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts | 2 +-
+ arch/arm/boot/dts/overlays/tinylcd35-overlay.dts    | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/overlays/balena-fin-overlay.dts b/arch/arm/boot/dts/overlays/balena-fin-overlay.dts
+index 8c1cba99fc8f..249c8202b2ed 100644
+--- a/arch/arm/boot/dts/overlays/balena-fin-overlay.dts
++++ b/arch/arm/boot/dts/overlays/balena-fin-overlay.dts
+@@ -84,7 +84,7 @@
+ 
+ 			// rtc clock
+ 			ds1307: ds1307@68 {
+-				compatible = "maxim,ds1307";
++				compatible = "dallas,ds1307";
+ 				reg = <0x68>;
+ 				status = "okay";
+ 			};
+diff --git a/arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts b/arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts
+index 3b19993bcbe9..d647d88d212a 100644
+--- a/arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts
++++ b/arch/arm/boot/dts/overlays/i2c-rtc-gpio-overlay.dts
+@@ -46,7 +46,7 @@
+ 			status = "okay";
+ 
+ 			ds1307: ds1307@68 {
+-				compatible = "maxim,ds1307";
++				compatible = "dallas,ds1307";
+ 				reg = <0x68>;
+ 				status = "okay";
+ 			};
+diff --git a/arch/arm/boot/dts/overlays/tinylcd35-overlay.dts b/arch/arm/boot/dts/overlays/tinylcd35-overlay.dts
+index 5ed6982d0239..254ac2e0a214 100644
+--- a/arch/arm/boot/dts/overlays/tinylcd35-overlay.dts
++++ b/arch/arm/boot/dts/overlays/tinylcd35-overlay.dts
+@@ -155,7 +155,7 @@
+ 			status = "okay";
+ 
+ 			ds1307: ds1307@68 {
+-				compatible = "maxim,ds1307";
++				compatible = "dallas,ds1307";
+ 				reg = <0x68>;
+ 				status = "okay";
+ 			};
+-- 
+2.19.1
+
