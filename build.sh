@@ -22,14 +22,14 @@ _get_repo() (
 OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
-OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release}
+OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_KERNEL}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 OMR_UEFI=${OMR_UEFI:-yes}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
-OMR_KERNEL=${OMR_KERNEL:-4.14}
+OMR_KERNEL=${OMR_KERNEL:-4.19}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-master}"
@@ -41,6 +41,8 @@ fi
 
 if [ "$OMR_TARGET" = "rpi3" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
+elif [ "$OMR_TARGET" = "rpi4" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a72"
 elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
@@ -54,7 +56,7 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "d344591e72e5ca96a2bf70a2df38961553185ce8"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "577174cf60ddbdd8233f9aa029d7c0ee97c681fc"
 _get_repo feeds/packages https://github.com/openwrt/packages "b35a2b5c8c6f0811a20643877a3f17159dc09fa2"
 _get_repo feeds/luci https://github.com/openwrt/luci "86fd703bae2089cfd0dd7e06c1dd20c4b956767a"
 
@@ -188,6 +190,7 @@ if [ "$OMR_KERNEL" = "4.19" ]; then
 	echo "Done"
 fi
 
+# Remove patch that can make BPI-R2 slow
 rm -rf target/linux/mediatek/patches-4.14/0027-*.patch
 
 echo "Update feeds index"
