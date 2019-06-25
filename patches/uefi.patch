@@ -689,7 +689,7 @@ index 9daaf749158..950f59ca657 100644
  		int "Root filesystem partition size (in MB)"
 -		depends on GRUB_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
- 		default 256
+ 		default 128
  		help
  		  Select the root filesystem partition size.
  
@@ -840,7 +840,7 @@ index 84a3d88a7f2..aacb1b4830d 100644
  
  GRUB_TIMEOUT:=$(call qstrip,$(CONFIG_GRUB_TIMEOUT))
  GRUB_TITLE:=$(call qstrip,$(CONFIG_GRUB_TITLE))
-@@ -93,12 +97,71 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
+@@ -93,8 +99,67 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
    endef
  endif
  
@@ -879,7 +879,7 @@ index 84a3d88a7f2..aacb1b4830d 100644
 +		$(GRUB2_MODULES) part_gpt fat
 +
 +	$(CP) $(STAGING_DIR_HOST)/lib/grub/i386-pc/*.img $(KDIR)/grub2/
-+	echo '(hd0) $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1)-efi.img' > $(KDIR)/grub2/device.map
++	echo '(hd0) $(BIN_DIR)/$(IMG_COMBINED)-$(1)-efi.img' > $(KDIR)/grub2/device.map
 +	sed \
 +		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
 +		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
@@ -890,7 +890,7 @@ index 84a3d88a7f2..aacb1b4830d 100644
 +		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 +	-$(CP) $(STAGING_DIR_ROOT)/boot/. $(KDIR)/root.grub/boot/
 +	EFI_SIGNATURE=$(EFI_SIGNATURE) PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" $(SCRIPT_DIR)/gen_image_generic.sh \
-+		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1)-efi.img \
++		$(BIN_DIR)/$(IMG_COMBINED)-$(1)-efi.img \
 +		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
 +		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
 +		256
@@ -898,14 +898,10 @@ index 84a3d88a7f2..aacb1b4830d 100644
 +		--device-map="$(KDIR)/grub2/device.map" \
 +		-d "$(KDIR)/grub2" \
 +		-r "hd0,gpt1" \
-+		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1)-efi.img"
++		"$(BIN_DIR)/$(IMG_COMBINED)-$(1)-efi.img"
 +  endef
 +endif
 +
- define Image/Build/squashfs
- 	dd if=/dev/zero bs=128k count=1 >> $(KDIR)/root.squashfs
- endef
- 
  define Image/Build/iso
  	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
 +	$(INSTALL_DIR) $(KDIR)/root.grub/efi/boot
@@ -941,18 +937,18 @@ index 84a3d88a7f2..aacb1b4830d 100644
  ifneq ($(CONFIG_VDI_IMAGES),)
 -  define Image/Build/vdi
 +  define Image/Build/vdi/default
- 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi || true
+ 	rm $(BIN_DIR)/$(IMG_COMBINED)-$(1).vdi || true
  	qemu-img convert -f raw -O vdi \
- 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
+ 		$(BIN_DIR)/$(IMG_COMBINED)-$(1).img \
 @@ -133,7 +208,7 @@ ifneq ($(CONFIG_VDI_IMAGES),)
  endif
  
  ifneq ($(CONFIG_VMDK_IMAGES),)
 -  define Image/Build/vmdk
 +  define Image/Build/vmdk/default
- 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk || true
+ 	rm $(BIN_DIR)/$(IMG_COMBINED)-$(1).vmdk || true
  	qemu-img convert -f raw -O vmdk \
- 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
+ 		$(BIN_DIR)/$(IMG_COMBINED)-$(1).img \
 @@ -141,8 +216,27 @@ ifneq ($(CONFIG_VMDK_IMAGES),)
    endef
  endif
@@ -976,10 +972,10 @@ index 84a3d88a7f2..aacb1b4830d 100644
 +endif
 +
  define Image/Build/gzip
--	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img
-+	$(if $(CONFIG_GRUB_IMAGES),gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img)
-+	$(if $(CONFIG_EFI_IMAGES),gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1)-efi.img)
- 	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
+-	gzip -f9n $(BIN_DIR)/$(IMG_COMBINED)-$(1).img
++	$(if $(CONFIG_GRUB_IMAGES),gzip -f9n $(BIN_DIR)/$(IMG_COMBINED)-$(1).img)
++	$(if $(CONFIG_EFI_IMAGES),gzip -f9n $(BIN_DIR)/$(IMG_COMBINED)-$(1)-efi.img)
+ 	gzip -f9n $(BIN_DIR)/$(IMG_ROOTFS)-$(1).img
  endef
  
 @@ -173,6 +267,9 @@ define Image/Build
@@ -989,7 +985,7 @@ index 84a3d88a7f2..aacb1b4830d 100644
 +	$(call Image/Build/grub2/efi,$(1))
 +	$(call Image/Build/vdi/efi,$(1))
 +	$(call Image/Build/vmdk/efi,$(1))
- 	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
+ 	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_ROOTFS)-$(1).img
    else
  	$(CP) $(KDIR)/root.iso $(BIN_DIR)/$(IMG_PREFIX).iso
 diff --git a/target/linux/x86/image/grub-iso.cfg b/target/linux/x86/image/grub-iso.cfg
