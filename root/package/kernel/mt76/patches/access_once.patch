@@ -1,0 +1,13 @@
+--- a/mt76.h	2019-06-26 07:20:16.824670280 +0200
++++ b/mt76.h	2019-06-26 07:20:45.660340322 +0200
+@@ -32,6 +32,10 @@
+ #define MT_RX_BUF_SIZE      2048
+ #define MT_SKB_HEAD_LEN     128
+ 
++#ifndef ACCESS_ONCE
++#define ACCESS_ONCE(x) (*(volatile typeof(x) *)&(x))
++#endif
++
+ struct mt76_dev;
+ struct mt76_wcid;
+ 
