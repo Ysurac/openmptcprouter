@@ -33,6 +33,12 @@ define Build/boot-img
 	mcopy -i $@.boot $(KDIR)/fixup.dat ::
 	mcopy -i $@.boot $(KDIR)/fixup_cd.dat ::
 	mcopy -i $@.boot $(KDIR)/fixup_x.dat ::
+	mcopy -i $@.boot $(KDIR)/start4.elf ::
+	mcopy -i $@.boot $(KDIR)/start4cd.elf ::
+	mcopy -i $@.boot $(KDIR)/start4x.elf ::
+	mcopy -i $@.boot $(KDIR)/fixup4.dat ::
+	mcopy -i $@.boot $(KDIR)/fixup4cd.dat ::
+	mcopy -i $@.boot $(KDIR)/fixup4x.dat ::
 	mcopy -i $@.boot cmdline.txt ::
 	mcopy -i $@.boot config.txt ::
 	mcopy -i $@.boot $(IMAGE_KERNEL) ::$(KERNEL_IMG)
