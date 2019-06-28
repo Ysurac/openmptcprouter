@@ -77,10 +77,11 @@ ifeq ($(SUBTARGET),bcm2708)
 endif
 
 define Device/rpi-2
-  DEVICE_TITLE := Raspberry Pi 2B/3B/3B+/3CM
-  DEVICE_DTS := bcm2709-rpi-2-b bcm2710-rpi-3-b bcm2710-rpi-3-b-plus bcm2710-rpi-cm3
+  DEVICE_TITLE := Raspberry Pi 2B/3B/3B+/3CM/4B
+  DEVICE_DTS := bcm2709-rpi-2-b bcm2710-rpi-3-b bcm2710-rpi-3-b-plus bcm2710-rpi-cm3 bcm2711-rpi-4-b
   SUPPORTED_DEVICES := \
-	rpi-2-b rpi-3-b rpi-3-b-plus rpi-cm \
+	rpi-2-b rpi-3-b rpi-3-b-plus rpi-cm rpi-4-b \
+	raspberrypi,4-model-b \
 	raspberrypi,2-model-b \
 	raspberrypi,3-model-b raspberrypi,3-model-b-plus \
 	raspberrypi,3-compute-module raspberrypi,compute-module-3
@@ -92,9 +93,10 @@ endif
 
 define Device/rpi-3
   KERNEL_IMG := kernel8.img
-  DEVICE_TITLE := Raspberry Pi 3B/3B+
-  DEVICE_DTS := broadcom/bcm2710-rpi-3-b broadcom/bcm2710-rpi-3-b-plus
+  DEVICE_TITLE := Raspberry Pi 3B/3B+/4B
+  DEVICE_DTS := broadcom/bcm2710-rpi-3-b broadcom/bcm2710-rpi-3-b-plus broadcom/bcm2711-rpi-4-b
   SUPPORTED_DEVICES := \
+	rpi-4-b raspberrypi,4-model-b \
 	rpi-3-b rpi-3-b-plus \
 	raspberrypi,3-model-b raspberrypi,3-model-b-plus \
 	raspberrypi,3-compute-module raspberrypi,compute-module-3
@@ -105,13 +107,17 @@ ifeq ($(SUBTARGET),bcm2710)
 endif
 
 define Device/rpi-4
-  KERNEL_IMG := kernel9.img
+  KERNEL_IMG := kernel8.img
   DEVICE_TITLE := Raspberry Pi 4B
-  DEVICE_DTS := broadcom/bcm2711-rpi-4-b
+  DEVICE_DTS := broadcom/bcm2710-rpi-3-b broadcom/bcm2710-rpi-3-b-plus broadcom/bcm2711-rpi-4-b
   SUPPORTED_DEVICES := \
-	rpi-4-b raspberrypi,4-model-b
+	rpi-4-b raspberrypi,4-model-b \
+	rpi-3-b rpi-3-b-plus \
+	raspberrypi,3-model-b raspberrypi,3-model-b-plus \
+	raspberrypi,3-compute-module raspberrypi,compute-module-3
   DEVICE_PACKAGES := brcmfmac-firmware-43430-sdio brcmfmac-board-rpi2 brcmfmac-firmware-43455-sdio brcmfmac-board-rpi3 kmod-brcmfmac wpad-basic
 endef
+
 ifeq ($(SUBTARGET),bcm2711)
   TARGET_DEVICES += rpi-4
 endif
