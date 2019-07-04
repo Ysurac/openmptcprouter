@@ -1,0 +1,33 @@
+From dbb5d678f6a7c50d4026facf98b46c36555da084 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Tue, 2 Jul 2019 17:13:05 +0100
+Subject: [PATCH 689/692] arm: dts: Add coherent_pool=1M to Pi 4 bootargs
+
+Downstream Raspberry Pi dts files add "coherent_pool=1M" to the kernel
+command line to aid the dwc_otg driver, but this excluded Pi 4 which
+uses a new XCHI interface instead. UAS also benefits from a larger
+coherent_pool value, so replicate the addition in bcm2711-rpi-4-b.dts.
+
+See: https://github.com/raspberrypi/linux/pull/3040
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ arch/arm/boot/dts/bcm2711-rpi-4-b.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/bcm2711-rpi-4-b.dts b/arch/arm/boot/dts/bcm2711-rpi-4-b.dts
+index 5addb6130fa7..9b5c4f8a4d17 100644
+--- a/arch/arm/boot/dts/bcm2711-rpi-4-b.dts
++++ b/arch/arm/boot/dts/bcm2711-rpi-4-b.dts
+@@ -14,7 +14,7 @@
+ 	};
+ 
+ 	chosen {
+-		bootargs = "8250.nr_uarts=1 cma=64M";
++		bootargs = "coherent_pool=1M 8250.nr_uarts=1 cma=64M";
+ 	};
+ 
+ 	aliases {
+-- 
+2.19.1
+
