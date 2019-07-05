@@ -961,5 +961,4 @@ dtparam=spi=on
 #dtoverlay=rra-digidac1-wm8741-audio
 [pi4]
 total_mem=1024
-#enable_gic=1
-#armstub=armstub8-32-gic.bin
+enable_gic=1
