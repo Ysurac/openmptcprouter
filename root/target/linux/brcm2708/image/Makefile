@@ -49,6 +49,33 @@ define Build/boot-img
 	mcopy -i $@.boot $(DTS_DIR)/overlays/README ::/overlays/
 endef
 
+define Build/boot4-img
+	rm -f $@.boot
+	mkfs.fat -C $@.boot $(FAT32_BLOCKS)
+	mcopy -i $@.boot $(KDIR)/COPYING.linux ::
+	mcopy -i $@.boot $(KDIR)/bootcode.bin ::
+	mcopy -i $@.boot $(KDIR)/LICENCE.broadcom ::
+	mcopy -i $@.boot $(KDIR)/start.elf ::
+	mcopy -i $@.boot $(KDIR)/start_cd.elf ::
+	mcopy -i $@.boot $(KDIR)/start_x.elf ::
+	mcopy -i $@.boot $(KDIR)/fixup.dat ::
+	mcopy -i $@.boot $(KDIR)/fixup_cd.dat ::
+	mcopy -i $@.boot $(KDIR)/fixup_x.dat ::
+	mcopy -i $@.boot $(KDIR)/start4.elf ::
+	mcopy -i $@.boot $(KDIR)/start4cd.elf ::
+	mcopy -i $@.boot $(KDIR)/start4x.elf ::
+	mcopy -i $@.boot $(KDIR)/fixup4.dat ::
+	mcopy -i $@.boot $(KDIR)/fixup4cd.dat ::
+	mcopy -i $@.boot $(KDIR)/fixup4x.dat ::
+	mcopy -i $@.boot cmdline.txt ::
+	mcopy -i $@.boot config64.txt ::config.txt
+	mcopy -i $@.boot $(IMAGE_KERNEL) ::$(KERNEL_IMG)
+	$(foreach dts,$(shell echo $(DEVICE_DTS)),mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb ::;)
+	mmd -i $@.boot ::/overlays
+	mcopy -i $@.boot $(DTS_DIR)/overlays/*.dtbo ::/overlays/
+	mcopy -i $@.boot $(DTS_DIR)/overlays/README ::/overlays/
+endef
+
 define Build/sdcard-img
 	./gen_rpi_sdcard_img.sh $@ $@.boot $(IMAGE_ROOTFS) \
 		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(CONFIG_TARGET_ROOTFS_PARTSIZE)
@@ -59,8 +86,6 @@ define Device/Default
   KERNEL := kernel-bin | kernel-img
   KERNEL_IMG := kernel.img
   IMAGES := factory.img.gz sysupgrade.img.gz
-  IMAGE/sysupgrade.img.gz := boot-img | sdcard-img | gzip | append-metadata
-  IMAGE/factory.img.gz := boot-img | sdcard-img | gzip
 endef
 
 define Device/rpi
@@ -72,6 +97,8 @@ define Device/rpi
 	raspberrypi,compute-module raspberrypi,compute-module-1 \
 	raspberrypi,model-zero raspberrypi,model-zero-w
   DEVICE_PACKAGES := brcmfmac-firmware-43430-sdio brcmfmac-board-rpi2 kmod-brcmfmac wpad-basic
+  IMAGE/sysupgrade.img.gz := boot-img | sdcard-img | gzip | append-metadata
+  IMAGE/factory.img.gz := boot-img | sdcard-img | gzip
 endef
 ifeq ($(SUBTARGET),bcm2708)
   TARGET_DEVICES += rpi
@@ -87,6 +114,8 @@ define Device/rpi-2
 	raspberrypi,3-model-b raspberrypi,3-model-b-plus \
 	raspberrypi,3-compute-module raspberrypi,compute-module-3
   DEVICE_PACKAGES := brcmfmac-firmware-43430-sdio brcmfmac-firmware-43455-sdio brcmfmac-board-rpi2 brcmfmac-board-rpi3 kmod-brcmfmac wpad-basic
+  IMAGE/sysupgrade.img.gz := boot-img | sdcard-img | gzip | append-metadata
+  IMAGE/factory.img.gz := boot-img | sdcard-img | gzip
 endef
 ifeq ($(SUBTARGET),bcm2709)
   TARGET_DEVICES += rpi-2
@@ -102,6 +131,8 @@ define Device/rpi-3
 	raspberrypi,3-model-b raspberrypi,3-model-b-plus \
 	raspberrypi,3-compute-module raspberrypi,compute-module-3
   DEVICE_PACKAGES := brcmfmac-firmware-43430-sdio brcmfmac-board-rpi2 brcmfmac-firmware-43455-sdio brcmfmac-board-rpi3 kmod-brcmfmac wpad-basic
+  IMAGE/sysupgrade.img.gz := boot-img | sdcard-img | gzip | append-metadata
+  IMAGE/factory.img.gz := boot-img | sdcard-img | gzip
 endef
 ifeq ($(SUBTARGET),bcm2710)
   TARGET_DEVICES += rpi-3
@@ -117,6 +148,8 @@ define Device/rpi-4
 	raspberrypi,3-model-b raspberrypi,3-model-b-plus \
 	raspberrypi,3-compute-module raspberrypi,compute-module-3
   DEVICE_PACKAGES := brcmfmac-firmware-43430-sdio brcmfmac-board-rpi2 brcmfmac-firmware-43455-sdio brcmfmac-board-rpi3 kmod-brcmfmac wpad-basic
+  IMAGE/sysupgrade.img.gz := boot4-img | sdcard-img | gzip | append-metadata
+  IMAGE/factory.img.gz := boot4-img | sdcard-img | gzip
 endef
 
 ifeq ($(SUBTARGET),bcm2711)
