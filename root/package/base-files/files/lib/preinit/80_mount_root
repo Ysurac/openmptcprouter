@@ -17,5 +17,8 @@ do_mount_root() {
 		tar xzf sysupgrade.tgz
 	}
 }
-
+[ -n "$(mount | grep ext4 | grep ro)" ] && {
+	[ -e /dev/mmcblk0p2 ] && /usr/sbin/e2fsck -y -v -f /dev/mmcblk0p2 >/dev/null 2>&1
+	[ -e /dev/sda2 ] && /usr/sbin/e2fsck -y -v -f /dev/sda2 >/dev/null 2>&1
+}
 [ "$INITRAMFS" = "1" ] || boot_hook_add preinit_main do_mount_root
