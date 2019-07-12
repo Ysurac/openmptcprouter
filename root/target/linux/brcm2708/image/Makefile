@@ -67,7 +67,7 @@ define Build/boot4-img
 	mcopy -i $@.boot $(KDIR)/fixup4.dat ::
 	mcopy -i $@.boot $(KDIR)/fixup4cd.dat ::
 	mcopy -i $@.boot $(KDIR)/fixup4x.dat ::
-	mcopy -i $@.boot cmdline.txt ::
+	mcopy -i $@.boot cmdline64.txt ::cmdline.txt
 	mcopy -i $@.boot config64.txt ::config.txt
 	mcopy -i $@.boot $(IMAGE_KERNEL) ::$(KERNEL_IMG)
 	$(foreach dts,$(shell echo $(DEVICE_DTS)),mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb ::;)

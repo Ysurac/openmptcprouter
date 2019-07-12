@@ -960,5 +960,5 @@ dtparam=spi=on
 #dtoverlay=rpi-proto
 #dtoverlay=rra-digidac1-wm8741-audio
 [pi4]
-total_mem=1024
+#total_mem=1024
 arm_64bit=1
