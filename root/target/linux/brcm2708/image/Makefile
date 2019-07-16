@@ -30,12 +30,12 @@ define Build/boot-common
 	mcopy -i $@.boot $(IMAGE_KERNEL) ::$(KERNEL_IMG)
 	$(foreach dts,$(shell echo $(DEVICE_DTS)),mcopy -i $@.boot $(DTS_DIR)/$(dts).dtb ::;)
 	mmd -i $@.boot ::/overlays
+	mcopy -i $@.boot cmdline.txt ::
 	mcopy -i $@.boot $(DTS_DIR)/overlays/*.dtbo ::/overlays/
 	mcopy -i $@.boot $(DTS_DIR)/overlays/README ::/overlays/
 endef
 
 define Build/boot-not4
-	mcopy -i $@.boot cmdline.txt ::
 	mcopy -i $@.boot config.txt ::
 endef
 
@@ -58,7 +58,6 @@ define Build/boot-2711
 endef
 
 define Build/boot-2711-64
-	mcopy -i $@.boot cmdline64.txt ::cmdline.txt
 	mcopy -i $@.boot config64.txt ::config.txt
 endef
 
