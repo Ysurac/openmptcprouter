@@ -682,7 +682,7 @@ index 9daaf749158..950f59ca657 100644
 -		depends on GRUB_IMAGES || USES_BOOT_PART
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_BOOT_PART
  		default 8 if TARGET_apm821xx_sata
- 		default 20 if TARGET_brcm2708
+ 		default 64 if TARGET_brcm2708
  		default 16
  
  	config TARGET_ROOTFS_PARTSIZE
