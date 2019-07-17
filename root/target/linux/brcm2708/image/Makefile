@@ -146,7 +146,7 @@ define Device/rpi-4
 	brcmfmac-firmware-43430-sdio \
 	brcmfmac-firmware-43430-sdio-rpi-3b \
 	brcmfmac-firmware-43455-sdio brcmfmac-firmware-43455-clm_blob \
-	brcmfmac-firmware-43455-sdio-rpi-3b-plus \
+	brcmfmac-firmware-43455-sdio-rpi-3b-plus brcmfmac-firmware-43455-sdio-rpi-4b \
 	kmod-brcmfmac wpad-basic
   IMAGE/sysupgrade.img.gz := boot-common | boot-2708 | boot-2711 | boot-2711-64 | sdcard-img | gzip | append-metadata
   IMAGE/factory.img.gz := boot-common | boot-2708 | boot-2711 | boot-2711-64 | sdcard-img | gzip
