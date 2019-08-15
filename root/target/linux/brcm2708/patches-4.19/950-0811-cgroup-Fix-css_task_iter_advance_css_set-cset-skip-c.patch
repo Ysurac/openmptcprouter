@@ -1,0 +1,39 @@
+From ebda41dd170fd160e44f97d7a2a215ae9d0009b1 Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Mon, 10 Jun 2019 09:08:27 -0700
+Subject: [PATCH 811/826] cgroup: Fix css_task_iter_advance_css_set() cset skip
+ condition
+
+commit c596687a008b579c503afb7a64fcacc7270fae9e upstream.
+
+While adding handling for dying task group leaders c03cd7738a83
+("cgroup: Include dying leaders with live threads in PROCS
+iterations") added an inverted cset skip condition to
+css_task_iter_advance_css_set().  It should skip cset if it's
+completely empty but was incorrectly testing for the inverse condition
+for the dying_tasks list.  Fix it.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Fixes: c03cd7738a83 ("cgroup: Include dying leaders with live threads in PROCS iterations")
+Reported-by: syzbot+d4bba5ccd4f9a2a68681@syzkaller.appspotmail.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ kernel/cgroup/cgroup.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/cgroup/cgroup.c b/kernel/cgroup/cgroup.c
+index ddde75bae7af..78ef274b036e 100644
+--- a/kernel/cgroup/cgroup.c
++++ b/kernel/cgroup/cgroup.c
+@@ -4154,7 +4154,7 @@ static void css_task_iter_advance_css_set(struct css_task_iter *it)
+ 			it->task_pos = NULL;
+ 			return;
+ 		}
+-	} while (!css_set_populated(cset) && !list_empty(&cset->dying_tasks));
++	} while (!css_set_populated(cset) && list_empty(&cset->dying_tasks));
+ 
+ 	if (!list_empty(&cset->tasks))
+ 		it->task_pos = cset->tasks.next;
+-- 
+2.22.0
+

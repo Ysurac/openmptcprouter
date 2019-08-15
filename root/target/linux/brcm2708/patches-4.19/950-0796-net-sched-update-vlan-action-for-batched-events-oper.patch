@@ -1,0 +1,49 @@
+From cb20f74135df76ab386afa3bb1ad1af6b995f697 Mon Sep 17 00:00:00 2001
+From: Roman Mashak <mrv@mojatatu.com>
+Date: Fri, 2 Aug 2019 15:16:46 -0400
+Subject: [PATCH 796/826] net sched: update vlan action for batched events
+ operations
+
+[ Upstream commit b35475c5491a14c8ce7a5046ef7bcda8a860581a ]
+
+Add get_fill_size() routine used to calculate the action size
+when building a batch of events.
+
+Fixes: c7e2b9689 ("sched: introduce vlan action")
+Signed-off-by: Roman Mashak <mrv@mojatatu.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ net/sched/act_vlan.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/net/sched/act_vlan.c b/net/sched/act_vlan.c
+index 033d273afe50..20a7d4dc381c 100644
+--- a/net/sched/act_vlan.c
++++ b/net/sched/act_vlan.c
+@@ -296,6 +296,14 @@ static int tcf_vlan_search(struct net *net, struct tc_action **a, u32 index,
+ 	return tcf_idr_search(tn, a, index);
+ }
+ 
++static size_t tcf_vlan_get_fill_size(const struct tc_action *act)
++{
++	return nla_total_size(sizeof(struct tc_vlan))
++		+ nla_total_size(sizeof(u16)) /* TCA_VLAN_PUSH_VLAN_ID */
++		+ nla_total_size(sizeof(u16)) /* TCA_VLAN_PUSH_VLAN_PROTOCOL */
++		+ nla_total_size(sizeof(u8)); /* TCA_VLAN_PUSH_VLAN_PRIORITY */
++}
++
+ static struct tc_action_ops act_vlan_ops = {
+ 	.kind		=	"vlan",
+ 	.type		=	TCA_ACT_VLAN,
+@@ -305,6 +313,7 @@ static struct tc_action_ops act_vlan_ops = {
+ 	.init		=	tcf_vlan_init,
+ 	.cleanup	=	tcf_vlan_cleanup,
+ 	.walk		=	tcf_vlan_walker,
++	.get_fill_size	=	tcf_vlan_get_fill_size,
+ 	.lookup		=	tcf_vlan_search,
+ 	.size		=	sizeof(struct tcf_vlan),
+ };
+-- 
+2.22.0
+

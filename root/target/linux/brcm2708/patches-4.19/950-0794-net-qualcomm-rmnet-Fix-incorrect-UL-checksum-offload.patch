@@ -1,0 +1,92 @@
+From 44b96a38c2b5dd6e67039898201fdbcbaa4974ae Mon Sep 17 00:00:00 2001
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Date: Thu, 25 Jul 2019 12:07:12 -0600
+Subject: [PATCH 794/826] net: qualcomm: rmnet: Fix incorrect UL checksum
+ offload logic
+
+[ Upstream commit a7cf3d24ee6081930feb4c830a7f6f16ebe31c49 ]
+
+The udp_ip4_ind bit is set only for IPv4 UDP non-fragmented packets
+so that the hardware can flip the checksum to 0xFFFF if the computed
+checksum is 0 per RFC768.
+
+However, this bit had to be set for IPv6 UDP non fragmented packets
+as well per hardware requirements. Otherwise, IPv6 UDP packets
+with computed checksum as 0 were transmitted by hardware and were
+dropped in the network.
+
+In addition to setting this bit for IPv6 UDP, the field is also
+appropriately renamed to udp_ind as part of this change.
+
+Fixes: 5eb5f8608ef1 ("net: qualcomm: rmnet: Add support for TX checksum offload")
+Cc: Sean Tranchetti <stranche@codeaurora.org>
+Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/net/ethernet/qualcomm/rmnet/rmnet_map.h     |  2 +-
+ .../net/ethernet/qualcomm/rmnet/rmnet_map_data.c    | 13 +++++++++----
+ 2 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/ethernet/qualcomm/rmnet/rmnet_map.h b/drivers/net/ethernet/qualcomm/rmnet/rmnet_map.h
+index 884f1f52dcc2..70879a3ab567 100644
+--- a/drivers/net/ethernet/qualcomm/rmnet/rmnet_map.h
++++ b/drivers/net/ethernet/qualcomm/rmnet/rmnet_map.h
+@@ -59,7 +59,7 @@ struct rmnet_map_dl_csum_trailer {
+ struct rmnet_map_ul_csum_header {
+ 	__be16 csum_start_offset;
+ 	u16 csum_insert_offset:14;
+-	u16 udp_ip4_ind:1;
++	u16 udp_ind:1;
+ 	u16 csum_enabled:1;
+ } __aligned(1);
+ 
+diff --git a/drivers/net/ethernet/qualcomm/rmnet/rmnet_map_data.c b/drivers/net/ethernet/qualcomm/rmnet/rmnet_map_data.c
+index 57a9c314a665..b2090cedd2e9 100644
+--- a/drivers/net/ethernet/qualcomm/rmnet/rmnet_map_data.c
++++ b/drivers/net/ethernet/qualcomm/rmnet/rmnet_map_data.c
+@@ -215,9 +215,9 @@ rmnet_map_ipv4_ul_csum_header(void *iphdr,
+ 	ul_header->csum_insert_offset = skb->csum_offset;
+ 	ul_header->csum_enabled = 1;
+ 	if (ip4h->protocol == IPPROTO_UDP)
+-		ul_header->udp_ip4_ind = 1;
++		ul_header->udp_ind = 1;
+ 	else
+-		ul_header->udp_ip4_ind = 0;
++		ul_header->udp_ind = 0;
+ 
+ 	/* Changing remaining fields to network order */
+ 	hdr++;
+@@ -248,6 +248,7 @@ rmnet_map_ipv6_ul_csum_header(void *ip6hdr,
+ 			      struct rmnet_map_ul_csum_header *ul_header,
+ 			      struct sk_buff *skb)
+ {
++	struct ipv6hdr *ip6h = (struct ipv6hdr *)ip6hdr;
+ 	__be16 *hdr = (__be16 *)ul_header, offset;
+ 
+ 	offset = htons((__force u16)(skb_transport_header(skb) -
+@@ -255,7 +256,11 @@ rmnet_map_ipv6_ul_csum_header(void *ip6hdr,
+ 	ul_header->csum_start_offset = offset;
+ 	ul_header->csum_insert_offset = skb->csum_offset;
+ 	ul_header->csum_enabled = 1;
+-	ul_header->udp_ip4_ind = 0;
++
++	if (ip6h->nexthdr == IPPROTO_UDP)
++		ul_header->udp_ind = 1;
++	else
++		ul_header->udp_ind = 0;
+ 
+ 	/* Changing remaining fields to network order */
+ 	hdr++;
+@@ -428,7 +433,7 @@ void rmnet_map_checksum_uplink_packet(struct sk_buff *skb,
+ 	ul_header->csum_start_offset = 0;
+ 	ul_header->csum_insert_offset = 0;
+ 	ul_header->csum_enabled = 0;
+-	ul_header->udp_ip4_ind = 0;
++	ul_header->udp_ind = 0;
+ 
+ 	priv->stats.csum_sw++;
+ }
+-- 
+2.22.0
+

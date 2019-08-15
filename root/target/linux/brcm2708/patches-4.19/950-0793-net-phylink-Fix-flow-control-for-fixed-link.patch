@@ -1,0 +1,60 @@
+From c8b05980c4bf7abfe9a016c34f8bf3bb5396cbfb Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ren=C3=A9=20van=20Dorst?= <opensource@vdorst.com>
+Date: Sat, 27 Jul 2019 11:40:11 +0200
+Subject: [PATCH 793/826] net: phylink: Fix flow control for fixed-link
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+[ Upstream commit 8aace4f3eba2a3ceb431e18683ea0e1ecbade5cd ]
+
+In phylink_parse_fixedlink() the pl->link_config.advertising bits are AND
+with pl->supported, pl->supported is zeroed and only the speed/duplex
+modes and MII bits are set.
+So pl->link_config.advertising always loses the flow control/pause bits.
+
+By setting Pause and Asym_Pause bits in pl->supported, the flow control
+work again when devicetree "pause" is set in fixes-link node and the MAC
+advertise that is supports pause.
+
+Results with this patch.
+
+Legend:
+- DT = 'Pause' is set in the fixed-link in devicetree.
+- validate() = ‘Yes’ means phylink_set(mask, Pause) is set in the
+  validate().
+- flow = results reported my link is Up line.
+
++-----+------------+-------+
+| DT  | validate() | flow  |
++-----+------------+-------+
+| Yes | Yes        | rx/tx |
+| No  | Yes        | off   |
+| Yes | No         | off   |
++-----+------------+-------+
+
+Fixes: 9525ae83959b ("phylink: add phylink infrastructure")
+Signed-off-by: René van Dorst <opensource@vdorst.com>
+Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/net/phy/phylink.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/net/phy/phylink.c b/drivers/net/phy/phylink.c
+index e029c7977a56..2e8056d48f4a 100644
+--- a/drivers/net/phy/phylink.c
++++ b/drivers/net/phy/phylink.c
+@@ -226,6 +226,8 @@ static int phylink_parse_fixedlink(struct phylink *pl,
+ 			       __ETHTOOL_LINK_MODE_MASK_NBITS, true);
+ 	linkmode_zero(pl->supported);
+ 	phylink_set(pl->supported, MII);
++	phylink_set(pl->supported, Pause);
++	phylink_set(pl->supported, Asym_Pause);
+ 	if (s) {
+ 		__set_bit(s->bit, pl->supported);
+ 	} else {
+-- 
+2.22.0
+

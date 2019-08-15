@@ -1,0 +1,36 @@
+From f186fb5ccf699487a38b5b924fa6068274ae7d4f Mon Sep 17 00:00:00 2001
+From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Date: Thu, 25 Jul 2019 11:07:56 +0800
+Subject: [PATCH 784/826] ipip: validate header length in ipip_tunnel_xmit
+
+[ Upstream commit 47d858d0bdcd47cc1c6c9eeca91b091dd9e55637 ]
+
+We need the same checks introduced by commit cb9f1b783850
+("ip: validate header length on virtual device xmit") for
+ipip tunnel.
+
+Fixes: cb9f1b783850b ("ip: validate header length on virtual device xmit")
+Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ net/ipv4/ipip.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
+index c891235b4966..4368282eb6f8 100644
+--- a/net/ipv4/ipip.c
++++ b/net/ipv4/ipip.c
+@@ -281,6 +281,9 @@ static netdev_tx_t ipip_tunnel_xmit(struct sk_buff *skb,
+ 	const struct iphdr  *tiph = &tunnel->parms.iph;
+ 	u8 ipproto;
+ 
++	if (!pskb_inet_may_pull(skb))
++		goto tx_error;
++
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_IP):
+ 		ipproto = IPPROTO_IPIP;
+-- 
+2.22.0
+

@@ -1,0 +1,52 @@
+From e830c2c3c1748613cdcd0df85e6edcd8b59d9336 Mon Sep 17 00:00:00 2001
+From: Aaron Armstrong Skomra <skomra@gmail.com>
+Date: Tue, 23 Jul 2019 11:09:15 -0700
+Subject: [PATCH 776/826] HID: wacom: fix bit shift for Cintiq Companion 2
+
+commit 693c3dab4e50403f91bca4b52fc6d8562a3180f6 upstream.
+
+The bit indicating BTN_6 on this device is overshifted
+by 2 bits, resulting in the incorrect button being
+reported.
+
+Also fix copy-paste mistake in comments.
+
+Signed-off-by: Aaron Armstrong Skomra <aaron.skomra@wacom.com>
+Reviewed-by: Ping Cheng <ping.cheng@wacom.com>
+Link: https://github.com/linuxwacom/xf86-input-wacom/issues/71
+Fixes: c7f0522a1ad1 ("HID: wacom: Slim down wacom_intuos_pad processing")
+Cc: <stable@vger.kernel.org> # v4.5+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/hid/wacom_wac.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/hid/wacom_wac.c b/drivers/hid/wacom_wac.c
+index 0ae848369474..e56dc97fe4b6 100644
+--- a/drivers/hid/wacom_wac.c
++++ b/drivers/hid/wacom_wac.c
+@@ -537,14 +537,14 @@ static int wacom_intuos_pad(struct wacom_wac *wacom)
+ 		 */
+ 		buttons = (data[4] << 1) | (data[3] & 0x01);
+ 	} else if (features->type == CINTIQ_COMPANION_2) {
+-		/* d-pad right  -> data[4] & 0x10
+-		 * d-pad up     -> data[4] & 0x20
+-		 * d-pad left   -> data[4] & 0x40
+-		 * d-pad down   -> data[4] & 0x80
+-		 * d-pad center -> data[3] & 0x01
++		/* d-pad right  -> data[2] & 0x10
++		 * d-pad up     -> data[2] & 0x20
++		 * d-pad left   -> data[2] & 0x40
++		 * d-pad down   -> data[2] & 0x80
++		 * d-pad center -> data[1] & 0x01
+ 		 */
+ 		buttons = ((data[2] >> 4) << 7) |
+-		          ((data[1] & 0x04) << 6) |
++		          ((data[1] & 0x04) << 4) |
+ 		          ((data[2] & 0x0F) << 2) |
+ 		          (data[1] & 0x03);
+ 	} else if (features->type >= INTUOS5S && features->type <= INTUOSPL) {
+-- 
+2.22.0
+

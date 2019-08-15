@@ -1,0 +1,81 @@
+From 858f82c63667281719805a1b03a1405f14ac0269 Mon Sep 17 00:00:00 2001
+From: Qian Cai <cai@lca.pw>
+Date: Thu, 1 Aug 2019 09:52:54 -0400
+Subject: [PATCH 791/826] net/mlx5e: always initialize frag->last_in_page
+
+[ Upstream commit 60d60c8fbd8d1acf25b041ecd72ae4fa16e9405b ]
+
+The commit 069d11465a80 ("net/mlx5e: RX, Enhance legacy Receive Queue
+memory scheme") introduced an undefined behaviour below due to
+"frag->last_in_page" is only initialized in mlx5e_init_frags_partition()
+when,
+
+if (next_frag.offset + frag_info[f].frag_stride > PAGE_SIZE)
+
+or after bailed out the loop,
+
+for (i = 0; i < mlx5_wq_cyc_get_size(&rq->wqe.wq); i++)
+
+As the result, there could be some "frag" have uninitialized
+value of "last_in_page".
+
+Later, get_frag() obtains those "frag" and check "frag->last_in_page" in
+mlx5e_put_rx_frag() and triggers the error during boot. Fix it by always
+initializing "frag->last_in_page" to "false" in
+mlx5e_init_frags_partition().
+
+UBSAN: Undefined behaviour in
+drivers/net/ethernet/mellanox/mlx5/core/en_rx.c:325:12
+load of value 170 is not a valid value for type 'bool' (aka '_Bool')
+Call trace:
+ dump_backtrace+0x0/0x264
+ show_stack+0x20/0x2c
+ dump_stack+0xb0/0x104
+ __ubsan_handle_load_invalid_value+0x104/0x128
+ mlx5e_handle_rx_cqe+0x8e8/0x12cc [mlx5_core]
+ mlx5e_poll_rx_cq+0xca8/0x1a94 [mlx5_core]
+ mlx5e_napi_poll+0x17c/0xa30 [mlx5_core]
+ net_rx_action+0x248/0x940
+ __do_softirq+0x350/0x7b8
+ irq_exit+0x200/0x26c
+ __handle_domain_irq+0xc8/0x128
+ gic_handle_irq+0x138/0x228
+ el1_irq+0xb8/0x140
+ arch_cpu_idle+0x1a4/0x348
+ do_idle+0x114/0x1b0
+ cpu_startup_entry+0x24/0x28
+ rest_init+0x1ac/0x1dc
+ arch_call_rest_init+0x10/0x18
+ start_kernel+0x4d4/0x57c
+
+Fixes: 069d11465a80 ("net/mlx5e: RX, Enhance legacy Receive Queue memory scheme")
+Signed-off-by: Qian Cai <cai@lca.pw>
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 0f1c296c3ce4..83ab2c0e6b61 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -420,12 +420,11 @@ static inline u64 mlx5e_get_mpwqe_offset(struct mlx5e_rq *rq, u16 wqe_ix)
+ 
+ static void mlx5e_init_frags_partition(struct mlx5e_rq *rq)
+ {
+-	struct mlx5e_wqe_frag_info next_frag, *prev;
++	struct mlx5e_wqe_frag_info next_frag = {};
++	struct mlx5e_wqe_frag_info *prev = NULL;
+ 	int i;
+ 
+ 	next_frag.di = &rq->wqe.di[0];
+-	next_frag.offset = 0;
+-	prev = NULL;
+ 
+ 	for (i = 0; i < mlx5_wq_cyc_get_size(&rq->wqe.wq); i++) {
+ 		struct mlx5e_rq_frag_info *frag_info = &rq->wqe.info.arr[0];
+-- 
+2.22.0
+

@@ -1,0 +1,62 @@
+From a19d4e34f092fdb74e39de0193627f16a38997b8 Mon Sep 17 00:00:00 2001
+From: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Date: Tue, 30 Jul 2019 14:21:00 +0300
+Subject: [PATCH 789/826] net: bridge: mcast: don't delete permanent entries
+ when fast leave is enabled
+
+[ Upstream commit 5c725b6b65067909548ac9ca9bc777098ec9883d ]
+
+When permanent entries were introduced by the commit below, they were
+exempt from timing out and thus igmp leave wouldn't affect them unless
+fast leave was enabled on the port which was added before permanent
+entries existed. It shouldn't matter if fast leave is enabled or not
+if the user added a permanent entry it shouldn't be deleted on igmp
+leave.
+
+Before:
+$ echo 1 > /sys/class/net/eth4/brport/multicast_fast_leave
+$ bridge mdb add dev br0 port eth4 grp 229.1.1.1 permanent
+$ bridge mdb show
+dev br0 port eth4 grp 229.1.1.1 permanent
+
+< join and leave 229.1.1.1 on eth4 >
+
+$ bridge mdb show
+$
+
+After:
+$ echo 1 > /sys/class/net/eth4/brport/multicast_fast_leave
+$ bridge mdb add dev br0 port eth4 grp 229.1.1.1 permanent
+$ bridge mdb show
+dev br0 port eth4 grp 229.1.1.1 permanent
+
+< join and leave 229.1.1.1 on eth4 >
+
+$ bridge mdb show
+dev br0 port eth4 grp 229.1.1.1 permanent
+
+Fixes: ccb1c31a7a87 ("bridge: add flags to distinguish permanent mdb entires")
+Signed-off-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ net/bridge/br_multicast.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/bridge/br_multicast.c b/net/bridge/br_multicast.c
+index fb54d32321ec..6a362da211e1 100644
+--- a/net/bridge/br_multicast.c
++++ b/net/bridge/br_multicast.c
+@@ -1621,6 +1621,9 @@ br_multicast_leave_group(struct net_bridge *br,
+ 			if (!br_port_group_equal(p, port, src))
+ 				continue;
+ 
++			if (p->flags & MDB_PG_FLAGS_PERMANENT)
++				break;
++
+ 			rcu_assign_pointer(*pp, p->next);
+ 			hlist_del_init(&p->mglist);
+ 			del_timer(&p->timer);
+-- 
+2.22.0
+
