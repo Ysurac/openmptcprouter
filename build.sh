@@ -14,8 +14,8 @@ _get_repo() (
 	else
 		git remote add origin "$2"
 	fi
-	git fetch origin
-	git fetch origin --tags
+	git fetch origin -f
+	git fetch origin --tags -f
 	git checkout -f "origin/$3" -B "build" 2>/dev/null || git checkout "$3" -B "build"
 )
 
