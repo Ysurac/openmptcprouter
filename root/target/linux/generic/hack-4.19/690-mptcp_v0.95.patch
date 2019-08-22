@@ -8164,7 +8164,7 @@ diff -aurN linux-4.19.56/net/mptcp/mptcp_binder.c mptcp-mptcp_v0.95/net/mptcp/mp
 diff -aurN linux-4.19.56/net/mptcp/mptcp_blest.c mptcp-mptcp_v0.95/net/mptcp/mptcp_blest.c
 --- linux-4.19.56/net/mptcp/mptcp_blest.c	1970-01-01 01:00:00.000000000 +0100
 +++ mptcp-mptcp_v0.95/net/mptcp/mptcp_blest.c	2019-07-05 08:00:07.000000000 +0200
-@@ -0,0 +1,475 @@
+@@ -0,0 +1,478 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*	MPTCP Scheduler to reduce HoL-blocking and spurious retransmissions.
 + *
@@ -8367,7 +8367,7 @@ diff -aurN linux-4.19.56/net/mptcp/mptcp_blest.c mptcp-mptcp_v0.95/net/mptcp/mpt
 +
 +	/* if we decided to use a slower flow, we have the option of not using it at all */
 +	if (bestsk && minsk && bestsk != minsk) {
-+		u32 slow_linger_time, fast_bytes, slow_inflight_bytes, slow_bytes, avail_space;
++		u32 slow_linger_time, fast_bytes, buffered_bytes, slow_inflight_bytes, slow_bytes, avail_space;
 +
 +		meta_tp = tcp_sk(meta_sk);
 +		besttp = tcp_sk(bestsk);
@@ -8380,13 +8380,16 @@ diff -aurN linux-4.19.56/net/mptcp/mptcp_blest.c mptcp-mptcp_v0.95/net/mptcp/mpt
 +		slow_linger_time = blestsched_estimate_linger_time(bestsk);
 +		fast_bytes = blestsched_estimate_bytes(minsk, slow_linger_time);
 +
++		if (skb)
++			buffered_bytes = skb->len;
++
 +		/* is the required space available in the mptcp meta send window?
 +		 * we assume that all bytes inflight on the slow path will be acked in besttp->srtt seconds
 +		 * (just like the SKB if it was sent now) -> that means that those inflight bytes will
 +		 * keep occupying space in the meta window until then
 +		 */
 +		slow_inflight_bytes = besttp->write_seq - besttp->snd_una;
-+		slow_bytes = skb->len + slow_inflight_bytes; // bytes of this SKB plus those in flight already
++		slow_bytes = buffered_bytes + slow_inflight_bytes; // bytes of this SKB plus those in flight already
 +
 +		avail_space = (slow_bytes < meta_tp->snd_wnd) ? (meta_tp->snd_wnd - slow_bytes) : 0;
 +
