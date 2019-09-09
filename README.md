@@ -47,7 +47,7 @@ On Debian you'll need to install the following:
 
 ```sh
 sudo apt install build-essential git unzip ncurses-dev libz-dev libssl-dev
-  python subversion gettext gawk wget curl rsync perl
+  python python3-dev python3.5 libelf-dev subversion gettext gawk wget curl rsync perl
 ```
 
 ### Prepare and build
