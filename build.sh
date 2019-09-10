@@ -56,7 +56,7 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "7d542dc8047d276517b296132926e722004065e0"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "fbbb4eb8b41d59b38f41fe382c6e4108a36aa909"
 _get_repo feeds/packages https://github.com/openwrt/packages "5646b4ce74f151f8c36d94a7577f60f0c359d09d"
 _get_repo feeds/luci https://github.com/openwrt/luci "3fffcdef61b19c8fc6a4fb448cf5abb88d4ba002"
 
