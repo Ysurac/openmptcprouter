@@ -8377,7 +8377,7 @@ diff -aurN linux-4.19.67/net/mptcp/mptcp_blest.c mptcp-mptcp_v0.95/net/mptcp/mpt
 +
 +	/* if we decided to use a slower flow, we have the option of not using it at all */
 +	if (bestsk && minsk && bestsk != minsk) {
-+		u32 slow_linger_time, fast_bytes, buffered_bytes, slow_inflight_bytes, slow_bytes, avail_space;
++		u32 slow_linger_time, fast_bytes, slow_inflight_bytes, slow_bytes, avail_space;
 +		u32 buffered_bytes = 0;
 +		meta_tp = tcp_sk(meta_sk);
 +		besttp = tcp_sk(bestsk);
