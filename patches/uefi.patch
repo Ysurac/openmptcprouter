@@ -870,8 +870,8 @@ index aff720a52c5..8eea97c5b66 100644
 +		magic=$(dd if="/dev/$partdev" bs=1 count=3 skip=54 2>/dev/null)
 +		[ "$magic" = "FAT" ] && parttype=vfat
 +		mount -t $parttype -o rw,noatime "/dev/$partdev" /boot
- 		if [ -f /boot/sysupgrade.tgz ]; then
- 			mv -f /boot/sysupgrade.tgz /
+ 		if [ -f "/boot/$BACKUP_FILE" ]; then
+ 			mv -f "/boot/$BACKUP_FILE" /
  		fi
 diff --git a/target/linux/x86/base-files/lib/upgrade/platform.sh b/target/linux/x86/base-files/lib/upgrade/platform.sh
 index 162dbaf3aaa..ac060818df1 100644
@@ -889,7 +889,7 @@ index 162dbaf3aaa..ac060818df1 100644
 +		magic=$(dd if="/dev/$partdev" bs=1 count=3 skip=54 2>/dev/null)
 +		[ "$magic" = "FAT" ] && parttype=vfat
 +		mount -t $parttype -o rw,noatime "/dev/$partdev" /mnt
- 		cp -af "$CONF_TAR" /mnt/
+ 		cp -af "$UPGRADE_BACKUP" "/mnt/$BACKUP_FILE"
  		umount /mnt
  	fi
 diff --git a/target/linux/x86/generic/config-4.14 b/target/linux/x86/generic/config-4.14
