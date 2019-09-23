@@ -46,7 +46,7 @@ Some feeds might not available over `git` but only via `subversion` or `mercuria
 On Debian you'll need to install the following:
 
 ```sh
-sudo apt install build-essential git unzip ncurses-dev libz-dev libssl-dev
+sudo apt install build-essential git unzip ncurses-dev libz-dev libssl-dev openssl-1.0-dev
   python python3-dev python3.5 libelf-dev subversion gettext gawk wget curl rsync perl
 ```
 
