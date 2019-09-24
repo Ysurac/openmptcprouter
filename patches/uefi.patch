@@ -791,7 +791,7 @@ index a3d99288422..8ba069ed4fc 100644
  		int "Root filesystem partition size (in MB)"
 -		depends on GRUB_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
- 		default 128
+ 		default 104
  		help
  		  Select the root filesystem partition size.
  
