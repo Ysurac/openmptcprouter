@@ -76,9 +76,7 @@ OMR_TARGET="rpi3" ./build.sh
 
 Our solution is mainly based on:
 
-* [OverTheBox](https://www.ovhtelecom.fr/overthebox/)
 * [OpenWRT](https://openwrt.org)
-* [LEDE](https://lede-project.org)
 * [MultiPath TCP (MPTCP)](https://multipath-tcp.org)
 * [Shadowsocks](https://shadowsocks.org)
 * [Glorytun](https://github.com/angt/glorytun)
