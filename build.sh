@@ -51,6 +51,8 @@ elif [ "$OMR_TARGET" = "wrt32x" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "x86" ]; then
+	OMR_REAL_TARGET="i386_pentium4"
 else
 	OMR_REAL_TARGET=${OMR_TARGET}
 fi
