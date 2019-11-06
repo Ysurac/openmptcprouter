@@ -841,13 +841,13 @@ index d9beeb02953..cc5a4d56fbe 100755
  [ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc count="$ROOTFSSIZE"
  dd if="$ROOTFSIMAGE" of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc
  
--make_ext4fs -J -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
+-make_ext4fs -J -L kernel -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
 +if [ -n "$EFI_SIGNATURE" ]; then
 +    [ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$(($ROOTFSOFFSET + $ROOTFSSIZE))" conv=notrunc count="$sect"
 +    mkfs.fat -C "$OUTPUT.kernel" -S 512 "$(($KERNELSIZE / 1024))"
 +    mcopy -s -i "$OUTPUT.kernel" "$KERNELDIR"/* ::/
 +else
-+    make_ext4fs -J -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
++    make_ext4fs -J -L kernel -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
 +fi
  dd if="$OUTPUT.kernel" of="$OUTPUT" bs=512 seek="$KERNELOFFSET" conv=notrunc
  rm -f "$OUTPUT.kernel"
