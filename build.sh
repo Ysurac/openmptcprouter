@@ -51,14 +51,16 @@ elif [ "$OMR_TARGET" = "wrt32x" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "x86" ]; then
+	OMR_REAL_TARGET="i386_pentium4"
 else
 	OMR_REAL_TARGET=${OMR_TARGET}
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "ced4c0e6352a7994f4facd3de2e541ba073a7008"
-_get_repo feeds/packages https://github.com/openwrt/packages "a2bbedb880ff9d37549c1e0e334177ce0dc88937"
-_get_repo feeds/luci https://github.com/openwrt/luci "f3ff641d8e4e5127db7fc7738187edb4aa88d18b"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "80a799125bf34b49793e7757e3d08d30030c1b92"
+_get_repo feeds/packages https://github.com/openwrt/packages "2c08576233b5ef76a9c4f640a55ad1e0336fae0d"
+_get_repo feeds/luci https://github.com/openwrt/luci "a8a76978298ba1cfddadbb48da73fa2abde82692"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
