@@ -1,0 +1,20 @@
+--- a/drivers/misc/mediatek/connectivity/wlan/gen2/nic/nic_rx.c	2019-11-19 10:19:47.020273630 +0100
++++ b/drivers/misc/mediatek/connectivity/wlan/gen2/nic/nic_rx.c	2019-11-19 10:20:52.819020893 +0100
+@@ -1544,7 +1544,7 @@
+ 			DBGLOG(SCN, INFO, "EVENT_ID_GSCAN_SCAN_AVAILABLE\n");
+ 
+ 			prEventGscnAvailable = (P_EVENT_GSCAN_SCAN_AVAILABLE_T) (prEvent->aucBuffer);
+-			memcpy(prEventGscnAvailable, (P_EVENT_GSCAN_SCAN_AVAILABLE_T) (prEvent->aucBuffer),
++			memmove(prEventGscnAvailable, (P_EVENT_GSCAN_SCAN_AVAILABLE_T) (prEvent->aucBuffer),
+ 			       sizeof(EVENT_GSCAN_SCAN_AVAILABLE_T));
+ 
+ 			mtk_cfg80211_vendor_event_scan_results_available(wiphy, prGlueInfo->prDevHandler->ieee80211_ptr,
+@@ -1647,7 +1647,7 @@
+ 		{
+ 			DBGLOG(SCN, INFO, "EVENT_ID_GSCAN_SCAN_COMPLETE\n");
+ 			prEventGscnScnDone = (P_EVENT_GSCAN_SCAN_COMPLETE_T) (prEvent->aucBuffer);
+-			memcpy(prEventGscnScnDone, (P_EVENT_GSCAN_SCAN_COMPLETE_T) (prEvent->aucBuffer),
++			memmove(prEventGscnScnDone, (P_EVENT_GSCAN_SCAN_COMPLETE_T) (prEvent->aucBuffer),
+ 			       sizeof(EVENT_GSCAN_SCAN_COMPLETE_T));
+ 
+ 			mtk_cfg80211_vendor_event_complete_scan(wiphy, prGlueInfo->prDevHandler->ieee80211_ptr,
