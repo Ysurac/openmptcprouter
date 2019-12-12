@@ -19,6 +19,10 @@ _get_repo() (
 	git checkout -f "origin/$3" -B "build" 2>/dev/null || git checkout "$3" -B "build"
 )
 
+_get_lastcommit() (
+	curl -s https://api.github.com/repos/"${1}"/commits?per_page=1 | awk -F'"' 'NR==3{print $4}'
+)
+
 OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
