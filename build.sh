@@ -32,7 +32,7 @@ OMR_TARGET_CONFIG="config-$OMR_TARGET"
 OMR_KERNEL=${OMR_KERNEL:-4.19}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
-OMR_FEED_SRC="${OMR_FEED_SRC:-v0.53}"
+OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
