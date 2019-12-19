@@ -166,6 +166,12 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nocheck.patch; then
 fi
 echo "Done"
 
+echo "Checking if Nanqinlang patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
+	patch -N -p1 -s < ../../patches/nanqinlang.patch
+fi
+echo "Done"
+
 
 #echo "Patch protobuf wrong hash"
 #patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
