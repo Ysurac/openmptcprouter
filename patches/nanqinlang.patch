@@ -1,5 +1,5 @@
---- package/kernel/linux/modules/netsupport.mk.anc	2019-12-18 18:31:28.865626571 +0100
-+++ package/kernel/linux/modules/netsupport.mk	2019-12-18 18:33:31.175524777 +0100
+--- a/package/kernel/linux/modules/netsupport.mk	2019-12-18 18:31:28.865626571 +0100
++++ b/package/kernel/linux/modules/netsupport.mk	2019-12-18 18:33:31.175524777 +0100
 @@ -962,6 +962,25 @@
  
  $(eval $(call KernelPackage,tcp-bbr))
