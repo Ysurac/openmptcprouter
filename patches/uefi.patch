@@ -832,8 +832,8 @@ index d9beeb02953..cc5a4d56fbe 100755
  cyl=$(( ($KERNELSIZE + $ROOTFSSIZE) * 1024 * 1024 / ($head * $sect * 512)))
  
  # create partition table
--set `ptgen -o "$OUTPUT" -h $head -s $sect -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE}`
-+set `ptgen -o "$OUTPUT" -h $head -s $sect ${EFI_SIGNATURE:+-g} -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE} ${EFI_SIGNATURE:+-G $EFI_SIGNATURE}`
+-set $(ptgen -o "$OUTPUT" -h $head -s $sect -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE})
++set $(ptgen -o "$OUTPUT" -h $head -s $sect ${EFI_SIGNATURE:+-g} -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE} ${EFI_SIGNATURE:+-G $EFI_SIGNATURE})
  
  KERNELOFFSET="$(($1 / 512))"
  KERNELSIZE="$2"
