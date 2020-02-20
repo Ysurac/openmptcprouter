@@ -58,9 +58,9 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "1d47f81581bcd476487e5b29314602167a843b99"
-_get_repo feeds/packages https://github.com/openwrt/packages "2c86fac6f63f31b38be93e9acff970ac5c98b4c8"
-_get_repo feeds/luci https://github.com/openwrt/luci "980e893ce57dab26e73be38712c1dc7e17f69af2"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "215598fd03899c19a9cd26266221269dd5ec8cee"
+_get_repo feeds/packages https://github.com/openwrt/packages "e7088fe82ca72c47863398103408e64761308481"
+_get_repo feeds/luci https://github.com/openwrt/luci "b23a63f554ef073c4ba212d6e88009ed433adbf5"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -185,7 +185,7 @@ echo "Done"
 
 if [ "$OMR_KERNEL" = "4.19" ]; then
 	echo "Set to kernel 4.19 for rpi arch"
-	find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
 	echo "Done"
 	echo "Set to kernel 4.19 for x86 arch"
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
