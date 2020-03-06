@@ -937,7 +937,7 @@ index ac70e771c86..6af5cfed963 100644
  
  GRUB_TIMEOUT:=$(call qstrip,$(CONFIG_GRUB_TIMEOUT))
  GRUB_TITLE:=$(call qstrip,$(CONFIG_GRUB_TITLE))
-@@ -93,8 +97,67 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
+@@ -93,9 +97,68 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
    endef
  endif
  
@@ -1000,6 +1000,7 @@ index ac70e771c86..6af5cfed963 100644
 +endif
 +
  define Image/Build/iso
+ 	rm -fR $(KDIR)/root.grub $(KDIR)/grub2
  	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
 +	$(INSTALL_DIR) $(KDIR)/root.grub/efi/boot
  	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
@@ -1195,7 +1196,7 @@ index ac060818df1..f66c5873e37 100644
  
  		get_partitions /tmp/image.bs image
  
-@@ -94,4 +94,17 @@ platform_do_upgrade() {
+@@ -94,6 +94,18 @@ platform_do_upgrade() {
  	#copy partition uuid
  	echo "Writing new UUID to /dev/$diskdev..."
  	get_image "$@" | dd of="/dev/$diskdev" bs=1 skip=440 count=4 seek=440 conv=fsync
@@ -1211,5 +1212,6 @@ index ac060818df1..f66c5873e37 100644
 +		sed -i "s/\(PARTUUID=\)[a-f0-9-]\+/\1$4$3$2$1-$6$5-$8$7-$9/ig" /mnt/boot/grub/grub.cfg
 +		umount /mnt
 +	fi
-+
+ 
+ 	platform_do_bootloader_upgrade "$diskdev"
  }
