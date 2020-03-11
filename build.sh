@@ -58,9 +58,9 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a017773a92d624142a78452bc0c00e6bc6523967"
-_get_repo feeds/packages https://github.com/openwrt/packages "e0c0c3c3f030c8582c9493ff894ee0528198f2ce"
-_get_repo feeds/luci https://github.com/openwrt/luci "0c7f3331aff33567e01e0d9c0c63b9a1a16fbe14"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "04a21c26a005ac314b79e6905f51b4789d6d79bd"
+_get_repo feeds/packages https://github.com/openwrt/packages "e48af750e169e201feb9618828ed9f77b647d234"
+_get_repo feeds/luci https://github.com/openwrt/luci "3fb8e3d6236c2ea418c5a5fd90564d9eb44732f3"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -183,18 +183,18 @@ echo "Done"
 #fi
 #echo "Done"
 
-if [ "$OMR_KERNEL" = "4.19" ]; then
-	echo "Set to kernel 4.19 for rpi arch"
-	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+if [ "$OMR_KERNEL" = "5.4" ]; then
+	echo "Set to kernel 5.4 for rpi arch"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
-	echo "Set to kernel 4.19 for x86 arch"
-	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	echo "Set to kernel 5.4 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
-	echo "Set to kernel 4.19 for mvebu arch (WRT)"
-	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
-	echo "Done"
-	echo "Set to kernel 4.19 for mediatek arch (BPI-R2)"
-	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+#	echo "Set to kernel 5.4 for mvebu arch (WRT)"
+#	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
+#	echo "Done"
+	echo "Set to kernel 5.4 for mediatek arch (BPI-R2)"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
 fi
 
