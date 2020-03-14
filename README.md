@@ -1,5 +1,5 @@
 [![CircleCI](https://circleci.com/gh/Ysurac/openmptcprouter-feeds.svg?style=svg)](https://circleci.com/gh/Ysurac/openmptcprouter-feeds)
-![Latest tag](https://img.shields.io/github/tag/ysurac/openmptcprouter-feeds.svg)
+[![Financial Contributors on Open Collective](https://opencollective.com/openmptcprouter/all/badge.svg?label=financial+contributors)](https://opencollective.com/openmptcprouter) ![Latest tag](https://img.shields.io/github/tag/ysurac/openmptcprouter-feeds.svg)
 [![Paypal](https://www.openmptcprouter.com/img/donate-PayPal-green.svg)](https://www.paypal.me/ycarus)
 [![Flattr](https://www.openmptcprouter.com/img/donate-flattr-yellow.svg)](https://flattr.com/@ycarus)
 [![Liberapay](https://img.shields.io/liberapay/patrons/Moul.svg?logo=liberapay)](https://liberapay.com/Ycarus/)
@@ -80,3 +80,32 @@ Our solution is mainly based on:
 * [MultiPath TCP (MPTCP)](https://multipath-tcp.org)
 * [Shadowsocks](https://shadowsocks.org)
 * [Glorytun](https://github.com/angt/glorytun)
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/Ysurac/openmptcprouter/graphs/contributors"><img src="https://opencollective.com/openmptcprouter/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/openmptcprouter/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/openmptcprouter"><img src="https://opencollective.com/openmptcprouter/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/openmptcprouter/contribute)]
+
+<a href="https://opencollective.com/openmptcprouter/organization/0/website"><img src="https://opencollective.com/openmptcprouter/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/1/website"><img src="https://opencollective.com/openmptcprouter/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/2/website"><img src="https://opencollective.com/openmptcprouter/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/3/website"><img src="https://opencollective.com/openmptcprouter/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/4/website"><img src="https://opencollective.com/openmptcprouter/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/5/website"><img src="https://opencollective.com/openmptcprouter/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/6/website"><img src="https://opencollective.com/openmptcprouter/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/7/website"><img src="https://opencollective.com/openmptcprouter/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/8/website"><img src="https://opencollective.com/openmptcprouter/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/openmptcprouter/organization/9/website"><img src="https://opencollective.com/openmptcprouter/organization/9/avatar.svg"></a>
