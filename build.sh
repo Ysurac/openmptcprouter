@@ -29,7 +29,7 @@ OMR_UEFI=${OMR_UEFI:-yes}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
-OMR_KERNEL=${OMR_KERNEL:-4.19}
+OMR_KERNEL=${OMR_KERNEL:-5.4}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
@@ -58,9 +58,9 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "04a21c26a005ac314b79e6905f51b4789d6d79bd"
-_get_repo feeds/packages https://github.com/openwrt/packages "e48af750e169e201feb9618828ed9f77b647d234"
-_get_repo feeds/luci https://github.com/openwrt/luci "3fb8e3d6236c2ea418c5a5fd90564d9eb44732f3"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "dd166960f48580bf6d4a8dde071b96832bfd9e1f"
+_get_repo feeds/packages https://github.com/openwrt/packages "ce15a63a9ef2877df1d61429dd6db5432a204d63"
+_get_repo feeds/luci https://github.com/openwrt/luci "6efaea2ffb46f9909038b85cf12e7acf4467ae2e"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -172,6 +172,24 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
 fi
 echo "Done"
 
+echo "Checking if smsc75xx patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/smsc75xx.patch; then
+	patch -N -p1 -s < ../../patches/smsc75xx.patch
+fi
+echo "Done"
+
+echo "Checking if ipt-nat patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/ipt-nat6.patch; then
+	patch -N -p1 -s < ../../patches/ipt-nat6.patch
+fi
+echo "Done"
+
+echo "Checking if ipt-nat patch is set or not"
+if [ ! -d target/linux/mvebu/patches-5.4 ]; then
+	patch -N -p1 -s < ../../patches/mvebu-5.14.patch
+fi
+echo "Done"
+
 
 #echo "Patch protobuf wrong hash"
 #patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
@@ -190,9 +208,9 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for x86 arch"
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
-#	echo "Set to kernel 5.4 for mvebu arch (WRT)"
-#	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
-#	echo "Done"
+	echo "Set to kernel 5.4 for mvebu arch (WRT)"
+	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
+	echo "Done"
 	echo "Set to kernel 5.4 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
