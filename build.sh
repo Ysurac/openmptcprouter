@@ -140,17 +140,17 @@ fi
 
 cd "$OMR_TARGET/source"
 
-echo "Checking if UEFI patch is set or not"
 if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
+	echo "Checking if UEFI patch is set or not"
 	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" = "" ]; then
 		patch -N -p1 -s < ../../patches/uefi.patch
 	fi
+	echo "Done"
 else
 	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" != "" ]; then
 		patch -N -R -p1 -s < ../../patches/uefi.patch
 	fi
 fi
-echo "Done"
 
 #if [ "$OMR_TARGET" = "x86_64" ]; then 
 #	echo "Checking if Hyper-V patch is set or not"
@@ -162,30 +162,35 @@ echo "Done"
 
 echo "Checking if No check patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nocheck.patch; then
+	echo "apply..."
 	patch -N -p1 -s < ../../patches/nocheck.patch
 fi
 echo "Done"
 
 echo "Checking if Nanqinlang patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
+	echo "apply..."
 	patch -N -p1 -s < ../../patches/nanqinlang.patch
 fi
 echo "Done"
 
 echo "Checking if smsc75xx patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/smsc75xx.patch; then
+	echo "apply..."
 	patch -N -p1 -s < ../../patches/smsc75xx.patch
 fi
 echo "Done"
 
 echo "Checking if ipt-nat patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/ipt-nat6.patch; then
+	echo "apply..."
 	patch -N -p1 -s < ../../patches/ipt-nat6.patch
 fi
 echo "Done"
 
 echo "Checking if mvebu patch is set or not"
 if [ ! -d target/linux/mvebu/patches-5.4 ]; then
+	echo "apply..."
 	patch -N -p1 -s < ../../patches/mvebu-5.14.patch
 fi
 echo "Done"
