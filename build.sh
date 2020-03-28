@@ -184,7 +184,7 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/ipt-nat6.patch; then
 fi
 echo "Done"
 
-echo "Checking if ipt-nat patch is set or not"
+echo "Checking if mvebu patch is set or not"
 if [ ! -d target/linux/mvebu/patches-5.4 ]; then
 	patch -N -p1 -s < ../../patches/mvebu-5.14.patch
 fi
