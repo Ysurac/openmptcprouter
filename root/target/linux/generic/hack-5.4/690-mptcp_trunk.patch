@@ -2799,12 +2799,15 @@ diff -aurN linux-5.4/net/core/sock.c mptcp-mptcp_trunk/net/core/sock.c
  	} else
  		sk = kmalloc(prot->obj_size, priority);
  
-@@ -1832,6 +1858,7 @@
+@@ -1832,9 +1858,10 @@
  		atomic_set(&newsk->sk_zckey, 0);
  
  		sock_reset_flag(newsk, SOCK_DONE);
 +		sock_reset_flag(newsk, SOCK_MPTCP);
- 		mem_cgroup_sk_alloc(newsk);
+ 
+ 		/* sk->sk_memcg will be populated at accept() time */
+ 		newsk->sk_memcg = NULL;
+ 
  		cgroup_sk_alloc(&newsk->sk_cgrp_data);
  
 diff -aurN linux-5.4/net/ipv4/af_inet.c mptcp-mptcp_trunk/net/ipv4/af_inet.c

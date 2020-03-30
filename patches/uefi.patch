@@ -1144,8 +1144,8 @@ index aa80d77b978..efb0b1cff99 100644
  define Build/combined
  	$(CP) $(KDIR)/$(KERNEL_NAME) $@.boot/boot/vmlinuz
  	-$(CP) $(STAGING_DIR_ROOT)/boot/. $@.boot/boot/
--	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(IMG_PART_SIGNATURE)" $(SCRIPT_DIR)/gen_image_generic.sh \
-+	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(IMG_PART_SIGNATURE)" \
+-	PADDING="1" SIGNATURE="$(IMG_PART_SIGNATURE)" $(SCRIPT_DIR)/gen_image_generic.sh \
++	PADDING="1" SIGNATURE="$(IMG_PART_SIGNATURE)" \
 +		$(if $(filter $(1),efi),UUID="$(IMG_PART_UUID)") $(SCRIPT_DIR)/gen_image_generic.sh \
  		$@ \
  		$(CONFIG_TARGET_KERNEL_PARTSIZE) $@.boot \
@@ -1177,19 +1177,21 @@ index aa80d77b978..efb0b1cff99 100644
  		-o $@ $@.boot $(TARGET_DIR)
  endef
  
-@@ -102,11 +105,23 @@ define Device/Default
-   IMAGE/combined.img.gz := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | gzip
-   IMAGE/combined.vdi := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image vdi
-   IMAGE/combined.vmdk := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image vmdk
+@@ -102,13 +105,25 @@ define Device/Default
+   IMAGE/combined.img.gz := grub-config pc | combined | grub-install | gzip
+   IMAGE/combined.vdi := grub-config pc | combined | grub-install | qemu-image vdi
+   IMAGE/combined.vmdk := grub-config pc | combined | grub-install | qemu-image vmdk
+   IMAGE/rootfs.img := append-rootfs
+   IMAGE/rootfs.img.gz := append-rootfs | gzip
 +  ARTIFACT/image-efi.iso := grub-config iso | iso efi
-+  IMAGE/combined-efi.img := append-rootfs | pad-extra 128k | grub-config efi | combined efi | grub-install efi
-+  IMAGE/combined-efi.img.gz := append-rootfs | pad-extra 128k | grub-config efi | combined efi | grub-install efi | gzip
-+  IMAGE/combined-efi.vdi := append-rootfs | pad-extra 128k | grub-config efi | combined efi | grub-install efi | qemu-image vdi
-+  IMAGE/combined-efi.vmdk := append-rootfs | pad-extra 128k | grub-config efi | combined efi | grub-install efi | qemu-image vmdk
++  IMAGE/combined-efi.img := grub-config efi | combined efi | grub-install efi
++  IMAGE/combined-efi.img.gz := grub-config efi | combined efi | grub-install efi | gzip
++  IMAGE/combined-efi.vdi := grub-config efi | combined efi | grub-install efi | qemu-image vdi
++  IMAGE/combined-efi.vmdk := grub-config efi | combined efi | grub-install efi | qemu-image vmdk
    ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
-     IMAGES := combined.img.gz
+     IMAGES := combined.img.gz rootfs.img.gz
    else
-     IMAGES := combined.img
+     IMAGES := combined.img rootfs.img
    endif
 +  ifeq $(CONFIG_EFI_IMAGES)
 +    ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
