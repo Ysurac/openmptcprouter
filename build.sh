@@ -25,7 +25,7 @@ OMR_PORT=${OMR_PORT:-8000}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_KERNEL}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
-OMR_UEFI=${OMR_UEFI:-yes}
+#OMR_UEFI=${OMR_UEFI:-yes}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
@@ -58,9 +58,9 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "437eb41f235c25b397a9867527d738778ea489d7"
-_get_repo feeds/packages https://github.com/openwrt/packages "61088496009579f86ebc1756e2331dee879ab333"
-_get_repo feeds/luci https://github.com/openwrt/luci "3d965195928b993f7e2dacebd4e296a547b32552"
+_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "5562c5add2faa5d407c308a98517b2b5cc6d84da"
+_get_repo feeds/packages https://github.com/openwrt/packages "f0264eea08761d939b5412cd3f31b824496aa794"
+_get_repo feeds/luci https://github.com/openwrt/luci "65a461e8a0340a361545d3510918f34edb27920c"
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -140,17 +140,17 @@ fi
 
 cd "$OMR_TARGET/source"
 
-if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
-	echo "Checking if UEFI patch is set or not"
-	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" = "" ]; then
-		patch -N -p1 -s < ../../patches/uefi.patch
-	fi
-	echo "Done"
-else
-	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" != "" ]; then
-		patch -N -R -p1 -s < ../../patches/uefi.patch
-	fi
-fi
+#if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
+#	echo "Checking if UEFI patch is set or not"
+#	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" = "" ]; then
+#		patch -N -p1 -s < ../../patches/uefi.patch
+#	fi
+#	echo "Done"
+#else
+#	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" != "" ]; then
+#		patch -N -R -p1 -s < ../../patches/uefi.patch
+#	fi
+#fi
 
 #if [ "$OMR_TARGET" = "x86_64" ]; then 
 #	echo "Checking if Hyper-V patch is set or not"
