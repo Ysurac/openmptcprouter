@@ -52,7 +52,7 @@ $(eval $(call KernelPackage,crypto-hw-mtk))
 
 define KernelPackage/nat-hw-mtk
   TITLE:= MediaTek's hardware NAT module
-  DEPENDS:=@TARGET_mediatek @!LINUX_4_19
+  DEPENDS:=@TARGET_mediatek @LINUX_4_14
   KCONFIG:= \
 	CONFIG_NET_MEDIATEK_HNAT=y
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/mediatek/mtk_hnat/mtkhnat.ko
