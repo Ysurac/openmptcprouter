@@ -228,6 +228,16 @@ echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
+
+cd -
+echo "Checking if fullconenat-luci patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < patches/fullconenat-luci.patch; then
+	echo "apply..."
+	patch -N -p1 -s < patches/fullconenat-luci.patch
+fi
+echo "Done"
+cd "$OMR_TARGET/source"
+
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -p packages
 	scripts/feeds install -a -p luci
