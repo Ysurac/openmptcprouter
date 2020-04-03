@@ -1,6 +1,7 @@
 #
 # Copyright (C) 2012-2015 OpenWrt.org
 # Copyright (C) 2016-2017 LEDE project
+# Copyright (C) 2018-2019 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
