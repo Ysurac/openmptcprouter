@@ -195,6 +195,13 @@ if [ ! -d target/linux/mvebu/patches-5.4 ]; then
 fi
 echo "Done"
 
+echo "Checking if opkg install arguement too long patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/package-too-long.patch; then
+	echo "apply..."
+	patch -N -p1 -s < ../../patches/package-too-long.patch
+fi
+echo "Done"
+
 
 #echo "Patch protobuf wrong hash"
 #patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
