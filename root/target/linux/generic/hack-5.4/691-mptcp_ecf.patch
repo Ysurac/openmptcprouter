@@ -1,7 +1,7 @@
-From 35f41229b58cb8c2611207827aa4f658b82db67e Mon Sep 17 00:00:00 2001
+From 025619486cf04c0beb9f395609d7711726fd63c6 Mon Sep 17 00:00:00 2001
 From: Daniel Weber <weberdaniel@gmx.net>
 Date: Mon, 5 Aug 2019 14:02:30 +0200
-Subject: [PATCH] mptcp: Earliest Completion First (ECF) Scheduler
+Subject: [PATCH 1/3] mptcp: Earliest Completion First (ECF) Scheduler
 
 This scheduler works much like the default MPTCP scheduler. It always
 prefers the subflow with the smallest round-trip-time that is available.
@@ -15,7 +15,7 @@ Signed-off-by: Daniel Weber <weberdaniel@gmx.net>
  create mode 100644 net/mptcp/mptcp_ecf.c
 
 diff --git a/net/mptcp/Kconfig b/net/mptcp/Kconfig
-index d22b7b47860f..dd1f859f1070 100644
+index 37f3af3db2a6..829ea084cf70 100644
 --- a/net/mptcp/Kconfig
 +++ b/net/mptcp/Kconfig
 @@ -109,6 +109,12 @@ config MPTCP_REDUNDANT
@@ -30,7 +30,7 @@ index d22b7b47860f..dd1f859f1070 100644
 +
  choice
  	prompt "Default MPTCP Scheduler"
- 	default DEFAULT
+ 	default DEFAULT_SCHEDULER
 diff --git a/net/mptcp/Makefile b/net/mptcp/Makefile
 index 82a2d4d945ae..369248a2f68e 100644
 --- a/net/mptcp/Makefile
@@ -44,7 +44,7 @@ index 82a2d4d945ae..369248a2f68e 100644
  mptcp-$(subst m,y,$(CONFIG_IPV6)) += mptcp_ipv6.o
 diff --git a/net/mptcp/mptcp_ecf.c b/net/mptcp/mptcp_ecf.c
 new file mode 100644
-index 000000000000..d61f4d2ad375
+index 000000000000..e0bd430a8943
 --- /dev/null
 +++ b/net/mptcp/mptcp_ecf.c
 @@ -0,0 +1,384 @@
@@ -73,9 +73,9 @@ index 000000000000..d61f4d2ad375
 +#include <net/mptcp.h>
 +#include <trace/events/tcp.h>
 +
-+static unsigned int r_beta __read_mostly = 4; /* beta = 1/r_beta = 0.25 */
-+module_param(r_beta, int, 0644);
-+MODULE_PARM_DESC(r_beta, "beta for ECF");
++static unsigned int mptcp_ecf_r_beta __read_mostly = 4; /* beta = 1/r_beta = 0.25 */
++module_param(mptcp_ecf_r_beta, int, 0644);
++MODULE_PARM_DESC(mptcp_ecf_r_beta, "beta for ECF");
 +
 +struct ecfsched_priv {
 +	u32 last_rbuf_opti;
@@ -185,7 +185,7 @@ index 000000000000..d61f4d2ad375
 +		lhs = srtt_f * (x_f + cwnd_f * mss);
 +		rhs = cwnd_f * mss * (srtt_s + delta);
 +
-+		if (r_beta * lhs < r_beta * rhs + ecf_cb->switching_margin * rhs) {
++		if (mptcp_ecf_r_beta * lhs < mptcp_ecf_r_beta * rhs + ecf_cb->switching_margin * rhs) {
 +			u32 x_s = sndbuf > cwnd_s * mss ? sndbuf : cwnd_s * mss;
 +			u64 lhs_s = srtt_s * x_s;
 +			u64 rhs_s = cwnd_s * mss * (2 * srtt_f + delta);
@@ -432,3 +432,557 @@ index 000000000000..d61f4d2ad375
 +MODULE_LICENSE("GPL");
 +MODULE_DESCRIPTION("ECF (Earliest Completion First) scheduler for MPTCP, based on default minimum RTT scheduler");
 +MODULE_VERSION("0.95");
+
+From 5a9641c84cbb5a49749d7533c20035631985dbe7 Mon Sep 17 00:00:00 2001
+From: Daniel Weber <weberdaniel@gmx.net>
+Date: Mon, 9 Mar 2020 11:00:23 +0100
+Subject: [PATCH 2/3] mptcp: Reduce code-duplication for other schedulers
+
+'mptcp_next_segment' now honors the function pointer to the actual part
+that makes the scheduling decision in 'sched_ops->get_subflow'. This
+allows for a better reuse by other schedulers.
+
+The BLEST scheduler needs to adapt the direction of lambda value change
+depending on the occurrence of a retransmission. In order to remove the
+copied 'mptcp_rcv_buf_optimization' as well the scheduler now checks the
+tcp 'retrans_stamp' of the meta socket.
+
+Signed-off-by: Daniel Weber <weberdaniel@gmx.net>
+---
+ include/net/mptcp.h     |   4 +
+ net/mptcp/mptcp_blest.c | 200 +---------------------------------------
+ net/mptcp/mptcp_sched.c |   9 +-
+ 3 files changed, 11 insertions(+), 202 deletions(-)
+
+diff --git a/include/net/mptcp.h b/include/net/mptcp.h
+index 02312c9ea3a3..82f66ce206cc 100644
+--- a/include/net/mptcp.h
++++ b/include/net/mptcp.h
+@@ -902,6 +902,10 @@ bool subflow_is_active(const struct tcp_sock *tp);
+ bool subflow_is_backup(const struct tcp_sock *tp);
+ struct sock *get_available_subflow(struct sock *meta_sk, struct sk_buff *skb,
+ 				   bool zero_wnd_test);
++struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
++				   int *reinject,
++				   struct sock **subsk,
++				   unsigned int *limit);
+ extern struct mptcp_sched_ops mptcp_sched_default;
+ 
+ /* Initializes function-pointers and MPTCP-flags */
+diff --git a/net/mptcp/mptcp_blest.c b/net/mptcp/mptcp_blest.c
+index 40905a0d1fe5..22e25dd0d44e 100644
+--- a/net/mptcp/mptcp_blest.c
++++ b/net/mptcp/mptcp_blest.c
+@@ -21,7 +21,6 @@
+ 
+ #include <linux/module.h>
+ #include <net/mptcp.h>
+-#include <trace/events/tcp.h>
+ 
+ static unsigned char lambda __read_mostly = 12;
+ module_param(lambda, byte, 0644);
+@@ -50,7 +49,6 @@ struct blestsched_priv {
+ };
+ 
+ struct blestsched_cb {
+-	bool retrans_flag;
+ 	s16 lambda_1000; /* values range from min_lambda * 100 to max_lambda * 100 */
+ 	u32 last_lambda_update;
+ };
+@@ -77,14 +75,13 @@ static void blestsched_update_lambda(struct sock *meta_sk, struct sock *sk)
+ 	 * during the slow flows last RTT => increase lambda
+ 	 * otherwise decrease
+ 	 */
+-	if (blest_cb->retrans_flag) {
++	if (tcp_sk(meta_sk)->retrans_stamp) {
+ 		/* need to slow down on the slow flow */
+ 		blest_cb->lambda_1000 += dyn_lambda_bad;
+ 	} else {
+ 		/* use the slow flow more */
+ 		blest_cb->lambda_1000 -= dyn_lambda_good;
+ 	}
+-	blest_cb->retrans_flag = false;
+ 
+ 	/* cap lambda_1000 to its value range */
+ 	blest_cb->lambda_1000 = min_t(s16, blest_cb->lambda_1000, max_lambda * 100);
+@@ -240,199 +237,6 @@ struct sock *blest_get_available_subflow(struct sock *meta_sk, struct sk_buff *s
+ 	return bestsk;
+ }
+ 
+-/* copy from mptcp_sched.c: mptcp_rcv_buf_optimization */
+-static struct sk_buff *mptcp_blest_rcv_buf_optimization(struct sock *sk, int penal)
+-{
+-	struct sock *meta_sk;
+-	const struct tcp_sock *tp = tcp_sk(sk);
+-	struct mptcp_tcp_sock *mptcp;
+-	struct sk_buff *skb_head;
+-	struct blestsched_priv *blest_p = blestsched_get_priv(tp);
+-	struct blestsched_cb *blest_cb;
+-
+-	meta_sk = mptcp_meta_sk(sk);
+-	skb_head = tcp_rtx_queue_head(meta_sk);
+-
+-	if (!skb_head)
+-		return NULL;
+-
+-	/* If penalization is optional (coming from mptcp_next_segment() and
+-	 * We are not send-buffer-limited we do not penalize. The retransmission
+-	 * is just an optimization to fix the idle-time due to the delay before
+-	 * we wake up the application.
+-	 */
+-	if (!penal && sk_stream_memory_free(meta_sk))
+-		goto retrans;
+-
+-	/* Record the occurrence of a retransmission to update the lambda value */
+-	blest_cb = blestsched_get_cb(tcp_sk(meta_sk));
+-	blest_cb->retrans_flag = true;
+-
+-	/* Only penalize again after an RTT has elapsed */
+-	if (tcp_jiffies32 - blest_p->last_rbuf_opti < usecs_to_jiffies(tp->srtt_us >> 3))
+-		goto retrans;
+-
+-	/* Half the cwnd of the slow flows */
+-	mptcp_for_each_sub(tp->mpcb, mptcp) {
+-		struct tcp_sock *tp_it = mptcp->tp;
+-
+-		if (tp_it != tp &&
+-		    TCP_SKB_CB(skb_head)->path_mask & mptcp_pi_to_flag(tp_it->mptcp->path_index)) {
+-			if (tp->srtt_us < tp_it->srtt_us && inet_csk((struct sock *)tp_it)->icsk_ca_state == TCP_CA_Open) {
+-				u32 prior_cwnd = tp_it->snd_cwnd;
+-
+-				tp_it->snd_cwnd = max(tp_it->snd_cwnd >> 1U, 1U);
+-
+-				/* If in slow start, do not reduce the ssthresh */
+-				if (prior_cwnd >= tp_it->snd_ssthresh)
+-					tp_it->snd_ssthresh = max(tp_it->snd_ssthresh >> 1U, 2U);
+-
+-				blest_p->last_rbuf_opti = tcp_jiffies32;
+-			}
+-		}
+-	}
+-
+-retrans:
+-
+-	/* Segment not yet injected into this path? Take it!!! */
+-	if (!(TCP_SKB_CB(skb_head)->path_mask & mptcp_pi_to_flag(tp->mptcp->path_index))) {
+-		bool do_retrans = false;
+-		mptcp_for_each_sub(tp->mpcb, mptcp) {
+-			struct tcp_sock *tp_it = mptcp->tp;
+-
+-			if (tp_it != tp &&
+-			    TCP_SKB_CB(skb_head)->path_mask & mptcp_pi_to_flag(tp_it->mptcp->path_index)) {
+-				if (tp_it->snd_cwnd <= 4) {
+-					do_retrans = true;
+-					break;
+-				}
+-
+-				if (4 * tp->srtt_us >= tp_it->srtt_us) {
+-					do_retrans = false;
+-					break;
+-				} else {
+-					do_retrans = true;
+-				}
+-			}
+-		}
+-
+-		if (do_retrans && mptcp_is_available(sk, skb_head, false)) {
+-			trace_mptcp_retransmit(sk, skb_head);
+-			return skb_head;
+-		}
+-	}
+-	return NULL;
+-}
+-
+-/* copy from mptcp_sched.c: __mptcp_next_segment */
+-/* Returns the next segment to be sent from the mptcp meta-queue.
+- * (chooses the reinject queue if any segment is waiting in it, otherwise,
+- * chooses the normal write queue).
+- * Sets *@reinject to 1 if the returned segment comes from the
+- * reinject queue. Sets it to 0 if it is the regular send-head of the meta-sk,
+- * and sets it to -1 if it is a meta-level retransmission to optimize the
+- * receive-buffer.
+- */
+-static struct sk_buff *__mptcp_blest_next_segment(struct sock *meta_sk, int *reinject)
+-{
+-	const struct mptcp_cb *mpcb = tcp_sk(meta_sk)->mpcb;
+-	struct sk_buff *skb = NULL;
+-
+-	*reinject = 0;
+-
+-	/* If we are in fallback-mode, just take from the meta-send-queue */
+-	if (mpcb->infinite_mapping_snd || mpcb->send_infinite_mapping)
+-		return tcp_send_head(meta_sk);
+-
+-	skb = skb_peek(&mpcb->reinject_queue);
+-
+-	if (skb) {
+-		*reinject = 1;
+-	} else {
+-		skb = tcp_send_head(meta_sk);
+-
+-		if (!skb && meta_sk->sk_socket &&
+-		    test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags) &&
+-		    sk_stream_wspace(meta_sk) < sk_stream_min_wspace(meta_sk)) {
+-			struct sock *subsk = blest_get_available_subflow(meta_sk, NULL,
+-									 false);
+-			if (!subsk)
+-				return NULL;
+-
+-			skb = mptcp_blest_rcv_buf_optimization(subsk, 0);
+-			if (skb)
+-				*reinject = -1;
+-		}
+-	}
+-	return skb;
+-}
+-
+-/* copy from mptcp_sched.c: mptcp_next_segment */
+-static struct sk_buff *mptcp_blest_next_segment(struct sock *meta_sk,
+-						int *reinject,
+-						struct sock **subsk,
+-						unsigned int *limit)
+-{
+-	struct sk_buff *skb = __mptcp_blest_next_segment(meta_sk, reinject);
+-	unsigned int mss_now;
+-	struct tcp_sock *subtp;
+-	u16 gso_max_segs;
+-	u32 max_len, max_segs, window, needed;
+-
+-	/* As we set it, we have to reset it as well. */
+-	*limit = 0;
+-
+-	if (!skb)
+-		return NULL;
+-
+-	*subsk = blest_get_available_subflow(meta_sk, skb, false);
+-	if (!*subsk)
+-		return NULL;
+-
+-	subtp = tcp_sk(*subsk);
+-	mss_now = tcp_current_mss(*subsk);
+-
+-	if (!*reinject && unlikely(!tcp_snd_wnd_test(tcp_sk(meta_sk), skb, mss_now))) {
+-		skb = mptcp_blest_rcv_buf_optimization(*subsk, 1);
+-		if (skb)
+-			*reinject = -1;
+-		else
+-			return NULL;
+-	}
+-
+-	/* No splitting required, as we will only send one single segment */
+-	if (skb->len <= mss_now)
+-		return skb;
+-
+-	/* The following is similar to tcp_mss_split_point, but
+-	 * we do not care about nagle, because we will anyways
+-	 * use TCP_NAGLE_PUSH, which overrides this.
+-	 *
+-	 * So, we first limit according to the cwnd/gso-size and then according
+-	 * to the subflow's window.
+-	 */
+-
+-	gso_max_segs = (*subsk)->sk_gso_max_segs;
+-	if (!gso_max_segs) /* No gso supported on the subflow's NIC */
+-		gso_max_segs = 1;
+-	max_segs = min_t(unsigned int, tcp_cwnd_test(subtp, skb), gso_max_segs);
+-	if (!max_segs)
+-		return NULL;
+-
+-	max_len = mss_now * max_segs;
+-	window = tcp_wnd_end(subtp) - subtp->write_seq;
+-
+-	needed = min(skb->len, window);
+-	if (max_len <= skb->len)
+-		/* Take max_win, which is actually the cwnd/gso-size */
+-		*limit = max_len;
+-	else
+-		/* Or, take the window */
+-		*limit = needed;
+-
+-	return skb;
+-}
+-
+ static void blestsched_init(struct sock *sk)
+ {
+ 	struct blestsched_priv *blest_p = blestsched_get_priv(tcp_sk(sk));
+@@ -450,7 +254,7 @@ static void blestsched_init(struct sock *sk)
+ 
+ static struct mptcp_sched_ops mptcp_sched_blest = {
+ 	.get_subflow = blest_get_available_subflow,
+-	.next_segment = mptcp_blest_next_segment,
++	.next_segment = mptcp_next_segment,
+ 	.init = blestsched_init,
+ 	.name = "blest",
+ 	.owner = THIS_MODULE,
+diff --git a/net/mptcp/mptcp_sched.c b/net/mptcp/mptcp_sched.c
+index 18c3559b0d48..5bf2946a5caf 100644
+--- a/net/mptcp/mptcp_sched.c
++++ b/net/mptcp/mptcp_sched.c
+@@ -372,8 +372,8 @@ static struct sk_buff *__mptcp_next_segment(struct sock *meta_sk, int *reinject)
+ 		if (!skb && meta_sk->sk_socket &&
+ 		    test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags) &&
+ 		    sk_stream_wspace(meta_sk) < sk_stream_min_wspace(meta_sk)) {
+-			struct sock *subsk = get_available_subflow(meta_sk, NULL,
+-								   false);
++			struct sock *subsk = mpcb->sched_ops->get_subflow(meta_sk, NULL,
++									  false);
+ 			if (!subsk)
+ 				return NULL;
+ 
+@@ -385,7 +385,7 @@ static struct sk_buff *__mptcp_next_segment(struct sock *meta_sk, int *reinject)
+ 	return skb;
+ }
+ 
+-static struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
++struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
+ 					  int *reinject,
+ 					  struct sock **subsk,
+ 					  unsigned int *limit)
+@@ -402,7 +402,7 @@ static struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
+ 	if (!skb)
+ 		return NULL;
+ 
+-	*subsk = get_available_subflow(meta_sk, skb, false);
++	*subsk = tcp_sk(meta_sk)->mpcb->sched_ops->get_subflow(meta_sk, skb, false);
+ 	if (!*subsk)
+ 		return NULL;
+ 
+@@ -449,6 +449,7 @@ static struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
+ 
+ 	return skb;
+ }
++EXPORT_SYMBOL_GPL(mptcp_next_segment);
+ 
+ static void defsched_init(struct sock *sk)
+ {
+
+From 5e8425e43b38e7e0fe566ffd50e197c07807ebdf Mon Sep 17 00:00:00 2001
+From: Daniel Weber <weberdaniel@gmx.net>
+Date: Mon, 9 Mar 2020 11:09:27 +0100
+Subject: [PATCH 3/3] mptcp: Remove code-duplication from ECF scheduler
+
+The ECF scheduler relies on large parts of the default scheduler. This
+commit removes the copied blocks and reuses 'mptcp_next_segment' and
+'mptcp_rcv_buf_optimization' directly from it via function pointers.
+
+Signed-off-by: Daniel Weber <weberdaniel@gmx.net>
+---
+ net/mptcp/mptcp_ecf.c | 191 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 190 deletions(-)
+
+diff --git a/net/mptcp/mptcp_ecf.c b/net/mptcp/mptcp_ecf.c
+index e0bd430a8943..6b976b2b0c72 100644
+--- a/net/mptcp/mptcp_ecf.c
++++ b/net/mptcp/mptcp_ecf.c
+@@ -21,7 +21,6 @@
+ 
+ #include <linux/module.h>
+ #include <net/mptcp.h>
+-#include <trace/events/tcp.h>
+ 
+ static unsigned int mptcp_ecf_r_beta __read_mostly = 4; /* beta = 1/r_beta = 0.25 */
+ module_param(mptcp_ecf_r_beta, int, 0644);
+@@ -154,194 +153,6 @@ static struct sock *ecf_get_available_subflow(struct sock *meta_sk,
+ 	return bestsk;
+ }
+ 
+-/* copy from mptcp_sched.c: mptcp_rcv_buf_optimization */
+-static struct sk_buff *mptcp_ecf_rcv_buf_optimization(struct sock *sk, int penal)
+-{
+-	struct sock *meta_sk;
+-	const struct tcp_sock *tp = tcp_sk(sk);
+-	struct mptcp_tcp_sock *mptcp;
+-	struct sk_buff *skb_head;
+-	struct ecfsched_priv *ecf_p = ecfsched_get_priv(tp);
+-
+-	meta_sk = mptcp_meta_sk(sk);
+-	skb_head = tcp_rtx_queue_head(meta_sk);
+-
+-	if (!skb_head)
+-		return NULL;
+-
+-	/* If penalization is optional (coming from mptcp_next_segment() and
+-	 * We are not send-buffer-limited we do not penalize. The retransmission
+-	 * is just an optimization to fix the idle-time due to the delay before
+-	 * we wake up the application.
+-	 */
+-	if (!penal && sk_stream_memory_free(meta_sk))
+-		goto retrans;
+-
+-	/* Only penalize again after an RTT has elapsed */
+-	if (tcp_jiffies32 - ecf_p->last_rbuf_opti < usecs_to_jiffies(tp->srtt_us >> 3))
+-		goto retrans;
+-
+-	/* Half the cwnd of the slow flows */
+-	mptcp_for_each_sub(tp->mpcb, mptcp) {
+-		struct tcp_sock *tp_it = mptcp->tp;
+-
+-		if (tp_it != tp &&
+-		    TCP_SKB_CB(skb_head)->path_mask & mptcp_pi_to_flag(tp_it->mptcp->path_index)) {
+-			if (tp->srtt_us < tp_it->srtt_us && inet_csk((struct sock *)tp_it)->icsk_ca_state == TCP_CA_Open) {
+-				u32 prior_cwnd = tp_it->snd_cwnd;
+-
+-				tp_it->snd_cwnd = max(tp_it->snd_cwnd >> 1U, 1U);
+-
+-				/* If in slow start, do not reduce the ssthresh */
+-				if (prior_cwnd >= tp_it->snd_ssthresh)
+-					tp_it->snd_ssthresh = max(tp_it->snd_ssthresh >> 1U, 2U);
+-
+-				ecf_p->last_rbuf_opti = tcp_jiffies32;
+-			}
+-		}
+-	}
+-
+-retrans:
+-
+-	/* Segment not yet injected into this path? Take it!!! */
+-	if (!(TCP_SKB_CB(skb_head)->path_mask & mptcp_pi_to_flag(tp->mptcp->path_index))) {
+-		bool do_retrans = false;
+-		mptcp_for_each_sub(tp->mpcb, mptcp) {
+-			struct tcp_sock *tp_it = mptcp->tp;
+-
+-			if (tp_it != tp &&
+-			    TCP_SKB_CB(skb_head)->path_mask & mptcp_pi_to_flag(tp_it->mptcp->path_index)) {
+-				if (tp_it->snd_cwnd <= 4) {
+-					do_retrans = true;
+-					break;
+-				}
+-
+-				if (4 * tp->srtt_us >= tp_it->srtt_us) {
+-					do_retrans = false;
+-					break;
+-				} else {
+-					do_retrans = true;
+-				}
+-			}
+-		}
+-
+-		if (do_retrans && mptcp_is_available(sk, skb_head, false)) {
+-			trace_mptcp_retransmit(sk, skb_head);
+-			return skb_head;
+-		}
+-	}
+-	return NULL;
+-}
+-
+-/* copy from mptcp_sched.c: __mptcp_next_segment */
+-/* Returns the next segment to be sent from the mptcp meta-queue.
+- * (chooses the reinject queue if any segment is waiting in it, otherwise,
+- * chooses the normal write queue).
+- * Sets *@reinject to 1 if the returned segment comes from the
+- * reinject queue. Sets it to 0 if it is the regular send-head of the meta-sk,
+- * and sets it to -1 if it is a meta-level retransmission to optimize the
+- * receive-buffer.
+- */
+-static struct sk_buff *__mptcp_ecf_next_segment(struct sock *meta_sk, int *reinject)
+-{
+-	const struct mptcp_cb *mpcb = tcp_sk(meta_sk)->mpcb;
+-	struct sk_buff *skb = NULL;
+-
+-	*reinject = 0;
+-
+-	/* If we are in fallback-mode, just take from the meta-send-queue */
+-	if (mpcb->infinite_mapping_snd || mpcb->send_infinite_mapping)
+-		return tcp_send_head(meta_sk);
+-
+-	skb = skb_peek(&mpcb->reinject_queue);
+-
+-	if (skb) {
+-		*reinject = 1;
+-	} else {
+-		skb = tcp_send_head(meta_sk);
+-
+-		if (!skb && meta_sk->sk_socket &&
+-		    test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags) &&
+-		    sk_stream_wspace(meta_sk) < sk_stream_min_wspace(meta_sk)) {
+-			struct sock *subsk = ecf_get_available_subflow(meta_sk, NULL,
+-								   false);
+-			if (!subsk)
+-				return NULL;
+-
+-			skb = mptcp_ecf_rcv_buf_optimization(subsk, 0);
+-			if (skb)
+-				*reinject = -1;
+-		}
+-	}
+-	return skb;
+-}
+-
+-/* copy from mptcp_sched.c: mptcp_next_segment */
+-static struct sk_buff *mptcp_ecf_next_segment(struct sock *meta_sk,
+-					      int *reinject,
+-					      struct sock **subsk,
+-					      unsigned int *limit)
+-{
+-	struct sk_buff *skb = __mptcp_ecf_next_segment(meta_sk, reinject);
+-	unsigned int mss_now;
+-	struct tcp_sock *subtp;
+-	u16 gso_max_segs;
+-	u32 max_len, max_segs, window, needed;
+-
+-	/* As we set it, we have to reset it as well. */
+-	*limit = 0;
+-
+-	if (!skb)
+-		return NULL;
+-
+-	*subsk = ecf_get_available_subflow(meta_sk, skb, false);
+-	if (!*subsk)
+-		return NULL;
+-
+-	subtp = tcp_sk(*subsk);
+-	mss_now = tcp_current_mss(*subsk);
+-
+-	if (!*reinject && unlikely(!tcp_snd_wnd_test(tcp_sk(meta_sk), skb, mss_now))) {
+-		skb = mptcp_ecf_rcv_buf_optimization(*subsk, 1);
+-		if (skb)
+-			*reinject = -1;
+-		else
+-			return NULL;
+-	}
+-
+-	/* No splitting required, as we will only send one single segment */
+-	if (skb->len <= mss_now)
+-		return skb;
+-
+-	/* The following is similar to tcp_mss_split_point, but
+-	 * we do not care about nagle, because we will anyways
+-	 * use TCP_NAGLE_PUSH, which overrides this.
+-	 *
+-	 * So, we first limit according to the cwnd/gso-size and then according
+-	 * to the subflow's window.
+-	 */
+-
+-	gso_max_segs = (*subsk)->sk_gso_max_segs;
+-	if (!gso_max_segs) /* No gso supported on the subflow's NIC */
+-		gso_max_segs = 1;
+-	max_segs = min_t(unsigned int, tcp_cwnd_test(subtp, skb), gso_max_segs);
+-	if (!max_segs)
+-		return NULL;
+-
+-	max_len = mss_now * max_segs;
+-	window = tcp_wnd_end(subtp) - subtp->write_seq;
+-
+-	needed = min(skb->len, window);
+-	if (max_len <= skb->len)
+-		/* Take max_win, which is actually the cwnd/gso-size */
+-		*limit = max_len;
+-	else
+-		/* Or, take the window */
+-		*limit = needed;
+-
+-	return skb;
+-}
+-
+ static void ecfsched_init(struct sock *sk)
+ {
+ 	struct ecfsched_priv *ecf_p = ecfsched_get_priv(tcp_sk(sk));
+@@ -353,7 +164,7 @@ static void ecfsched_init(struct sock *sk)
+ 
+ struct mptcp_sched_ops mptcp_sched_ecf = {
+ 	.get_subflow = ecf_get_available_subflow,
+-	.next_segment = mptcp_ecf_next_segment,
++	.next_segment = mptcp_next_segment,
+ 	.init = ecfsched_init,
+ 	.name = "ecf",
+ 	.owner = THIS_MODULE,
