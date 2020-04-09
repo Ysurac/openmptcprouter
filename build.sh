@@ -34,6 +34,8 @@ OMR_KERNEL=${OMR_KERNEL:-5.4}
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
+OMR_OPENWRT=${OMR_OPENWRT:-default}
+
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
 	#exit 1
@@ -58,9 +60,19 @@ else
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "02a1914585fffb97b26cc871b303a39ac9d37cbb"
-_get_repo feeds/packages https://github.com/openwrt/packages "e086343cb5d0bcda2f85486e56f478987d2ea171"
-_get_repo feeds/luci https://github.com/openwrt/luci "1e07e3a52d4d06cc82ab07f2b7fbba0a9a6fb801"
+if [ "$OMR_OPENWRT" = "default" ]; then
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "02a1914585fffb97b26cc871b303a39ac9d37cbb"
+	_get_repo feeds/packages https://github.com/openwrt/packages "e086343cb5d0bcda2f85486e56f478987d2ea171"
+	_get_repo feeds/luci https://github.com/openwrt/luci "1e07e3a52d4d06cc82ab07f2b7fbba0a9a6fb801"
+elif [ "$OMR_OPENWRT" = "master" ]; then
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
+	_get_repo feeds/packages https://github.com/openwrt/packages "master"
+	_get_repo feeds/luci https://github.com/openwrt/luci "master"
+else
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "${OMR_OPENWRT}"
+	_get_repo feeds/packages https://github.com/openwrt/packages "${OMR_OPENWRT}"
+	_get_repo feeds/luci https://github.com/openwrt/luci "${OMR_OPENWRT}"
+fi
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
