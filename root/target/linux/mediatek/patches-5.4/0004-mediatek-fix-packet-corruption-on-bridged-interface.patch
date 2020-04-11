@@ -1,0 +1,51 @@
+From 0593f719ca873722c6ac66604f027a63663c9b64 Mon Sep 17 00:00:00 2001
+From: Alexey Loukianov <lx2@lexa2.ru>
+Date: Fri, 7 Jun 2019 12:33:45 +0300
+Subject: [PATCH 04/12] mediatek: fix packet corruption on bridged interface
+
+    This fixes problem that was reported here:
+    http://forum.banana-pi.org/t/openwrt-18-06-malformed-ip-packets-at-bridged-interface/
+
+    Fix is to set both gmacs to use trgmii mode.
+    This fix is not technically correct as second gmac
+    does not support trgmii mode but current driver
+    implementation seems to handle it somehow and
+    it is the only way to have both gmacs enabled
+    and avoid corruption of the packets on brigded
+    lanX interfaces.
+
+    Signed-off-by: Alexey Loukianov <lx2@lexa2.ru>
+---
+ .../0067-dts-bpi-r2-fix-second-gmac.patch     | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+ create mode 100644 target/linux/mediatek/patches-4.14/0067-dts-bpi-r2-fix-second-gmac.patch
+
+diff --git a/target/linux/mediatek/patches-4.14/0067-dts-bpi-r2-fix-second-gmac.patch b/target/linux/mediatek/patches-4.14/0067-dts-bpi-r2-fix-second-gmac.patch
+new file mode 100644
+index 0000000000..145c188972
+--- /dev/null
++++ b/target/linux/mediatek/patches-4.14/0067-dts-bpi-r2-fix-second-gmac.patch
+@@ -0,0 +1,20 @@
++--- a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
+++++ b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
++@@ -141,7 +141,7 @@
++ 	gmac1: mac@1 {
++ 		compatible = "mediatek,eth-mac";
++ 		reg = <1>;
++-		phy-mode = "rgmii";
+++		phy-mode = "trgmii";
++ 
++ 		fixed-link {
++ 			speed = <1000>;
++@@ -206,7 +206,7 @@
++ 					reg = <5>;
++ 					label = "cpu";
++ 					ethernet = <&gmac1>;
++-					phy-mode = "rgmii";
+++					phy-mode = "trgmii";
++ 
++ 					fixed-link {
++ 						speed = <1000>;
+-- 
+2.23.0
+
