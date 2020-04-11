@@ -9,11 +9,11 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_VERSION:=2019.01
+PKG_VERSION:=2020.04-rc5
 
-PKG_HASH:=50bd7e5a466ab828914d080d5f6a432345b500e8fba1ad3b7b61e95e60d51c22
+PKG_HASH:=1c967c90d3ab4fcc5817fbca4db8928311a8b3dfa9f827e9c585a590fd94ca7a
 
-PKG_MAINTAINER:=Alexey Loukianov <lx2@lexa2.ru>
+PKG_MAINTAINER:=Cristian Ciobanu <cioby.service@gmail.com>
 
 include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
@@ -28,7 +28,7 @@ endef
 define U-Boot/mt7623n_bpir2
   BUILD_SUBTARGET:=mt7623
   NAME:=Bannana PI R2 (mt7623)
-  BUILD_DEVICES:=7623n-bananapi-bpi-r2
+  BUILD_DEVICES:=bpi_bananapi-r2
 endef
 
 UBOOT_TARGETS := \
@@ -43,7 +43,7 @@ UBOOT_MAKE_FLAGS = \
 
 define Build/Prepare
         $(call Build/Prepare/Default)
-	$(CP) uEnv-$(UENV).txt $(PKG_BUILD_DIR)/uEnv.txt
+	$(CP) uEnv-$(UENV).txt ${PKG_BUILD_DIR}/uEnv.txt
 endef
 
 define Build/InstallDev

@@ -4,9 +4,9 @@ bootenv=uEnv.txt
 kernel=uImage
 loadaddr=0x80200000
 #default bootargs will be overidden by buildargs
-bootargs=console=ttyS0,115200 root=/dev/mmcblk1p2 rw rootwait ip=dhcp
+bootargs=console=ttyS2,115200 root=/dev/mmcblk1p2 rw rootwait ip=dhcp
 
-console=earlyprintk console=ttyS0,115200 console=tty1 fbcon=map:0
+console=earlyprintk console=ttyS2,115200 console=tty1 fbcon=map:0
 roottmpl=${rootdev} rootfstype=ext4 rootwait
 prepsetroot=setenv setroot setenv root ${roottmpl}
 bootopts=vmalloc=496M debug=7 initcall_debug=0
@@ -65,7 +65,7 @@ netmask=255.255.255.0
 serverip=192.168.0.10
 
 bootfile=uImage
-netbootargs=console=ttyS0,115200 root=/dev/mmcblk1p2 rw rootwait
+netbootargs=console=ttyS2,115200 root=/dev/mmcblk1p2 rw rootwait
 #ip=dhcp sets ip on eth0 instead of wan
 
 lstftp=tftp ${loadaddr} ${serverip}:files.lst;setexpr listend ${loadaddr} + ${filesize};mw.b ${listend} 00 2;strings ${loadaddr};
