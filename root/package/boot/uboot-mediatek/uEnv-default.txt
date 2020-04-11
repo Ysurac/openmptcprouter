@@ -20,8 +20,8 @@ loadbootenv=if fatload ${device} ${partition} ${scriptaddr} ${bootenv};then run 
 resetenv=env default -a;printenv;
 
 # Here we assume that SD card id mmcblk1 and eMMC is mmcblk0 in linux. Swap them if your DTS define them in reverse order.
-usesd=setenv partition 1:1; setenv rootdev /dev/mmcblk0p2; setenv bootdev SD; setenv swaproot 'run useemmc';
-useemmc=setenv partition 0:1; setenv rootdev /dev/mmcblk1p2; setenv bootdev eMMC; setenv swaproot 'run usesd';
+usesd=setenv partition 1:1; setenv rootdev /dev/mmcblk1p2; setenv bootdev SD; setenv swaproot 'run useemmc';
+useemmc=setenv partition 0:1; setenv rootdev /dev/mmcblk0p2; setenv bootdev eMMC; setenv swaproot 'run usesd';
 
 checkbootedfrom=if itest.l *81dffff0 == 434d4d65 ; then setenv bootedfrom eMMC; else setenv bootedfrom SD; fi;
 
