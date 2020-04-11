@@ -1,8 +1,9 @@
 --- a/package/kernel/linux/modules/netfilter.mk	2020-03-20 15:41:58.620893747 +0100
 +++ b/package/kernel/linux/modules/netfilter.mk	2020-03-20 15:45:34.389015301 +0100
-@@ -483,7 +483,9 @@
+@@ -483,8 +483,10 @@
  define KernelPackage/ipt-nat6
    TITLE:=IPv6 NAT targets
+   DEPENDS:=@IPV6
    KCONFIG:=$(KCONFIG_IPT_NAT6)
 -  FILES:=$(foreach mod,$(IPT_NAT6-m),$(LINUX_DIR)/net/$(mod).ko)
 +  FILES:= \
