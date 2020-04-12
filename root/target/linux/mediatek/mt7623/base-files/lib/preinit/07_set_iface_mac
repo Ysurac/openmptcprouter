@@ -32,14 +32,14 @@ preinit_set_mac_address() {
 			rm -rf /tmp/recovery
 		fi
 
-		ip link set dev wan address $mac 2> /dev/null
+		ip link set dev lan address $mac 2> /dev/null
 
 		mac=$(macaddr_add $mac 1)
 
-		ip link set dev lan0 address $mac 2>/dev/null
-		ip link set dev lan1 address $mac 2>/dev/null
-		ip link set dev lan2 address $mac 2>/dev/null
-		ip link set dev lan3 address $mac 2>/dev/null
+		ip link set dev wan1 address $mac 2>/dev/null
+		ip link set dev wan2 address $mac 2>/dev/null
+		ip link set dev wan3 address $mac 2>/dev/null
+		ip link set dev wan4 address $mac 2>/dev/null
 		;;
 	esac
 }

@@ -22,7 +22,7 @@ mediatek_setup_macs()
 
 	case $board in
 	unielec,u7623-02-emmc-512m)
-		ucidef_set_interface_macaddr "wan" "$(cat /sys/class/net/wan/address)"
+		ucidef_set_interface_macaddr "lan" "$(cat /sys/class/net/lan/address)"
 		;;
 	esac
 }
