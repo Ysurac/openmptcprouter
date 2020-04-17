@@ -61,9 +61,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "02a1914585fffb97b26cc871b303a39ac9d37cbb"
-	_get_repo feeds/packages https://github.com/openwrt/packages "e086343cb5d0bcda2f85486e56f478987d2ea171"
-	_get_repo feeds/luci https://github.com/openwrt/luci "1e07e3a52d4d06cc82ab07f2b7fbba0a9a6fb801"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "75ef28be59c5b76d73313cfb9650f464ae943cc8"
+	_get_repo feeds/packages https://github.com/openwrt/packages "c11aaead910d5351d0f3fd4e4460ad98336fa0d4"
+	_get_repo feeds/luci https://github.com/openwrt/luci "01d8283ecea730191ce41302acb7ecd1aaf0631f"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -200,17 +200,23 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/ipt-nat6.patch; then
 fi
 echo "Done"
 
-echo "Checking if mvebu patch is set or not"
-if [ ! -d target/linux/mvebu/patches-5.4 ]; then
-	echo "apply..."
-	patch -N -p1 -s < ../../patches/mvebu-5.14.patch
-fi
-echo "Done"
+#echo "Checking if mvebu patch is set or not"
+#if [ ! -d target/linux/mvebu/patches-5.4 ]; then
+#	echo "apply..."
+#	patch -N -p1 -s < ../../patches/mvebu-5.14.patch
+#fi
+#echo "Done"
 
 echo "Checking if opkg install arguement too long patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/package-too-long.patch; then
 	echo "apply..."
 	patch -N -p1 -s < ../../patches/package-too-long.patch
+fi
+echo "Done"
+
+echo "Downlaod via IPv4"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
+	patch -N -p1 -s < ../../patches/download-ipv4.patch
 fi
 echo "Done"
 
