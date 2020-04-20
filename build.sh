@@ -61,9 +61,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "75ef28be59c5b76d73313cfb9650f464ae943cc8"
-	_get_repo feeds/packages https://github.com/openwrt/packages "c11aaead910d5351d0f3fd4e4460ad98336fa0d4"
-	_get_repo feeds/luci https://github.com/openwrt/luci "01d8283ecea730191ce41302acb7ecd1aaf0631f"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "29a458b0cae3435bce41136ee3b4132b4103ffae"
+	_get_repo feeds/packages https://github.com/openwrt/packages "e40f92c90dbed675d2f1555f65e3d25d9a9aad5a"
+	_get_repo feeds/luci https://github.com/openwrt/luci "79814b2f5286b6956d555b796407e2394169669d"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -193,12 +193,12 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/smsc75xx.patch; then
 fi
 echo "Done"
 
-echo "Checking if ipt-nat patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/ipt-nat6.patch; then
-	echo "apply..."
-	patch -N -p1 -s < ../../patches/ipt-nat6.patch
-fi
-echo "Done"
+#echo "Checking if ipt-nat patch is set or not"
+#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/ipt-nat6.patch; then
+#	echo "apply..."
+#	patch -N -p1 -s < ../../patches/ipt-nat6.patch
+#fi
+#echo "Done"
 
 #echo "Checking if mvebu patch is set or not"
 #if [ ! -d target/linux/mvebu/patches-5.4 ]; then
