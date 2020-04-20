@@ -1,0 +1,35 @@
+From 9847677bda4920bbba15499f28009ce095f02c99 Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Fri, 31 Jan 2020 18:49:56 +0100
+Subject: [PATCH] thermal: mediatek: execute hwmon-code only if hwmon_thermal
+ is set
+
+---
+ drivers/thermal/mtk_thermal.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/thermal/mtk_thermal.c b/drivers/thermal/mtk_thermal.c
+index 8cf3a69bfa46..3a646b88f587 100644
+--- a/drivers/thermal/mtk_thermal.c
++++ b/drivers/thermal/mtk_thermal.c
+@@ -1103,18 +1103,18 @@ static int mtk_thermal_probe(struct platform_device *pdev)
+ 		goto err_disable_clk_peri_therm;
+ 	}
+ 
++#ifdef CONFIG_THERMAL_HWMON
+ 	tzdev->tzp->no_hwmon = false;
+ 	ret = thermal_add_hwmon_sysfs(tzdev);
+ 	if (ret)
+ 		dev_err(&pdev->dev,"error in thermal_add_hwmon_sysfs");
+-		//goto err_disable_clk_peri_therm;
+ 
+ 	ret = devm_add_action(&pdev->dev, mtk_thermal_hwmon_action, tzdev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev,"error in devm_add_action");
+ 		mtk_thermal_hwmon_action(tzdev);
+-		//goto err_disable_clk_peri_therm;
+ 	}
++#endif
+ 
+ 	return 0;
+ 
