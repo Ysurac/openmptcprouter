@@ -220,6 +220,9 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
 fi
 echo "Done"
 
+if [ -f target/linux/mediatek/patches-5.4/0999-hnat.patch ]; then
+	rm -f target/linux/mediatek/patches-5.4/0999-hnat.patch
+fi
 
 #echo "Patch protobuf wrong hash"
 #patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
