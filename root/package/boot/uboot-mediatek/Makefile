@@ -9,9 +9,9 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_VERSION:=2020.04-rc5
+PKG_VERSION:=2020.04
 
-PKG_HASH:=1c967c90d3ab4fcc5817fbca4db8928311a8b3dfa9f827e9c585a590fd94ca7a
+PKG_HASH:=fe732aaf037d9cc3c0909bad8362af366ae964bbdac6913a34081ff4ad565372
 
 PKG_MAINTAINER:=Cristian Ciobanu <cioby.service@gmail.com>
 
