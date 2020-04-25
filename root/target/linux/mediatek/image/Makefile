@@ -8,35 +8,46 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/image.mk
 
+FAT32_BLOCK_SIZE=1024
+FAT32_BLOCKS=$(shell echo $$(($(CONFIG_MEDIATEK_SD_BOOT_PARTSIZE)*1024*1024/$(FAT32_BLOCK_SIZE))))
+
 # for arm
 KERNEL_LOADADDR := 0x80008000
+
+define Build/mediatek-sdcard
+        rm -f $@.boot
+        mkfs.fat $@.boot -C $(FAT32_BLOCKS)
+
+        mcopy -i $@.boot $(STAGING_DIR_IMAGE)/$(DEVICE_NAME)-uEnv.txt ::uEnv.txt
+        mcopy -i $@.boot $(IMAGE_KERNEL) ::uImage
+        ./gen_mt7623_sdcard_img.sh $@ \
+                $(STAGING_DIR_IMAGE)/bpi-r2-preloader.bin \
+                $(STAGING_DIR_IMAGE)/$(DEVICE_NAME)-uboot-mediatek.bin \
+                $@.boot \
+                $(IMAGE_ROOTFS) \
+                $(CONFIG_MEDIATEK_SD_BOOT_PARTSIZE) \
+                $(CONFIG_TARGET_ROOTFS_PARTSIZE)
+        rm -f $@.boot
+
+endef
 
 # for arm64
 ifeq ($(SUBTARGET),mt7622)
 KERNEL_LOADADDR = 0x41080000
 endif
 
+ifeq ($(SUBTARGET),mt7629)
+KERNEL_LOADADDR = 0x40008000
+endif
+
 define Build/sysupgrade-emmc
-  rm -f $@.recovery
-  mkfs.fat -C $@.recovery 3070
+	rm -f $@.recovery
+	mkfs.fat -C $@.recovery 3070
 
-  dd bs="512" of="$@" if="$(IMAGE_KERNEL)"
-  dd bs="512" of="$@" if="$@.recovery" seek="67072"
-  dd bs="512" of="$@" if="$(IMAGE_ROOTFS)" seek="87552"
-  dd if=/dev/zero of="$@" bs=128k count=1 oflag=append conv=notrunc
-endef
-
-define Build/sysupgrade-bpi-r2-sd
-  dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-preloader-sd.bin" of="$@" seek="0"
-  dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-uboot.bin" of="$@" seek="320"
-  dd bs="1024" if="$(IMAGE_KERNEL)" of="$@" seek="2048"
-  dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
-endef
-define Build/sysupgrade-bpi-r2-emmc
-  dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-preloader-emmc.bin" of="$@" seek="0"
-  dd bs="1024" if="$(STAGING_DIR_IMAGE)/mtk-bpi-r2-uboot.bin" of="$@" seek="320"
-  dd bs="1024" if="$(IMAGE_KERNEL)" of="$@" seek="2048"
-  dd bs="1024" if="$(IMAGE_ROOTFS)" of="$@" seek="67584"
+	./gen_mt7623_emmc_img.sh $@ \
+		$(IMAGE_KERNEL) \
+		$@.recovery \
+		$(IMAGE_ROOTFS)
 endef
 
 # default all platform image(fit) build 
@@ -46,13 +57,18 @@ define Device/Default
   FILESYSTEMS := squashfs
   DEVICE_DTS_DIR := $(DTS_DIR)
   IMAGES := sysupgrade.bin
-  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata 
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
+  SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
 ifeq ($(SUBTARGET),mt7623)
+  DEVICE_VARS := MEDIATEK_UBOOT
   KERNEL_NAME := zImage
   KERNEL := kernel-bin | append-dtb | uImage none
   KERNEL_INITRAMFS := kernel-bin | append-dtb | uImage none
-endif
-ifeq ($(SUBTARGET),mt7622)
+  FILESYSTEMS += ext4
+  IMAGES := sysupgrade.tar sdcard.img.gz
+  IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
+  IMAGE/sdcard.img.gz := mediatek-sdcard | gzip | append-metadata
+else
   KERNEL_NAME := Image
   KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   KERNEL_INITRAMFS = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
@@ -67,9 +83,8 @@ ifeq ($(SUBTARGET),mt7623)
 include mt7623.mk
 endif
 
-define Image/Build
-	$(call Image/Build/$(1),$(1))
-endef
+ifeq ($(SUBTARGET),mt7629)
+include mt7629.mk
+endif
 
 $(eval $(call BuildImage))
-

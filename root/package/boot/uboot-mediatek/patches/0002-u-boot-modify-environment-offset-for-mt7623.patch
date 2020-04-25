@@ -1,0 +1,23 @@
+From 15e032f5b06ba97a7777bc32aef15e10d0086041 Mon Sep 17 00:00:00 2001
+From: Cristian Ciobanu <cioby.service@gmail.com>
+Date: Wed, 8 Apr 2020 22:27:01 +0300
+Subject: [PATCH] u-boot: Modify environment offset for mt7623
+
+---
+ include/configs/mt7623.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/configs/mt7623.h b/include/configs/mt7623.h
+index faab0913fc..5d0da71ce9 100644
+--- a/include/configs/mt7623.h
++++ b/include/configs/mt7623.h
+@@ -56,5 +56,6 @@
+ #define CONFIG_SERVERIP			192.168.1.2
+ 
+ #define CONFIG_SYS_MMC_ENV_DEV		0
++#define CONFIG_ENV_OFFSET      0xF3800
+ 
+ #endif
+-- 
+2.25.1
+

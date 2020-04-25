@@ -14,25 +14,27 @@ _get_repo() (
 	else
 		git remote add origin "$2"
 	fi
-	git fetch origin
-	git fetch origin --tags
+	git fetch origin -f
+	git fetch origin --tags -f
 	git checkout -f "origin/$3" -B "build" 2>/dev/null || git checkout "$3" -B "build"
 )
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
-OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release}
+OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_KERNEL}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
-OMR_UEFI=${OMR_UEFI:-yes}
+#OMR_UEFI=${OMR_UEFI:-yes}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
-OMR_KERNEL=${OMR_KERNEL:-4.14}
+OMR_KERNEL=${OMR_KERNEL:-5.4}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
-OMR_FEED_SRC="${OMR_FEED_SRC:-master}"
+OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
+
+OMR_OPENWRT=${OMR_OPENWRT:-default}
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
@@ -41,6 +43,8 @@ fi
 
 if [ "$OMR_TARGET" = "rpi3" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
+elif [ "$OMR_TARGET" = "rpi4" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a72"
 elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
@@ -49,15 +53,26 @@ elif [ "$OMR_TARGET" = "wrt32x" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "x86" ]; then
+	OMR_REAL_TARGET="i386_pentium4"
 else
 	OMR_REAL_TARGET=${OMR_TARGET}
 fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-#_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a3ccac6b1d693527befa73532a6cf5abda7134c0"
-_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "4d11c4c3784196ed3e5b5a1f81fa415d99ef32b0"
-_get_repo feeds/packages https://github.com/openwrt/packages "ae5c8603a7cf4a5b9c7215a3768007f256f51b1c"
-_get_repo feeds/luci https://github.com/openwrt/luci "cffeee49d7be19743cc40459fa1f423517f215c0"
+if [ "$OMR_OPENWRT" = "default" ]; then
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "df27e949fbbf13e1e2ab4db49f608165ef0ba9fe"
+	_get_repo feeds/packages https://github.com/openwrt/packages "a4bb706918c58c7f8718e5de1de2e719eecabbd2"
+	_get_repo feeds/luci https://github.com/openwrt/luci "d0518a11e124e124bfaa02551bc2d028fad2d69d"
+elif [ "$OMR_OPENWRT" = "master" ]; then
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
+	_get_repo feeds/packages https://github.com/openwrt/packages "master"
+	_get_repo feeds/luci https://github.com/openwrt/luci "master"
+else
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "${OMR_OPENWRT}"
+	_get_repo feeds/packages https://github.com/openwrt/packages "${OMR_OPENWRT}"
+	_get_repo feeds/luci https://github.com/openwrt/luci "${OMR_OPENWRT}"
+fi
 
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
@@ -137,17 +152,17 @@ fi
 
 cd "$OMR_TARGET/source"
 
-echo "Checking if UEFI patch is set or not"
-if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
-	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" = "" ]; then
-		patch -N -p1 -s < ../../patches/uefi.patch
-	fi
-else
-	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" != "" ]; then
-		patch -N -R -p1 -s < ../../patches/uefi.patch
-	fi
-fi
-echo "Done"
+#if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
+#	echo "Checking if UEFI patch is set or not"
+#	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" = "" ]; then
+#		patch -N -p1 -s < ../../patches/uefi.patch
+#	fi
+#	echo "Done"
+#else
+#	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" != "" ]; then
+#		patch -N -R -p1 -s < ../../patches/uefi.patch
+#	fi
+#fi
 
 #if [ "$OMR_TARGET" = "x86_64" ]; then 
 #	echo "Checking if Hyper-V patch is set or not"
@@ -159,10 +174,55 @@ echo "Done"
 
 echo "Checking if No check patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nocheck.patch; then
+	echo "apply..."
 	patch -N -p1 -s < ../../patches/nocheck.patch
 fi
 echo "Done"
 
+echo "Checking if Nanqinlang patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
+	echo "apply..."
+	patch -N -p1 -s < ../../patches/nanqinlang.patch
+fi
+echo "Done"
+
+echo "Checking if smsc75xx patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/smsc75xx.patch; then
+	echo "apply..."
+	patch -N -p1 -s < ../../patches/smsc75xx.patch
+fi
+echo "Done"
+
+#echo "Checking if ipt-nat patch is set or not"
+#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/ipt-nat6.patch; then
+#	echo "apply..."
+#	patch -N -p1 -s < ../../patches/ipt-nat6.patch
+#fi
+#echo "Done"
+
+#echo "Checking if mvebu patch is set or not"
+#if [ ! -d target/linux/mvebu/patches-5.4 ]; then
+#	echo "apply..."
+#	patch -N -p1 -s < ../../patches/mvebu-5.14.patch
+#fi
+#echo "Done"
+
+echo "Checking if opkg install arguement too long patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/package-too-long.patch; then
+	echo "apply..."
+	patch -N -p1 -s < ../../patches/package-too-long.patch
+fi
+echo "Done"
+
+echo "Downlaod via IPv4"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
+	patch -N -p1 -s < ../../patches/download-ipv4.patch
+fi
+echo "Done"
+
+if [ -f target/linux/mediatek/patches-5.4/0999-hnat.patch ]; then
+	rm -f target/linux/mediatek/patches-5.4/0999-hnat.patch
+fi
 
 #echo "Patch protobuf wrong hash"
 #patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
@@ -174,26 +234,38 @@ echo "Done"
 #fi
 #echo "Done"
 
-if [ "$OMR_KERNEL" = "4.19" ]; then
-	echo "Set to kernel 4.19 for rpi arch"
-	find target/linux/brcm2708 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+if [ "$OMR_KERNEL" = "5.4" ]; then
+	echo "Set to kernel 5.4 for rpi arch"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
-	echo "Set to kernel 4.19 for x86 arch"
-	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	echo "Set to kernel 5.4 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
-	echo "Set to kernel 4.19 for mvebu arch (WRT)"
-	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	echo "Set to kernel 5.4 for mvebu arch (WRT)"
+	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
-	echo "Set to kernel 4.19 for mediatek arch (BPI-R2)"
-	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.14%KERNEL_PATCHVER:=4.19%g' {} \;
+	echo "Set to kernel 5.4 for mediatek arch (BPI-R2)"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
 fi
 
+# Remove patch that can make BPI-R2 slow
+rm -rf target/linux/mediatek/patches-4.14/0027-*.patch
 
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
+
+#cd -
+#echo "Checking if fullconenat-luci patch is set or not"
+##if ! patch -Rf -N -p1 -s --dry-run < patches/fullconenat-luci.patch; then
+#	echo "apply..."
+#	patch -N -p1 -s < patches/fullconenat-luci.patch
+#fi
+#echo "Done"
+#cd "$OMR_TARGET/source"
+
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -p packages
 	scripts/feeds install -a -p luci

@@ -1,0 +1,54 @@
+From 97fdec52fff8079d3af104e8723602a3cb9d2a11 Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Thu, 20 Jun 2019 23:06:41 +0200
+Subject: [PATCH] net: dts: add second gmac for bananapi r2
+
+---
+ arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
+index 2b760f90f38c..fad09608b86c 100644
+--- a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
++++ b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
+@@ -143,13 +143,25 @@
+ 		};
+ 	};
+ 
++	gmac1: mac@1 {
++		compatible = "mediatek,eth-mac";
++		reg = <1>;
++		label = "wan";
++		phy-mode = "rgmii";
++		phy-handle = <&ephy0>;
++	};
++
+ 	mdio: mdio-bus {
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 
+-		switch@0 {
+-			compatible = "mediatek,mt7530";
++		ephy0: ethernet-phy@0 {
+ 			reg = <0>;
++		};
++
++		switch@1f {
++			compatible = "mediatek,mt7530";
++			reg = <0x1f>;
+ 			reset-gpios = <&pio 33 0>;
+ 			core-supply = <&mt6323_vpa_reg>;
+ 			io-supply = <&mt6323_vemc3v3_reg>;
+@@ -158,10 +170,12 @@
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+ 
++/* Disabled, is now handled by gmac1 (eth1/wan) via phy-handle!
+ 				port@0 {
+ 					reg = <0>;
+ 					label = "wan";
+ 				};
++*/
+ 
+ 				port@1 {
+ 					reg = <1>;

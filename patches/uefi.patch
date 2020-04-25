@@ -1,7 +1,7 @@
-From ab231a81af007ae364e5ce58de978ebd676a8556 Mon Sep 17 00:00:00 2001
+From 964f624954b5e4ea83a4f05a57d79a6af6836d13 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?=E6=9D=8E=E5=9B=BD?= <uxgood.org@gmail.com>
 Date: Thu, 4 Apr 2019 02:40:15 +0000
-Subject: [PATCH 1/3] firmware-utils: ptgen: add GPT support
+Subject: [PATCH 1/8] firmware-utils: ptgen: add GPT support
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -19,16 +19,16 @@ sectors when generate these images.
 Signed-off-by: 李国 <uxgood.org@gmail.com>
 ---
  tools/firmware-utils/Makefile    |   2 +-
- tools/firmware-utils/src/ptgen.c | 279 ++++++++++++++++++++++++++++++-
- 2 files changed, 274 insertions(+), 7 deletions(-)
+ tools/firmware-utils/src/ptgen.c | 337 ++++++++++++++++++++++++++++---
+ 2 files changed, 314 insertions(+), 25 deletions(-)
 
 diff --git a/tools/firmware-utils/Makefile b/tools/firmware-utils/Makefile
-index 76d5929af52..ef4dffd31d6 100644
+index 97c89eec279..561d6d868fe 100644
 --- a/tools/firmware-utils/Makefile
 +++ b/tools/firmware-utils/Makefile
-@@ -25,7 +25,7 @@ define Host/Compile
+@@ -32,7 +32,7 @@ define Host/Compile
  	$(call cc,dgfirmware)
- 	$(call cc,mksenaofw md5)
+ 	$(call cc,mksenaofw md5, -Wall --std=gnu99)
  	$(call cc,trx2usr)
 -	$(call cc,ptgen)
 +	$(call cc,ptgen cyg_crc32)
@@ -36,10 +36,10 @@ index 76d5929af52..ef4dffd31d6 100644
  	$(call cc,mkmylofw)
  	$(call cc,mkcsysimg)
 diff --git a/tools/firmware-utils/src/ptgen.c b/tools/firmware-utils/src/ptgen.c
-index 0192bb65e51..7f7c74ef591 100644
+index 0192bb65e51..caee0f94190 100644
 --- a/tools/firmware-utils/src/ptgen.c
 +++ b/tools/firmware-utils/src/ptgen.c
-@@ -31,15 +31,50 @@
+@@ -31,15 +31,62 @@
  #include <ctype.h>
  #include <fcntl.h>
  #include <stdint.h>
@@ -67,6 +67,8 @@ index 0192bb65e51..7f7c74ef591 100644
 +	UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)
 +#endif
 +
++#define GUID_STRING_LENGTH      36
++
 +#define GPT_SIGNATURE 0x5452415020494645ULL
 +#define GPT_REVISION 0x00010000
 +
@@ -85,12 +87,22 @@ index 0192bb65e51..7f7c74ef591 100644
 +#define GPT_HEADER_SIZE         92
 +#define GPT_ENTRY_SIZE          128
 +#define GPT_ENTRY_MAX           128
++#define GPT_ENTRY_NAME_SIZE     72
 +
++#define GPT_HEADER_SECTOR       1
++#define GPT_FIRST_ENTRY_SECTOR  2
++
++#define MBR_ENTRY_MAX           4
++#define MBR_DISK_SIGNATURE_OFFSET  440
++#define MBR_PARTITION_ENTRY_OFFSET 446
++#define MBR_BOOT_SIGNATURE_OFFSET  510
++
++#define DISK_SECTOR_SIZE        512
 +
  /* Partition table entry */
  struct pte {
  	uint8_t active;
-@@ -55,13 +90,43 @@ struct partinfo {
+@@ -55,13 +102,43 @@ struct partinfo {
  	int type;
  };
  
@@ -119,7 +131,7 @@ index 0192bb65e51..7f7c74ef591 100644
 +	uint64_t start;
 +	uint64_t end;
 +	uint64_t attr;
-+	uint16_t name[72 / sizeof(uint16_t)];
++	uint16_t name[GPT_ENTRY_NAME_SIZE / sizeof(uint16_t)];
 +} __attribute__((packed));
 +
 +
@@ -135,7 +147,16 @@ index 0192bb65e51..7f7c74ef591 100644
  char *filename = NULL;
  
  
-@@ -132,6 +197,57 @@ static inline unsigned long round_to_kb(long sect) {
+@@ -91,7 +168,7 @@ static long to_kbytes(const char *string)
+ 		end++;
+ 
+ 	if (*end) {
+-		fprintf(stderr, "garbage after end of number\n");
++		fputs("garbage after end of number\n", stderr);
+ 		return 0;
+ 	}
+ 
+@@ -132,20 +209,73 @@ static inline unsigned long round_to_kb(long sect) {
          return ((sect - 1) / kb_align + 1) * kb_align;
  }
  
@@ -150,12 +171,12 @@ index 0192bb65e51..7f7c74ef591 100644
 +{
 +	char b[4] = {0};
 +	char *p = buf;
-+	int i = 0;
-+	if (strnlen(buf, 36) != 36)
++	unsigned i = 0;
++	if (strnlen(buf, GUID_STRING_LENGTH) != GUID_STRING_LENGTH)
 +		return -1;
-+	for (i = 0; i < 16; i++) {
++	for (i = 0; i < sizeof(guid_t); i++) {
 +		if (*p == '-')
-+			p ++;
++			p++;
 +		if (*p == '\0')
 +			return -1;
 +		memcpy(b, p, 2);
@@ -170,22 +191,24 @@ index 0192bb65e51..7f7c74ef591 100644
 +}
 +
 +/* init an utf-16 string from utf-8 string */
-+static inline void init_utf16(char *str, uint16_t *buf, int bufsize)
++static inline void init_utf16(char *str, uint16_t *buf, unsigned bufsize)
 +{
-+	int i, n = 0;
++	unsigned i, n = 0;
 +	for (i = 0; i < bufsize; i++) {
 +		if (str[n] == 0x00) {
 +			buf[i] = 0x00;
 +			return ;
-+		} else if((str[n] & 0x80) == 0x00) {//0xxxxxxx
++		} else if ((str[n] & 0x80) == 0x00) {//0xxxxxxx
 +			buf[i] = cpu_to_le16(str[n++]);
-+		} else if((str[n] & 0xE0) == 0xC0) {//110xxxxx
-+			buf[i] = cpu_to_le16((str[n++] & 0x1F) << 6 | str[n++] & 0x3F);
-+		} else if((str[n] & 0xF0) == 0xE0) {//1110xxxx
-+			buf[i] = cpu_to_le16((str[n++] & 0x0F) << 12 | (str[n++] & 0x3F) << 6 | str[n++] & 0x3F);
++		} else if ((str[n] & 0xE0) == 0xC0) {//110xxxxx
++			buf[i] = cpu_to_le16((str[n] & 0x1F) << 6 | str[n + 1] & 0x3F);
++			n += 2;
++		} else if ((str[n] & 0xF0) == 0xE0) {//1110xxxx
++			buf[i] = cpu_to_le16((str[n] & 0x0F) << 12 | (str[n + 1] & 0x3F) << 6 | str[n + 2] & 0x3F);
++			n += 3;
 +		} else {
 +			buf[i] = cpu_to_le16('?');
-+			n ++;
++			n++;
 +		}
 +	}
 +}
@@ -193,28 +216,94 @@ index 0192bb65e51..7f7c74ef591 100644
  /* check the partition sizes and write the partition table */
  static int gen_ptable(uint32_t signature, int nr)
  {
-@@ -198,20 +314,158 @@ static int gen_ptable(uint32_t signature, int nr)
+-	struct pte pte[4];
+-	unsigned long sect = 0;
+-	int i, fd, ret = -1, start, len;
++	struct pte pte[MBR_ENTRY_MAX];
++	unsigned long start, len, sect = 0;
++	int i, fd, ret = -1;
+ 
+-	memset(pte, 0, sizeof(struct pte) * 4);
++	memset(pte, 0, sizeof(struct pte) * MBR_ENTRY_MAX);
+ 	for (i = 0; i < nr; i++) {
+ 		if (!parts[i].size) {
+ 			if (ignore_null_sized_partition)
+ 				continue;
+ 			fprintf(stderr, "Invalid size in partition %d!\n", i);
+-			return -1;
++			return ret;
+ 		}
+ 
+ 		pte[i].active = ((i + 1) == active) ? 0x80 : 0;
+@@ -165,30 +295,34 @@ static int gen_ptable(uint32_t signature, int nr)
+ 		to_chs(start + len - 1, pte[i].chs_end);
+ 
+ 		if (verbose)
+-			fprintf(stderr, "Partition %d: start=%ld, end=%ld, size=%ld\n", i, (long)start * 512, ((long)start + (long)len) * 512, (long)len * 512);
+-		printf("%ld\n", (long)start * 512);
+-		printf("%ld\n", (long)len * 512);
++			fprintf(stderr, "Partition %d: start=%ld, end=%ld, size=%ld\n",
++					i,
++					(long)start * DISK_SECTOR_SIZE,
++					(long)(start + len) * DISK_SECTOR_SIZE,
++					(long)len * DISK_SECTOR_SIZE);
++		printf("%ld\n", (long)start * DISK_SECTOR_SIZE);
++		printf("%ld\n", (long)len * DISK_SECTOR_SIZE);
+ 	}
+ 
+ 	if ((fd = open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0644)) < 0) {
+ 		fprintf(stderr, "Can't open output file '%s'\n",filename);
+-		return -1;
++		return ret;
+ 	}
+ 
+-	lseek(fd, 440, SEEK_SET);
++	lseek(fd, MBR_DISK_SIGNATURE_OFFSET, SEEK_SET);
+ 	if (write(fd, &signature, sizeof(signature)) != sizeof(signature)) {
+-		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
+ 		goto fail;
+ 	}
+ 
+-	lseek(fd, 446, SEEK_SET);
+-	if (write(fd, pte, sizeof(struct pte) * 4) != sizeof(struct pte) * 4) {
+-		fprintf(stderr, "write failed.\n");
++	lseek(fd, MBR_PARTITION_ENTRY_OFFSET, SEEK_SET);
++	if (write(fd, pte, sizeof(struct pte) * MBR_ENTRY_MAX) != sizeof(struct pte) * MBR_ENTRY_MAX) {
++		fputs("write failed.\n", stderr);
+ 		goto fail;
+ 	}
+-	lseek(fd, 510, SEEK_SET);
++	lseek(fd, MBR_BOOT_SIGNATURE_OFFSET, SEEK_SET);
+ 	if (write(fd, "\x55\xaa", 2) != 2) {
+-		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
+ 		goto fail;
+ 	}
+ 
+@@ -198,20 +332,162 @@ static int gen_ptable(uint32_t signature, int nr)
  	return ret;
  }
  
 +/* check the partition sizes and write the guid partition table */
-+static int gen_gptable(uint32_t signature, guid_t guid, int nr)
++static int gen_gptable(uint32_t signature, guid_t guid, unsigned nr)
 +{
 +	struct pte pte;
 +	struct gpth gpth = {
 +		.signature = cpu_to_le64(GPT_SIGNATURE),
 +		.revision = cpu_to_le32(GPT_REVISION),
 +		.size = cpu_to_le32(GPT_HEADER_SIZE),
-+		.self = cpu_to_le64(1),
-+		.first_usable = cpu_to_le64(GPT_ENTRY_SIZE * GPT_ENTRY_MAX / 512 + 2),
-+		.first_entry = cpu_to_le64(2),
++		.self = cpu_to_le64(GPT_HEADER_SECTOR),
++		.first_usable = cpu_to_le64(GPT_FIRST_ENTRY_SECTOR + GPT_ENTRY_SIZE * GPT_ENTRY_MAX / DISK_SECTOR_SIZE),
++		.first_entry = cpu_to_le64(GPT_FIRST_ENTRY_SECTOR),
 +		.disk_guid = guid,
 +		.entry_num = cpu_to_le32(GPT_ENTRY_MAX),
 +		.entry_size = cpu_to_le32(GPT_ENTRY_SIZE),
 +	};
 +	struct gpte  gpte[GPT_ENTRY_MAX];
-+	unsigned long long start, end, sect = 0;
-+	int i, fd, ret = -1;
++	uint64_t start, end, sect = 0;
++	int fd, ret = -1;
++	unsigned i;
 +
 +	memset(gpte, 0, GPT_ENTRY_SIZE * GPT_ENTRY_MAX);
 +	for (i = 0; i < nr; i++) {
@@ -222,7 +311,7 @@ index 0192bb65e51..7f7c74ef591 100644
 +			if (ignore_null_sized_partition)
 +				continue;
 +			fprintf(stderr, "Invalid size in partition %d!\n", i);
-+			return -1;
++			return ret;
 +		}
 +		start = sect + sectors;
 +		if (kb_align != 0)
@@ -234,95 +323,98 @@ index 0192bb65e51..7f7c74ef591 100644
 +			sect = round_to_cyl(sect);
 +		gpte[i].end = cpu_to_le64(sect -1);
 +		gpte[i].guid = guid;
-+		gpte[i].guid.b[15] += i + 1;
++		gpte[i].guid.b[sizeof(guid_t) -1] += i + 1;
 +		if (parts[i].type == 0xEF || (i + 1) == active) {
 +			gpte[i].type = GUID_PARTITION_SYSTEM;
-+			init_utf16("EFI System Partition", gpte[i].name, 36) ;
++			init_utf16("EFI System Partition", gpte[i].name, GPT_ENTRY_NAME_SIZE / sizeof(uint16_t));
 +		} else {
 +			gpte[i].type = GUID_PARTITION_BASIC_DATA;
 +		}
 +
 +		if (verbose)
-+			fprintf(stderr, "Partition %d: start=%lld, end=%lld, size=%lld\n", i, start * 512, sect * 512, (sect - start) * 512);
-+		printf("%lld\n", start * 512);
-+		printf("%lld\n", (sect - start) * 512);
++			fprintf(stderr, "Partition %d: start=%lld, end=%lld, size=%lld\n",
++					i,
++					start * DISK_SECTOR_SIZE, sect * DISK_SECTOR_SIZE,
++					(sect - start) * DISK_SECTOR_SIZE);
++		printf("%lld\n", start * DISK_SECTOR_SIZE);
++		printf("%lld\n", (sect - start) * DISK_SECTOR_SIZE);
 +	}
 +
-+	gpte[GPT_ENTRY_MAX - 1].start = cpu_to_le64(GPT_ENTRY_SIZE * GPT_ENTRY_MAX / 512 + 2);
++	gpte[GPT_ENTRY_MAX - 1].start = cpu_to_le64(GPT_FIRST_ENTRY_SECTOR + GPT_ENTRY_SIZE * GPT_ENTRY_MAX / DISK_SECTOR_SIZE);
 +	gpte[GPT_ENTRY_MAX - 1].end = cpu_to_le64((kb_align ? round_to_kb(sectors) : sectors) - 1);
 +	gpte[GPT_ENTRY_MAX - 1].type = GUID_PARTITION_BIOS_BOOT;
 +	gpte[GPT_ENTRY_MAX - 1].guid = guid;
-+	gpte[GPT_ENTRY_MAX - 1].guid.b[15] += GPT_ENTRY_MAX;
++	gpte[GPT_ENTRY_MAX - 1].guid.b[sizeof(guid_t) -1] += GPT_ENTRY_MAX;
 +
 +	end = sect + sectors - 1;
 +
 +	pte.type = 0xEE;
-+	pte.start = cpu_to_le32(1);
++	pte.start = cpu_to_le32(GPT_HEADER_SECTOR);
 +	pte.length = cpu_to_le32(end);
-+	to_chs(1, pte.chs_start);
++	to_chs(GPT_HEADER_SECTOR, pte.chs_start);
 +	to_chs(end, pte.chs_end);
 +
-+	gpth.last_usable = cpu_to_le64(end - GPT_ENTRY_SIZE * GPT_ENTRY_MAX / 512 - 1);
++	gpth.last_usable = cpu_to_le64(end - GPT_ENTRY_SIZE * GPT_ENTRY_MAX / DISK_SECTOR_SIZE - 1);
 +	gpth.alternate = cpu_to_le64(end);
 +	gpth.entry_crc32 = cpu_to_le32(gpt_crc32(gpte, GPT_ENTRY_SIZE * GPT_ENTRY_MAX));
 +	gpth.crc32 = cpu_to_le32(gpt_crc32((char *)&gpth, GPT_HEADER_SIZE));
 +
 +	if ((fd = open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0644)) < 0) {
 +		fprintf(stderr, "Can't open output file '%s'\n",filename);
-+		return -1;
++		return ret;
 +	}
 +
-+	lseek(fd, 440, SEEK_SET);
++	lseek(fd, MBR_DISK_SIGNATURE_OFFSET, SEEK_SET);
 +	if (write(fd, &signature, sizeof(signature)) != sizeof(signature)) {
-+		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
 +		goto fail;
 +	}
 +
-+	lseek(fd, 446, SEEK_SET);
++	lseek(fd, MBR_PARTITION_ENTRY_OFFSET, SEEK_SET);
 +	if (write(fd, &pte, sizeof(struct pte)) != sizeof(struct pte)) {
-+		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
 +		goto fail;
 +	}
 +
-+	lseek(fd, 510, SEEK_SET);
++	lseek(fd, MBR_BOOT_SIGNATURE_OFFSET, SEEK_SET);
 +	if (write(fd, "\x55\xaa", 2) != 2) {
-+		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
 +		goto fail;
 +	}
 +
-+	lseek(fd, 512, SEEK_SET);
++	//lseek(fd, GPT_HEADER_SECTOR * DISK_SECTOR_SIZE, SEEK_SET);
 +	if (write(fd, &gpth, GPT_HEADER_SIZE) != GPT_HEADER_SIZE) {
-+		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
 +		goto fail;
 +	}
 +
-+	lseek(fd, 1024, SEEK_SET);
++	lseek(fd, GPT_FIRST_ENTRY_SECTOR * DISK_SECTOR_SIZE, SEEK_SET);
 +	if (write(fd, &gpte, GPT_ENTRY_SIZE * GPT_ENTRY_MAX) != GPT_ENTRY_SIZE * GPT_ENTRY_MAX) {
-+		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
 +		goto fail;
 +	}
 +
 +#if 0
 +	/* The alternate partition table (We omit it) */
 +	swap(gpth.self, gpth.alternate);
-+	gpth.first_entry = cpu_to_le64(end - GPT_ENTRY_SIZE * GPT_ENTRY_MAX / 512),
++	gpth.first_entry = cpu_to_le64(end - GPT_ENTRY_SIZE * GPT_ENTRY_MAX / DISK_SECTOR_SIZE),
 +	gpth.crc32 = 0;
 +	gpth.crc32 = cpu_to_le32(gpt_crc32(&gpth, GPT_HEADER_SIZE));
 +
-+	lseek(fd, end * 512 - GPT_ENTRY_SIZE * GPT_ENTRY_MAX, SEEK_SET);
++	lseek(fd, end * DISK_SECTOR_SIZE - GPT_ENTRY_SIZE * GPT_ENTRY_MAX, SEEK_SET);
 +	if (write(fd, &gpte, GPT_ENTRY_SIZE * GPT_ENTRY_MAX) != GPT_ENTRY_SIZE * GPT_ENTRY_MAX) {
-+		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
 +		goto fail;
 +	}
 +
-+	lseek(fd, end * 512, SEEK_SET);
++	lseek(fd, end * DISK_SECTOR_SIZE, SEEK_SET);
 +	if (write(fd, &gpth, GPT_HEADER_SIZE) != GPT_HEADER_SIZE) {
-+		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
 +		goto fail;
 +	}
-+	lseek(fd, end * 512 + 511, SEEK_SET);
++	lseek(fd, (end + 1) * DISK_SECTOR_SIZE -1, SEEK_SET);
 +	if (write(fd, "\x00", 1) != 1) {
-+		fprintf(stderr, "write failed.\n");
++		fputs("write failed.\n", stderr);
 +		goto fail;
 +	}
 +#endif
@@ -355,7 +447,7 @@ index 0192bb65e51..7f7c74ef591 100644
  		switch (ch) {
  		case 'o':
  			filename = optarg;
-@@ -222,6 +476,9 @@ int main (int argc, char **argv)
+@@ -222,6 +498,9 @@ int main (int argc, char **argv)
  		case 'n':
  			ignore_null_sized_partition = true;
  			break;
@@ -365,29 +457,31 @@ index 0192bb65e51..7f7c74ef591 100644
  		case 'h':
  			heads = (int)strtoul(optarg, NULL, 0);
  			break;
-@@ -229,7 +486,7 @@ int main (int argc, char **argv)
+@@ -229,8 +508,8 @@ int main (int argc, char **argv)
  			sectors = (int)strtoul(optarg, NULL, 0);
  			break;
  		case 'p':
 -			if (part > 3) {
-+			if (part > GPT_ENTRY_MAX - 1 || (use_guid_partition_table == false && part > 3)) {
- 				fprintf(stderr, "Too many partitions\n");
+-				fprintf(stderr, "Too many partitions\n");
++			if (part > GPT_ENTRY_MAX - 1 || (!use_guid_partition_table && part > 3)) {
++				fputs("Too many partitions\n", stderr);
  				exit(EXIT_FAILURE);
  			}
-@@ -250,6 +507,12 @@ int main (int argc, char **argv)
+ 			parts[part].size = to_kbytes(optarg);
+@@ -250,6 +529,12 @@ int main (int argc, char **argv)
  		case 'S':
  			signature = strtoul(optarg, NULL, 0);
  			break;
 +		case 'G':
 +			if (guid_parse(optarg, &guid)) {
-+				fprintf(stderr, "Invalid guid string\n");
++				fputs("Invalid guid string\n", stderr);
 +				exit(EXIT_FAILURE);
 +			}
 +			break;
  		case '?':
  		default:
  			usage(argv[0]);
-@@ -259,5 +522,9 @@ int main (int argc, char **argv)
+@@ -259,5 +544,9 @@ int main (int argc, char **argv)
  	if (argc || (heads <= 0) || (sectors <= 0) || !filename)
  		usage(argv[0]);
  
@@ -399,10 +493,10 @@ index 0192bb65e51..7f7c74ef591 100644
 +	}
  }
 
-From 95bcdb36536f6697975adc18e8ba724738226504 Mon Sep 17 00:00:00 2001
+From c634da575c221e6a340884219d78978f56f23976 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?=E6=9D=8E=E5=9B=BD?= <uxgood.org@gmail.com>
 Date: Thu, 4 Apr 2019 03:17:01 +0000
-Subject: [PATCH 2/3] grub2: split to grub2 and grub2-efi packages
+Subject: [PATCH 2/8] grub2: split to grub2 and grub2-efi packages
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -413,98 +507,74 @@ so we split it to grub2 and grub2-efi packages.
 
 Signed-off-by: 李国 <uxgood.org@gmail.com>
 ---
- package/boot/grub2/{Makefile => common.mk} | 50 +++-------------------
- package/boot/grub2/grub2-efi/Makefile      | 19 ++++++++
- package/boot/grub2/grub2/Makefile          | 46 ++++++++++++++++++++
- 3 files changed, 71 insertions(+), 44 deletions(-)
- rename package/boot/grub2/{Makefile => common.mk} (53%)
+ package/boot/grub2/common.mk            | 54 +++++++++++++++++++++++++
+ package/boot/grub2/grub2-efi/Makefile   | 19 +++++++++
+ package/boot/grub2/{ => grub2}/Makefile | 50 +----------------------
+ 3 files changed, 75 insertions(+), 48 deletions(-)
+ create mode 100644 package/boot/grub2/common.mk
  create mode 100644 package/boot/grub2/grub2-efi/Makefile
- create mode 100644 package/boot/grub2/grub2/Makefile
+ rename package/boot/grub2/{ => grub2}/Makefile (66%)
 
-diff --git a/package/boot/grub2/Makefile b/package/boot/grub2/common.mk
-similarity index 53%
-rename from package/boot/grub2/Makefile
-rename to package/boot/grub2/common.mk
-index d6af65128e5..5c7e65d37f5 100644
---- a/package/boot/grub2/Makefile
+diff --git a/package/boot/grub2/common.mk b/package/boot/grub2/common.mk
+new file mode 100644
+index 00000000000..53ee26552f8
+--- /dev/null
 +++ b/package/boot/grub2/common.mk
-@@ -19,49 +19,19 @@ PKG_HASH:=810b3798d316394f94096ec2797909dbf23c858e48f7b3830826b8daa06b7b0f
- 
- PKG_FIXUP:=autoreconf
- HOST_BUILD_PARALLEL:=1
--PKG_BUILD_DEPENDS:=grub2/host
- 
- PKG_SSP:=0
- 
- PKG_FLAGS:=nonshared
- 
--include $(INCLUDE_DIR)/host-build.mk
--include $(INCLUDE_DIR)/package.mk
--
--define Package/grub2
--  CATEGORY:=Boot Loaders
--  SECTION:=boot
--  TITLE:=GRand Unified Bootloader
--  URL:=http://www.gnu.org/software/grub/
--  DEPENDS:=@TARGET_x86
--endef
--
--define Package/grub2-editenv
--  CATEGORY:=Utilities
--  SECTION:=utils
--  SUBMENU:=Boot Loaders
--  TITLE:=Grub2 Environment editor
--  URL:=http://www.gnu.org/software/grub/
--  DEPENDS:=@TARGET_x86
--endef
--
--define Package/grub2-editenv/description
--	Edit grub2 environment files.
--endef
+@@ -0,0 +1,54 @@
++#
++# Copyright (C) 2006-2015 OpenWrt.org
++#
++# This is free software, licensed under the GNU General Public License v2.
++# See /LICENSE for more information.
++#
++
++include $(TOPDIR)/rules.mk
++include $(INCLUDE_DIR)/kernel.mk
++
++PKG_NAME:=grub
++PKG_CPE_ID:=cpe:/a:gnu:grub2
++PKG_VERSION:=2.04
++PKG_RELEASE:=2
++
++PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
++PKG_SOURCE_URL:=@GNU/grub
++PKG_HASH:=e5292496995ad42dabe843a0192cf2a2c502e7ffcc7479398232b10a472df77d
++
++HOST_BUILD_PARALLEL:=1
++
++PKG_SSP:=0
++
++PKG_FLAGS:=nonshared
++
 +PATCH_DIR:=../patches
- 
++
 +HOST_BUILD_DIR ?= $(BUILD_DIR_HOST)/$(PKG_NAME)-$(GRUB_PLATFORM)/$(PKG_NAME)$(if $(PKG_VERSION),-$(PKG_VERSION))
- HOST_BUILD_PREFIX := $(STAGING_DIR_HOST)
- 
--CONFIGURE_VARS += \
--	grub_build_mkfont_excuse="don't want fonts"
++HOST_BUILD_PREFIX := $(STAGING_DIR_HOST)
++
 +include $(INCLUDE_DIR)/host-build.mk
 +include $(INCLUDE_DIR)/package.mk
- 
--CONFIGURE_ARGS += \
--	--target=$(REAL_GNU_TARGET_NAME) \
--	--disable-werror \
--	--disable-nls \
--	--disable-device-mapper \
--	--disable-libzfs \
--	--disable-grub-mkfont \
--	--with-platform=none
- 
- HOST_CONFIGURE_VARS += \
- 	grub_build_mkfont_excuse="don't want fonts"
-@@ -72,7 +42,8 @@ HOST_CONFIGURE_ARGS += \
- 	--sbindir="$(STAGING_DIR_HOST)/bin" \
- 	--disable-werror \
- 	--disable-libzfs \
--	--disable-nls
++
++
++HOST_CONFIGURE_VARS += \
++	grub_build_mkfont_excuse="don't want fonts"
++
++HOST_CONFIGURE_ARGS += \
++	--disable-grub-mkfont \
++	--target=$(REAL_GNU_TARGET_NAME) \
++	--sbindir="$(STAGING_DIR_HOST)/bin" \
++	--disable-werror \
++	--disable-libzfs \
 +	--disable-nls \
 +	--with-platform=$(GRUB_PLATFORM)
- 
- HOST_MAKE_FLAGS += \
- 	TARGET_RANLIB=$(TARGET_RANLIB) \
-@@ -82,12 +53,3 @@ define Host/Configure
- 	$(SED) 's,(RANLIB),(TARGET_RANLIB),' $(HOST_BUILD_DIR)/grub-core/Makefile.in
- 	$(Host/Configure/Default)
- endef
--
--define Package/grub2-editenv/install
--	$(INSTALL_DIR) $(1)/usr/sbin
--	$(INSTALL_BIN) $(PKG_BUILD_DIR)/grub-editenv $(1)/usr/sbin/
--endef
--
--$(eval $(call HostBuild))
--$(eval $(call BuildPackage,grub2))
--$(eval $(call BuildPackage,grub2-editenv))
++
++HOST_MAKE_FLAGS += \
++	TARGET_RANLIB=$(TARGET_RANLIB) \
++	LIBLZMA=$(STAGING_DIR_HOST)/lib/liblzma.a
++
++define Host/Configure
++	$(SED) 's,(RANLIB),(TARGET_RANLIB),' $(HOST_BUILD_DIR)/grub-core/Makefile.in
++	$(Host/Configure/Default)
++endef
 diff --git a/package/boot/grub2/grub2-efi/Makefile b/package/boot/grub2/grub2-efi/Makefile
 new file mode 100644
 index 00000000000..2fc21fdb890
@@ -530,63 +600,88 @@ index 00000000000..2fc21fdb890
 +
 +$(eval $(call HostBuild))
 +$(eval $(call BuildPackage,grub2-efi))
-diff --git a/package/boot/grub2/grub2/Makefile b/package/boot/grub2/grub2/Makefile
-new file mode 100644
-index 00000000000..b1db13295d9
---- /dev/null
+diff --git a/package/boot/grub2/Makefile b/package/boot/grub2/grub2/Makefile
+similarity index 66%
+rename from package/boot/grub2/Makefile
+rename to package/boot/grub2/grub2/Makefile
+index 980a6e372a3..7126beab4cf 100644
+--- a/package/boot/grub2/Makefile
 +++ b/package/boot/grub2/grub2/Makefile
-@@ -0,0 +1,46 @@
+@@ -1,31 +1,7 @@
+-#
+-# Copyright (C) 2006-2015 OpenWrt.org
+-#
+-# This is free software, licensed under the GNU General Public License v2.
+-# See /LICENSE for more information.
+-#
 +GRUB_PLATFORM:=pc
-+
-+PKG_BUILD_DEPENDS:=grub2/host
+ 
+-include $(TOPDIR)/rules.mk
+-include $(INCLUDE_DIR)/kernel.mk
+-
+-PKG_NAME:=grub
+-PKG_CPE_ID:=cpe:/a:gnu:grub2
+-PKG_VERSION:=2.04
+-PKG_RELEASE:=1
+-
+-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+-PKG_SOURCE_URL:=@GNU/grub
+-PKG_HASH:=e5292496995ad42dabe843a0192cf2a2c502e7ffcc7479398232b10a472df77d
+-
+-HOST_BUILD_PARALLEL:=1
+ PKG_BUILD_DEPENDS:=grub2/host
+-
+-PKG_SSP:=0
+-
+-PKG_FLAGS:=nonshared
+-
+-include $(INCLUDE_DIR)/host-build.mk
+-include $(INCLUDE_DIR)/package.mk
 +include ../common.mk
-+
-+define Package/grub2
-+  CATEGORY:=Boot Loaders
-+  SECTION:=boot
-+  TITLE:=GRand Unified Bootloader
-+  URL:=http://www.gnu.org/software/grub/
-+  DEPENDS:=@TARGET_x86
-+endef
-+
-+define Package/grub2-editenv
-+  CATEGORY:=Utilities
-+  SECTION:=utils
-+  SUBMENU:=Boot Loaders
-+  TITLE:=Grub2 Environment editor
-+  URL:=http://www.gnu.org/software/grub/
-+  DEPENDS:=@TARGET_x86
-+endef
-+
-+define Package/grub2-editenv/description
-+	Edit grub2 environment files.
-+endef
-+
-+CONFIGURE_VARS += \
-+	grub_build_mkfont_excuse="don't want fonts"
-+
-+CONFIGURE_ARGS += \
-+	--target=$(REAL_GNU_TARGET_NAME) \
-+	--disable-werror \
-+	--disable-nls \
-+	--disable-device-mapper \
-+	--disable-libzfs \
-+	--disable-grub-mkfont \
-+	--with-platform=none
-+
-+define Package/grub2-editenv/install
-+	$(INSTALL_DIR) $(1)/usr/sbin
-+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/grub-editenv $(1)/usr/sbin/
-+endef
-+
-+$(eval $(call HostBuild))
-+$(eval $(call BuildPackage,grub2))
-+$(eval $(call BuildPackage,grub2-editenv))
+ 
+ define Package/grub2
+   CATEGORY:=Boot Loaders
+@@ -48,8 +24,6 @@ define Package/grub2-editenv/description
+ 	Edit grub2 environment files.
+ endef
+ 
+-HOST_BUILD_PREFIX := $(STAGING_DIR_HOST)
+-
+ CONFIGURE_VARS += \
+ 	grub_build_mkfont_excuse="don't want fonts"
+ 
+@@ -62,26 +36,6 @@ CONFIGURE_ARGS += \
+ 	--disable-grub-mkfont \
+ 	--with-platform=none
+ 
+-HOST_CONFIGURE_VARS += \
+-	grub_build_mkfont_excuse="don't want fonts"
+-
+-HOST_CONFIGURE_ARGS += \
+-	--disable-grub-mkfont \
+-	--target=$(REAL_GNU_TARGET_NAME) \
+-	--sbindir="$(STAGING_DIR_HOST)/bin" \
+-	--disable-werror \
+-	--disable-libzfs \
+-	--disable-nls
+-
+-HOST_MAKE_FLAGS += \
+-	TARGET_RANLIB=$(TARGET_RANLIB) \
+-	LIBLZMA=$(STAGING_DIR_HOST)/lib/liblzma.a
+-
+-define Host/Configure
+-	$(SED) 's,(RANLIB),(TARGET_RANLIB),' $(HOST_BUILD_DIR)/grub-core/Makefile.in
+-	$(Host/Configure/Default)
+-endef
+-
+ define Host/Install
+ 	$(call Host/Install/Default)
+ 
 
-From 4bcc334cead3225d13e5425a48a946f0da2966b4 Mon Sep 17 00:00:00 2001
+From 15212ac11ac95a57f75317fff83bb7d53b581a93 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?=E6=9D=8E=E5=9B=BD?= <uxgood.org@gmail.com>
 Date: Thu, 4 Apr 2019 03:42:16 +0000
-Subject: [PATCH 3/3] x86: add EFI images and make iso images EFI bootable
+Subject: [PATCH 3/8] x86: add EFI images and make iso images EFI bootable
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -604,22 +699,22 @@ kernel can not find rootfs, we pad enough sectors will be ok.
 
 Signed-off-by: 李国 <uxgood.org@gmail.com>
 ---
- config/Config-images.in                       |  27 +++--
- .../base-files/files/lib/upgrade/common.sh    |  15 +++
- scripts/gen_image_generic.sh                  |  10 +-
- .../x86/base-files/lib/preinit/79_move_config |   6 +-
- .../x86/base-files/lib/upgrade/platform.sh    |   6 +-
- target/linux/x86/generic/config-4.14          |   1 +
- target/linux/x86/generic/config-4.19          |   1 +
- target/linux/x86/image/Makefile               | 103 +++++++++++++++++-
- target/linux/x86/image/grub-iso.cfg           |   7 +-
- 9 files changed, 157 insertions(+), 19 deletions(-)
+ config/Config-images.in                       | 23 +++++++++++++------
+ .../base-files/files/lib/upgrade/common.sh    | 11 +++++++++
+ scripts/gen_image_generic.sh                  | 10 ++++++--
+ .../x86/base-files/lib/preinit/79_move_config |  6 +++--
+ .../x86/base-files/lib/upgrade/platform.sh    |  6 +++--
+ target/linux/x86/generic/config-4.19          |  1 +
+ target/linux/x86/generic/config-5.4           |  1 +
+ target/linux/x86/image/Makefile               |  3 +++
+ target/linux/x86/image/grub-iso.cfg           |  7 +++++-
+ 9 files changed, 54 insertions(+), 14 deletions(-)
 
 diff --git a/config/Config-images.in b/config/Config-images.in
-index 9daaf749158..950f59ca657 100644
+index e4db0482ce2..16b575247ea 100644
 --- a/config/Config-images.in
 +++ b/config/Config-images.in
-@@ -194,19 +194,28 @@ menu "Target Images"
+@@ -188,19 +188,28 @@ menu "Target Images"
  		select PACKAGE_grub2
  		default y
  
@@ -651,7 +746,7 @@ index 9daaf749158..950f59ca657 100644
  		default 38400 if TARGET_x86_generic
  		default 115200
  
-@@ -217,20 +226,20 @@ menu "Target Images"
+@@ -211,20 +220,20 @@ menu "Target Images"
  
  	config GRUB_BOOTOPTS
  		string "Extra kernel boot options"
@@ -675,23 +770,7 @@ index 9daaf749158..950f59ca657 100644
  		default "OpenWrt"
  		help
  		  This is the title of the GRUB menu entry.
-@@ -265,21 +274,21 @@ menu "Target Images"
- 
- 	config TARGET_KERNEL_PARTSIZE
- 		int "Kernel partition size (in MB)"
--		depends on GRUB_IMAGES || USES_BOOT_PART
-+		depends on GRUB_IMAGES || EFI_IMAGES || USES_BOOT_PART
- 		default 8 if TARGET_apm821xx_sata
- 		default 20 if TARGET_brcm2708
- 		default 16
- 
- 	config TARGET_ROOTFS_PARTSIZE
- 		int "Root filesystem partition size (in MB)"
--		depends on GRUB_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
-+		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
- 		default 256
- 		help
- 		  Select the root filesystem partition size.
+@@ -272,7 +281,7 @@ menu "Target Images"
  
  	config TARGET_ROOTFS_PARTNAME
  		string "Root partition on target device"
@@ -701,19 +780,15 @@ index 9daaf749158..950f59ca657 100644
  		  Override the root partition on the final device. If left empty,
  		  it will be mounted by PARTUUID which makes the kernel find the
 diff --git a/package/base-files/files/lib/upgrade/common.sh b/package/base-files/files/lib/upgrade/common.sh
-index b3a29fb32e3..f319692b491 100644
+index a986cc0b5c7..6e967aeffe8 100644
 --- a/package/base-files/files/lib/upgrade/common.sh
 +++ b/package/base-files/files/lib/upgrade/common.sh
-@@ -128,6 +128,21 @@ export_bootdevice() {
+@@ -136,6 +136,17 @@ export_bootdevice() {
  					fi
  				done
  			;;
-+			PARTUUID=[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9]\
-+-[a-f0-9][a-f0-9][a-f0-9][a-f0-9]\
-+-[a-f0-9][a-f0-9][a-f0-9][a-f0-9]\
-+-[a-f0-9][a-f0-9][a-f0-9][a-f0-9]\
-+-[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9]02)
-+				uuid="${disk#PARTUUID=}"
++			PARTUUID=????????-????-????-????-??????????02)
++				uuid="${rootpart#PARTUUID=}"
 +				uuid="${uuid%02}00"
 +				for disk in $(find /dev -type b); do
 +					set -- $(dd if=$disk bs=1 skip=568 count=16 2>/dev/null | hexdump -v -e '8/1 "%02x "" "2/1 "%02x""-"6/1 "%02x"')
@@ -724,18 +799,18 @@ index b3a29fb32e3..f319692b491 100644
 +				done
 +			;;
  			/dev/*)
- 				uevent="/sys/class/block/${disk##*/}/uevent"
+ 				uevent="/sys/class/block/${rootpart##*/}/../uevent"
  			;;
 diff --git a/scripts/gen_image_generic.sh b/scripts/gen_image_generic.sh
-index d9beeb02953..cc5a4d56fbe 100755
+index 2c57d56f073..1df4d0673b3 100755
 --- a/scripts/gen_image_generic.sh
 +++ b/scripts/gen_image_generic.sh
 @@ -20,7 +20,7 @@ sect=63
- cyl=$(( ($KERNELSIZE + $ROOTFSSIZE) * 1024 * 1024 / ($head * $sect * 512)))
+ cyl=$(( (KERNELSIZE + ROOTFSSIZE) * 1024 * 1024 / (head * sect * 512)))
  
  # create partition table
--set `ptgen -o "$OUTPUT" -h $head -s $sect -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE}`
-+set `ptgen -o "$OUTPUT" -h $head -s $sect ${EFI_SIGNATURE:+-g} -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE} ${EFI_SIGNATURE:+-G $EFI_SIGNATURE}`
+-set $(ptgen -o "$OUTPUT" -h $head -s $sect -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE})
++set $(ptgen -o "$OUTPUT" -h $head -s $sect ${EFI_SIGNATURE:+-g} -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE} ${EFI_SIGNATURE:+-G $EFI_SIGNATURE})
  
  KERNELOFFSET="$(($1 / 512))"
  KERNELSIZE="$2"
@@ -743,18 +818,18 @@ index d9beeb02953..cc5a4d56fbe 100755
  [ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc count="$ROOTFSSIZE"
  dd if="$ROOTFSIMAGE" of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc
  
--make_ext4fs -J -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
+-make_ext4fs -J -L kernel -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
 +if [ -n "$EFI_SIGNATURE" ]; then
 +    [ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$(($ROOTFSOFFSET + $ROOTFSSIZE))" conv=notrunc count="$sect"
-+    mkfs.fat -C "$OUTPUT.kernel" -S 512 "$(($KERNELSIZE / 1024))"
++    mkfs.fat -n kernel -C "$OUTPUT.kernel" -S 512 "$(($KERNELSIZE / 1024))"
 +    mcopy -s -i "$OUTPUT.kernel" "$KERNELDIR"/* ::/
 +else
-+    make_ext4fs -J -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
++    make_ext4fs -J -L kernel -l "$KERNELSIZE" "$OUTPUT.kernel" "$KERNELDIR"
 +fi
  dd if="$OUTPUT.kernel" of="$OUTPUT" bs=512 seek="$KERNELOFFSET" conv=notrunc
  rm -f "$OUTPUT.kernel"
 diff --git a/target/linux/x86/base-files/lib/preinit/79_move_config b/target/linux/x86/base-files/lib/preinit/79_move_config
-index aff720a52c5..8eea97c5b66 100644
+index 702da9e873d..015efcf748b 100644
 --- a/target/linux/x86/base-files/lib/preinit/79_move_config
 +++ b/target/linux/x86/base-files/lib/preinit/79_move_config
 @@ -2,13 +2,15 @@
@@ -772,14 +847,14 @@ index aff720a52c5..8eea97c5b66 100644
 +		magic=$(dd if="/dev/$partdev" bs=1 count=3 skip=54 2>/dev/null)
 +		[ "$magic" = "FAT" ] && parttype=vfat
 +		mount -t $parttype -o rw,noatime "/dev/$partdev" /boot
- 		if [ -f /boot/sysupgrade.tgz ]; then
- 			mv -f /boot/sysupgrade.tgz /
+ 		if [ -f "/boot/$BACKUP_FILE" ]; then
+ 			mv -f "/boot/$BACKUP_FILE" /
  		fi
 diff --git a/target/linux/x86/base-files/lib/upgrade/platform.sh b/target/linux/x86/base-files/lib/upgrade/platform.sh
-index 439ba8f5125..ea66b4aa24f 100644
+index 53c751861cc..1c93f5bd9b9 100644
 --- a/target/linux/x86/base-files/lib/upgrade/platform.sh
 +++ b/target/linux/x86/base-files/lib/upgrade/platform.sh
-@@ -35,10 +35,12 @@ platform_check_image() {
+@@ -37,10 +37,12 @@ platform_check_image() {
  }
  
  platform_copy_config() {
@@ -791,23 +866,11 @@ index 439ba8f5125..ea66b4aa24f 100644
 +		magic=$(dd if="/dev/$partdev" bs=1 count=3 skip=54 2>/dev/null)
 +		[ "$magic" = "FAT" ] && parttype=vfat
 +		mount -t $parttype -o rw,noatime "/dev/$partdev" /mnt
- 		cp -af "$CONF_TAR" /mnt/
+ 		cp -af "$UPGRADE_BACKUP" "/mnt/$BACKUP_FILE"
  		umount /mnt
  	fi
-diff --git a/target/linux/x86/generic/config-4.14 b/target/linux/x86/generic/config-4.14
-index 92380f526db..8f4b5182312 100644
---- a/target/linux/x86/generic/config-4.14
-+++ b/target/linux/x86/generic/config-4.14
-@@ -125,6 +125,7 @@ CONFIG_FB_EFI=y
- CONFIG_FB_HYPERV=y
- # CONFIG_FB_I810 is not set
- # CONFIG_FB_PROVIDE_GET_FB_UNMAPPED_AREA is not set
-+CONFIG_FB_SIMPLE=y
- CONFIG_FB_SYS_COPYAREA=y
- CONFIG_FB_SYS_FILLRECT=y
- CONFIG_FB_SYS_FOPS=y
 diff --git a/target/linux/x86/generic/config-4.19 b/target/linux/x86/generic/config-4.19
-index e769835b73a..89a6e142022 100644
+index 4a689ca026c..ada81ce04ea 100644
 --- a/target/linux/x86/generic/config-4.19
 +++ b/target/linux/x86/generic/config-4.19
 @@ -139,6 +139,7 @@ CONFIG_FB_DEFERRED_IO=y
@@ -818,182 +881,34 @@ index e769835b73a..89a6e142022 100644
  CONFIG_FB_SYS_COPYAREA=y
  CONFIG_FB_SYS_FILLRECT=y
  CONFIG_FB_SYS_FOPS=y
+diff --git a/target/linux/x86/generic/config-5.4 b/target/linux/x86/generic/config-5.4
+index 4a689ca026c..ada81ce04ea 100644
+--- a/target/linux/x86/generic/config-5.4
++++ b/target/linux/x86/generic/config-5.4
+@@ -139,6 +139,7 @@ CONFIG_FB_DEFERRED_IO=y
+ CONFIG_FB_EFI=y
+ CONFIG_FB_HYPERV=y
+ # CONFIG_FB_I810 is not set
++CONFIG_FB_SIMPLE=y
+ CONFIG_FB_SYS_COPYAREA=y
+ CONFIG_FB_SYS_FILLRECT=y
+ CONFIG_FB_SYS_FOPS=y
 diff --git a/target/linux/x86/image/Makefile b/target/linux/x86/image/Makefile
-index 84a3d88a7f2..aacb1b4830d 100644
+index c2961e5b9c9..aa80d77b978 100644
 --- a/target/linux/x86/image/Makefile
 +++ b/target/linux/x86/image/Makefile
-@@ -11,6 +11,7 @@ export PATH=$(TARGET_PATH):/sbin
+@@ -38,6 +38,9 @@ endif
  
- GRUB2_MODULES = biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial test vga
- GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial test vga
-+GRUB2_MODULES_EFI = boot chain configfile ext2 fat linux ls part_msdos part_gpt reboot serial test efi_gop efi_uga
- GRUB_TERMINALS =
- GRUB_SERIAL_CONFIG =
- GRUB_TERMINAL_CONFIG =
-@@ -43,6 +44,9 @@ endif
- SIGNATURE:=$(shell perl -e 'printf("%08x", rand(0xFFFFFFFF))')
  ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
- ROOTPART:=$(if $(ROOTPART),$(ROOTPART),PARTUUID=$(SIGNATURE)-02)
-+EFI_SIGNATURE:=$(strip $(shell uuidgen | sed 's/[a-zA-Z0-9]\{2\}$$/00/'))
+ ROOTPART:=$(if $(ROOTPART),$(ROOTPART),PARTUUID=$(IMG_PART_SIGNATURE)-02)
++EFI_SIGNATURE:=$(strip $(shell uuidgen | sed -r 's/[a-zA-Z0-9]{2}$$/00/'))
 +EFI_ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
 +EFI_ROOTPART:=$(if $(EFI_ROOTPART),$(EFI_ROOTPART),PARTUUID=$(shell echo $(EFI_SIGNATURE) | sed 's/00$$/02/'))
  
  GRUB_TIMEOUT:=$(call qstrip,$(CONFIG_GRUB_TIMEOUT))
  GRUB_TITLE:=$(call qstrip,$(CONFIG_GRUB_TITLE))
-@@ -93,12 +97,71 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
-   endef
- endif
- 
-+ifneq ($(CONFIG_EFI_IMAGES),)
-+
-+  BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
-+
-+  define Image/cmdline/ext4/efi
-+    root=$(EFI_ROOTPART) rootfstype=ext4 rootwait
-+  endef
-+
-+  define Image/cmdline/squashfs/efi
-+    root=$(EFI_ROOTPART) rootfstype=squashfs rootwait
-+  endef
-+
-+  define Image/Build/grub2/efi
-+	# left here because the image builder doesnt need these
-+	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2 $(KDIR)/root.grub/efi/boot
-+	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
-+	sed -e 's#msdos1#gpt1#g' ./grub-early.cfg > $(KDIR)/grub2/grub-early.cfg
-+
-+	grub-mkimage \
-+		-p /boot/grub \
-+		-d $(STAGING_DIR_HOST)/lib/grub/$(CONFIG_ARCH)-efi \
-+		-o $(KDIR)/root.grub/efi/boot/boot$(if $(CONFIG_x86_64),x64,ia32).efi \
-+		-O $(CONFIG_ARCH)-efi \
-+		-c $(KDIR)/grub2/grub-early.cfg \
-+		$(GRUB2_MODULES_EFI)
-+
-+	grub-mkimage \
-+		-p /boot/grub \
-+		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
-+		-o $(KDIR)/grub2/core.img \
-+		-O i386-pc \
-+		-c $(KDIR)/grub2/grub-early.cfg \
-+		$(GRUB2_MODULES) part_gpt fat
-+
-+	$(CP) $(STAGING_DIR_HOST)/lib/grub/i386-pc/*.img $(KDIR)/grub2/
-+	echo '(hd0) $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1)-efi.img' > $(KDIR)/grub2/device.map
-+	sed \
-+		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
-+		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
-+		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/$(1)/efi) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
-+		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
-+		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
-+		-e 's#msdos1#gpt1#g' \
-+		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
-+	-$(CP) $(STAGING_DIR_ROOT)/boot/. $(KDIR)/root.grub/boot/
-+	EFI_SIGNATURE=$(EFI_SIGNATURE) PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" $(SCRIPT_DIR)/gen_image_generic.sh \
-+		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1)-efi.img \
-+		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
-+		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
-+		256
-+	grub-bios-setup \
-+		--device-map="$(KDIR)/grub2/device.map" \
-+		-d "$(KDIR)/grub2" \
-+		-r "hd0,gpt1" \
-+		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1)-efi.img"
-+  endef
-+endif
-+
- define Image/Build/squashfs
- 	dd if=/dev/zero bs=128k count=1 >> $(KDIR)/root.squashfs
- endef
- 
- define Image/Build/iso
- 	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
-+	$(INSTALL_DIR) $(KDIR)/root.grub/efi/boot
- 	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
- 	grub-mkimage \
- 		-p /boot/grub \
-@@ -111,6 +174,17 @@ define Image/Build/iso
- 		$(STAGING_DIR_HOST)/lib/grub/i386-pc/cdboot.img \
- 		$(KDIR)/grub2/eltorito.img \
- 		> $(KDIR)/root.grub/boot/grub/eltorito.img
-+	grub-mkimage \
-+		-p /boot/grub \
-+		-d $(STAGING_DIR_HOST)/lib/grub/$(CONFIG_ARCH)-efi \
-+		-o $(KDIR)/root.grub/efi/boot/boot$(if $(CONFIG_x86_64),x64,ia32).efi \
-+		-O $(CONFIG_ARCH)-efi \
-+		-c ./grub-early.cfg \
-+		$(GRUB2_MODULES_EFI) iso9660
-+
-+	rm -f $(KDIR)/root.grub/efiboot.img
-+	mkfs.fat -C $(TARGET_DIR)/efiboot.img -S 512 1440
-+	mcopy -s -i $(TARGET_DIR)/efiboot.img $(KDIR)/root.grub/efi ::/
- 	sed \
- 		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
- 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
-@@ -120,11 +194,12 @@ define Image/Build/iso
- 		./grub-iso.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
- 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $(KDIR)/root.grub/boot/
- 	mkisofs -R -b boot/grub/eltorito.img -no-emul-boot -boot-info-table \
-+		-boot-load-size 4 -c boot.cat -eltorito-alt-boot -e efiboot.img -no-emul-boot \
- 		-o $(KDIR)/root.iso $(KDIR)/root.grub $(TARGET_DIR)
- endef
- 
- ifneq ($(CONFIG_VDI_IMAGES),)
--  define Image/Build/vdi
-+  define Image/Build/vdi/default
- 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi || true
- 	qemu-img convert -f raw -O vdi \
- 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
-@@ -133,7 +208,7 @@ ifneq ($(CONFIG_VDI_IMAGES),)
- endif
- 
- ifneq ($(CONFIG_VMDK_IMAGES),)
--  define Image/Build/vmdk
-+  define Image/Build/vmdk/default
- 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk || true
- 	qemu-img convert -f raw -O vmdk \
- 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
-@@ -141,8 +216,27 @@ ifneq ($(CONFIG_VMDK_IMAGES),)
-   endef
- endif
- 
-+ifneq ($(CONFIG_GRUB_IMAGES),)
-+  define Image/Build/vdi
-+	$(call Image/Build/vdi/default,$(1))
-+  endef
-+  define Image/Build/vmdk
-+	$(call Image/Build/vmdk/default,$(1))
-+  endef
-+endif
-+
-+ifneq ($(CONFIG_EFI_IMAGES),)
-+  define Image/Build/vdi/efi
-+	$(call Image/Build/vdi/default,$(1)-efi)
-+  endef
-+  define Image/Build/vmdk/efi
-+	$(call Image/Build/vmdk/default,$(1)-efi)
-+  endef
-+endif
-+
- define Image/Build/gzip
--	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img
-+	$(if $(CONFIG_GRUB_IMAGES),gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img)
-+	$(if $(CONFIG_EFI_IMAGES),gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1)-efi.img)
- 	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
- endef
- 
-@@ -173,6 +267,9 @@ define Image/Build
- 	$(call Image/Build/grub2,$(1))
- 	$(call Image/Build/vdi,$(1))
- 	$(call Image/Build/vmdk,$(1))
-+	$(call Image/Build/grub2/efi,$(1))
-+	$(call Image/Build/vdi/efi,$(1))
-+	$(call Image/Build/vmdk/efi,$(1))
- 	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
-   else
- 	$(CP) $(KDIR)/root.iso $(BIN_DIR)/$(IMG_PREFIX).iso
 diff --git a/target/linux/x86/image/grub-iso.cfg b/target/linux/x86/image/grub-iso.cfg
-index 9c59bdf6d49..4530258fbd6 100644
+index f5848b38534..4bef492a414 100644
 --- a/target/linux/x86/image/grub-iso.cfg
 +++ b/target/linux/x86/image/grub-iso.cfg
 @@ -3,7 +3,12 @@
@@ -1002,11 +917,407 @@ index 9c59bdf6d49..4530258fbd6 100644
  set timeout="@TIMEOUT@"
 -set root='(cd)'
 +
-+if [ x${grub_platform} = xefi ]; then
++if [ "${grub_platform}" = "efi" ]; then
 +    set root='(cd0)'
 +else
 +    set root='(cd)'
 +fi
  
  menuentry "@TITLE@" {
- 	linux /boot/vmlinuz @CMDLINE@ noinitrd
+ 	linux /boot/vmlinuz root=/dev/sr0 rootfstype=iso9660 rootwait @CMDLINE@ noinitrd
+
+From c24086b352f6f773c07f15f85b0e5ffe26e206af Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E6=9D=8E=E5=9B=BD?= <uxgood.org@gmail.com>
+Date: Sat, 31 Aug 2019 13:28:05 +0000
+Subject: [PATCH 4/8] x86: fix sysupgrade for EFI images
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+1. make function get_partitions support GPT disks
+2. get more bytes from image to get GPT partition table
+3. update the original PARTUUID to new grub.cfg
+
+Signed-off-by: 李国 <uxgood.org@gmail.com>
+---
+ .../base-files/files/lib/upgrade/common.sh    | 40 ++++++++++++++-----
+ .../x86/base-files/lib/upgrade/platform.sh    | 20 ++++++++--
+ 2 files changed, 45 insertions(+), 15 deletions(-)
+
+diff --git a/package/base-files/files/lib/upgrade/common.sh b/package/base-files/files/lib/upgrade/common.sh
+index 6e967aeffe8..1324b98ed2f 100644
+--- a/package/base-files/files/lib/upgrade/common.sh
++++ b/package/base-files/files/lib/upgrade/common.sh
+@@ -218,17 +218,35 @@ get_partitions() { # <device> <filename>
+ 		rm -f "/tmp/partmap.$filename"
+ 
+ 		local part
+-		for part in 1 2 3 4; do
+-			set -- $(hexdump -v -n 12 -s "$((0x1B2 + $part * 16))" -e '3/4 "0x%08X "' "$disk")
+-
+-			local type="$(( $(hex_le32_to_cpu $1) % 256))"
+-			local lba="$(( $(hex_le32_to_cpu $2) ))"
+-			local num="$(( $(hex_le32_to_cpu $3) ))"
+-
+-			[ $type -gt 0 ] || continue
+-
+-			printf "%2d %5d %7d\n" $part $lba $num >> "/tmp/partmap.$filename"
+-		done
++		local magic=$(dd if="$disk" bs=8 count=1 skip=64 2>/dev/null)
++		if [ "$magic" = "EFI PART" ]; then
++			#export_partdevice will fail when partition number is greater than 15, as
++			#the partition major device number is not equal to the disk major device number
++			for part in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
++				set -- $(hexdump -v -n 48 -s "$((0x380 + $part * 0x80))" -e '4/4 "%08x"" "4/4 "%08x"" "4/4 "0x%08X "' "$disk")
++
++				local type="$1"
++				local lba="$(( $(hex_le32_to_cpu $4) * 0x100000000 + $(hex_le32_to_cpu $3) ))"
++				local end="$(( $(hex_le32_to_cpu $6) * 0x100000000 + $(hex_le32_to_cpu $5) ))"
++				local num="$(( $end - $lba ))"
++
++				[ "$type" = "00000000000000000000000000000000" ] && continue
++
++				printf "%2d %5d %7d\n" $part $lba $num >> "/tmp/partmap.$filename"
++			done
++		else
++			for part in 1 2 3 4; do
++				set -- $(hexdump -v -n 12 -s "$((0x1B2 + $part * 16))" -e '3/4 "0x%08X "' "$disk")
++
++				local type="$(( $(hex_le32_to_cpu $1) % 256))"
++				local lba="$(( $(hex_le32_to_cpu $2) ))"
++				local num="$(( $(hex_le32_to_cpu $3) ))"
++
++				[ $type -gt 0 ] || continue
++
++				printf "%2d %5d %7d\n" $part $lba $num >> "/tmp/partmap.$filename"
++			done
++		fi
+ 	fi
+ }
+ 
+diff --git a/target/linux/x86/base-files/lib/upgrade/platform.sh b/target/linux/x86/base-files/lib/upgrade/platform.sh
+index 1c93f5bd9b9..3acee2c7a9c 100644
+--- a/target/linux/x86/base-files/lib/upgrade/platform.sh
++++ b/target/linux/x86/base-files/lib/upgrade/platform.sh
+@@ -20,7 +20,7 @@ platform_check_image() {
+ 	get_partitions "/dev/$diskdev" bootdisk
+ 
+ 	#extract the boot sector from the image
+-	get_image "$@" | dd of=/tmp/image.bs count=1 bs=512b 2>/dev/null
++	get_image "$@" | dd of=/tmp/image.bs count=63 bs=512b 2>/dev/null
+ 
+ 	get_partitions /tmp/image.bs image
+ 
+@@ -40,7 +40,7 @@ platform_copy_config() {
+ 	local partdev magic parttype=ext4
+ 
+ 	if export_partdevice partdev 1; then
+-		magic=$(dd if="/dev/$partdev" bs=1 count=3 skip=54 2>/dev/null)
++		magic="$(dd if="/dev/$partdev" bs=1 count=3 skip=54 2>/dev/null)"
+ 		[ "$magic" = "FAT" ] && parttype=vfat
+ 		mount -t $parttype -o rw,noatime "/dev/$partdev" /mnt
+ 		cp -af "$UPGRADE_BACKUP" "/mnt/$BACKUP_FILE"
+@@ -83,7 +83,7 @@ platform_do_upgrade() {
+ 		get_partitions "/dev/$diskdev" bootdisk
+ 
+ 		#extract the boot sector from the image
+-		get_image "$@" | dd of=/tmp/image.bs count=1 bs=512b
++		get_image "$@" | dd of=/tmp/image.bs count=63 bs=512b >/dev/null
+ 
+ 		get_partitions /tmp/image.bs image
+ 
+@@ -108,7 +108,7 @@ platform_do_upgrade() {
+ 	while read part start size; do
+ 		if export_partdevice partdev $part; then
+ 			echo "Writing image to /dev/$partdev..."
+-			get_image "$@" | dd of="/dev/$partdev" ibs="512" obs=1M skip="$start" count="$size" conv=fsync
++			get_image "$@" | dd of="/dev/$partdev" ibs=512 obs=1M skip="$start" count="$size" conv=fsync
+ 		else
+ 			echo "Unable to find partition $part device, skipped."
+ 		fi
+@@ -119,4 +119,16 @@ platform_do_upgrade() {
+ 	get_image "$@" | dd of="/dev/$diskdev" bs=1 skip=440 count=4 seek=440 conv=fsync
+ 
+ 	platform_do_bootloader_upgrade "$diskdev"
++	local magic parttype=ext4
++	magic="$(dd if="/dev/$diskdev" bs=8 count=1 skip=64 2>/dev/null)"
++	[ "$magic" = "EFI PART" ] || return 0
++	if export_partdevice partdev 1; then
++		magic="$(dd if="/dev/$partdev" bs=1 count=3 skip=54 2>/dev/null)"
++		[ "$magic" = "FAT" ] && parttype=vfat
++		mount -t $parttype -o rw,noatime "/dev/$partdev" /mnt
++		set -- $(dd if="/dev/$diskdev" bs=1 skip=1168 count=16 2>/dev/null | hexdump -v -e '8/1 "%02x "" "2/1 "%02x""-"6/1 "%02x"')
++		sed -i "s/\(PARTUUID=\)[a-f0-9-]\+/\1$4$3$2$1-$6$5-$8$7-$9/ig" /mnt/boot/grub/grub.cfg
++		umount /mnt
++	fi
++
+ }
+
+From b915dff5280cc48a2331f01961f2504b9b12f245 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E6=9D=8E=E5=9B=BD?= <uxgood.org@gmail.com>
+Date: Tue, 24 Mar 2020 17:12:22 +0800
+Subject: [PATCH 5/8] grub2: grub-early.cfg auto detect efi platform
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: 李国 <uxgood.org@gmail.com>
+---
+ package/boot/grub2/files/grub-early.cfg | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/package/boot/grub2/files/grub-early.cfg b/package/boot/grub2/files/grub-early.cfg
+index 4a5b5a60927..9e7cad47607 100644
+--- a/package/boot/grub2/files/grub-early.cfg
++++ b/package/boot/grub2/files/grub-early.cfg
+@@ -1 +1,5 @@
+-configfile (hd0,msdos1)/boot/grub/grub.cfg
++if [ "${grub_platform}" = "efi" ]; then
++    configfile (hd0,gpt1)/boot/grub/grub.cfg
++else
++    configfile (hd0,msdos1)/boot/grub/grub.cfg
++fi
+
+From dce4fc3201395f886e496c3bb5f6ffd979558aa3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E6=9D=8E=E5=9B=BD?= <uxgood.org@gmail.com>
+Date: Tue, 24 Mar 2020 17:13:27 +0800
+Subject: [PATCH 6/8] x86: add efi images
+
+---
+ include/image.mk                    |  1 +
+ scripts/gen_image_generic.sh        |  4 ++--
+ target/linux/x86/image/Makefile     | 34 +++++++++++++++++++++++++----
+ target/linux/x86/image/grub-efi.cfg | 13 +++++++++++
+ 4 files changed, 46 insertions(+), 6 deletions(-)
+ create mode 100644 target/linux/x86/image/grub-efi.cfg
+
+diff --git a/include/image.mk b/include/image.mk
+index 8af5905c600..051a6206cef 100644
+--- a/include/image.mk
++++ b/include/image.mk
+@@ -45,6 +45,7 @@ IMG_PREFIX:=$(VERSION_DIST_SANITIZED)-$(IMG_PREFIX_VERNUM)$(IMG_PREFIX_VERCODE)$
+ IMG_ROOTFS:=$(IMG_PREFIX)-rootfs
+ IMG_COMBINED:=$(IMG_PREFIX)-combined
+ IMG_PART_SIGNATURE:=$(shell echo $(SOURCE_DATE_EPOCH)$(LINUX_VERMAGIC) | mkhash md5 | cut -b1-8)
++IMG_PART_UUID:=$(shell echo $(SOURCE_DATE_EPOCH)$(LINUX_VERMAGIC) | mkhash md5 | sed -r 's/(.{8})(.{4})(.{4})(.{4})(.{10})../\1-\2-\3-\4-\500/')
+ 
+ MKFS_DEVTABLE_OPT := -D $(INCLUDE_DIR)/device_table.txt
+ 
+diff --git a/scripts/gen_image_generic.sh b/scripts/gen_image_generic.sh
+index 1df4d0673b3..e45a8dd417e 100755
+--- a/scripts/gen_image_generic.sh
++++ b/scripts/gen_image_generic.sh
+@@ -20,7 +20,7 @@ sect=63
+ cyl=$(( (KERNELSIZE + ROOTFSSIZE) * 1024 * 1024 / (head * sect * 512)))
+ 
+ # create partition table
+-set $(ptgen -o "$OUTPUT" -h $head -s $sect ${EFI_SIGNATURE:+-g} -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE} ${EFI_SIGNATURE:+-G $EFI_SIGNATURE})
++set $(ptgen -o "$OUTPUT" -h $head -s $sect ${UUID:+-g} -p ${KERNELSIZE}m -p ${ROOTFSSIZE}m ${ALIGN:+-l $ALIGN} ${SIGNATURE:+-S 0x$SIGNATURE} ${UUID:+-G $UUID})
+ 
+ KERNELOFFSET="$(($1 / 512))"
+ KERNELSIZE="$2"
+@@ -30,7 +30,7 @@ ROOTFSSIZE="$(($4 / 512))"
+ [ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc count="$ROOTFSSIZE"
+ dd if="$ROOTFSIMAGE" of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc
+ 
+-if [ -n "$EFI_SIGNATURE" ]; then
++if [ -n "$UUID" ]; then
+     [ -n "$PADDING" ] && dd if=/dev/zero of="$OUTPUT" bs=512 seek="$(($ROOTFSOFFSET + $ROOTFSSIZE))" conv=notrunc count="$sect"
+     mkfs.fat -n kernel -C "$OUTPUT.kernel" -S 512 "$(($KERNELSIZE / 1024))"
+     mcopy -s -i "$OUTPUT.kernel" "$KERNELDIR"/* ::/
+diff --git a/target/linux/x86/image/Makefile b/target/linux/x86/image/Makefile
+index aa80d77b978..efb0b1cff99 100644
+--- a/target/linux/x86/image/Makefile
++++ b/target/linux/x86/image/Makefile
+@@ -38,9 +38,8 @@ endif
+ 
+ ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
+ ROOTPART:=$(if $(ROOTPART),$(ROOTPART),PARTUUID=$(IMG_PART_SIGNATURE)-02)
+-EFI_SIGNATURE:=$(strip $(shell uuidgen | sed -r 's/[a-zA-Z0-9]{2}$$/00/'))
+ EFI_ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
+-EFI_ROOTPART:=$(if $(EFI_ROOTPART),$(EFI_ROOTPART),PARTUUID=$(shell echo $(EFI_SIGNATURE) | sed 's/00$$/02/'))
++EFI_ROOTPART:=$(if $(EFI_ROOTPART),$(EFI_ROOTPART),PARTUUID=$(shell echo $(IMG_PART_UUID) | sed 's/00$$/02/'))
+ 
+ GRUB_TIMEOUT:=$(call qstrip,$(CONFIG_GRUB_TIMEOUT))
+ GRUB_TITLE:=$(call qstrip,$(CONFIG_GRUB_TITLE))
+@@ -50,7 +49,8 @@ BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
+ define Build/combined
+ 	$(CP) $(KDIR)/$(KERNEL_NAME) $@.boot/boot/vmlinuz
+ 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $@.boot/boot/
+-	PADDING="1" SIGNATURE="$(IMG_PART_SIGNATURE)" $(SCRIPT_DIR)/gen_image_generic.sh \
++	PADDING="1" SIGNATURE="$(IMG_PART_SIGNATURE)" \
++		$(if $(filter $(1),efi),UUID="$(IMG_PART_UUID)") $(SCRIPT_DIR)/gen_image_generic.sh \
+ 		$@ \
+ 		$(CONFIG_TARGET_KERNEL_PARTSIZE) $@.boot \
+ 		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(IMAGE_ROOTFS) \
+@@ -64,6 +64,7 @@ define Build/grub-config
+ 		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
+ 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
+ 		-e 's#@ROOTPART@#root=$(ROOTPART) rootwait#g' \
++		-e 's#@EFI_ROOTPART@#root=$(EFI_ROOTPART) rootwait#g' \
+ 		-e 's#@CMDLINE@#$(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE)#g' \
+ 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
+ 		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
+@@ -80,7 +81,7 @@ define Build/grub-install
+ 	$(STAGING_DIR_HOST)/bin/grub-bios-setup \
+ 		-m "$@.grub2/device.map" \
+ 		-d "$@.grub2" \
+-		-r "hd0,msdos1" \
++		-r "hd0,$(if $(filter $(1),efi),gpt1,msdos1)" \
+ 		$@
+ endef
+ 
+@@ -91,7 +92,9 @@ define Build/iso
+ 		$(STAGING_DIR_HOST)/lib/grub/grub2-iso/eltorito.img \
+ 		> $@.boot/boot/grub/eltorito.img
+ 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $@.boot/boot/
++	$(if $(filter $(1),efi),$(CP) $(STAGING_DIR_HOST)/lib/grub/grub2-iso/efiboot.img $@.boot/boot/grub/)
+ 	mkisofs -R -b boot/grub/eltorito.img -no-emul-boot -boot-info-table \
++		$(if $(filter $(1),efi),-boot-load-size 4 -c boot.cat -eltorito-alt-boot -e boot/grub/efiboot.img -no-emul-boot) \
+ 		-o $@ $@.boot $(TARGET_DIR)
+ endef
+ 
+@@ -102,13 +105,25 @@ define Device/Default
+   IMAGE/combined.img.gz := grub-config pc | combined | grub-install | gzip
+   IMAGE/combined.vdi := grub-config pc | combined | grub-install | qemu-image vdi
+   IMAGE/combined.vmdk := grub-config pc | combined | grub-install | qemu-image vmdk
+   IMAGE/rootfs.img := append-rootfs
+   IMAGE/rootfs.img.gz := append-rootfs | gzip
++  ARTIFACT/image-efi.iso := grub-config iso | iso efi
++  IMAGE/combined-efi.img := grub-config efi | combined efi | grub-install efi
++  IMAGE/combined-efi.img.gz := grub-config efi | combined efi | grub-install efi | gzip
++  IMAGE/combined-efi.vdi := grub-config efi | combined efi | grub-install efi | qemu-image vdi
++  IMAGE/combined-efi.vmdk := grub-config efi | combined efi | grub-install efi | qemu-image vmdk
+   ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
+     IMAGES := combined.img.gz rootfs.img.gz
+   else
+     IMAGES := combined.img rootfs.img
+   endif
++  ifeq $(CONFIG_EFI_IMAGES)
++    ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
++      IMAGES += combined-efi.img.gz
++    else
++      IMAGES += combined-efi.img
++    endif
++  endif
+   KERNEL := kernel-bin
+   KERNEL_INSTALL := 1
+   KERNEL_NAME := bzImage
+@@ -119,6 +134,17 @@ define Device/Default
+   ifeq ($(CONFIG_VMDK_IMAGES),y)
+     IMAGES += combined.vmdk
+   endif
++  ifeq $(CONFIG_EFI_IMAGES)
++    ifeq ($(CONFIG_ISO_IMAGES),y)
++      ARTIFACTS += image-efi.iso
++    endif
++    ifeq ($(CONFIG_VDI_IMAGES),y)
++      IMAGES += combined-efi.vdi
++    endif
++    ifeq ($(CONFIG_VMDK_IMAGES),y)
++      IMAGES += combined-efi.vmdk
++    endif
++  endif
+ endef
+ 
+ $(eval $(call Image/gzip-ext4-padded-squashfs))
+diff --git a/target/linux/x86/image/grub-efi.cfg b/target/linux/x86/image/grub-efi.cfg
+new file mode 100644
+index 00000000000..f3f6a02c021
+--- /dev/null
++++ b/target/linux/x86/image/grub-efi.cfg
+@@ -0,0 +1,13 @@
++@SERIAL_CONFIG@
++@TERMINAL_CONFIG@
++
++set default="0"
++set timeout="@TIMEOUT@"
++set root='(hd0,gpt1)'
++
++menuentry "@TITLE@" {
++	linux /boot/vmlinuz @EFI_ROOTPART@ @CMDLINE@ noinitrd
++}
++menuentry "@TITLE@ (failsafe)" {
++	linux /boot/vmlinuz failsafe=true @EFI_ROOTPART@ @CMDLINE@ noinitrd
++}
+
+From 317bb3e99c4ad67e6e5680d0fbf03d65294aac2f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E6=9D=8E=E5=9B=BD?= <uxgood.org@gmail.com>
+Date: Tue, 24 Mar 2020 18:01:39 +0800
+Subject: [PATCH 7/8] grub2: fix path
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: 李国 <uxgood.org@gmail.com>
+---
+ package/boot/grub2/grub2/Makefile | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/package/boot/grub2/grub2/Makefile b/package/boot/grub2/grub2/Makefile
+index 7126beab4cf..3302838d719 100644
+--- a/package/boot/grub2/grub2/Makefile
++++ b/package/boot/grub2/grub2/Makefile
+@@ -44,7 +44,7 @@ define Host/Install
+ 		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+ 		-p /boot/grub \
+ 		-O i386-pc \
+-		-c ./files/grub-early.cfg \
++		-c ../files/grub-early.cfg \
+ 		-o $(STAGING_DIR_HOST)/lib/grub/grub2-generic/core.img \
+ 		at_keyboard biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
+ 
+@@ -53,7 +53,7 @@ define Host/Install
+ 		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+ 		-p /boot/grub \
+ 		-O i386-pc \
+-		-c ./files/grub-early.cfg \
++		-c ../files/grub-early.cfg \
+ 		-o $(STAGING_DIR_HOST)/lib/grub/grub2-iso/eltorito.img \
+ 		at_keyboard biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial vga
+ 
+@@ -62,7 +62,7 @@ define Host/Install
+ 		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+ 		-p /boot/grub \
+ 		-O i386-pc \
+-		-c ./files/grub-early.cfg \
++		-c ../files/grub-early.cfg \
+ 		-o $(STAGING_DIR_HOST)/lib/grub/grub2-legacy/core.img \
+ 		biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
+ endef
+
+From 784fcc94242d146f2ef2c31e292ace8816985d62 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E6=9D=8E=E5=9B=BD?= <uxgood.org@gmail.com>
+Date: Tue, 24 Mar 2020 18:02:57 +0800
+Subject: [PATCH 8/8] x86: fix
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: 李国 <uxgood.org@gmail.com>
+---
+ target/linux/x86/image/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/target/linux/x86/image/Makefile b/target/linux/x86/image/Makefile
+index efb0b1cff99..ff964cde8ab 100644
+--- a/target/linux/x86/image/Makefile
++++ b/target/linux/x86/image/Makefile
+@@ -115,7 +115,7 @@ define Device/Default
+   else
+     IMAGES := combined.img
+   endif
+-  ifeq $(CONFIG_EFI_IMAGES)
++  ifeq ($(CONFIG_EFI_IMAGES),y)
+     ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
+       IMAGES += combined-efi.img.gz
+     else
+@@ -134,7 +134,7 @@ define Device/Default
+   ifeq ($(CONFIG_VMDK_IMAGES),y)
+     IMAGES += combined.vmdk
+   endif
+-  ifeq $(CONFIG_EFI_IMAGES)
++  ifeq ($(CONFIG_EFI_IMAGES),y)
+     ifeq ($(CONFIG_ISO_IMAGES),y)
+       ARTIFACTS += image-efi.iso
+     endif

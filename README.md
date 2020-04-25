@@ -39,8 +39,8 @@ Some feeds might not available over `git` but only via `subversion` or `mercuria
 On Debian you'll need to install the following:
 
 ```sh
-sudo apt install build-essential git unzip ncurses-dev libz-dev libssl-dev
-  python subversion gettext gawk wget curl rsync perl
+sudo apt install build-essential git unzip ncurses-dev libz-dev libssl-dev openssl-1.0-dev
+  python python3-dev python3.5 libelf-dev subversion gettext gawk wget curl rsync perl
 ```
 
 ### Prepare and build
@@ -69,9 +69,7 @@ OMR_TARGET="rpi3" ./build.sh
 
 Our solution is mainly based on:
 
-* [OverTheBox](https://www.ovhtelecom.fr/overthebox/)
 * [OpenWRT](https://openwrt.org)
-* [LEDE](https://lede-project.org)
 * [MultiPath TCP (MPTCP)](https://multipath-tcp.org)
 * [Shadowsocks](https://shadowsocks.org)
 * [Glorytun](https://github.com/angt/glorytun)

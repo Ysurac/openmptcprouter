@@ -1,0 +1,43 @@
+From 35082b70e998d5b419e351010005494e7a5b9412 Mon Sep 17 00:00:00 2001
+From: Landen Chao <landen.chao@mediatek.com>
+Date: Tue, 31 Dec 2019 11:48:41 +0100
+Subject: [PATCH] net: dsa: enable vlan without bridge on dsa user port
+
+---
+ drivers/net/dsa/mt7530.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/dsa/mt7530.c b/drivers/net/dsa/mt7530.c
+index 1d8d36de4d20..7e285aa9bd7c 100644
+--- a/drivers/net/dsa/mt7530.c
++++ b/drivers/net/dsa/mt7530.c
+@@ -1165,8 +1165,13 @@ mt7530_port_vlan_add(struct dsa_switch *ds, int port,
+ 	/* The port is kept as VLAN-unaware if bridge with vlan_filtering not
+ 	 * being set.
+ 	 */
+-	if (!dsa_port_is_vlan_filtering(&ds->ports[port]))
++	if (!dsa_port_is_vlan_filtering(&ds->ports[port])){
++		/* Enable VLAN tagged in port-based vlan setting. */
++		if ((vlan->vid_begin != 0) && (vlan->vid_end != 0))
++			mt7530_rmw(priv, MT7530_PCR_P(port), EG_TAG(3),
++				   EG_TAG(2));
+ 		return;
++	}
+ 
+ 	mutex_lock(&priv->reg_mutex);
+ 
+@@ -1196,8 +1201,13 @@ mt7530_port_vlan_del(struct dsa_switch *ds, int port,
+ 	/* The port is kept as VLAN-unaware if bridge with vlan_filtering not
+ 	 * being set.
+ 	 */
+-	if (!dsa_port_is_vlan_filtering(&ds->ports[port]))
++	if (!dsa_port_is_vlan_filtering(&ds->ports[port])) {
++		/* Disable VLAN tagged in port-based vlan setting. */
++		if ((vlan->vid_begin != 0) && (vlan->vid_end != 0))
++			mt7530_rmw(priv, MT7530_PCR_P(port), EG_TAG(3),
++				   EG_TAG(0));
+ 		return 0;
++	}
+ 
+ 	mutex_lock(&priv->reg_mutex);
+ 
