@@ -1,0 +1,171 @@
+diff -aurN mptcp-mptcp_trunk/include/net/tcp.h mptcp/include/net/tcp.h
+--- mptcp-mptcp_trunk/include/net/tcp.h	2020-02-20 18:07:47.000000000 +0100
++++ mptcp/include/net/tcp.h	2020-05-03 12:20:25.179226306 +0200
+@@ -343,7 +343,6 @@
+ struct mptcp_options_received;
+ 
+ void tcp_cleanup_rbuf(struct sock *sk, int copied);
+-void tcp_cwnd_validate(struct sock *sk, bool is_cwnd_limited);
+ int tcp_close_state(struct sock *sk);
+ void tcp_minshall_update(struct tcp_sock *tp, unsigned int mss_now,
+ 			 const struct sk_buff *skb);
+@@ -2126,7 +2125,6 @@
+ 	void (*retransmit_timer)(struct sock *sk);
+ 	void (*time_wait)(struct sock *sk, int state, int timeo);
+ 	void (*cleanup_rbuf)(struct sock *sk, int copied);
+-	void (*cwnd_validate)(struct sock *sk, bool is_cwnd_limited);
+ 	int (*set_cong_ctrl)(struct sock *sk, const char *name, bool load,
+ 			     bool reinit, bool cap_net_admin);
+ };
+diff -aurN mptcp-mptcp_trunk/net/ipv4/tcp.c mptcp/net/ipv4/tcp.c
+--- mptcp-mptcp_trunk/net/ipv4/tcp.c	2020-02-20 18:07:47.000000000 +0100
++++ mptcp/net/ipv4/tcp.c	2020-05-03 12:20:25.179226306 +0200
+@@ -415,7 +415,6 @@
+ 	.retransmit_timer		= tcp_retransmit_timer,
+ 	.time_wait			= tcp_time_wait,
+ 	.cleanup_rbuf			= tcp_cleanup_rbuf,
+-	.cwnd_validate			= tcp_cwnd_validate,
+ 	.set_cong_ctrl			= __tcp_set_congestion_control,
+ };
+ 
+diff -aurN mptcp-mptcp_trunk/net/ipv4/tcp_output.c mptcp/net/ipv4/tcp_output.c
+--- mptcp-mptcp_trunk/net/ipv4/tcp_output.c	2020-02-20 18:07:47.000000000 +0100
++++ mptcp/net/ipv4/tcp_output.c	2020-05-03 12:20:25.179226306 +0200
+@@ -825,8 +825,8 @@
+ 		if (mptcp(tp))
+ 			tcp_tsq_write(meta_sk);
+ 	} else {
+-		if (!test_and_set_bit(TCP_TSQ_DEFERRED, &meta_sk->sk_tsq_flags))
+-			sock_hold(meta_sk);
++		if (!test_and_set_bit(TCP_TSQ_DEFERRED, &sk->sk_tsq_flags))
++			sock_hold(sk);
+ 
+ 		if ((mptcp(tp)) && (sk->sk_state != TCP_CLOSE))
+ 			mptcp_tsq_flags(sk);
+@@ -1672,7 +1672,7 @@
+ 	tp->snd_cwnd_stamp = tcp_jiffies32;
+ }
+ 
+-void tcp_cwnd_validate(struct sock *sk, bool is_cwnd_limited)
++static void tcp_cwnd_validate(struct sock *sk, bool is_cwnd_limited)
+ {
+ 	const struct tcp_congestion_ops *ca_ops = inet_csk(sk)->icsk_ca_ops;
+ 	struct tcp_sock *tp = tcp_sk(sk);
+@@ -2512,8 +2512,7 @@
+ 		if (push_one != 2)
+ 			tcp_schedule_loss_probe(sk, false);
+ 		is_cwnd_limited |= (tcp_packets_in_flight(tp) >= tp->snd_cwnd);
+-		if (tp->ops->cwnd_validate)
+-			tp->ops->cwnd_validate(sk, is_cwnd_limited);
++		tcp_cwnd_validate(sk, is_cwnd_limited);
+ 		return false;
+ 	}
+ 	return !tp->packets_out && !tcp_write_queue_empty(sk);
+diff -aurN mptcp-mptcp_trunk/net/mptcp/mptcp_output.c mptcp/net/mptcp/mptcp_output.c
+--- mptcp-mptcp_trunk/net/mptcp/mptcp_output.c	2020-02-20 18:07:47.000000000 +0100
++++ mptcp/net/mptcp/mptcp_output.c	2020-05-03 12:20:25.183226240 +0200
+@@ -851,10 +851,7 @@
+ 
+ 		if (!mptcp_skb_entail(subsk, skb, reinject))
+ 			break;
+-		/* Nagle is handled at the MPTCP-layer, so
+-		 * always push on the subflow
+-		 */
+-		__tcp_push_pending_frames(subsk, mss_now, TCP_NAGLE_PUSH);
++
+ 		if (reinject <= 0)
+ 			tcp_update_skb_after_send(meta_sk, skb, meta_tp->tcp_wstamp_ns);
+ 		meta_tp->lsndtime = tcp_jiffies32;
+@@ -886,14 +883,12 @@
+ 		if (!(path_mask & mptcp_pi_to_flag(subtp->mptcp->path_index)))
+ 			continue;
+ 
+-		/* We have pushed data on this subflow. We ignore the call to
+-		 * cwnd_validate in tcp_write_xmit as is_cwnd_limited will never
+-		 * be true (we never push more than what the cwnd can accept).
+-		 * We need to ensure that we call tcp_cwnd_validate with
+-		 * is_cwnd_limited set to true if we have filled the cwnd.
++		mss_now = tcp_current_mss(subsk);
++
++		/* Nagle is handled at the MPTCP-layer, so
++		 * always push on the subflow
+ 		 */
+-		tcp_cwnd_validate(subsk, tcp_packets_in_flight(subtp) >=
+-				  subtp->snd_cwnd);
++		__tcp_push_pending_frames(subsk, mss_now, TCP_NAGLE_PUSH);
+ 	}
+ 
+ 	return !meta_tp->packets_out && tcp_send_head(meta_sk);
+diff -aurN mptcp-mptcp_trunk/net/mptcp/mptcp_sched.c mptcp/net/mptcp/mptcp_sched.c
+--- mptcp-mptcp_trunk/net/mptcp/mptcp_sched.c	2020-02-20 18:07:47.000000000 +0100
++++ mptcp/net/mptcp/mptcp_sched.c	2020-05-03 12:20:31.843115714 +0200
+@@ -76,7 +76,7 @@
+ 	 */
+ 	space = (tp->snd_cwnd - in_flight) * tp->mss_cache;
+ 
+-	if (tp->write_seq - tp->snd_nxt > space)
++	if (tp->write_seq - tp->snd_nxt >= space)
+ 		return true;
+ 
+ 	if (zero_wnd_test && !before(tp->write_seq, tcp_wnd_end(tp)))
+@@ -391,10 +391,10 @@
+ 					  unsigned int *limit)
+ {
+ 	struct sk_buff *skb = __mptcp_next_segment(meta_sk, reinject);
+-	unsigned int mss_now;
++	unsigned int mss_now, in_flight_space;
+ 	struct tcp_sock *subtp;
+ 	u16 gso_max_segs;
+-	u32 max_len, max_segs, window, needed;
++	u32 max_len, max_segs, window;
+ 
+ 	/* As we set it, we have to reset it as well. */
+ 	*limit = 0;
+@@ -424,9 +424,6 @@
+ 	/* The following is similar to tcp_mss_split_point, but
+ 	 * we do not care about nagle, because we will anyways
+ 	 * use TCP_NAGLE_PUSH, which overrides this.
+-	 *
+-	 * So, we first limit according to the cwnd/gso-size and then according
+-	 * to the subflow's window.
+ 	 */
+ 
+ 	gso_max_segs = (*subsk)->sk_gso_max_segs;
+@@ -436,16 +433,29 @@
+ 	if (!max_segs)
+ 		return NULL;
+ 
+-	max_len = mss_now * max_segs;
+-	window = tcp_wnd_end(subtp) - subtp->write_seq;
++	/* max_len is what would fit in the cwnd (respecting the 2GSO-limit of
++	 * tcp_cwnd_test), but ignoring whatever was already queued.
++	 */
++	max_len = min(mss_now * max_segs, skb->len);
+ 
+-	needed = min(skb->len, window);
+-	if (max_len <= skb->len)
+-		/* Take max_win, which is actually the cwnd/gso-size */
+-		*limit = max_len;
++	in_flight_space = (subtp->snd_cwnd - tcp_packets_in_flight(subtp)) * mss_now;
++
++	if ((int)in_flight_space - (subtp->write_seq - subtp->snd_nxt) <= 0)
++		WARN(1, "in_flight %u cwnd %u wseq %u snxt %u mss_now %u cache %u",
++		     tcp_packets_in_flight(subtp), subtp->snd_cwnd,
++		     subtp->write_seq, subtp->snd_nxt, mss_now, subtp->mss_cache);
+ 	else
+-		/* Or, take the window */
+-		*limit = needed;
++		/* max_len now fits exactly in the write-queue, taking into
++		 * account what was already queued.
++		 */
++		max_len = min(max_len, in_flight_space - (subtp->write_seq - subtp->snd_nxt));
++
++	window = tcp_wnd_end(subtp) - subtp->write_seq;
++
++	/* max_len now also respects the announced receive-window */
++	max_len = min(max_len, window);
++
++	*limit = max_len;
+ 
+ 	return skb;
+ }
