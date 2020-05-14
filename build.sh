@@ -215,7 +215,7 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/package-too-long.patch; then
 fi
 echo "Done"
 
-echo "Downlaod via IPv4"
+echo "Download via IPv4"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
 	patch -N -p1 -s < ../../patches/download-ipv4.patch
 fi
