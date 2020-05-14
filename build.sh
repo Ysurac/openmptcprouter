@@ -61,9 +61,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "49ab97ca86593de1bcb16c70e58e3cb62c16623d"
-	_get_repo feeds/packages https://github.com/openwrt/packages "6198128711fec34579cd16c2e6f4aff098862e87"
-	_get_repo feeds/luci https://github.com/openwrt/luci "10d5410bb62ba389696fc94b773932e64c6f3b41"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "eb17ee294ca8e2b59051a4337779af7a3f4812d5"
+	_get_repo feeds/packages https://github.com/openwrt/packages "a22fff844db6927bbe77570d21a7e08d5f5424f3"
+	_get_repo feeds/luci https://github.com/openwrt/luci "750e6c1df9624198f4f11e0675de428ec33fd564"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -143,6 +143,7 @@ else
 fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	echo 'CONFIG_ALL=y' >> "$OMR_TARGET/source/.config"
+	echo 'CONFIG_ALL_NONSHARED=y' >> "$OMR_TARGET/source/.config"
 fi
 if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/source/.config"
@@ -267,8 +268,8 @@ scripts/feeds update -a
 #cd "$OMR_TARGET/source"
 
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
-	scripts/feeds install -a -p packages
-	scripts/feeds install -a -p luci
+	scripts/feeds install -a -d m -p packages
+	scripts/feeds install -a -d m -p luci
 fi
 scripts/feeds install -a -d y -f -p openmptcprouter
 cp .config.keep .config
