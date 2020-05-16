@@ -253,6 +253,8 @@ fi
 # Remove patch that can make BPI-R2 slow
 rm -rf target/linux/mediatek/patches-4.14/0027-*.patch
 
+rm -rf feeds/packages/libs/libwebp
+
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
