@@ -4466,12 +4466,13 @@ diff -aurN linux-5.4/net/ipv4/tcp_input.c mptcp-mptcp_trunk/net/ipv4/tcp_input.c
  {
  	int eaten;
  	struct sk_buff *tail = skb_peek_tail(&sk->sk_receive_queue);
-@@ -4746,7 +4811,7 @@
+@@ -4746,8 +4811,8 @@
  	const struct tcp_sock *tp = tcp_sk(sk);
  	int avail = tp->rcv_nxt - tp->copied_seq;
  
--	if (avail < sk->sk_rcvlowat && !sock_flag(sk, SOCK_DONE))
-+	if (avail < sk->sk_rcvlowat && !sock_flag(sk, SOCK_DONE) && !mptcp(tp))
+-	if (avail < sk->sk_rcvlowat && !tcp_rmem_pressure(sk) &&
++	if (avail < sk->sk_rcvlowat && !tcp_rmem_pressure(sk) && !mptcp(tp) &&
+ 	    !sock_flag(sk, SOCK_DONE))
  		return;
  
  	sk->sk_data_ready(sk);
