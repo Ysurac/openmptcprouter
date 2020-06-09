@@ -2872,8 +2872,8 @@ diff -aurN linux-5.4/net/core/sock.c mptcp-mptcp_trunk/net/core/sock.c
  
  		sock_reset_flag(newsk, SOCK_DONE);
 +		sock_reset_flag(newsk, SOCK_MPTCP);
- 		mem_cgroup_sk_alloc(newsk);
- 		cgroup_sk_alloc(&newsk->sk_cgrp_data);
+ 
+ 		/* sk->sk_memcg will be populated at accept() time */
  
 diff -aurN linux-5.4/net/ipv4/af_inet.c mptcp-mptcp_trunk/net/ipv4/af_inet.c
 --- linux-5.4/net/ipv4/af_inet.c	2019-11-25 01:32:01.000000000 +0100
@@ -3646,7 +3646,7 @@ diff -aurN linux-5.4/net/ipv4/tcp.c mptcp-mptcp_trunk/net/ipv4/tcp.c
  
  	seq = tp->write_seq + tp->max_window + 2;
  	if (!seq)
-@@ -2616,15 +2730,11 @@
+@@ -2616,17 +2730,11 @@
  	icsk->icsk_backoff = 0;
  	tp->snd_cwnd = 2;
  	icsk->icsk_probes_out = 0;
@@ -3655,6 +3655,7 @@ diff -aurN linux-5.4/net/ipv4/tcp.c mptcp-mptcp_trunk/net/ipv4/tcp.c
 -	tp->snd_cwnd = TCP_INIT_CWND;
 -	tp->snd_cwnd_cnt = 0;
  	tp->window_clamp = 0;
+-	tp->delivered = 0;
 -	tp->delivered_ce = 0;
 +
 +	tcp_reset_vars(sk);
@@ -3662,17 +3663,22 @@ diff -aurN linux-5.4/net/ipv4/tcp.c mptcp-mptcp_trunk/net/ipv4/tcp.c
  	tcp_set_ca_state(sk, TCP_CA_Open);
 -	tp->is_sack_reneg = 0;
 -	tcp_clear_retrans(tp);
+-	tp->total_retrans = 0;
  	inet_csk_delack_init(sk);
  	/* Initialize rcv_mss to TCP_MIN_MSS to avoid division by 0
  	 * issue in __tcp_select_window()
-@@ -2636,10 +2746,6 @@
+@@ -2636,14 +2746,10 @@
  	sk->sk_rx_dst = NULL;
  	tcp_saved_syn_free(tp);
  	tp->compressed_ack = 0;
+ 	tp->segs_in = 0;
+ 	tp->segs_out = 0;
 -	tp->bytes_sent = 0;
 -	tp->bytes_acked = 0;
 -	tp->bytes_received = 0;
 -	tp->bytes_retrans = 0;
+	tp->data_segs_in = 0;
+	tp->data_segs_out = 0;
  	tp->duplicate_sack[0].start_seq = 0;
  	tp->duplicate_sack[0].end_seq = 0;
  	tp->dsack_dups = 0;
@@ -4501,12 +4507,14 @@ diff -aurN linux-5.4/net/ipv4/tcp_input.c mptcp-mptcp_trunk/net/ipv4/tcp_input.c
  {
  	int eaten;
  	struct sk_buff *tail = skb_peek_tail(&sk->sk_receive_queue);
-@@ -4746,7 +4811,7 @@
+@@ -4746,8 +4811,8 @@
  	const struct tcp_sock *tp = tcp_sk(sk);
  	int avail = tp->rcv_nxt - tp->copied_seq;
  
--	if (avail < sk->sk_rcvlowat && !sock_flag(sk, SOCK_DONE))
-+	if (avail < sk->sk_rcvlowat && !sock_flag(sk, SOCK_DONE) && !mptcp(tp))
+-	if (avail < sk->sk_rcvlowat && !tcp_rmem_pressure(sk) &&
+-	    !sock_flag(sk, SOCK_DONE))
++	if (avail < sk->sk_rcvlowat && !tcp_rmem_pressure(sk) && !mptcp(tp) &&
++	    !sock_flag(sk, SOCK_DONE))
  		return;
  
  	sk->sk_data_ready(sk);
@@ -5830,7 +5838,7 @@ diff -aurN linux-5.4/net/ipv4/tcp_output.c mptcp-mptcp_trunk/net/ipv4/tcp_output
  	return MAX_TCP_OPTION_SPACE - remaining;
  }
  
-@@ -747,16 +753,22 @@
+@@ -747,17 +753,22 @@
  		opts->tsecr = tp->rx_opt.ts_recent;
  		size += TCPOLEN_TSTAMP_ALIGNED;
  	}
@@ -5844,8 +5852,9 @@ diff -aurN linux-5.4/net/ipv4/tcp_output.c mptcp-mptcp_trunk/net/ipv4/tcp_output
 -			min_t(unsigned int, eff_sacks,
 -			      (remaining - TCPOLEN_SACK_BASE_ALIGNED) /
 -			      TCPOLEN_SACK_PERBLOCK);
--		size += TCPOLEN_SACK_BASE_ALIGNED +
--			opts->num_sack_blocks * TCPOLEN_SACK_PERBLOCK;
+-		if (likely(opts->num_sack_blocks))
+-			size += TCPOLEN_SACK_BASE_ALIGNED +
+-				opts->num_sack_blocks * TCPOLEN_SACK_PERBLOCK;
 +		const unsigned remaining = MAX_TCP_OPTION_SPACE - size;
 +		if (remaining < TCPOLEN_SACK_BASE_ALIGNED)
 +			opts->num_sack_blocks = 0;
@@ -5854,7 +5863,7 @@ diff -aurN linux-5.4/net/ipv4/tcp_output.c mptcp-mptcp_trunk/net/ipv4/tcp_output
 +			    min_t(unsigned int, eff_sacks,
 +				  (remaining - TCPOLEN_SACK_BASE_ALIGNED) /
 +				  TCPOLEN_SACK_PERBLOCK);
-+		if (opts->num_sack_blocks)
++		if (likely(opts->num_sack_blocks))
 +			size += TCPOLEN_SACK_BASE_ALIGNED +
 +			    opts->num_sack_blocks * TCPOLEN_SACK_PERBLOCK;
  	}
