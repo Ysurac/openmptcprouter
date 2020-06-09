@@ -26,10 +26,12 @@ OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_KERNEL}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
+OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 OMR_KERNEL=${OMR_KERNEL:-5.4}
+OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/[^0-9.]//g')}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
@@ -61,9 +63,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "559b3384666bbc6e4e9e6d86cf54bd88d30b341f"
-	_get_repo feeds/packages https://github.com/openwrt/packages "b7c82d57b69efee3b4e04483d5e7db9cfa5dcad5"
-	_get_repo feeds/luci https://github.com/openwrt/luci "6be8f8dbaee90a8a7e8bc87350f21793b9aed35c"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "8a858363b00d9496a04ff381d65301b1d529faee"
+	_get_repo feeds/packages https://github.com/openwrt/packages "534b88c5f8f0c4f608b7dd7eed1bdabf10252de2"
+	_get_repo feeds/luci https://github.com/openwrt/luci "0412e85a57c2f271c24fe837e3a6adcf60bc63f1"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -107,12 +109,19 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
+#cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
+#src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
+#src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
+#src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
+#src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
+#src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
+#EOF
 cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
-src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
-src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
-src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
-src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
-src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
+src/gz openwrt_luci http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
+src/gz openwrt_packages http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
+src/gz openwrt_base http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
+src/gz openwrt_routing http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
+src/gz openwrt_telephony http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
 EOF
 #cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
 #src/gz openwrt_luci http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/luci
@@ -149,6 +158,13 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_VHDX_IMAGES=y' >> "$OMR_TARGET/source/.config"
+fi
+
+if [ "$OMR_PACKAGES" = "full" ]; then
+	echo 'CONFIG_PACKAGE_${OMR_DIST}-full=y' >> "$OMR_TARGET/source/.config"
+fi
+if [ "$OMR_PACKAGES" = "mini" ]; then
+	echo 'CONFIG_PACKAGE_${OMR_DIST}-mini=y' >> "$OMR_TARGET/source/.config"
 fi
 
 cd "$OMR_TARGET/source"
@@ -273,7 +289,9 @@ if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
 fi
-scripts/feeds install -a -d y -f -p openmptcprouter
+rm -rf feeds/luci/modules/luci-mod-network
+#scripts/feeds install -a -d y -f -p openmptcprouter
+scripts/feeds install -d y -f -p openmptcprouter
 cp .config.keep .config
 echo "Done"
 
