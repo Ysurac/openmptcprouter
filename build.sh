@@ -63,9 +63,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "8a858363b00d9496a04ff381d65301b1d529faee"
-	_get_repo feeds/packages https://github.com/openwrt/packages "534b88c5f8f0c4f608b7dd7eed1bdabf10252de2"
-	_get_repo feeds/luci https://github.com/openwrt/luci "0412e85a57c2f271c24fe837e3a6adcf60bc63f1"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "e5aa498acb847320a382034ba0b9cfc55e6f13ca"
+	_get_repo feeds/packages https://github.com/openwrt/packages "69fd6ab319e170dd690a6495e8c1a7abe79f3960"
+	_get_repo feeds/luci https://github.com/openwrt/luci "16f443bf4caf6e7dd85efd1ce111b45779acdf5e"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -109,20 +109,23 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
-#cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
-#src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
-#src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
-#src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
-#src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
-#src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
-#EOF
-cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
-src/gz openwrt_luci http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
-src/gz openwrt_packages http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
-src/gz openwrt_base http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
-src/gz openwrt_routing http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
-src/gz openwrt_telephony http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
-EOF
+if [ "$OMR_DIST" = "openmptcprouter" ]; then
+	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	src/gz openwrt_luci http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
+	src/gz openwrt_packages http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
+	src/gz openwrt_base http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
+	src/gz openwrt_routing http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
+	src/gz openwrt_telephony http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
+	EOF
+else
+	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
+	src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
+	src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
+	src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
+	src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
+	EOF
+fi
 #cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
 #src/gz openwrt_luci http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/luci
 #src/gz openwrt_packages http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/packages
@@ -290,8 +293,7 @@ if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p luci
 fi
 rm -rf feeds/luci/modules/luci-mod-network
-#scripts/feeds install -a -d y -f -p openmptcprouter
-scripts/feeds install -d y -f -p openmptcprouter
+scripts/feeds install -a -d y -f -p openmptcprouter
 cp .config.keep .config
 echo "Done"
 
