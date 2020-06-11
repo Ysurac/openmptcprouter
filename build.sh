@@ -275,6 +275,8 @@ rm -rf target/linux/mediatek/patches-4.14/0027-*.patch
 rm -rf feeds/packages/libs/libwebp
 
 echo "Update feeds index"
+rm -rf feeds/luci/modules/luci-mod-network
+
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
@@ -292,7 +294,6 @@ if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
 fi
-rm -rf feeds/luci/modules/luci-mod-network
 scripts/feeds install -a -d y -f -p openmptcprouter
 cp .config.keep .config
 echo "Done"
