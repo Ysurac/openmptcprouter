@@ -4,3 +4,4 @@ CONFIG_TARGET_bcm27xx_bcm2709_DEVICE_rpi-2=y
 CONFIG_PACKAGE_kmod-ath10k-ct=n
 CONFIG_PACKAGE_kmod-ath9k=y
 CONFIG_PACKAGE_bcm27xx-eeprom=y
+CONFIG_PACKAGE_bcm27xx-userland=y

@@ -26,10 +26,12 @@ OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_KERNEL}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
+OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 OMR_KERNEL=${OMR_KERNEL:-5.4}
+OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/[^0-9.]//g')}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
@@ -61,9 +63,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "df27e949fbbf13e1e2ab4db49f608165ef0ba9fe"
-	_get_repo feeds/packages https://github.com/openwrt/packages "a4bb706918c58c7f8718e5de1de2e719eecabbd2"
-	_get_repo feeds/luci https://github.com/openwrt/luci "d0518a11e124e124bfaa02551bc2d028fad2d69d"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "e5aa498acb847320a382034ba0b9cfc55e6f13ca"
+	_get_repo feeds/packages https://github.com/openwrt/packages "69fd6ab319e170dd690a6495e8c1a7abe79f3960"
+	_get_repo feeds/luci https://github.com/openwrt/luci "16f443bf4caf6e7dd85efd1ce111b45779acdf5e"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -107,13 +109,23 @@ src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
-cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
-src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
-src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
-src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
-src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
-src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
-EOF
+if [ "$OMR_DIST" = "openmptcprouter" ]; then
+	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	src/gz openwrt_luci http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
+	src/gz openwrt_packages http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
+	src/gz openwrt_base http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
+	src/gz openwrt_routing http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
+	src/gz openwrt_telephony http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
+	EOF
+else
+	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
+	src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
+	src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
+	src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
+	src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
+	EOF
+fi
 #cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
 #src/gz openwrt_luci http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/luci
 #src/gz openwrt_packages http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/packages
@@ -143,11 +155,19 @@ else
 fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	echo 'CONFIG_ALL=y' >> "$OMR_TARGET/source/.config"
+	echo 'CONFIG_ALL_NONSHARED=y' >> "$OMR_TARGET/source/.config"
 fi
 if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_VHDX_IMAGES=y' >> "$OMR_TARGET/source/.config"
+fi
+
+if [ "$OMR_PACKAGES" = "full" ]; then
+	echo 'CONFIG_PACKAGE_${OMR_DIST}-full=y' >> "$OMR_TARGET/source/.config"
+fi
+if [ "$OMR_PACKAGES" = "mini" ]; then
+	echo 'CONFIG_PACKAGE_${OMR_DIST}-mini=y' >> "$OMR_TARGET/source/.config"
 fi
 
 cd "$OMR_TARGET/source"
@@ -214,7 +234,7 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/package-too-long.patch; then
 fi
 echo "Done"
 
-echo "Downlaod via IPv4"
+echo "Download via IPv4"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
 	patch -N -p1 -s < ../../patches/download-ipv4.patch
 fi
@@ -252,7 +272,11 @@ fi
 # Remove patch that can make BPI-R2 slow
 rm -rf target/linux/mediatek/patches-4.14/0027-*.patch
 
+rm -rf feeds/packages/libs/libwebp
+
 echo "Update feeds index"
+rm -rf feeds/luci/modules/luci-mod-network
+
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
@@ -267,8 +291,8 @@ scripts/feeds update -a
 #cd "$OMR_TARGET/source"
 
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
-	scripts/feeds install -a -p packages
-	scripts/feeds install -a -p luci
+	scripts/feeds install -a -d m -p packages
+	scripts/feeds install -a -d m -p luci
 fi
 scripts/feeds install -a -d y -f -p openmptcprouter
 cp .config.keep .config
