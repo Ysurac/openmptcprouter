@@ -56,6 +56,8 @@ elif [ "$OMR_TARGET" = "wrt32x" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "bpi-r64" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "x86" ]; then
 	OMR_REAL_TARGET="i386_pentium4"
 else
@@ -64,9 +66,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "b123ffdf6ebaa3108524bb50d306d6ae73ff7405"
-	_get_repo feeds/packages https://github.com/openwrt/packages "477a881f14e0b0772002dbd2ee2d2c89139fc149"
-	_get_repo feeds/luci https://github.com/openwrt/luci "051c828aeb754a70cf9a3c710985992c29b35b7b"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f632747704f172e5c6d3a7c5715dc8d2f50d8da8"
+	_get_repo feeds/packages https://github.com/openwrt/packages "9bd81604b76a9b1abc0bb8146fb55c00c2445f1b"
+	_get_repo feeds/luci https://github.com/openwrt/luci "4ddcb360885030f33baa73f8569640db93250878"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -270,10 +272,7 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Done"
 fi
 
-# Remove patch that can make BPI-R2 slow
-rm -rf target/linux/mediatek/patches-4.14/0027-*.patch
-
-rm -rf feeds/packages/libs/libwebp
+#rm -rf feeds/packages/libs/libwebp
 
 echo "Update feeds index"
 rm -rf feeds/luci/modules/luci-mod-network
