@@ -58,6 +58,8 @@ elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r64" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
+elif [ "$OMR_TARGET" = "espressobin" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "x86" ]; then
 	OMR_REAL_TARGET="i386_pentium4"
 else
@@ -66,9 +68,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f632747704f172e5c6d3a7c5715dc8d2f50d8da8"
-	_get_repo feeds/packages https://github.com/openwrt/packages "9bd81604b76a9b1abc0bb8146fb55c00c2445f1b"
-	_get_repo feeds/luci https://github.com/openwrt/luci "4ddcb360885030f33baa73f8569640db93250878"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "65e9de3c333bae1ccef1dfb0cc008ad6f13958e4"
+	_get_repo feeds/packages https://github.com/openwrt/packages "38db6a2e3ea62b03ef7c26401a3d26edaf621487"
+	_get_repo feeds/luci https://github.com/openwrt/luci "7edd635026594da577b73f059c0d8b95d653f8fc"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
