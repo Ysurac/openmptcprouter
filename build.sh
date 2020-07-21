@@ -146,7 +146,6 @@ if [ -f "$OMR_TARGET_CONFIG" ]; then
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
 	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
-	CONFIG_PACKAGE_${OMR_DIST}-full=y
 	EOF
 else
 	cat config -> "$OMR_TARGET/source/.config" <<-EOF
@@ -155,7 +154,6 @@ else
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
 	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
-	CONFIG_PACKAGE_${OMR_DIST}-full=y
 	EOF
 fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
@@ -169,10 +167,10 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 fi
 
 if [ "$OMR_PACKAGES" = "full" ]; then
-	echo 'CONFIG_PACKAGE_${OMR_DIST}-full=y' >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_${OMR_DIST}-full=y" >> "$OMR_TARGET/source/.config"
 fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
-	echo 'CONFIG_PACKAGE_${OMR_DIST}-mini=y' >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
 fi
 
 cd "$OMR_TARGET/source"
