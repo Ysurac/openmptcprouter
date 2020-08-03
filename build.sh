@@ -37,6 +37,8 @@ OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
+CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
+
 OMR_OPENWRT=${OMR_OPENWRT:-default}
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
@@ -68,9 +70,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "c5360894dc9c064bf920c1b7a2cb363d105207d5"
-	_get_repo feeds/packages https://github.com/openwrt/packages "5bb13435b74c276b676e0561984cb37e4a74ca1d"
-	_get_repo feeds/luci https://github.com/openwrt/luci "1c92d9f706de9a411c549bac60a9a3ba67533f4e"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "18b7d87a8f76b4cf36e943d9211bd26d79f55ec6"
+	_get_repo feeds/packages https://github.com/openwrt/packages "1c67444c33d85cd74d3a68d1a251626342554f03"
+	_get_repo feeds/luci https://github.com/openwrt/luci "b2e00f23a7862f47b8bd975207ba8242b55e6cf0"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -84,6 +86,11 @@ fi
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
 	_get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
+fi
+
+if [ -n "$CUSTOM_FEED_URL" ]; then
+	CUSTOM_FEED=feeds/${OMR_DIST}
+	_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "master"
 fi
 
 if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
@@ -113,6 +120,10 @@ src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
+
+if [ -n "$CUSTOM_FEED" ]; then
+	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/source/feeds.conf"
+fi
 
 if [ "$OMR_DIST" = "openmptcprouter" ]; then
 	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
@@ -294,7 +305,12 @@ if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
 fi
-scripts/feeds install -a -d y -f -p openmptcprouter
+if [ -n "$CUSTOM_FEED" ]; then
+	scripts/feeds install -a -d m -p openmptcprouter
+	scripts/feeds install -a -d y -f -p ${OMR_DIST}
+else
+	scripts/feeds install -a -d y -f -p openmptcprouter
+fi
 cp .config.keep .config
 echo "Done"
 
