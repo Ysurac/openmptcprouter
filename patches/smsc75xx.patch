@@ -1,7 +1,7 @@
 Index: package/kernel/linux/modules/usb.mk
 ===================================================================
---- package/kernel/linux/modules/usb.mk	(revisione 42462)
-+++ package/kernel/linux/modules/usb.mk	(copia locale)
+--- a/package/kernel/linux/modules/usb.mk	(revisione 42462)
++++ b/package/kernel/linux/modules/usb.mk	(copia locale)
 @@ -1091,8 +1091,21 @@
  endef
  
