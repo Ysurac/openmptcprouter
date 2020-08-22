@@ -22,7 +22,6 @@ _get_repo() (
 OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-8000}
-OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_KERNEL}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
@@ -32,10 +31,13 @@ OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
-OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1`)}
+OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
+OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
+
+CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 
 OMR_OPENWRT=${OMR_OPENWRT:-default}
 
@@ -56,6 +58,10 @@ elif [ "$OMR_TARGET" = "wrt32x" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "bpi-r64" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a53"
+elif [ "$OMR_TARGET" = "espressobin" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "x86" ]; then
 	OMR_REAL_TARGET="i386_pentium4"
 else
@@ -64,9 +70,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "635f111148c3f7ccb0ecc92863a3b1a142f6ebeb"
-	_get_repo feeds/packages https://github.com/openwrt/packages "c7dca50f110d5458ceff21a2274eddae2aae119b"
-	_get_repo feeds/luci https://github.com/openwrt/luci "558525783cf33a986efa33d23f5283b33a6c936e"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "da986035973a8c803e6f193ae502ff65e6d551c3"
+	_get_repo feeds/packages https://github.com/openwrt/packages "91bf524845d4733c77c11f359b1c915e788ece14"
+	_get_repo feeds/luci https://github.com/openwrt/luci "b2fa7903ebfdbe9f485a94710b77320fe7897dba"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -80,6 +86,11 @@ fi
 if [ -z "$OMR_FEED" ]; then
 	OMR_FEED=feeds/openmptcprouter
 	_get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
+fi
+
+if [ -n "$CUSTOM_FEED_URL" ]; then
+	CUSTOM_FEED=feeds/${OMR_DIST}
+	_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "master"
 fi
 
 if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
@@ -109,6 +120,10 @@ src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
+
+if [ -n "$CUSTOM_FEED" ]; then
+	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/source/feeds.conf"
+fi
 
 if [ "$OMR_DIST" = "openmptcprouter" ]; then
 	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
@@ -142,7 +157,6 @@ if [ -f "$OMR_TARGET_CONFIG" ]; then
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
 	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
-	CONFIG_PACKAGE_${OMR_DIST}-full=y
 	EOF
 else
 	cat config -> "$OMR_TARGET/source/.config" <<-EOF
@@ -151,7 +165,6 @@ else
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
 	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
-	CONFIG_PACKAGE_${OMR_DIST}-full=y
 	EOF
 fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
@@ -165,10 +178,10 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 fi
 
 if [ "$OMR_PACKAGES" = "full" ]; then
-	echo 'CONFIG_PACKAGE_${OMR_DIST}-full=y' >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_${OMR_DIST}-full=y" >> "$OMR_TARGET/source/.config"
 fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
-	echo 'CONFIG_PACKAGE_${OMR_DIST}-mini=y' >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
 fi
 
 cd "$OMR_TARGET/source"
@@ -270,10 +283,7 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Done"
 fi
 
-# Remove patch that can make BPI-R2 slow
-rm -rf target/linux/mediatek/patches-4.14/0027-*.patch
-
-rm -rf feeds/packages/libs/libwebp
+#rm -rf feeds/packages/libs/libwebp
 
 echo "Update feeds index"
 rm -rf feeds/luci/modules/luci-mod-network
@@ -295,7 +305,12 @@ if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
 fi
-scripts/feeds install -a -d y -f -p openmptcprouter
+if [ -n "$CUSTOM_FEED" ]; then
+	scripts/feeds install -a -d m -p openmptcprouter
+	scripts/feeds install -a -d y -f -p ${OMR_DIST}
+else
+	scripts/feeds install -a -d y -f -p openmptcprouter
+fi
 cp .config.keep .config
 echo "Done"
 
