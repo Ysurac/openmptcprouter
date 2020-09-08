@@ -1,6 +1,7 @@
 name: Mark stale issues and pull requests
 
 on:
+  push:
   schedule:
     - cron: "0 19 * * *"
 
