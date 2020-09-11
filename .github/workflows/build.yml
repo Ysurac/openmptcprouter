@@ -19,6 +19,6 @@ jobs:
       run: OMR_TARGET="${{ matrix.device }}" OMR_FEED_SRC="master" ./build.sh
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.device }}
-          path: source/bin
+      with:
+        name: ${{ matrix.device }}
+        path: source/bin
