@@ -37,7 +37,7 @@ ALLWIFIBOARDS:= \
 	ezviz_cs-w3-wd1200g-eup \
 	glinet_gl-s1300 \
 	linksys_ea8300 \
-	p2w_r619c \
+	p2w_r619ac \
 	mobipromo_cm520-79f \
 	qxwlan_e2600ac
 
