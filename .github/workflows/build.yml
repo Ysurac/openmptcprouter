@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get -y install git-core build-essential libssl-dev libncurses5-dev unzip gawk zlib1g-dev busybox curl rsync gettext
     - name: build images
-      run: OMR_TARGET="${{ matrix.device }}" OMR_FEED_SRC="master" ./build.sh
+      run: OMR_TARGET="${{ matrix.device }}" OMR_FEED_SRC="master" ./build.sh -j$(nproc)
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
