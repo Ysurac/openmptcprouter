@@ -1,0 +1,24 @@
+# matrix build for openmptcprouter official hardware
+
+name: matrix
+on: [push, pull_request]
+
+  
+jobs:
+  build:
+    strategy:
+      matrix:
+        device: [bpi-r2, p2w_r619ac, rpi2, rpi4, wrt32x, espressobin, r2s, rpi3, wrt3200acm, x86, x86_64]                                                                 
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: sudo apt-get -y install git-core build-essential libssl-dev libncurses5-dev unzip gawk zlib1g-dev busybox curl rsync gettext
+    - name: build images
+      run: OMR_TARGET="${{ matrix.device }}" OMR_FEED_SRC="master" ./build.sh
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.device }}
+          path: source/bin
