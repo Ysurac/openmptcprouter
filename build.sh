@@ -31,7 +31,8 @@ OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
-OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
+#OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
+OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
@@ -70,9 +71,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "38f6d5d217ca0c42f7f42b08f835a8a9cee71ad7"
-	_get_repo feeds/packages https://github.com/openwrt/packages "7479b3ecfafa6732185080ddfca68b68e27993b2"
-	_get_repo feeds/luci https://github.com/openwrt/luci "b95ac83ffd4fcf268be964002c45beba17d6e5c1"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "14247c82c0c64bbbf0ce32bfa43de609a0b3c6e4"
+	_get_repo feeds/packages https://github.com/openwrt/packages "33b6e611955693173f29038bf22fa2e496f460d2"
+	_get_repo feeds/luci https://github.com/openwrt/luci "32c833571435cf6ac30850315cdd4853ea5c914a"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -156,7 +157,7 @@ if [ -f "$OMR_TARGET_CONFIG" ]; then
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tags `git rev-list --tags --max-count=1`)-$(git rev-parse --short HEAD)"
 	EOF
 else
 	cat config -> "$OMR_TARGET/source/.config" <<-EOF
@@ -164,7 +165,7 @@ else
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tags `git rev-list --tags --max-count=1`)-$(git rev-parse --short HEAD)"
 	EOF
 fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
