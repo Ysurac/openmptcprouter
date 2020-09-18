@@ -124,8 +124,7 @@ EOF
 if [ -n "$CUSTOM_FEED" ]; then
 	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/source/feeds.conf"
 fi
-
-if [ "$OMR_DIST" = "openmptcprouter" ]; then
+if [ "$OMR_DIST" = "3grouter" ]; then
 	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
 	src/gz openwrt_luci http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
 	src/gz openwrt_packages http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
