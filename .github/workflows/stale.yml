@@ -9,8 +9,8 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v3.0.10
-      name: Space cleanup
+      uses: actions/stale@v3.0.10
+      - name: Space cleanup
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
