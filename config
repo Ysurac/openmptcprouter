@@ -38,7 +38,7 @@ CONFIG_BUSYBOX_CONFIG_WATCH=y
 # CONFIG_GDB is not set
 CONFIG_GRUB_SERIAL=""
 CONFIG_GRUB_TIMEOUT="0"
-CONFIG_GRUB_TITLE="OpenMPTCProuter"
+CONFIG_GRUB_TITLE="antrouter"
 CONFIG_KERNEL_AIO=y
 CONFIG_KERNEL_DEBUG_GPIO=y
 # CONFIG_KERNEL_DEBUG_INFO is not set
@@ -203,6 +203,11 @@ CONFIG_KERNEL_MPTCP_ROUNDROBIN=y
 # CONFIG_KERNEL_DEFAULT_ROUNDROBIN is not set
 CONFIG_KERNEL_MPTCP_REDUNDANT=y
 # CONFIG_KERNEL_DEFAULT_REDUNDANT is not set
+CONFIG_PACKAGE_omr-6in4=y
+CONFIG_PACKAGE_omr-update=y
+CONFIG_PACKAGE_openmptcprouter=y
+# CONFIG_PACKAGE_openmptcprouter-full is not set
+# CONFIG_PACKAGE_openmptcprouter-mini is not set
 CONFIG_KERNEL_DEFAULT_SCHEDULER=y
 CONFIG_KERNEL_MPTCP=y
 CONFIG_KERNEL_CRYPTO_SHA256=y
@@ -246,3 +251,19 @@ CONFIG_OPENSSL_WITH_CHACHA_POLY1305=y
 # CONFIG_LUCI_CSSTIDY is not set
 # CONFIG_LIBCURL_WOLFSSL is not set
 # CONFIG_PACKAGE_libustream-wolfssl is not set
+CONFIG_PACKAGE_luci-app-status=y
+CONFIG_PACKAGE_luci-mod-status=y
+CONFIG_PACKAGE_frpc=y
+CONFIG_PACKAGE_rtty-nossl=y
+CONFIG_PACKAGE_minicom=y
+# CONFIG_PACKAGE_luci-theme-argon is not set
+#
+# 4. Themes
+#
+# CONFIG_PACKAGE_luci-theme-argon is not set
+CONFIG_PACKAGE_luci-theme-bootstrap=y
+# CONFIG_PACKAGE_luci-theme-material is not set
+CONFIG_PACKAGE_luci-theme-openmptcprouter=y
+# CONFIG_PACKAGE_luci-theme-openwrt is not set
+CONFIG_PACKAGE_luci-theme-openwrt-2020=y
+# end of 4. Themes
