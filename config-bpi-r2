@@ -1,0 +1,19 @@
+CONFIG_TARGET_mediatek=y
+CONFIG_TARGET_mediatek_mt7623=y
+CONFIG_TARGET_mediatek_mt7623_DEVICE_bpi_bananapi-r2=y
+CONFIG_TARGET_ROOTFS_EXT4FS=y
+CONFIG_TARGET_ROOTFS_SQUASHFS=y
+CONFIG_PACKAGE_kmod-cryptodev=y
+CONFIG_OPENSSL_HARDWARE_SUPPORT=y
+CONFIG_OPENSSL_ENGINE_CRYPTO=y
+CONFIG_OPENSSL_ENGINE_DIGEST=y
+CONFIG_PACKAGE_uboot-envtools=y
+CONFIG_PACKAGE_attr=y
+CONFIG_PACKAGE_f2fs-tools=y
+CONFIG_PACKAGE_f2fsck=y
+CONFIG_PACKAGE_mkf2fs=y
+# CONFIG_PACKAGE_kmod-fs-nfs-v3 is not set
+# CONFIG_PACKAGE_kmod-fs-nfs-v4 is not set
+# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set
+# CONFIG_PACKAGE_kmod-mt6625l-bt is not set
+# CONFIG_PACKAGE_kmod-mt6625l-wlan-gen-2 is not set

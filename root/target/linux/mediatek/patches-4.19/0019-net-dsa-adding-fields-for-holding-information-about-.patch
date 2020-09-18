@@ -1,0 +1,60 @@
+From 329ff45aafea77cd9f5c97d2988e7c399ef05d6d Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Thu, 29 Nov 2018 11:34:09 +0100
+Subject: [PATCH 19/77] net: dsa: adding fields for holding information about
+ upstream-port
+
+for multiple cpu-Ports aech port needs storing the the cpu-port to be used
+this Patch adds the needed fields for this
+
+based on
+https://github.com/openwrt/openwrt/blob/master/target/linux/mediatek/patches-4.14/0033-dsa-multi-cpu.patch
+
+Signed-off-by: Frank Wunderlich <frank-w@public-files.de>
+---
+ include/net/dsa.h  | 4 ++++
+ net/dsa/dsa_priv.h | 5 +++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/include/net/dsa.h b/include/net/dsa.h
+index 461e8a7661b7..6e0c95625a21 100644
+--- a/include/net/dsa.h
++++ b/include/net/dsa.h
+@@ -202,6 +202,10 @@ struct dsa_port {
+ 	struct net_device	*bridge_dev;
+ 	struct devlink_port	devlink_port;
+ 	struct phylink		*pl;
++
++	struct net_device	*ethernet;
++	int			upstream;
++
+ 	/*
+ 	 * Original copy of the master netdev ethtool_ops
+ 	 */
+diff --git a/net/dsa/dsa_priv.h b/net/dsa/dsa_priv.h
+index 3964c6f7a7c0..559a3a250c88 100644
+--- a/net/dsa/dsa_priv.h
++++ b/net/dsa/dsa_priv.h
+@@ -81,6 +81,8 @@ struct dsa_slave_priv {
+ 
+ 	/* TC context */
+ 	struct list_head	mall_tc_list;
++
++	struct net_device       *master;
+ };
+ 
+ /* dsa.c */
+@@ -187,7 +189,10 @@ static inline struct net_device *
+ dsa_slave_to_master(const struct net_device *dev)
+ {
+ 	struct dsa_port *dp = dsa_slave_to_port(dev);
++	struct dsa_slave_priv *p = netdev_priv(dev);
+ 
++	if (p->master)
++		return p->master;
+ 	return dp->cpu_dp->master;
+ }
+ 
+-- 
+2.19.1
+

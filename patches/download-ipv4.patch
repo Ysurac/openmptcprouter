@@ -1,0 +1,13 @@
+--- a/scripts/download.pl	2020-04-12 21:41:19.548645048 +0200
++++ b/scripts/download.pl	2020-04-12 21:41:28.752479609 +0200
+@@ -82,8 +82,8 @@
+ 	}
+ 
+ 	return $have_curl
+-		? (qw(curl -f --connect-timeout 20 --retry 5 --location --insecure), shellwords($ENV{CURL_OPTIONS} || ''), $url)
+-		: (qw(wget --tries=5 --timeout=20 --no-check-certificate --output-document=-), shellwords($ENV{WGET_OPTIONS} || ''), $url)
++		? (qw(curl -4 -f --connect-timeout 20 --retry 5 --location --insecure), shellwords($ENV{CURL_OPTIONS} || ''), $url)
++		: (qw(wget -4 --tries=5 --timeout=20 --no-check-certificate --output-document=-), shellwords($ENV{WGET_OPTIONS} || ''), $url)
+ 	;
+ }
+ 
