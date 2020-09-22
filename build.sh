@@ -71,9 +71,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "14247c82c0c64bbbf0ce32bfa43de609a0b3c6e4"
-	_get_repo feeds/packages https://github.com/openwrt/packages "33b6e611955693173f29038bf22fa2e496f460d2"
-	_get_repo feeds/luci https://github.com/openwrt/luci "32c833571435cf6ac30850315cdd4853ea5c914a"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "d643b10a76965a94684012d2ddf36e2bcc146274"
+	_get_repo feeds/packages https://github.com/openwrt/packages "0daa9fb1dd48ee63024a5fc24dd3c85e112f7ed6"
+	_get_repo feeds/luci https://github.com/openwrt/luci "4f6c054d7a468b980538461ede1da40789af4d46"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -89,7 +89,7 @@ if [ -z "$OMR_FEED" ]; then
 	_get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
 fi
 
-if [ -n "$CUSTOM_FEED_URL" ]; then
+if [ -n "$CUSTOM_FEED_URL" ] && [ -z "$CUSTOM_FEED" ]; then
 	CUSTOM_FEED=feeds/${OMR_DIST}
 	_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "master"
 fi
@@ -257,6 +257,10 @@ echo "Done"
 
 if [ -f target/linux/mediatek/patches-5.4/0999-hnat.patch ]; then
 	rm -f target/linux/mediatek/patches-5.4/0999-hnat.patch
+fi
+
+if [ -f target/linux/ipq40xx/patches-5.4/100-GPIO-add-named-gpio-exports.patch ]; then
+	rm -f target/linux/ipq40xx/patches-5.4/100-GPIO-add-named-gpio-exports.patch
 fi
 
 #echo "Patch protobuf wrong hash"
