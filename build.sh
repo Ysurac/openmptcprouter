@@ -71,9 +71,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "d643b10a76965a94684012d2ddf36e2bcc146274"
-	_get_repo feeds/packages https://github.com/openwrt/packages "0daa9fb1dd48ee63024a5fc24dd3c85e112f7ed6"
-	_get_repo feeds/luci https://github.com/openwrt/luci "4f6c054d7a468b980538461ede1da40789af4d46"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "620f9c773413a0deaeda2bdc22d5e9cb89b9317f"
+	_get_repo feeds/packages https://github.com/openwrt/packages "ed39c2f02e1f05c40161986c6d0581f7eba58bea"
+	_get_repo feeds/luci https://github.com/openwrt/luci "6044084a61cdd95e390002cc6a908b33185d457d"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -293,6 +293,7 @@ fi
 echo "Update feeds index"
 rm -rf feeds/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/luci/modules/luci-mod-status
+[ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/luci/applications/luci-app-statistics
 
 cp .config .config.keep
 scripts/feeds clean
