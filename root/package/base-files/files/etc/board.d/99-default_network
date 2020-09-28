@@ -10,6 +10,7 @@ board_config_update
 json_is_a network object && exit 0
 
 ucidef_set_interface_lan 'eth0'
+[ -d /sys/class/net/eth1 ] && ucidef_set_interface_wan 'eth1'
 
 board_config_flush
 
