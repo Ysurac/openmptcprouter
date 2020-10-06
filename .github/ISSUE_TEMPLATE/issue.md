@@ -1,3 +1,9 @@
+---
+name: Bug report
+about: Create a report to help us improve OpenMPTCProuter
+labels: bug
+---
+
 <!--- Use this template, else issue may be closed automatically -->
 ## Expected Behavior
 <!--- In English please. -->
