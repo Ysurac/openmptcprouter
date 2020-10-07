@@ -2,7 +2,7 @@
 name: Hardware Support
 about: Suggest adding hardware support
 title: ''
-labels: Hardware Support
+labels: hardware support
 assignees: ''
 
 ---

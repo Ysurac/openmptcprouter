@@ -1,7 +1,7 @@
 ---
 name: Enhancement
 about: Suggest enhancements
-labels: Enhancement
+labels: enhancement
 ---
 
 **Is your enhancement proposal related to a problem? Please describe.**
