@@ -1,9 +1,0 @@
-CONFIG_TARGET_mediatek=y
-CONFIG_TARGET_mediatek_mt7622=y
-CONFIG_TARGET_mediatek_mt7622_DEVICE_bpi_bananapi-r64=y
-# CONFIG_PACKAGE_kmod-mt6625l-bt is not set
-# CONFIG_PACKAGE_kmod-mt6625l-wlan-gen-2 is not set
-CONFIG_PACKAGE_uboot-mediatek=y
-CONFIG_PACKAGE_uboot-envtools=y
-CONFIG_PACKAGE_mt7622-preloader=y
-CONFIG_KERNEL_ARM_MODULE_PLTS=y
