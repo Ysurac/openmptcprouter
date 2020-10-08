@@ -1,0 +1,5 @@
+---
+name: Create a question
+about: Ask a question
+labels: question
+---

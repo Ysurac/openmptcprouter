@@ -21,7 +21,7 @@ _get_repo() (
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
-OMR_PORT=${OMR_PORT:-8000}
+OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
@@ -71,9 +71,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "620f9c773413a0deaeda2bdc22d5e9cb89b9317f"
-	_get_repo feeds/packages https://github.com/openwrt/packages "ed39c2f02e1f05c40161986c6d0581f7eba58bea"
-	_get_repo feeds/luci https://github.com/openwrt/luci "6044084a61cdd95e390002cc6a908b33185d457d"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "2a90d308c73f3f254e93fe3c55d4e40eaabc06e3"
+	_get_repo feeds/packages https://github.com/openwrt/packages "1640ff1a1e1de6a3217cdd0c43905d4b2dd83f8f"
+	_get_repo feeds/luci https://github.com/openwrt/luci "c2b22afb9a9a770270be6dbee323ae497b4b988b"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -133,6 +133,14 @@ if [ "$OMR_DIST" = "openmptcprouter" ]; then
 	src/gz openwrt_base http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
 	src/gz openwrt_routing http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
 	src/gz openwrt_telephony http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
+	EOF
+elif [ -n "$OMR_PACKAGES_URL" ]; then
+	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	src/gz openwrt_luci ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
+	src/gz openwrt_packages ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
+	src/gz openwrt_base ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
+	src/gz openwrt_routing ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
+	src/gz openwrt_telephony ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
 	EOF
 else
 	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
