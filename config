@@ -215,6 +215,8 @@ CONFIG_OPENSSL_WITH_CHACHA_POLY1305=y
 # CONFIG_LUCI_CSSTIDY is not set
 # CONFIG_LIBCURL_WOLFSSL is not set
 # CONFIG_PACKAGE_libustream-wolfssl is not set
+CONFIG_KERNEL_DEVMEM=y
+CONFIG_KERNEL_DEVKMEM=y
 # CONFIG_PACKAGE_luci-theme-argon=y
 CONFIG_PACKAGE_luci-theme-bootstrap=y
 CONFIG_PACKAGE_luci-theme-openwrt-2020=y
