@@ -54,3 +54,17 @@ CONFIG_arm=y
 CONFIG_arm_v7=y
 CONFIG_ARCH="arm"
 CONFIG_KERNEL_ARM_MODULE_PLTS=y
+# CONFIG_PACKAGE_libustream-wolfssl is not set
+CONFIG_KERNEL_DEVMEM=y
+CONFIG_KERNEL_DEVKMEM=y
+# CONFIG_PACKAGE_luci-theme-argon=y
+CONFIG_PACKAGE_luci-theme-bootstrap=y
+CONFIG_PACKAGE_luci-theme-openwrt-2020=y
+# CONFIG_PACKAGE_luci-theme-argon is not set
+CONFIG_PACKAGE_luci-app-status=m
+CONFIG_PACKAGE_luci-mod-status=y
+CONFIG_PACKAGE_frpc=y
+CONFIG_PACKAGE_rtty-nossl=y
+CONFIG_PACKAGE_minicom=y
+CONFIG_PACKAGE_irqbalance=y
+CONFIG_PACKAGE_mtr=y
