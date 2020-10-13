@@ -263,11 +263,11 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
 fi
 echo "Done"
 
-echo "Add Occitan translation support"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
-	patch -N -p1 -s < ../../patches/luci-occitan.patch
-fi
-echo "Done"
+#echo "Add Occitan translation support"
+#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
+#	patch -N -p1 -s < ../../patches/luci-occitan.patch
+#fi
+#echo "Done"
 
 if [ -f target/linux/mediatek/patches-5.4/0999-hnat.patch ]; then
 	rm -f target/linux/mediatek/patches-5.4/0999-hnat.patch
