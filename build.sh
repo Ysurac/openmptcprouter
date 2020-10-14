@@ -263,12 +263,6 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
 fi
 echo "Done"
 
-#echo "Add Occitan translation support"
-#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
-#	patch -N -p1 -s < ../../patches/luci-occitan.patch
-#fi
-#echo "Done"
-
 if [ -f target/linux/mediatek/patches-5.4/0999-hnat.patch ]; then
 	rm -f target/linux/mediatek/patches-5.4/0999-hnat.patch
 fi
@@ -303,12 +297,21 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 fi
 
 #rm -rf feeds/packages/libs/libwebp
-
-echo "Update feeds index"
+cd "../.."
 rm -rf feeds/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/luci/modules/luci-mod-status
 [ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/luci/applications/luci-app-statistics
 
+echo "Add Occitan translation support"
+if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
+	patch -N -p1 -s < patches/luci-occitan.patch
+	#sh feeds/luci/build/i18n-add-language.sh oc
+fi
+[ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
+echo "Done"
+
+cd "$OMR_TARGET/source"
+echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
