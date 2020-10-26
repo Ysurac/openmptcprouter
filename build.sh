@@ -21,7 +21,7 @@ _get_repo() (
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
-OMR_PORT=${OMR_PORT:-8000}
+OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
@@ -31,7 +31,8 @@ OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
-OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
+#OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
+OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
@@ -70,9 +71,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "18b7d87a8f76b4cf36e943d9211bd26d79f55ec6"
-	_get_repo feeds/packages https://github.com/openwrt/packages "1c67444c33d85cd74d3a68d1a251626342554f03"
-	_get_repo feeds/luci https://github.com/openwrt/luci "b2e00f23a7862f47b8bd975207ba8242b55e6cf0"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a439f1bb478b4b8b4134dbed76266c0032625b6b"
+	_get_repo feeds/packages https://github.com/openwrt/packages "05769970213a5f9ffb81506b18da288890c05949"
+	_get_repo feeds/luci https://github.com/openwrt/luci "a805a3178f902fe609d3d4a6c7b6b5b1dad88838"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -88,7 +89,7 @@ if [ -z "$OMR_FEED" ]; then
 	_get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
 fi
 
-if [ -n "$CUSTOM_FEED_URL" ]; then
+if [ -n "$CUSTOM_FEED_URL" ] && [ -z "$CUSTOM_FEED" ]; then
 	CUSTOM_FEED=feeds/${OMR_DIST}
 	_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "master"
 fi
@@ -133,6 +134,14 @@ if [ "$OMR_DIST" = "openmptcprouter" ]; then
 	src/gz openwrt_routing http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
 	src/gz openwrt_telephony http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
 	EOF
+elif [ -n "$OMR_PACKAGES_URL" ]; then
+	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	src/gz openwrt_luci ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
+	src/gz openwrt_packages ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
+	src/gz openwrt_base ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
+	src/gz openwrt_routing ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
+	src/gz openwrt_telephony ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
+	EOF
 else
 	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
 	src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
@@ -156,7 +165,7 @@ if [ -f "$OMR_TARGET_CONFIG" ]; then
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF
 else
 	cat config -> "$OMR_TARGET/source/.config" <<-EOF
@@ -164,7 +173,7 @@ else
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tag --always)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF
 fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
@@ -258,6 +267,10 @@ if [ -f target/linux/mediatek/patches-5.4/0999-hnat.patch ]; then
 	rm -f target/linux/mediatek/patches-5.4/0999-hnat.patch
 fi
 
+if [ -f target/linux/ipq40xx/patches-5.4/100-GPIO-add-named-gpio-exports.patch ]; then
+	rm -f target/linux/ipq40xx/patches-5.4/100-GPIO-add-named-gpio-exports.patch
+fi
+
 #echo "Patch protobuf wrong hash"
 #patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
 #echo "Done"
@@ -284,10 +297,21 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 fi
 
 #rm -rf feeds/packages/libs/libwebp
-
-echo "Update feeds index"
+cd "../.."
 rm -rf feeds/luci/modules/luci-mod-network
+[ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/luci/modules/luci-mod-status
+[ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/luci/applications/luci-app-statistics
 
+echo "Add Occitan translation support"
+if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
+	patch -N -p1 -s < patches/luci-occitan.patch
+	#sh feeds/luci/build/i18n-add-language.sh oc
+fi
+[ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
+echo "Done"
+
+cd "$OMR_TARGET/source"
+echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a

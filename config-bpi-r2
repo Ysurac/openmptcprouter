@@ -17,3 +17,4 @@ CONFIG_PACKAGE_mkf2fs=y
 # CONFIG_PACKAGE_kmod-rtl8812au-ct is not set
 # CONFIG_PACKAGE_kmod-mt6625l-bt is not set
 # CONFIG_PACKAGE_kmod-mt6625l-wlan-gen-2 is not set
+CONFIG_KERNEL_ARM_MODULE_PLTS=y
