@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/Ysurac/openmptcprouter-feeds.svg?style=svg)](https://circleci.com/gh/Ysurac/openmptcprouter-feeds)
+![openmptcprouter](https://github.com/Ysurac/openmptcprouter-feeds/workflows/openmptcprouter/badge.svg)
 ![Latest tag](https://img.shields.io/github/tag/ysurac/openmptcprouter-feeds.svg)
 [![Paypal](https://www.openmptcprouter.com/img/donate-PayPal-green.svg)](https://www.paypal.me/ycarus)
 [![Flattr](https://www.openmptcprouter.com/img/donate-flattr-yellow.svg)](https://flattr.com/@ycarus)

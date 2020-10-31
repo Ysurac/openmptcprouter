@@ -1,4 +1,11 @@
 #!/bin/sh
+#
+# Copyright (C) 2017 OVH OverTheBox
+# Copyright (C) 2017-2020 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter project
+#
+# This is free software, licensed under the GNU General Public License v3.
+# See /LICENSE for more information.
+#
 
 set -e
 
@@ -21,7 +28,7 @@ _get_repo() (
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
 OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
-OMR_PORT=${OMR_PORT:-8000}
+OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 #OMR_UEFI=${OMR_UEFI:-yes}
@@ -71,9 +78,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "620f9c773413a0deaeda2bdc22d5e9cb89b9317f"
-	_get_repo feeds/packages https://github.com/openwrt/packages "ed39c2f02e1f05c40161986c6d0581f7eba58bea"
-	_get_repo feeds/luci https://github.com/openwrt/luci "6044084a61cdd95e390002cc6a908b33185d457d"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a439f1bb478b4b8b4134dbed76266c0032625b6b"
+	_get_repo feeds/packages https://github.com/openwrt/packages "05769970213a5f9ffb81506b18da288890c05949"
+	_get_repo feeds/luci https://github.com/openwrt/luci "a805a3178f902fe609d3d4a6c7b6b5b1dad88838"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -133,6 +140,14 @@ if [ "$OMR_DIST" = "openmptcprouter" ]; then
 	src/gz openwrt_base http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
 	src/gz openwrt_routing http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
 	src/gz openwrt_telephony http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
+	EOF
+elif [ -n "$OMR_PACKAGES_URL" ]; then
+	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	src/gz openwrt_luci ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
+	src/gz openwrt_packages ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
+	src/gz openwrt_base ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
+	src/gz openwrt_routing ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/routing
+	src/gz openwrt_telephony ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
 	EOF
 else
 	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
@@ -289,12 +304,21 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 fi
 
 #rm -rf feeds/packages/libs/libwebp
-
-echo "Update feeds index"
+cd "../.."
 rm -rf feeds/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/luci/modules/luci-mod-status
 [ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/luci/applications/luci-app-statistics
 
+echo "Add Occitan translation support"
+if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
+	patch -N -p1 -s < patches/luci-occitan.patch
+	#sh feeds/luci/build/i18n-add-language.sh oc
+fi
+[ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
+echo "Done"
+
+cd "$OMR_TARGET/source"
+echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
