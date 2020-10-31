@@ -39,7 +39,7 @@ OMR_TARGET_CONFIG="config-$OMR_TARGET"
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
 #OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
-OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
+OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/suyuan168/openmptcprouter-feeds}"
