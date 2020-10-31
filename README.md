@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/Ysurac/openmptcprouter-feeds.svg?style=svg)](https://circleci.com/gh/Ysurac/openmptcprouter-feeds)
+![openmptcprouter](https://github.com/Ysurac/openmptcprouter-feeds/workflows/openmptcprouter/badge.svg)
 ![Latest tag](https://img.shields.io/github/tag/ysurac/openmptcprouter-feeds.svg)
 [![Paypal](https://www.openmptcprouter.com/img/donate-PayPal-green.svg)](https://www.paypal.me/ycarus)
 [![Flattr](https://www.openmptcprouter.com/img/donate-flattr-yellow.svg)](https://flattr.com/@ycarus)
@@ -38,39 +38,8 @@ dd bs=4M if=omr-*.img of=/dev/sdX conv=fsync
 
 ## Install from source
 
-### Dependencies
+[Create image](https://github.com/Ysurac/openmptcprouter/wiki/Create-image-for-unsupported-platform)
 
-You need a classical build environment like `build-essential` on Debian and `git`.
-Some feeds might not available over `git` but only via `subversion` or `mercurial`.
-
-On Debian you'll need to install the following:
-
-```sh
-sudo apt install build-essential git unzip ncurses-dev libz-dev libssl-dev openssl-1.0-dev
-  python python3-dev python3.5 libelf-dev subversion gettext gawk wget curl rsync perl
-```
-
-### Prepare and build
-
-```sh
-git clone https://github.com/ysurac/openmptcprouter.git
-cd openmptcprouter
-./build.sh
-```
-
-The script `build.sh` accepts all `make` arguments (like `-j`).
-When finished, files are located in the directory `source/bin`.
-
-### Custom arch build
-
-By default the build script will create the packages for the `x86_64` architecture.
-You can specify a custom build target by adding a `OMR_TARGET` environment variable to the build and the corresponding `config-$OMR_TARGET` file.
-
-To build the project for the raspberry pi 3:
-
-```sh
-OMR_TARGET="rpi3" ./build.sh
-```
 
 ## Credits
 
