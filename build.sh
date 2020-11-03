@@ -172,7 +172,7 @@ if [ -f "$OMR_TARGET_CONFIG" ]; then
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)"
 	EOF
 else
 	cat config -> "$OMR_TARGET/source/.config" <<-EOF
