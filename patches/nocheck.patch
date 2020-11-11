@@ -1,0 +1,10 @@
+--- a/include/package-ipkg.mk.1	2019-06-02 10:10:48.814882668 +0200
++++ b/include/package-ipkg.mk	2019-06-02 10:08:20.372736726 +0200
+@@ -79,7 +79,6 @@
+ 		if [ -f "$(PKG_INFO_DIR)/$(1).missing" ]; then \
+ 			echo "Package $(1) is missing dependencies for the following libraries:" >&2; \
+ 			cat "$(PKG_INFO_DIR)/$(1).missing" >&2; \
+-			false; \
+ 		fi; \
+ 	)
+   endef

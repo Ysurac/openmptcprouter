@@ -1,0 +1,14 @@
+--- a/package/kernel/linux/modules/netfilter.mk	2020-03-20 15:41:58.620893747 +0100
++++ b/package/kernel/linux/modules/netfilter.mk	2020-03-20 15:45:34.389015301 +0100
+@@ -483,8 +483,10 @@
+ define KernelPackage/ipt-nat6
+   TITLE:=IPv6 NAT targets
+   DEPENDS:=@IPV6
+   KCONFIG:=$(KCONFIG_IPT_NAT6)
+-  FILES:=$(foreach mod,$(IPT_NAT6-m),$(LINUX_DIR)/net/$(mod).ko)
++  FILES:= \
++	$(LINUX_DIR)/net/ipv6/netfilter/ip6t_NPT.ko \
++	$(LINUX_DIR)/net/ipv6/netfilter/ip6table_nat.ko
+   AUTOLOAD:=$(call AutoLoad,43,$(notdir $(IPT_NAT6-m)))
+   $(call AddDepends/ipt,+kmod-nf-nat6)
+   $(call AddDepends/ipt,+kmod-ipt-conntrack)

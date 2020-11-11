@@ -1,0 +1,24 @@
+From 7d0222b1fd42f22f0590b71c0e42660974c492d2 Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Fri, 16 Nov 2018 17:27:50 +0100
+Subject: [PATCH 49/77] [hdmi] added fbdev-options
+
+---
+ arch/arm/configs/mt7623n_evb_fwu_defconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/configs/mt7623n_evb_fwu_defconfig b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+index 5932b552f2ea..668a6c45177d 100644
+--- a/arch/arm/configs/mt7623n_evb_fwu_defconfig
++++ b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+@@ -661,5 +661,5 @@ CONFIG_DRM_MALI_DISPLAY=y
+ CONFIG_COMMON_CLK_MT2701_MMSYS=y
+ CONFIG_COMMON_CLK_MT2701_IMGSYS=y
+ CONFIG_COMMON_CLK_MT2701_VDECSYS=y
+-#CONFIG_FRAMEBUFFER_CONSOLE=y
+-#CONFIG_DRM_FBDEV_EMULATION=y
++CONFIG_FRAMEBUFFER_CONSOLE=y
++CONFIG_DRM_FBDEV_EMULATION=y
+-- 
+2.19.1
+
