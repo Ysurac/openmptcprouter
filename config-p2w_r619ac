@@ -1,7 +1,5 @@
 CONFIG_TARGET_ipq40xx=y
 CONFIG_TARGET_ipq40xx_generic=y
 CONFIG_TARGET_ipq40xx_generic_DEVICE_p2w_r619ac-128m=y
-CONFIG_PACKAGE_kmod-6lowpan=y
 CONFIG_PACKAGE_kmod-ath10k-ct=n
-CONFIG_PACKAGE_kmod-ath9k=y
 CONFIG_KERNEL_ARM_MODULE_PLTS=y
