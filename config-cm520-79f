@@ -1,6 +1,7 @@
 CONFIG_TARGET_ipq40xx=y
 CONFIG_TARGET_ipq40xx_generic=y
 CONFIG_TARGET_ipq40xx_generic_DEVICE_mobipromo_cm520-79f=y
+CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y
 CONFIG_PACKAGE_ipq-wifi-mobipromo_cm520-79f=y
 CONFIG_DEFAULT_ath10k-firmware-qca4019-ct=y
 CONFIG_DEFAULT_kmod-ath10k-ct=y
