@@ -1,0 +1,27 @@
+--- a/package/kernel/linux/modules/netsupport.mk	2020-11-22 17:39:14.462349527 +0100
++++ b/package/kernel/linux/modules/netsupport.mk	2020-11-22 17:41:37.719620332 +0100
+@@ -948,6 +948,24 @@
+ 
+ $(eval $(call KernelPackage,tcp-bbr))
+ 
++define KernelPackage/tcp-bbr2
++  SUBMENU:=$(NETWORK_SUPPORT_MENU)
++  TITLE:=BBRv2 TCP congestion control
++  KCONFIG:= \
++	CONFIG_TCP_CONG_ADVANCED=y \
++	CONFIG_TCP_CONG_BBR2
++  FILES:=$(LINUX_DIR)/net/ipv4/tcp_bbr2.ko
++  AUTOLOAD:=$(call AutoLoad,74,tcp_bbr2)
++endef
++
++define KernelPackage/tcp-bbr2/description
++ Kernel module for BBRv2 (Bottleneck Bandwidth and RTT) TCP congestion
++ control. It requires the fq ("Fair Queue") pacing packet scheduler.
++ For kernel 4.13+, TCP internal pacing is implemented as fallback.
++endef
++
++$(eval $(call KernelPackage,tcp-bbr2))
++
+ define KernelPackage/tcp-nanqinlang
+   SUBMENU:=$(NETWORK_SUPPORT_MENU)
+   TITLE:=BBR NANQINLANG TCP congestion control

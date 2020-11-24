@@ -236,6 +236,13 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
 fi
 echo "Done"
 
+echo "Checking if BBRv2 patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/bbr2.patch; then
+	echo "apply..."
+	patch -N -p1 -s < ../../patches/bbr2.patch
+fi
+echo "Done"
+
 echo "Checking if smsc75xx patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/smsc75xx.patch; then
 	echo "apply..."
