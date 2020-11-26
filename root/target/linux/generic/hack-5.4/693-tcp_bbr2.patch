@@ -3204,7 +3204,7 @@ index 88b987ca9ebb..c3538bd0d008 100644
 -	    (meta_tp->rcv_nxt - meta_tp->copied_seq < meta_sk->sk_rcvlowat ||
 -	     tp->ops->__select_window(sk) >= tp->rcv_wnd)) ||
 +	      (meta_tp->rcv_nxt - meta_tp->copied_seq < meta_sk->sk_rcvlowat ||
-+	       tp->ops->__tcp_select_window(sk) >= tp->rcv_wnd))) ||
++	       tp->ops->__select_window(sk) >= tp->rcv_wnd))) ||
  	    /* We ACK each frame or... */
  	    tcp_in_quickack_mode(sk) ||
  	    /* Protocol state mandates a one-time immediate ACK */
@@ -3237,10 +3237,10 @@ index be6d22b8190f..4943f96aade8 100644
 +
 +		/* Set buff tx.in_flight as if buff were sent by itself. */
 +		inflight_prev = TCP_SKB_CB(skb)->tx.in_flight - old_factor;
-+		if (WARN_ONCE(inflight_prev < 0,
++		/* if (WARN_ONCE(inflight_prev < 0,
 +			      "inconsistent: tx.in_flight: %u old_factor: %d",
-+			      TCP_SKB_CB(skb)->tx.in_flight, old_factor))
-+			inflight_prev = 0;
++			      TCP_SKB_CB(skb)->tx.in_flight, old_factor)) */
++		if (inflight_prev < 0) inflight_prev = 0;
 +		TCP_SKB_CB(buff)->tx.in_flight = inflight_prev +
 +						 tcp_skb_pcount(buff);
  	}
