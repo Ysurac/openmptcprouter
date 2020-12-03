@@ -3288,14 +3288,14 @@ diff -aurN linux-5.4.64/net/ipv4/syncookies.c linux-5.4.64.mptcp/net/ipv4/syncoo
  	 * the ACK carries the same options again (see RFC1122 4.2.3.8)
  	 */
 @@ -387,15 +421,15 @@
- 	/* Try to redo what tcp_v4_send_synack did. */
- 	req->rsk_window_clamp = tp->window_clamp ? :dst_metric(&rt->dst, RTAX_WINDOW);
+ 	    (req->rsk_window_clamp > full_space || req->rsk_window_clamp == 0))
+ 		req->rsk_window_clamp = full_space;
  
--	tcp_select_initial_window(sk, tcp_full_space(sk), req->mss,
+-	tcp_select_initial_window(sk, full_space, req->mss,
 -				  &req->rsk_rcv_wnd, &req->rsk_window_clamp,
 -				  ireq->wscale_ok, &rcv_wscale,
 -				  dst_metric(&rt->dst, RTAX_INITRWND));
-+	tp->ops->select_initial_window(sk, tcp_full_space(sk), req->mss,
++	tp->ops->select_initial_window(sk, full_space, req->mss,
 +				       &req->rsk_rcv_wnd, &req->rsk_window_clamp,
 +				       ireq->wscale_ok, &rcv_wscale,
 +				       dst_metric(&rt->dst, RTAX_INITRWND));
@@ -4028,16 +4028,6 @@ diff -aurN linux-5.4.64/net/ipv4/tcp.c linux-5.4.64.mptcp/net/ipv4/tcp.c
  #ifdef CONFIG_MMU
  	case TCP_ZEROCOPY_RECEIVE: {
  		struct tcp_zerocopy_receive zc;
-@@ -3862,7 +4143,9 @@
- 	if (sk->sk_state == TCP_SYN_SENT || sk->sk_state == TCP_SYN_RECV)
- 		TCP_INC_STATS(sock_net(sk), TCP_MIB_ATTEMPTFAILS);
- 
-+	WARN_ON(sk->sk_state == TCP_CLOSE);
- 	tcp_set_state(sk, TCP_CLOSE);
-+
- 	tcp_clear_xmit_timers(sk);
- 	if (req)
- 		reqsk_fastopen_remove(sk, req, false);
 @@ -3878,6 +4161,8 @@
  
  int tcp_abort(struct sock *sk, int err)
@@ -6715,14 +6705,14 @@ diff -aurN linux-5.4.64/net/ipv6/syncookies.c linux-5.4.64.mptcp/net/ipv6/syncoo
  		goto out_free;
  
 @@ -241,15 +259,15 @@
- 	}
+ 	    (req->rsk_window_clamp > full_space || req->rsk_window_clamp == 0))
+ 		req->rsk_window_clamp = full_space;
  
- 	req->rsk_window_clamp = tp->window_clamp ? :dst_metric(dst, RTAX_WINDOW);
--	tcp_select_initial_window(sk, tcp_full_space(sk), req->mss,
+-	tcp_select_initial_window(sk, full_space, req->mss,
 -				  &req->rsk_rcv_wnd, &req->rsk_window_clamp,
 -				  ireq->wscale_ok, &rcv_wscale,
 -				  dst_metric(dst, RTAX_INITRWND));
-+	tp->ops->select_initial_window(sk, tcp_full_space(sk), req->mss,
++	tp->ops->select_initial_window(sk, full_space, req->mss,
 +				       &req->rsk_rcv_wnd, &req->rsk_window_clamp,
 +				       ireq->wscale_ok, &rcv_wscale,
 +				       dst_metric(dst, RTAX_INITRWND));

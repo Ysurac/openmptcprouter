@@ -294,10 +294,12 @@ if [ -n "$CONF_RESTORE" ]; then
 	fi
 
 	[ "$VERBOSE" -gt 1 ] && TAR_V="v" || TAR_V=""
+	cp /etc/passwd /etc/group /etc/shadow /tmp
 	tar -C / -x${TAR_V}zf "$CONF_RESTORE"
-	missing_lines /rom/etc/passwd /etc/passwd >> /etc/passwd
-	missing_lines /rom/etc/group /etc/group >> /etc/group
-	missing_lines /rom/etc/shadow /etc/shadow >> /etc/shadow
+	missing_lines /tmp/passwd /etc/passwd >> /etc/passwd
+	missing_lines /tmp/group /etc/group >> /etc/group
+	missing_lines /tmp/shadow /etc/shadow >> /etc/shadow
+	rm /tmp/passwd /tmp/group /tmp/shadow
 	exit $?
 fi
 
