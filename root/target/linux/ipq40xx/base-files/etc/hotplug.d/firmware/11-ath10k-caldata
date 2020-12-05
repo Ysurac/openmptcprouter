@@ -124,6 +124,10 @@ case "$FIRMWARE" in
 		caldata_extract "ART" 0x1000 0x2f20
 		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 2)
 		;;
+	pangu,l1000)
+	caldata_extract "ART" 0x1000 0x2f20
+	 ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 2)
+	;;
 	meraki,mr33)
 		caldata_extract_ubi "ART" 0x1000 0x2f20
 		caldata_valid "202f" || caldata_extract "ART" 0x1000 0x2f20
@@ -219,6 +223,10 @@ case "$FIRMWARE" in
 		caldata_extract "ART" 0x5000 0x2f20
 		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 3)
 		;;
+	pangu,l1000)
+     caldata_extract "ART" 0x5000 0x2f20
+    th10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 3)
+	;;
 	meraki,mr33)
 		caldata_extract_ubi "ART" 0x5000 0x2f20
 		caldata_valid "202f" || caldata_extract "ART" 0x5000 0x2f20
