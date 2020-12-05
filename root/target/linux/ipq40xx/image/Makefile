@@ -627,6 +627,7 @@ define Device/qcom_ap-dk04.1-c1
 endef
 TARGET_DEVICES += qcom_ap-dk04.1-c1
 
+define Device/pangu_l1000
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
 	DEVICE_VENDOR := PANGU
@@ -638,8 +639,8 @@ TARGET_DEVICES += qcom_ap-dk04.1-c1
 	PAGESIZE := 2048
 	BOARD_NAME := l1000
 	DEVICE_PACKAGES := ipq-wifi-pangu_l1000
-+endef
-+TARGET_DEVICES += pangu_l1000
+endef
+TARGET_DEVICES += pangu_l1000
 
 define Device/p2w_r619ac
 	$(call Device/FitzImage)
