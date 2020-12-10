@@ -334,9 +334,9 @@ else
   endif
   RSTRIP= \
     export CROSS="$(TARGET_CROSS)" \
-		$(if $(PKG_BUILD_ID),KEEP_BUILD_ID=1) \
-		$(if $(CONFIG_KERNEL_KALLSYMS),NO_RENAME=1) \
-		$(if $(CONFIG_KERNEL_PROFILING),KEEP_SYMBOLS=1); \
+    $(if $(PKG_BUILD_ID),KEEP_BUILD_ID=1) \
+    $(if $(CONFIG_KERNEL_KALLSYMS),NO_RENAME=1) \
+    $(if $(CONFIG_KERNEL_PROFILING),KEEP_SYMBOLS=1); \
     NM="$(TARGET_CROSS)nm" \
     STRIP="$(STRIP)" \
     STRIP_KMOD="$(SCRIPT_DIR)/strip-kmod.sh" \
@@ -372,10 +372,10 @@ endef
 # $(2) => The lock name. If not given, the global lock will be used.
 ifneq ($(wildcard $(STAGING_DIR_HOST)/bin/flock),)
   define locked
-	SHELL= \
-	flock \
-		$(TMP_DIR)/.$(if $(2),$(strip $(2)),global).flock \
-		-c '$(subst ','\'',$(1))'
+  SHELL= \
+  flock \
+    $(TMP_DIR)/.$(if $(2),$(strip $(2)),global).flock \
+    -c '$(subst ','\'',$(1))'
   endef
 else
   locked=$(1)
@@ -386,25 +386,25 @@ endif
 # $(1) => File glob expression
 # $(2) => Destination directory
 define file_copy
-	for src_dir in $(sort $(foreach d,$(wildcard $(1)),$(dir $(d)))); do \
-		( cd $$src_dir; find -type f -or -type d ) | \
-			( cd $(2); while :; do \
-				read FILE; \
-				[ -z "$$FILE" ] && break; \
-				[ -L "$$FILE" ] || continue; \
-				echo "Removing symlink $(2)/$$FILE"; \
-				rm -f "$$FILE"; \
-			done; ); \
-	done; \
-	$(CP) $(1) $(2)
+  for src_dir in $(sort $(foreach d,$(wildcard $(1)),$(dir $(d)))); do \
+    ( cd $$src_dir; find -type f -or -type d ) | \
+      ( cd $(2); while :; do \
+        read FILE; \
+        [ -z "$$FILE" ] && break; \
+        [ -L "$$FILE" ] || continue; \
+        echo "Removing symlink $(2)/$$FILE"; \
+        rm -f "$$FILE"; \
+      done; ); \
+  done; \
+  $(CP) $(1) $(2)
 endef
 
 # Calculate sha256sum of any plain file within a given directory
 # $(1) => Input directory
 # $(2) => If set, recurse into subdirectories
 define sha256sums
-	(cd $(1); find . $(if $(2),,-maxdepth 1) -type f -not -name 'sha256sums' -printf "%P\n" | sort | \
-		xargs -r $(STAGING_DIR_HOST)/bin/mkhash -n sha256 | sed -ne 's!^\(.*\) \(.*\)$$!\1 *\2!p' > sha256sums)
+  (cd $(1); find . $(if $(2),,-maxdepth 1) -type f -not -name 'sha256sums' -printf "%P\n" | sort | \
+    xargs -r $(STAGING_DIR_HOST)/bin/mkhash -n sha256 | sed -ne 's!^\(.*\) \(.*\)$$!\1 *\2!p' > sha256sums)
 endef
 
 # file extension
@@ -415,18 +415,18 @@ FORCE: ;
 .PHONY: FORCE
 
 check: FORCE
-	@true
+  @true
 
 val.%:
-	@$(if $(filter undefined,$(origin $*)),\
-		echo "$* undefined" >&2, \
-		echo '$(subst ','"'"',$($*))' \
-	)
+  @$(if $(filter undefined,$(origin $*)),\
+    echo "$* undefined" >&2, \
+    echo '$(subst ','"'"',$($*))' \
+  )
 
 var.%:
-	@$(if $(filter undefined,$(origin $*)),\
-		echo "$* undefined" >&2, \
-		echo "$*='"'$(subst ','"'\"'\"'"',$($*))'"'" \
-	)
+  @$(if $(filter undefined,$(origin $*)),\
+    echo "$* undefined" >&2, \
+    echo "$*='"'$(subst ','"'\"'\"'"',$($*))'"'" \
+  )
 
 endif #__rules_inc
