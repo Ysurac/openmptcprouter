@@ -78,9 +78,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "bfc433efd4a0c6875a92981d1bd2a5e3e60c61c6"
-	_get_repo feeds/packages https://github.com/openwrt/packages "85dbb482017faec4d69c21b57a5a0afb8095f48a"
-	_get_repo feeds/luci https://github.com/openwrt/luci "833e25d24a8cbf8dd587ee4424ef49b3e4e5f210"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "d346beb08c3a7867497000dc382635ee8ea0eedb"
+	_get_repo feeds/packages https://github.com/openwrt/packages "ea9d7884a2e35942c5e160b84228903988d517e9"
+	_get_repo feeds/luci https://github.com/openwrt/luci "d80a1718281cd90a1d14395ff0f7dbb23088b562"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -277,12 +277,6 @@ echo "Done"
 echo "Download via IPv4"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
 	patch -N -p1 -s < ../../patches/download-ipv4.patch
-fi
-echo "Done"
-
-echo "Remove check rsync"
-if [ "$(grep rsync include/prereq-build.mk)" != "" ]; then
-	patch -N -p1 -s < ../../patches/check-rsync.patch
 fi
 echo "Done"
 
