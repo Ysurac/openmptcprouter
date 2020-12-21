@@ -170,6 +170,7 @@ zyxel_do_upgrade() {
 
 platform_do_upgrade() {
 	case "$(board_name)" in
+	pangu,l1000 |\
 	8dev,jalapeno |\
 	aruba,ap-303 |\
 	aruba,ap-303h |\
