@@ -11,7 +11,7 @@
 
 / {
 
-	model = "PANGU L1000";
+	model = "ANTROUTERGZ1000";
 	compatible = "pangu,l1000", "qcom,ipq4019";
 
 
