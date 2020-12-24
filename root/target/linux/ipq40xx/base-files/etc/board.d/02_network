@@ -16,7 +16,10 @@ ipq40xx_setup_interfaces()
 	8dev,jalapeno|\
 	alfa-network,ap120c-ac|\
 	engenius,emr3500|\
-	engenius,ens620ext)
+	engenius,ens620ext|\
+	luma,wrtq-329acn|\
+	plasmacloud,pa1200|\
+	plasmacloud,pa2200)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		;;
 	aruba,ap-303|\
@@ -38,22 +41,25 @@ ipq40xx_setup_interfaces()
 		;;
 	asus,map-ac2200|\
 	cilab,meshpoint-one|\
+	edgecore,ecw5211|\
+	edgecore,oap100|\
 	openmesh,a42|\
 	openmesh,a62)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		;;
 	asus,rt-ac58u|\
-	p2w,r619ac-128m|\
-	p2w,r619ac|\
-	zyxel,nbg6617)
+	zyxel,nbg6617)|\
+    p2w,r619ac-128m)|\
+	p2w,r619ac)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
 			"0u@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
 	avm,fritzbox-4040|\
 	linksys,ea6350v3|\
-	pangu,l1000|\
-	linksys,ea8300)
+	linksys,ea8300|\
+    pangu,l1000|\
+	linksys,mr8300)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
 			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan"
@@ -62,7 +68,10 @@ ipq40xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan"
 		;;
-	avm,fritzrepeater-3000|\
+	avm,fritzrepeater-3000)
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "4:lan:1" "5:lan:2"
+		;;
 	compex,wpj419|\
 	compex,wpj428|\
 	engenius,eap2200)
@@ -77,6 +86,9 @@ ipq40xx_setup_interfaces()
 		ucidef_set_interface_lan "eth0"
 		ucidef_add_switch "switch0" \
 			"0u@eth0" "3:lan" "4:lan"
+		;;
+	devolo,magic-2-wifi-next)
+		ucidef_set_interface_lan "eth0 eth1 eth2"
 		;;
 	ezviz,cs-w3-wd1200g-eup)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
@@ -132,6 +144,10 @@ ipq40xx_setup_macs()
 		;;
 	cilab,meshpoint-one)
 		label_mac=$(mtd_get_mac_binary "ART" 0x1006)
+		;;
+	devolo,magic-2-wifi-next)
+		lan_mac=$(mtd_get_mac_ascii APPSBLENV MacAddress0)
+		label_mac=$lan_mac
 		;;
 	dlink,dap-2610)
 		lan_mac=$(mtd_get_mac_ascii bdcfg lanmac)

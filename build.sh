@@ -78,9 +78,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "a439f1bb478b4b8b4134dbed76266c0032625b6b"
-	_get_repo feeds/packages https://github.com/openwrt/packages "05769970213a5f9ffb81506b18da288890c05949"
-	_get_repo feeds/luci https://github.com/openwrt/luci "a805a3178f902fe609d3d4a6c7b6b5b1dad88838"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "bfc433efd4a0c6875a92981d1bd2a5e3e60c61c6"
+	_get_repo feeds/packages https://github.com/openwrt/packages "85dbb482017faec4d69c21b57a5a0afb8095f48a"
+	_get_repo feeds/luci https://github.com/openwrt/luci "833e25d24a8cbf8dd587ee4424ef49b3e4e5f210"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -236,6 +236,16 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
 fi
 echo "Done"
 
+# Add BBR2 patch, only working on 64bits images for now
+if [ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "rpi3" ]; then
+	echo "Checking if BBRv2 patch is set or not"
+	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/bbr2.patch; then
+		echo "apply..."
+		patch -N -p1 -s < ../../patches/bbr2.patch
+	fi
+	echo "Done"
+fi
+
 echo "Checking if smsc75xx patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/smsc75xx.patch; then
 	echo "apply..."
@@ -267,6 +277,12 @@ echo "Done"
 echo "Download via IPv4"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
 	patch -N -p1 -s < ../../patches/download-ipv4.patch
+fi
+echo "Done"
+
+echo "Remove check rsync"
+if [ "$(grep rsync include/prereq-build.mk)" != "" ]; then
+	patch -N -p1 -s < ../../patches/check-rsync.patch
 fi
 echo "Done"
 
