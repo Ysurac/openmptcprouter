@@ -137,17 +137,16 @@
 			gpios = <&tlmm 2 GPIO_ACTIVE_LOW>;
 		};
 
-		wan: wan {
+		wan {
 			label = "bule:wan";
 			gpios = <&tlmm 4 GPIO_ACTIVE_LOW>;
 		};     
-		led_usb: usb {
-			label = "green:usb";
+	    usb {
+			label = "bule::usb";
 			gpios = <&tlmm 5 GPIO_ACTIVE_LOW>;
-			trigger-sources = <&usb3_port1>, <&usb3_port2>,
-			<&usb2_port1>;
+			trigger-sources = <&usb2>, <&usb3>;
 			linux,default-trigger = "usbport";
-		};     
+		};   
 	};
 };
 
