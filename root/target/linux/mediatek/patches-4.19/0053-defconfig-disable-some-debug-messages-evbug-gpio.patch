@@ -1,0 +1,34 @@
+From 32d96a7e0127ae64f4c091e8c14f2961619f4fa2 Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Sun, 20 Jan 2019 13:23:22 +0100
+Subject: [PATCH 53/77] [defconfig] disable some debug-messages (evbug,gpio)
+
+---
+ arch/arm/configs/mt7623n_evb_fwu_defconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/configs/mt7623n_evb_fwu_defconfig b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+index 343800fc24d6..2a9696b249e9 100644
+--- a/arch/arm/configs/mt7623n_evb_fwu_defconfig
++++ b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+@@ -223,7 +223,7 @@ CONFIG_NET_MEDIATEK_SOC=y
+ 
+ CONFIG_ICPLUS_PHY=y
+ CONFIG_INPUT_EVDEV=y
+-CONFIG_INPUT_EVBUG=m
++#CONFIG_INPUT_EVBUG=m
+ CONFIG_KEYBOARD_MATRIX=y
+ CONFIG_KEYBOARD_SAMSUNG=y
+ CONFIG_KEYBOARD_MTK_PMIC=m
+@@ -370,7 +370,7 @@ CONFIG_BTRFS_FS=m
+ 
+ #GPIO
+ CONFIG_DEBUG_FS=y
+-CONFIG_DEBUG_GPIO=y
++#CONFIG_DEBUG_GPIO=y
+ CONFIG_GPIO_SYSFS=y
+ 
+ #wlan
+-- 
+2.19.1
+

@@ -1,0 +1,69 @@
+From c0603006d7f020bbcb42bed36127fbfe94b1b512 Mon Sep 17 00:00:00 2001
+From: Oleksii Shevchuk <alxchk@gmail.com>
+Date: Fri, 11 Jan 2019 18:34:01 +0100
+Subject: [PATCH 50/77] [BT] fix Bluetooth
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- first call wifi.sh or at least call
+  wmt_loader + stp-uart-launcher
+- then load BT-module “modprobe stp_chrdev_bt”
+---
+ arch/arm/configs/mt7623n_evb_fwu_defconfig                    | 4 ++--
+ .../common/common_detect/drv_init/bluetooth_drv_init.c        | 3 ++-
+ .../connectivity/common/conn_soc/linux/pub/stp_chrdev_bt.c    | 3 ++-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/configs/mt7623n_evb_fwu_defconfig b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+index 668a6c45177d..343800fc24d6 100644
+--- a/arch/arm/configs/mt7623n_evb_fwu_defconfig
++++ b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+@@ -390,8 +390,8 @@ CONFIG_NL80211_TESTMODE=y
+ 
+ #internal Bluetooth (also not working yet)
+ CONFIG_BT=y
+-#CONFIG_MTK_COMBO_BT=y
+-#CONFIG_MTK_COMBO_BT_HCI=y
++CONFIG_MTK_COMBO_BT=m
++CONFIG_MTK_COMBO_BT_HCI=y
+ #needed for BT?
+ #Bluetooth Classic (BR/EDR) features 
+ CONFIG_BT_BREDR=y
+diff --git a/drivers/misc/mediatek/connectivity/common/common_detect/drv_init/bluetooth_drv_init.c b/drivers/misc/mediatek/connectivity/common/common_detect/drv_init/bluetooth_drv_init.c
+index 47b055433443..82b799f256b4 100644
+--- a/drivers/misc/mediatek/connectivity/common/common_detect/drv_init/bluetooth_drv_init.c
++++ b/drivers/misc/mediatek/connectivity/common/common_detect/drv_init/bluetooth_drv_init.c
+@@ -23,13 +23,14 @@
+ int do_bluetooth_drv_init(int chip_id)
+ {
+ 	int i_ret = -1;
+-
++#if 0
+ #if defined(CONFIG_MTK_COMBO_BT) || defined(CONFIG_MTK_COMBO_BT_HCI)
+ 	WMT_DETECT_INFO_FUNC("start to do bluetooth driver init\n");
+ 	i_ret = mtk_wcn_stpbt_drv_init();
+ 	WMT_DETECT_INFO_FUNC("finish bluetooth driver init, i_ret:%d\n", i_ret);
+ #else
+ 	WMT_DETECT_INFO_FUNC("CONFIG_MTK_COMBO_BT is not defined\n");
++#endif
+ #endif
+ 	return i_ret;
+ }
+diff --git a/drivers/misc/mediatek/connectivity/common/conn_soc/linux/pub/stp_chrdev_bt.c b/drivers/misc/mediatek/connectivity/common/conn_soc/linux/pub/stp_chrdev_bt.c
+index 190fa3944d80..5a85f68b092f 100644
+--- a/drivers/misc/mediatek/connectivity/common/conn_soc/linux/pub/stp_chrdev_bt.c
++++ b/drivers/misc/mediatek/connectivity/common/conn_soc/linux/pub/stp_chrdev_bt.c
+@@ -877,7 +877,8 @@ static void BT_exit(void)
+ 	BT_INFO_FUNC("%s driver removed\n", BT_DRIVER_NAME);
+ }
+ 
+-#ifdef MTK_WCN_REMOVE_KERNEL_MODULE
++#if 0
++//#ifdef MTK_WCN_REMOVE_KERNEL_MODULE
+ 
+ int mtk_wcn_stpbt_drv_init(void)
+ {
+-- 
+2.19.1
+
