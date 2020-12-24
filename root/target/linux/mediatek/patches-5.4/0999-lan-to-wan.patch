@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 --- a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts	2020-04-19 11:02:56.505715879 +0200
 +++ b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts	2020-04-19 11:03:53.620780390 +0200
 @@ -196,7 +196,7 @@
@@ -15,12 +16,21 @@
  
 -/* Disabled, is now handled by gmac1 (eth1/wan) via phy-handle!
 +/* Disabled, is now handled by gmac1 (eth1/lan) via phy-handle!
+=======
+--- a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts.anc	2020-11-16 15:48:00.852410183 +0100
++++ b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts	2020-11-16 15:49:23.878965822 +0100
+@@ -210,27 +210,27 @@
+ 
+>>>>>>> parent of 602cd0b... fixomr
  				port@0 {
  					reg = <0>;
 -					label = "wan";
 +					label = "lan";
  				};
+<<<<<<< HEAD
  */
+=======
+>>>>>>> parent of 602cd0b... fixomr
  
  				port@1 {
  					reg = <1>;

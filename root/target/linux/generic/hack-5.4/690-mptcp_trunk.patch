@@ -3288,6 +3288,7 @@ diff -aurN linux-5.4.64/net/ipv4/syncookies.c linux-5.4.64.mptcp/net/ipv4/syncoo
  	 * the ACK carries the same options again (see RFC1122 4.2.3.8)
  	 */
 @@ -387,15 +421,15 @@
+<<<<<<< HEAD
  	/* Try to redo what tcp_v4_send_synack did. */
  	req->rsk_window_clamp = tp->window_clamp ? :dst_metric(&rt->dst, RTAX_WINDOW);
  
@@ -3296,6 +3297,16 @@ diff -aurN linux-5.4.64/net/ipv4/syncookies.c linux-5.4.64.mptcp/net/ipv4/syncoo
 -				  ireq->wscale_ok, &rcv_wscale,
 -				  dst_metric(&rt->dst, RTAX_INITRWND));
 +	tp->ops->select_initial_window(sk, tcp_full_space(sk), req->mss,
+=======
+ 	    (req->rsk_window_clamp > full_space || req->rsk_window_clamp == 0))
+ 		req->rsk_window_clamp = full_space;
+ 
+-	tcp_select_initial_window(sk, full_space, req->mss,
+-				  &req->rsk_rcv_wnd, &req->rsk_window_clamp,
+-				  ireq->wscale_ok, &rcv_wscale,
+-				  dst_metric(&rt->dst, RTAX_INITRWND));
++	tp->ops->select_initial_window(sk, full_space, req->mss,
+>>>>>>> parent of 602cd0b... fixomr
 +				       &req->rsk_rcv_wnd, &req->rsk_window_clamp,
 +				       ireq->wscale_ok, &rcv_wscale,
 +				       dst_metric(&rt->dst, RTAX_INITRWND));
@@ -4028,6 +4039,7 @@ diff -aurN linux-5.4.64/net/ipv4/tcp.c linux-5.4.64.mptcp/net/ipv4/tcp.c
  #ifdef CONFIG_MMU
  	case TCP_ZEROCOPY_RECEIVE: {
  		struct tcp_zerocopy_receive zc;
+<<<<<<< HEAD
 @@ -3862,7 +4143,9 @@
  	if (sk->sk_state == TCP_SYN_SENT || sk->sk_state == TCP_SYN_RECV)
  		TCP_INC_STATS(sock_net(sk), TCP_MIB_ATTEMPTFAILS);
@@ -4038,6 +4050,8 @@ diff -aurN linux-5.4.64/net/ipv4/tcp.c linux-5.4.64.mptcp/net/ipv4/tcp.c
  	tcp_clear_xmit_timers(sk);
  	if (req)
  		reqsk_fastopen_remove(sk, req, false);
+=======
+>>>>>>> parent of 602cd0b... fixomr
 @@ -3878,6 +4161,8 @@
  
  int tcp_abort(struct sock *sk, int err)
@@ -4592,12 +4606,22 @@ diff -aurN linux-5.4.64/net/ipv4/tcp_input.c linux-5.4.64.mptcp/net/ipv4/tcp_inp
  {
  	int eaten;
  	struct sk_buff *tail = skb_peek_tail(&sk->sk_receive_queue);
+<<<<<<< HEAD
 @@ -4774,7 +4838,7 @@
  	int avail = tp->rcv_nxt - tp->copied_seq;
  
  	if (avail < sk->sk_rcvlowat && !tcp_rmem_pressure(sk) &&
 -	    !sock_flag(sk, SOCK_DONE))
 +	    !sock_flag(sk, SOCK_DONE) && !mptcp(tp))
+=======
+@@ -4774,8 +4838,8 @@
+ 	int avail = tp->rcv_nxt - tp->copied_seq;
+ 
+ 	if (avail < sk->sk_rcvlowat && !tcp_rmem_pressure(sk) &&
+-	    !sock_flag(sk, SOCK_DONE) &&
++	    !sock_flag(sk, SOCK_DONE) && !mptcp(tp) &&
+ 	    tcp_receive_window(tp) > inet_csk(sk)->icsk_ack.rcv_mss)
+>>>>>>> parent of 602cd0b... fixomr
  		return;
  
  	sk->sk_data_ready(sk);
@@ -6714,6 +6738,7 @@ diff -aurN linux-5.4.64/net/ipv6/syncookies.c linux-5.4.64.mptcp/net/ipv6/syncoo
  		goto out_free;
  
 @@ -241,15 +259,15 @@
+<<<<<<< HEAD
  	}
  
  	req->rsk_window_clamp = tp->window_clamp ? :dst_metric(dst, RTAX_WINDOW);
@@ -6722,6 +6747,16 @@ diff -aurN linux-5.4.64/net/ipv6/syncookies.c linux-5.4.64.mptcp/net/ipv6/syncoo
 -				  ireq->wscale_ok, &rcv_wscale,
 -				  dst_metric(dst, RTAX_INITRWND));
 +	tp->ops->select_initial_window(sk, tcp_full_space(sk), req->mss,
+=======
+ 	    (req->rsk_window_clamp > full_space || req->rsk_window_clamp == 0))
+ 		req->rsk_window_clamp = full_space;
+ 
+-	tcp_select_initial_window(sk, full_space, req->mss,
+-				  &req->rsk_rcv_wnd, &req->rsk_window_clamp,
+-				  ireq->wscale_ok, &rcv_wscale,
+-				  dst_metric(dst, RTAX_INITRWND));
++	tp->ops->select_initial_window(sk, full_space, req->mss,
+>>>>>>> parent of 602cd0b... fixomr
 +				       &req->rsk_rcv_wnd, &req->rsk_window_clamp,
 +				       ireq->wscale_ok, &rcv_wscale,
 +				       dst_metric(dst, RTAX_INITRWND));
@@ -23659,4 +23694,8 @@ diff -aurN linux-5.4.64/tools/include/uapi/linux/bpf.h linux-5.4.64.mptcp/tools/
 +	BPF_TCP_RST_WAIT,
  
  	BPF_TCP_MAX_STATES	/* Leave at the end! */
+<<<<<<< HEAD
  };
+=======
+ };
+>>>>>>> parent of 602cd0b... fixomr
