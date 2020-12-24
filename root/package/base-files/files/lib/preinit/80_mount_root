@@ -1,0 +1,30 @@
+#!/bin/sh
+# Copyright (C) 2006 OpenWrt.org
+# Copyright (C) 2010 Vertical Communications
+# Copyright (C) 2018 Ycarus (Yannick Chabanois) <ycarus@zugaina.org>
+
+do_mount_root() {
+	mount_root
+	boot_run_hook preinit_mount_root
+	[ -e /dev/sda1 ] && mount /dev/sda1 /boot >/dev/null 2>&1
+	[ -f /boot/sysupgrade.tgz ] && {
+		mv /boot/sysupgrade.tgz /
+	}
+	[ -e /dev/sda1 ] && umount /boot >/dev/null 2>&1
+	[ -f /sysupgrade.tgz ] && {
+		echo "- config restore -"
+		cd /
+		tar xzf sysupgrade.tgz
+	}
+}
+[ -n "$(mount | grep ext4 | grep ro)" ] && {
+	[ -e /dev/mmcblk0p2 ] && {
+		echo "Checking ext4 FS on mmcblk0p2..."
+		/usr/sbin/e2fsck -y -f /dev/mmcblk0p2 >/dev/null 2>&1
+	}
+	[ -e /dev/sda2 ] && {
+		echo "Checking ext4 FS on sda2..."
+		/usr/sbin/e2fsck -y -f /dev/sda2 >/dev/null 2>&1
+	}
+}
+[ "$INITRAMFS" = "1" ] || boot_hook_add preinit_main do_mount_root

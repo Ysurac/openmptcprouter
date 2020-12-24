@@ -11,7 +11,7 @@
 
 / {
 
-	model = "ANTROUTERGZ1000";
+	model = "PANGU L1000";
 	compatible = "pangu,l1000", "qcom,ipq4019";
 
 
@@ -123,30 +123,24 @@
 		compatible = "gpio-leds";
 
 		power: status {
-			label = "blue:status";
+			label = "l1000:blue:status";
 			gpios = <&tlmm 3 GPIO_ACTIVE_LOW>;
 		};
 
 		wlan2g {
-			label = "blue:wlan2g";
+			label = "l1000:blue:wlan2g";
 			gpios = <&tlmm 1 GPIO_ACTIVE_LOW>;
 		};
 
 		wlan5g {
-			label = "bule:wlan5g";
+			label = "l1000:bule:wlan5g";
 			gpios = <&tlmm 2 GPIO_ACTIVE_LOW>;
 		};
 
-		wan {
-			label = "bule:wan";
+		wan: wan {
+			label = "l1000:bule:usb";
 			gpios = <&tlmm 4 GPIO_ACTIVE_LOW>;
-		};     
-	    usb {
-			label = "bule::usb";
-			gpios = <&tlmm 5 GPIO_ACTIVE_LOW>;
-			trigger-sources = <&usb2>, <&usb3>;
-			linux,default-trigger = "usbport";
-		};   
+		};            
 	};
 };
 
