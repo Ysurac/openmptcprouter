@@ -42,7 +42,7 @@ OMR_KERNEL=${OMR_KERNEL:-5.4}
 OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
-OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
+OMR_FEED_URL="${OMR_FEED_URL:-hhttps://github.com/suyuan168/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
@@ -347,7 +347,8 @@ scripts/feeds update -a
 #fi
 #echo "Done"
 #cd "$OMR_TARGET/source"
-
+scripts/feeds install -a
+scripts/feeds update -a
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
