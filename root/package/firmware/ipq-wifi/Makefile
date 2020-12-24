@@ -37,15 +37,9 @@ ALLWIFIBOARDS:= \
 	ezviz_cs-w3-wd1200g-eup \
 	glinet_gl-s1300 \
 	linksys_ea8300 \
-<<<<<<< HEAD
   pangu_l1000 \
 	p2w_r619ac \
 	mobipromo_cm520-79f \
-=======
-	p2w_r619ac \
-	mobipromo_cm520-79f \
-	pangu_l1000 \
->>>>>>> parent of 602cd0b... fixomr
 	qxwlan_e2600ac
 
 ALLWIFIPACKAGES:=$(foreach BOARD,$(ALLWIFIBOARDS),ipq-wifi-$(BOARD))
