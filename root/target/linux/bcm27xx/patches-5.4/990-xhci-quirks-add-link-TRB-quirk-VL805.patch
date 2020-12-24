@@ -59,11 +59,7 @@ index 2033bb8683033..90ccc71231c1a 100644
 +++ b/drivers/usb/host/xhci.h
 <<<<<<< HEAD
 <<<<<<< HEAD
-<<<<<<< HEAD
 @@ -1874,6 +1874,7 @@ struct xhci_hcd {
-=======
-@@ -1874,7 +1874,8 @@ struct xhci_hcd {
->>>>>>> parent of 602cd0b... fixomr
 =======
 @@ -1874,7 +1874,8 @@ struct xhci_hcd {
 >>>>>>> parent of 602cd0b... fixomr
@@ -76,16 +72,9 @@ index 2033bb8683033..90ccc71231c1a 100644
 +#define XHCI_AVOID_DQ_ON_LINK	BIT_ULL(37)
 <<<<<<< HEAD
 <<<<<<< HEAD
-<<<<<<< HEAD
  
  	unsigned int		num_active_eps;
  	unsigned int		limit_active_eps;
-=======
- #define XHCI_DISABLE_SPARSE	BIT_ULL(38)
- 
- 	unsigned int		num_active_eps;
- 	unsigned int		limit_active_eps;
->>>>>>> parent of 602cd0b... fixomr
 =======
  #define XHCI_DISABLE_SPARSE	BIT_ULL(38)
  

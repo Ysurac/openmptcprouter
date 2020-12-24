@@ -1,6 +1,5 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
-<<<<<<< HEAD
 --- a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts	2020-04-19 11:02:56.505715879 +0200
 +++ b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts	2020-04-19 11:03:53.620780390 +0200
 @@ -196,7 +196,7 @@
@@ -21,16 +20,11 @@
 =======
 =======
 >>>>>>> parent of 602cd0b... fixomr
-=======
->>>>>>> parent of 602cd0b... fixomr
 --- a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts.anc	2020-11-16 15:48:00.852410183 +0100
 +++ b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts	2020-11-16 15:49:23.878965822 +0100
 @@ -210,27 +210,27 @@
  
 <<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 602cd0b... fixomr
-=======
 >>>>>>> parent of 602cd0b... fixomr
 =======
 >>>>>>> parent of 602cd0b... fixomr
@@ -41,10 +35,7 @@
  				};
 <<<<<<< HEAD
 <<<<<<< HEAD
-<<<<<<< HEAD
  */
-=======
->>>>>>> parent of 602cd0b... fixomr
 =======
 >>>>>>> parent of 602cd0b... fixomr
 =======
