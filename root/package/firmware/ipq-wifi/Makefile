@@ -38,9 +38,15 @@ ALLWIFIBOARDS:= \
 	glinet_gl-s1300 \
 	linksys_ea8300 \
 <<<<<<< HEAD
+<<<<<<< HEAD
   pangu_l1000 \
 	p2w_r619ac \
 	mobipromo_cm520-79f \
+=======
+	p2w_r619ac \
+	mobipromo_cm520-79f \
+	pangu_l1000 \
+>>>>>>> parent of 602cd0b... fixomr
 =======
 	p2w_r619ac \
 	mobipromo_cm520-79f \
