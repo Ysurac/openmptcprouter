@@ -1,0 +1,25 @@
+From b0ff7f6f16836ac39eb8a66f3cee3d7cee7cd3fc Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Sun, 17 Feb 2019 18:02:51 +0100
+Subject: [PATCH 66/77] [defconfig] enable mt76x2
+
+---
+ arch/arm/configs/mt7623n_evb_fwu_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/mt7623n_evb_fwu_defconfig b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+index 660b4c234ad2..44b34cac3614 100644
+--- a/arch/arm/configs/mt7623n_evb_fwu_defconfig
++++ b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+@@ -506,7 +506,7 @@ CONFIG_RFKILL_INPUT=y
+ CONFIG_RFKILL_GPIO=y
+ 
+ #if you use a mt76x2 or mt76x3 pcie-card
+-#CONFIG_MT76=m
++CONFIG_MT76x2E=m
+ 
+ #pcie
+ CONFIG_PCIEPORTBUS=y
+-- 
+2.19.1
+

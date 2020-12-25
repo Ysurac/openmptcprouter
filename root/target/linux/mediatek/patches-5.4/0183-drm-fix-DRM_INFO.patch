@@ -1,0 +1,21 @@
+From 34dd2a86c9e3b3ad1a3a00add409edda2b2ed776 Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Tue, 1 Oct 2019 11:21:03 +0200
+Subject: [PATCH] drm: fix implicit declaration of function 'DRM_INFO'
+
+---
+ drivers/gpu/drm/mediatek/mtk_drm_ddp_comp.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/mediatek/mtk_drm_ddp_comp.c b/drivers/gpu/drm/mediatek/mtk_drm_ddp_comp.c
+index 29796e78b26a..e65d83267563 100644
+--- a/drivers/gpu/drm/mediatek/mtk_drm_ddp_comp.c
++++ b/drivers/gpu/drm/mediatek/mtk_drm_ddp_comp.c
+@@ -12,6 +12,7 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+ #include <linux/platform_device.h>
++#include <drm/drm_print.h>
+ 
+ #include "mtk_drm_drv.h"
+ #include "mtk_drm_plane.h"

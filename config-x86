@@ -1,4 +1,3 @@
-  
 CONFIG_TARGET_x86=y
 CONFIG_TARGET_x86_generic=y
 CONFIG_TARGET_x86_generic_Generic=y
