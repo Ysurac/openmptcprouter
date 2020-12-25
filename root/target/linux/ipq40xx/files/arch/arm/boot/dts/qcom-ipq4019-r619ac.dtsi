@@ -80,8 +80,6 @@
 
 	leds {
 		compatible = "gpio-leds";
-		pinctrl-0 = <&led_pins>;
-		pinctrl-names = "default";
 
 		led_sys: sys {
 			label = "blue:sys";
@@ -171,21 +169,10 @@
 				read-only;
 			};
 
-			partition@1 {
-				label = "Bootloader";
-				reg = <0x0 0x170000>;
-				read-only;
-			};
-
 			partition@170000 {
 				label = "ART";
 				reg = <0x170000 0x10000>;
 				read-only;
-			};
-
-			partition@180000 {
-				label = "unused";
-				reg = <0x180000 0xe80000>;
 			};
 		};
 	};
@@ -201,25 +188,19 @@
 	status = "okay";
 };
 
-&nand {
+&pcie0 {
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie_pins>;
+	perst-gpio = <&tlmm 4 GPIO_ACTIVE_LOW>;
+	wake-gpio = <&tlmm 40 GPIO_ACTIVE_HIGH>;
 
-	nand@0 {
-		partitions {
-			compatible = "fixed-partitions";
-			#address-cells = <1>;
-			#size-cells = <1>;
-
-			rootfs_part1: partition@0 {
-				label = "rootfs";
-				reg = <0x0 0x4000000>;
-			};
-
-			rootfs_part2: partition@4000000 {
-				label = "unused1";
-				reg = <0x4000000 0x4000000>;
-			};
-		};
+	/* Free slot for use */
+	bridge@0,0 {
+		reg = <0x00000000 0 0 0 0>;
+		#address-cells = <3>;
+		#size-cells = <2>;
+		ranges;
 	};
 };
 
@@ -235,6 +216,15 @@
 };
 
 &tlmm {
+	pcie_pins: pcie_pinmux {
+		mux {
+			pins = "gpio2";
+			function = "gpio";
+			output-low;
+			bias-pull-down;
+		};
+	};
+
 	mdio_pins: mdio_pinmux {
 		mux_1 {
 			pins = "gpio6";
@@ -270,29 +260,6 @@
 			bias-disable;
 		};
 	};
-
-	led_pins: led_pinmux {
-		mux {
-			pins = "gpio32", "gpio39", "gpio50";
-			function = "gpio";
-			bias-pull-up;
-			output-low;
-		};
-
-		mux_1 {
-			pins = "gpio52";
-			function = "gpio";
-			bias-pull-up;
-			output-high;
-		};
-
-		mux_2 {
-			pins = "gpio61";
-			function = "gpio";
-			bias-pull-down;
-			output-high;
-		};
-	};
 };
 
 &usb3_ss_phy {
@@ -313,10 +280,10 @@
 
 &wifi0 {
 	status = "okay";
-	qcom,ath10k-calibration-variant = "R619AC";
+	qcom,ath10k-calibration-variant = "P&W R619AC";
 };
 
 &wifi1 {
 	status = "okay";
-	qcom,ath10k-calibration-variant = "R619AC";
+	qcom,ath10k-calibration-variant = "P&W R619AC";
 };

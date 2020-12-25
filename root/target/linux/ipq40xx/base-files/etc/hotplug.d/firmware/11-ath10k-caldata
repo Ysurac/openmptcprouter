@@ -46,10 +46,6 @@ case "$FIRMWARE" in
 		# OEM assigns 4 sequential MACs
 		ath10k_patch_mac $(macaddr_setbit_la $(macaddr_add "$(cat /sys/class/net/eth0/address)" 4))
 		;;
-	pangu,l1000)
-		caldata_extract "ART" 0x5000 0x2f20
-		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 3)
-		;;
 	esac
 	;;
 "ath10k/pre-cal-ahb-a000000.wifi.bin")
@@ -64,8 +60,8 @@ case "$FIRMWARE" in
 	glinet,gl-s1300 |\
 	linksys,ea6350v3 |\
 	mobipromo,cm520-79f |\
+	p2w,r619ac-64m |\
 	p2w,r619ac-128m |\
-	p2w,r619ac |\
 	qcom,ap-dk01.1-c1)
 		caldata_extract "ART" 0x1000 0x2f20
 		;;
@@ -141,7 +137,7 @@ case "$FIRMWARE" in
 		caldata_extract "ART" 0x1000 0x2f20
 		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 2)
 		;;
-	 pangu,l1000)
+	pangu,l1000)
 		caldata_extract "ART" 0x1000 0x2f20
 		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 2)
 		;;
@@ -174,8 +170,8 @@ case "$FIRMWARE" in
 	glinet,gl-s1300 |\
 	linksys,ea6350v3 |\
 	mobipromo,cm520-79f |\
+	p2w,r619ac-64m |\
 	p2w,r619ac-128m |\
-	p2w,r619ac |\
 	qcom,ap-dk01.1-c1)
 		caldata_extract "ART" 0x5000 0x2f20
 		;;
@@ -248,6 +244,10 @@ case "$FIRMWARE" in
 		;;
 	linksys,ea8300 |\
 	linksys,mr8300)
+		caldata_extract "ART" 0x5000 0x2f20
+		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 3)
+		;;
+    pangu,l1000)
 		caldata_extract "ART" 0x5000 0x2f20
 		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 3)
 		;;
