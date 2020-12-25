@@ -1,0 +1,47 @@
+From e5c7c5e17a52863ff61fa7f8cdee9c8c4ae036ec Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Fri, 8 Mar 2019 17:17:41 +0100
+Subject: [PATCH 72/77] [defconfig] add ebtables
+
+---
+ arch/arm/configs/mt7623n_evb_fwu_defconfig | 24 ++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/arch/arm/configs/mt7623n_evb_fwu_defconfig b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+index ad85e0d37e3f..b49b5feee3eb 100644
+--- a/arch/arm/configs/mt7623n_evb_fwu_defconfig
++++ b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+@@ -269,6 +269,30 @@ CONFIG_NFT_REDIR_IPV6=m
+ CONFIG_NFT_CHAIN_ROUTE_IPV4=m
+ CONFIG_NFT_CHAIN_ROUTE_IPV6=m
+ 
++#ebtables
++CONFIG_NF_TABLES_BRIDGE=y
++CONFIG_BRIDGE_NF_EBTABLES=m
++CONFIG_BRIDGE_EBT_BROUTE=m
++CONFIG_BRIDGE_EBT_T_FILTER=m
++CONFIG_BRIDGE_EBT_T_NAT=m
++CONFIG_BRIDGE_EBT_802_3=m
++CONFIG_BRIDGE_EBT_AMONG=m
++CONFIG_BRIDGE_EBT_ARP=m
++CONFIG_BRIDGE_EBT_IP=m
++CONFIG_BRIDGE_EBT_IP6=m
++CONFIG_BRIDGE_EBT_LIMIT=m
++CONFIG_BRIDGE_EBT_MARK=m
++CONFIG_BRIDGE_EBT_PKTTYPE=m
++CONFIG_BRIDGE_EBT_STP=m
++CONFIG_BRIDGE_EBT_VLAN=m
++CONFIG_BRIDGE_EBT_ARPREPLY=m
++CONFIG_BRIDGE_EBT_DNAT=m
++CONFIG_BRIDGE_EBT_MARK_T=m
++CONFIG_BRIDGE_EBT_REDIRECT=m
++CONFIG_BRIDGE_EBT_SNAT=m
++CONFIG_BRIDGE_EBT_LOG=m
++CONFIG_BRIDGE_EBT_NFLOG=m
++
+ CONFIG_NET_MEDIATEK_HNAT=m
+ CONFIG_DEBUG_SECTION_MISMATCH=y
+ 
+-- 
+2.19.1
+

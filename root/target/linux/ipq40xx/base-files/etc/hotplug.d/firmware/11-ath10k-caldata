@@ -46,7 +46,7 @@ case "$FIRMWARE" in
 		# OEM assigns 4 sequential MACs
 		ath10k_patch_mac $(macaddr_setbit_la $(macaddr_add "$(cat /sys/class/net/eth0/address)" 4))
 		;;
-    pangu,l1000)
+	pangu,l1000)
 		caldata_extract "ART" 0x5000 0x2f20
 		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 3)
 		;;
@@ -59,11 +59,12 @@ case "$FIRMWARE" in
 	alfa-network,ap120c-ac |\
 	cilab,meshpoint-one |\
 	ezviz,cs-w3-wd1200g-eup |\
+	glinet,gl-ap1300 |\
 	glinet,gl-b1300 |\
 	glinet,gl-s1300 |\
 	linksys,ea6350v3 |\
 	mobipromo,cm520-79f |\
-    p2w,r619ac-128m |\
+	p2w,r619ac-128m |\
 	p2w,r619ac |\
 	qcom,ap-dk01.1-c1)
 		caldata_extract "ART" 0x1000 0x2f20
@@ -140,6 +141,10 @@ case "$FIRMWARE" in
 		caldata_extract "ART" 0x1000 0x2f20
 		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 2)
 		;;
+	 pangu,l1000)
+		caldata_extract "ART" 0x1000 0x2f20
+		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 2)
+		;;
 	meraki,mr33)
 		caldata_extract_ubi "ART" 0x1000 0x2f20
 		caldata_valid "202f" || caldata_extract "ART" 0x1000 0x2f20
@@ -164,12 +169,13 @@ case "$FIRMWARE" in
 	alfa-network,ap120c-ac |\
 	cilab,meshpoint-one |\
 	ezviz,cs-w3-wd1200g-eup |\
+	glinet,gl-ap1300 |\
 	glinet,gl-b1300 |\
 	glinet,gl-s1300 |\
 	linksys,ea6350v3 |\
-    p2w,r619ac-128m |\
-	p2w,r619ac |\
 	mobipromo,cm520-79f |\
+	p2w,r619ac-128m |\
+	p2w,r619ac |\
 	qcom,ap-dk01.1-c1)
 		caldata_extract "ART" 0x5000 0x2f20
 		;;
@@ -244,10 +250,6 @@ case "$FIRMWARE" in
 	linksys,mr8300)
 		caldata_extract "ART" 0x5000 0x2f20
 		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 3)
-		;;
-    pangu,l1000)
-		caldata_extract "ART" 0x1000 0x2f20
-		ath10k_patch_mac $(macaddr_add "$(cat /sys/class/net/eth0/address)" 2)
 		;;
 	meraki,mr33)
 		caldata_extract_ubi "ART" 0x5000 0x2f20
