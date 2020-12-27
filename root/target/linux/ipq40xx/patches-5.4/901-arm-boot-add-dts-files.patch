@@ -66,7 +66,7 @@ Signed-off-by: John Crispin <john@phrozen.org>
 +	qcom-ipq4029-gl-b1300.dtb \
 +	qcom-ipq4029-gl-s1300.dtb \
 +	qcom-ipq4029-mr33.dtb \
-+	qcom-ipq4019-r619ac.dtb \
+	qcom-ipq4019-r619ac-64m.dtb \
 +	qcom-ipq4019-r619ac-128m.dtb \
 +	qcom-ipq4019-l1000.dtb \
  	qcom-ipq8064-ap148.dtb \
