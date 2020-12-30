@@ -116,7 +116,7 @@ cp -rf root/* "$OMR_TARGET/source"
 cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
- VERSION:     $(git -C "$OMR_FEED" describe --tag --always)
+ VERSION:     $(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)
 
  BUILD REPO:  $(git config --get remote.origin.url)
  BUILD DATE:  $(date -u)
