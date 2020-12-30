@@ -199,6 +199,9 @@ fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
 fi
+if [ "$OMR_PACKAGES" = "zuixiao" ]; then
+	echo "CONFIG_PACKAGE_${OMR_DIST}-zuixiao=y" >> "$OMR_TARGET/source/.config"
+fi
 
 cd "$OMR_TARGET/source"
 
