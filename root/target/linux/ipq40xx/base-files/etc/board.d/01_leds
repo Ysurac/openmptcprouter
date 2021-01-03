@@ -57,11 +57,6 @@ pangu,l1000)
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "blue:wlan5g" "phy1tpt"
 	ucidef_set_led_netdev "wan" "WAN" "blue:wan" "eth1"
     ;;
-p2w,r619ac |\
-p2w,r619ac-128m)
-	ucidef_set_led_wlan "wlan2g" "WLAN2G" "blue:wlan2g" "phy0tpt"
-	ucidef_set_led_wlan "wlan5g" "WLAN5G" "blue:wlan5g" "phy1tpt"
-	;;
 netgear,ex6100v2 |\
 netgear,ex6150v2)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "green:router" "phy0tpt"

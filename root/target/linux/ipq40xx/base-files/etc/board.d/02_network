@@ -48,7 +48,7 @@ ipq40xx_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		;;
 	asus,rt-ac58u|\
-	p2w,r619ac-64m|\
+    p2w,r619ac-64m|\
 	p2w,r619ac-128m|\
 	zyxel,nbg6617)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
@@ -57,8 +57,8 @@ ipq40xx_setup_interfaces()
 		;;
 	avm,fritzbox-4040|\
 	linksys,ea6350v3|\
+    pangu,l1000|\
 	linksys,ea8300|\
-	pangu,l1000|\
 	linksys,mr8300)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \

@@ -57,11 +57,9 @@ zyxel_do_upgrade() {
 
 platform_do_upgrade() {
 	case "$(board_name)" in
-	pangu,l1000 |\
-	p2w,r619ac-64m |\
-	p2w,r619ac-128m |\
 	8dev,jalapeno |\
 	aruba,ap-303 |\
+    pangu,l1000 |\
 	aruba,ap-303h |\
 	aruba,ap-365 |\
 	avm,fritzbox-7530 |\
@@ -75,6 +73,8 @@ platform_do_upgrade() {
 	glinet,gl-ap1300 |\
 	luma,wrtq-329acn |\
 	mobipromo,cm520-79f |\
+    p2w,r619ac-64m |\
+ 	p2w,r619ac-128m |\
 	qxwlan,e2600ac-c2)
 		nand_do_upgrade "$1"
 		;;
