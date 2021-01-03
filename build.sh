@@ -116,7 +116,7 @@ cp -rf root/* "$OMR_TARGET/source"
 cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
- VERSION:     $(git -C "$OMR_FEED" describe --tag --always)
+ VERSION:     $(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)
 
  BUILD REPO:  $(git config --get remote.origin.url)
  BUILD DATE:  $(date -u)
@@ -198,6 +198,9 @@ if [ "$OMR_PACKAGES" = "full" ]; then
 fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
+fi
+if [ "$OMR_PACKAGES" = "zuixiao" ]; then
+	echo "CONFIG_PACKAGE_${OMR_DIST}-zuixiao=y" >> "$OMR_TARGET/source/.config"
 fi
 
 cd "$OMR_TARGET/source"
