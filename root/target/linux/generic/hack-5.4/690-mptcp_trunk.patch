@@ -23651,3 +23651,33 @@ diff -aurN linux-5.4.64/tools/include/uapi/linux/bpf.h linux-5.4.64.mptcp/tools/
  
  	BPF_TCP_MAX_STATES	/* Leave at the end! */
  };
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index 37e229d2f615..b428f61d959c 100644
+--- linux-5.4.64/net/ipv4/tcp_input.c
++++ linux-5.4.64.mptcp/net/ipv4/tcp_input.c
+@@ -4842,7 +4842,24 @@ static void tcp_data_queue(struct sock *sk, struct sk_buff *skb)
+ 	 *  Out of sequence packets to the out_of_order_queue.
+ 	 */
+ 	if (TCP_SKB_CB(skb)->seq == tp->rcv_nxt) {
+-		if (tcp_receive_window(tp) == 0) {
++		/* Receiving data on a zero window in MPTCP can occur due to
++		 * reinjected data sent on another subflow filling the
++		 * window. This semi-frequently occurs due to penalization
++		 * while initially growing the congestion window.
++		 * For the subflow, dropping the packet is seen (wrongly) as a
++		 * loss, impacting the congestion control.
++		 *
++		 * To avoid this, accept the packet at the subflow level, and
++		 * let the meta handle the segment.
++		 * If it was a duplicate segment, or if it was a new segment
++		 * somehow (a bug in the sender), it is up to the meta level to
++		 * handle this and drop the segment. mptcp_data_ready is able to
++		 * handle either case.
++		 *
++		 * We still check for rmem constraints, so there is no risk of
++		 * queueing too much data.
++		 */
++		if (tcp_receive_window(tp) == 0 && !mptcp(tp)) {
+ 			NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPZEROWINDOWDROP);
+ 			goto out_of_window;
+ 		}
