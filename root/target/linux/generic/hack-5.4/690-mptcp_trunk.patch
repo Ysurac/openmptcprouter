@@ -23681,3 +23681,147 @@ index 37e229d2f615..b428f61d959c 100644
  			NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPZEROWINDOWDROP);
  			goto out_of_window;
  		}
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index 221e055623c1..49555fee79b4 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -1707,8 +1707,11 @@ static void tcp_cwnd_validate(struct sock *sk, bool is_cwnd_limited)
+ 		 * 2) not cwnd limited (this else condition)
+ 		 * 3) no more data to send (tcp_write_queue_empty())
+ 		 * 4) application is hitting buffer limit (SOCK_NOSPACE)
++		 * 5) For MPTCP subflows, the scheduler determines
++		 *    sndbuf limited.
+ 		 */
+ 		if (tcp_write_queue_empty(sk) && sk->sk_socket &&
++		    !(mptcp(tcp_sk(sk)) && !is_meta_sk(sk)) &&
+ 		    test_bit(SOCK_NOSPACE, &sk->sk_socket->flags) &&
+ 		    (1 << sk->sk_state) & (TCPF_ESTABLISHED | TCPF_CLOSE_WAIT))
+ 			tcp_chrono_start(sk, TCP_CHRONO_SNDBUF_LIMITED);
+diff --git a/net/mptcp/mptcp_input.c b/net/mptcp/mptcp_input.c
+index 3d9eecd74683..1a08d94e8249 100644
+--- a/net/mptcp/mptcp_input.c
++++ b/net/mptcp/mptcp_input.c
+@@ -1425,6 +1425,19 @@ static void mptcp_snd_una_update(struct tcp_sock *meta_tp, u32 data_ack)
+ 	meta_tp->snd_una = data_ack;
+ }
+ 
++static void mptcp_stop_subflow_chronos(struct sock *meta_sk,
++				       const enum tcp_chrono type)
++{
++	const struct mptcp_cb *mpcb = tcp_sk(meta_sk)->mpcb;
++	struct mptcp_tcp_sock *mptcp;
++
++	mptcp_for_each_sub(mpcb, mptcp) {
++		struct sock *sk_it = mptcp_to_sock(mptcp);
++
++		tcp_chrono_stop(sk_it, type);
++	}
++}
++
+ /* Handle the DATA_ACK */
+ static bool mptcp_process_data_ack(struct sock *sk, const struct sk_buff *skb)
+ {
+@@ -1550,6 +1563,13 @@ static bool mptcp_process_data_ack(struct sock *sk, const struct sk_buff *skb)
+ 		if (meta_sk->sk_socket &&
+ 		    test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags))
+			meta_sk->sk_write_space(meta_sk);
++
++		if (meta_sk->sk_socket &&
++		    !test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags)) {
++			tcp_chrono_stop(meta_sk, TCP_CHRONO_SNDBUF_LIMITED);
++			mptcp_stop_subflow_chronos(meta_sk,
++						   TCP_CHRONO_SNDBUF_LIMITED);
++		}
+ 	}
+ 
+ 	if (meta_sk->sk_state != TCP_ESTABLISHED) {
+diff --git a/net/mptcp/mptcp_output.c b/net/mptcp/mptcp_output.c
+index fc71d41c608d..bf6b5324b823 100644
+--- a/net/mptcp/mptcp_output.c
++++ b/net/mptcp/mptcp_output.c
+@@ -801,6 +801,7 @@ bool mptcp_write_xmit(struct sock *meta_sk, unsigned int mss_now, int nonagle,
+ 		     int push_one, gfp_t gfp)
+ {
+ 	struct tcp_sock *meta_tp = tcp_sk(meta_sk), *subtp;
++	bool is_rwnd_limited = false;
+ 	struct mptcp_tcp_sock *mptcp;
+ 	struct sock *subsk = NULL;
+ 	struct mptcp_cb *mpcb = meta_tp->mpcb;
+@@ -848,8 +849,10 @@ bool mptcp_write_xmit(struct sock *meta_sk, unsigned int mss_now, int nonagle,
+ 		if (skb_unclone(skb, GFP_ATOMIC))
+ 			break;
+ 
+-		if (unlikely(!tcp_snd_wnd_test(meta_tp, skb, mss_now)))
++		if (unlikely(!tcp_snd_wnd_test(meta_tp, skb, mss_now))) {
++			is_rwnd_limited = true;
+ 			break;
++		}
+ 
+ 		/* Force tso_segs to 1 by using UINT_MAX.
+ 		 * We actually don't care about the exact number of segments
+@@ -932,6 +935,11 @@ bool mptcp_write_xmit(struct sock *meta_sk, unsigned int mss_now, int nonagle,
+ 			break;
+ 	}
+ 
++	if (is_rwnd_limited)
++		tcp_chrono_start(meta_sk, TCP_CHRONO_RWND_LIMITED);
++	else
++		tcp_chrono_stop(meta_sk, TCP_CHRONO_RWND_LIMITED);
++
+ 	mptcp_for_each_sub(mpcb, mptcp) {
+ 		subsk = mptcp_to_sock(mptcp);
+ 		subtp = tcp_sk(subsk);
+diff --git a/net/mptcp/mptcp_sched.c b/net/mptcp/mptcp_sched.c
+index 39a997f84209..a4d8c4a5e52d 100644
+--- a/net/mptcp/mptcp_sched.c
++++ b/net/mptcp/mptcp_sched.c
+@@ -372,14 +372,22 @@ static struct sk_buff *__mptcp_next_segment(struct sock *meta_sk, int *reinject)
+ 		if (!skb && meta_sk->sk_socket &&
+ 		    test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags) &&
+ 		    sk_stream_wspace(meta_sk) < sk_stream_min_wspace(meta_sk)) {
+-			struct sock *subsk = mpcb->sched_ops->get_subflow(meta_sk, NULL,
+-									  false);
++			struct sock *subsk;
++
++			/* meta is send buffer limited */
++			tcp_chrono_start(meta_sk, TCP_CHRONO_SNDBUF_LIMITED);
++
++			subsk = mpcb->sched_ops->get_subflow(meta_sk,
++							     NULL, false);
+ 			if (!subsk)
+ 				return NULL;
+ 
+ 			skb = mptcp_rcv_buf_optimization(subsk, 0);
+ 			if (skb)
+ 				*reinject = -1;
++			else
++				tcp_chrono_start(subsk,
++						 TCP_CHRONO_SNDBUF_LIMITED);
+ 		}
+ 	}
+ 	return skb;
+@@ -411,6 +419,12 @@ struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
+ 	mss_now = tcp_current_mss(*subsk);
+ 
+ 	if (!*reinject && unlikely(!tcp_snd_wnd_test(tcp_sk(meta_sk), skb, mss_now))) {
++		/* an active flow is selected, but segment will not be sent due
++		 * to no more space in send window
++		 * this means the meta is receive window limited
++		 * the subflow might also be, if we have nothing to reinject
++		 */
++		tcp_chrono_start(meta_sk, TCP_CHRONO_RWND_LIMITED);
+ 		skb = mptcp_rcv_buf_optimization(*subsk, 1);
+ 		if (skb)
+ 			*reinject = -1;
+@@ -418,6 +432,11 @@ struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
+ 			return NULL;
+ 	}
+ 
++	if (!*reinject) {
++		/* this will stop any other chronos on the meta */
++		tcp_chrono_start(meta_sk, TCP_CHRONO_BUSY);
++	}
++
+ 	/* No splitting required, as we will only send one single segment */
+ 	if (skb->len <= mss_now)
+ 		return skb;
