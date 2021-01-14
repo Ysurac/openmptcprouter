@@ -13,7 +13,7 @@ export SAVE_CONFIG=1
 export SAVE_OVERLAY=0
 export SAVE_OVERLAY_PATH=
 export SAVE_PARTITIONS=1
-export SAVE_INSTALLED_PKGS=0
+export SAVE_INSTALLED_PKGS=1
 export SKIP_UNCHANGED=0
 export CONF_IMAGE=
 export CONF_BACKUP_LIST=0
@@ -113,16 +113,16 @@ EOF
 [ "$CONF_BACKUP" = "-" ] && export VERBOSE=0
 
 missing_lines() {
-    local file1 file2 line
-    file1="$1"
-    file2="$2"
-    oIFS="$IFS"
-    IFS=":"
-    while read line; do
-	set -- $line
-	grep -q "^$1:" "$file2" || echo "$*"
-    done < "$file1"
-    IFS="$oIFS"
+	local file1 file2 line
+	file1="$1"
+	file2="$2"
+	oIFS="$IFS"
+	IFS=":"
+	while read line; do
+		set -- $line
+		grep -q "^$1:" "$file2" || echo "$*"
+	done < "$file1"
+	IFS="$oIFS"
 }
 
 list_conffiles() {
@@ -143,12 +143,19 @@ list_changed_conffiles() {
 	done
 }
 
+list_static_conffiles() {
+	local filter=$1
+
+	find $(sed -ne '/^[[:space:]]*$/d; /^#/d; p' \
+		/etc/sysupgrade.conf /lib/upgrade/keep.d/* 2>/dev/null) \
+		\( -type f -o -type l \) $filter 2>/dev/null
+}
+
 add_conffiles() {
 	local file="$1"
-	( find $(sed -ne '/^[[:space:]]*$/d; /^#/d; p' \
-		/etc/sysupgrade.conf /lib/upgrade/keep.d/* 2>/dev/null) \
-		\( -type f -o -type l \) $find_filter 2>/dev/null;
-	  list_changed_conffiles ) | sort -u > "$file"
+
+	( list_static_conffiles "$find_filter"; list_changed_conffiles ) |
+		sort -u > "$file"
 	return 0
 }
 
@@ -166,9 +173,7 @@ add_overlayfiles() {
 
 		# backup files from /etc/sysupgrade.conf and /lib/upgrade/keep.d, but
 		# ignore those aready controlled by opkg conffiles
-		find $(sed -ne '/^[[:space:]]*$/d; /^#/d; p' \
-			/etc/sysupgrade.conf /lib/upgrade/keep.d/* 2>/dev/null) \
-			\( -type f -o -type l \) 2>/dev/null | sort -u |
+		list_static_conffiles | sort -u |
 			grep -h -v -x -F -f $conffiles > "$keepfiles"
 
 		# backup conffiles, but only those changed if '-u'
@@ -228,7 +233,7 @@ include /lib/upgrade
 do_save_conffiles() {
 	local conf_tar="$1"
 
-	[ -z "$(rootfs_type)" ] && {
+	[ "$(rootfs_type)" = "tmpfs" ] && {
 		echo "Cannot save config while running from ramdisk." >&2
 		ask_bool 0 "Abort" && exit
 		rm -f "$conf_tar"
@@ -300,6 +305,7 @@ if [ -n "$CONF_RESTORE" ]; then
 	missing_lines /tmp/group /etc/group >> /etc/group
 	missing_lines /tmp/shadow /etc/shadow >> /etc/shadow
 	rm /tmp/passwd /tmp/group /tmp/shadow
+
 	exit $?
 fi
 
