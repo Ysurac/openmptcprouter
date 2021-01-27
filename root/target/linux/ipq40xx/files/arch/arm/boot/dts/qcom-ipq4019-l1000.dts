@@ -11,7 +11,7 @@
 
 / {
 
-	model = "ANTROUTERGZ1000";
+	model = "GZ841902_55860.com";
 	compatible = "pangu,l1000", "qcom,ipq4019";
 
 
@@ -141,8 +141,20 @@
 			label = "bule:wan";
 			gpios = <&tlmm 4 GPIO_ACTIVE_LOW>;
 		};     
+		4g1 {
+			label = "bule:4g1";
+			gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
+		};     
+		4g2 {
+			label = "bule:4g2";
+			gpios = <&tlmm 45 GPIO_ACTIVE_LOW>;
+		};     
+		4g3 {
+			label = "bule:4g3";
+			gpios = <&tlmm 46 GPIO_ACTIVE_LOW>;
+		};     
 	    usb {
-			label = "bule::usb";
+			label = "bule:usb";
 			gpios = <&tlmm 5 GPIO_ACTIVE_LOW>;
 			trigger-sources = <&usb2>, <&usb3>;
 			linux,default-trigger = "usbport";
