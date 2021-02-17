@@ -78,9 +78,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "3bd8f660a4b967a25aa7b605f0ead44ddfab9ea4"
-	_get_repo feeds/packages https://github.com/openwrt/packages "d2aba09d262177d64806ed3a523b58f8bb0f4384"
-	_get_repo feeds/luci https://github.com/openwrt/luci "c434b50c7c61ccb53685dd8d6adad45ffe82eb60"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "482c9ff289c65480c8e7340e1740db24c62f91df"
+	_get_repo feeds/packages https://github.com/openwrt/packages "82ceca2619b0abf882b684599a2d62f45389a28b"
+	_get_repo feeds/luci https://github.com/openwrt/luci "cb0979ffb242d91f8a478438d27e2f004fb89e59"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -233,6 +233,13 @@ echo "Checking if Nanqinlang patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
 	echo "apply..."
 	patch -N -p1 -s < ../../patches/nanqinlang.patch
+fi
+echo "Done"
+
+echo "Checking if remove_abi patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/remove_abi.patch; then
+	echo "apply..."
+	patch -N -p1 -s < ../../patches/remove_abi.patch
 fi
 echo "Done"
 
