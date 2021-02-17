@@ -23811,7 +23811,7 @@ diff --git a/include/net/tcp.h b/include/net/tcp.h
 index 3e4f5179a835..93d53f5d5359 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -850,6 +850,30 @@ static inline u32 tcp_receive_window(const struct tcp_sock *tp)
+@@ -850,6 +850,32 @@ static inline u32 tcp_receive_window(const struct tcp_sock *tp)
  	return (u32) win;
  }
  
@@ -23834,7 +23834,9 @@ index 3e4f5179a835..93d53f5d5359 100644
 +{
 +	s32 win = tp->rcv_right_edge - tp->rcv_nxt;
 +
-+	if (win < 0)
++	win = max_t(s32, win, tp->rcv_wup + tp->rcv_wnd - tp->rcv_nxt);
++
++	if (unlikely(win < 0))
 +		win = 0;
 +	return (u32) win;
 +}
