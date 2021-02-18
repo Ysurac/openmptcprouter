@@ -1,4 +1,4 @@
---- a/package/libs/libubox/Makefile.anc	2021-02-17 14:45:19.981073050 +0100
+--- a/package/libs/libubox/Makefile	2021-02-17 14:45:19.981073050 +0100
 +++ b/package/libs/libubox/Makefile	2021-02-17 14:45:57.232466168 +0100
 @@ -73,12 +73,12 @@
  
@@ -24,8 +24,8 @@
  endef
  
  define Package/libubox-lua/install
---- package/system/ubus/Makefile.anc	2021-02-17 15:16:34.450301703 +0100
-+++ package/system/ubus/Makefile	2021-02-17 15:16:55.289957767 +0100
+--- a/package/system/ubus/Makefile	2021-02-17 15:16:34.450301703 +0100
++++ b/package/system/ubus/Makefile	2021-02-17 15:16:55.289957767 +0100
 @@ -69,7 +69,7 @@
  
  define Package/libubus/install
