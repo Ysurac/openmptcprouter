@@ -3727,10 +3727,11 @@ diff -aurN linux-5.4.64/net/ipv4/tcp.c linux-5.4.64.mptcp/net/ipv4/tcp.c
  
  	seq = tp->write_seq + tp->max_window + 2;
  	if (!seq)
-@@ -2624,20 +2750,14 @@
+@@ -2624,21 +2750,15 @@
  	icsk->icsk_backoff = 0;
  	tp->snd_cwnd = 2;
  	icsk->icsk_probes_out = 0;
+ 	icsk->icsk_probes_tstamp = 0;
 -	icsk->icsk_rto = TCP_TIMEOUT_INIT;
 -	tp->snd_ssthresh = TCP_INFINITE_SSTHRESH;
 -	tp->snd_cwnd = TCP_INIT_CWND;
