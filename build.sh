@@ -239,13 +239,6 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
 fi
 echo "Done"
 
-echo "Checking if remove_abi patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/remove_abi.patch; then
-	echo "apply..."
-	patch -N -p1 -s < ../../patches/remove_abi.patch
-fi
-echo "Done"
-
 # Add BBR2 patch, only working on 64bits images for now
 if [ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "rpi3" ]; then
 	echo "Checking if BBRv2 patch is set or not"
