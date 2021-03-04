@@ -15,6 +15,7 @@ CONFIG_PACKAGE_f2fs-tools=y
 CONFIG_PACKAGE_f2fsck=y
 CONFIG_PACKAGE_mkf2fs=y
 CONFIG_PACKAGE_swconfig=y
+# CONFIG_PACKAGE_mc is not set
 CONFIG_PACKAGE_kmod-swconfig=y
 CONFIG_PACKAGE_kmod-ata-sunxi=y
 CONFIG_PACKAGE_kmod-rtc-sunxi=m
