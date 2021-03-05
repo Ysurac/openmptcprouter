@@ -225,7 +225,7 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	
 	# Add support for distributed switch architecture
 	echo -n "Adding DSA support to kernel 5.4..."
-	for i in NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_PREPEND; do
+	for i in NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
 		echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 	done
 	echo "done"
