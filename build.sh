@@ -224,20 +224,23 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	echo "done"
 	
 	# Add support for distributed switch architecture
-	echo -n "Adding DSA support to kernel 5.4..."
-	for i in NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
+	echo -n "Adding B53 DSA support to kernel 5.4..."
+	for i in B53 B53_MDIO_DRIVER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
+		cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_${i}=y" || \
 		echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 	done
 	echo "done"
 	
 	# Add support for MDIO bus multiplexer
 	echo -n "Adding support for MDIO bus multiplexer to kernel 5.4..."
+	cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_MDIO_BUS_MUX_MULTIPLEXER=y" || \
 	echo "CONFIG_MDIO_BUS_MUX_MULTIPLEXER=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 	echo "done"
 	
 	# Add led support
 	echo -n "Adding LED support to kernel 5.4..."
 	for i in SWCONFIG_LEDS LED_TRIGGER_PHY LEDS_GPIO LEDTRIG_ACTIVITY LEDTRIG_GPIO LEDTRIG_ONESHOT LEDTRIG_TRANSIENT IPT_LED USB_LEDTRIG_USBSUPPORT; do
+		cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_${i}=y" || \
 		echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 	done
 	echo "done"
