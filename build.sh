@@ -247,6 +247,14 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 			echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 		done
 		echo "done"
+	else
+		# Remove swconfig parts
+		echo -n "Removing unneeded B53 swconfig parts from kernel 5.4..."
+		for i in SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER; do
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/config-5.4"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
+		done
+		echo "done"
 	fi
 		
 	# Add led support
