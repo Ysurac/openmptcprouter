@@ -49,6 +49,8 @@ CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 
 OMR_OPENWRT=${OMR_OPENWRT:-default}
 
+OMR_FORCE_DSA=${OMR_FORCE_DSA:-0}
+
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
 	#exit 1
@@ -223,18 +225,42 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	rm -f "$OMR_TARGET/source/target/linux/sunxi/patches-5.4/310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th.patch" >/dev/null 2>&1
 	echo "done"
 	
-	# Add support for distributed switch architecture
-	echo -n "Adding B53 DSA support to kernel 5.4..."
-	for i in B53 B53_MDIO_DRIVER SWCONFIG_LEDS LED_TRIGGER_PHY MDIO_BUS_MUX_MULTIPLEXER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
-		cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_${i}=y" || \
-		echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
-	done
-	echo "done"
-	
+	if [ "$OMR_FORCE_DSA" = "1" ]; then 
+		# Remove support for swconfig
+		echo -n "Removing swconfig support from openwrt config..."
+		for i in DEFAULT_swconfig PACKAGE_swconfig PACKAGE_kmod-swconfig; do
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/.config"
+		done
+		echo "done"
+		echo -n "Removing B53 swconfig support from kernel 5.4..."
+		for i in SWCONFIG_B53 SWCONFIG_B53_PHY_DRIVER SWCONFIG_LEDS LED_TRIGGER_PHY SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER; do
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/config-5.4"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
+		done
+		echo "done"
+
+		# Add support for distributed switch architecture
+		echo -n "Adding B53 DSA support to kernel 5.4..."
+		for i in B53 B53_MDIO_DRIVER MDIO_BUS_MUX_MULTIPLEXER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
+			cat "$OMR_TARGET/source/target/linux/sunxi/config-5.4" | grep "CONFIG_${i}=y" || \
+			cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_${i}=y" || \
+			echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
+		done
+		echo "done"
+	fi
+		
 	# Add led support
 	echo -n "Adding LED TRIGGER support to kernel 5.4..."
+	if [ "$OMR_FORCE_DSA" != "1" ]; then
+		for i in SWCONFIG_LEDS LED_TRIGGER_PHY; do
+			cat "$OMR_TARGET/source/target/linux/sunxi/config-5.4" | grep "CONFIG_${i}=y" || \
+			cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_${i}=y" || \
+			echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
+		done
+	fi
 	for i in TIMER ONESHOT DISK MTD HEARTBEAT BACKLIGHT CPU ACTIVITY GPIO DEFAULT_ON TRANSIENT CAMERA PANIC NETDEV PATTERN AUDIO; do
-		cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_${i}=y" || \
+		cat "$OMR_TARGET/source/target/linux/sunxi/config-5.4" | grep "CONFIG_LEDS_TRIGGER_${i}=y" || \
+		cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_LEDS_TRIGGER_${i}=y" || \
 		echo "CONFIG_LEDS_TRIGGER_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 	done
 	echo "done"
