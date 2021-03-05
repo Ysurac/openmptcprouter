@@ -202,21 +202,48 @@ if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
 fi
 
-#if [ "$OMR_TARGET" = "bpi-r1" ]; then
-#	# We disable mc for now, because it leads to unknown compile errors on bpi-r1 target
-#	sed -i "s/CONFIG_PACKAGE_mc=y/# CONFIG_PACKAGE_mc is not set/" "$OMR_TARGET/source/.config"
-#	sed -i "s/CONFIG_MC_EDITOR=y/# CONFIG_MC_EDITOR is not set/" "$OMR_TARGET/source/.config"
-#	sed -i "s/CONFIG_MC_SUBSHELL=y/# CONFIG_MC_SUBSHELL is not set/" "$OMR_TARGET/source/.config"
-#	sed -i "s/CONFIG_MC_CHARSET=y/# CONFIG_MC_CHARSET is not set/" "$OMR_TARGET/source/.config"
-#	sed -i "s/CONFIG_MC_VFS=y/# CONFIG_MC_VFS is not set/" "$OMR_TARGET/source/.config"
-#	
-#	# Switch to wpad-wolfssl
-#	sed -i "s/CONFIG_PACKAGE_wpad-basic=y/# CONFIG_PACKAGE_wpad-basic is not set/" "$OMR_TARGET/source/.config"
-#	sed -i "s/CONFIG_PACKAGE_wpad-basic-wolfssl=m/CONFIG_PACKAGE_wpad-basic-wolfssl=y/" "$OMR_TARGET/source/.config"
-#
-#	# Enable sound soc sunxi kernel module
-#	sed -i "s/CONFIG_PACKAGE_kmod-sound-soc-sunxi=m/CONFIG_PACKAGE_kmod-sound-soc-sunxi=y/" "$OMR_TARGET/source/.config"
-#fi
+if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
+	# We disable mc in master, because it leads to unknown compilation errors on bpi-r1 target
+	# No time to check this, now, cause i am focused on make this target work
+	# Maybe someone can do this later	
+	echo -n "Disabling error causing midnight commander (mc) package..."
+	sed -i "s/CONFIG_PACKAGE_mc=y/# CONFIG_PACKAGE_mc is not set/" "$OMR_TARGET/source/.config"
+	sed -i "s/CONFIG_MC_EDITOR=y/# CONFIG_MC_EDITOR is not set/" "$OMR_TARGET/source/.config"
+	sed -i "s/CONFIG_MC_SUBSHELL=y/# CONFIG_MC_SUBSHELL is not set/" "$OMR_TARGET/source/.config"
+	sed -i "s/CONFIG_MC_CHARSET=y/# CONFIG_MC_CHARSET is not set/" "$OMR_TARGET/source/.config"
+	sed -i "s/CONFIG_MC_VFS=y/# CONFIG_MC_VFS is not set/" "$OMR_TARGET/source/.config"	
+	echo "done"
+
+	# 2021-03-05 Oliver Welter <oliver@welter.rocks>
+fi
+
+if [ "$OMR_TARGET" = "bpi-r1" ]; then
+	# Remove the 310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th patch
+	echo -n "Removing unwanted patches from kernel 5.4..."
+	rm -f "$OMR_TARGET/source/target/linux/sunxi/patches-5.4/310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th.patch" >/dev/null 2>&1
+	echo "done"
+	
+	# Add support for distributed switch architecture
+	echo -n "Adding DSA support to kernel 5.4..."
+	for i in NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_PREPEND; do
+		echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
+	done
+	echo "done"
+	
+	# Add support for MDIO bus multiplexer
+	echo -n "Adding support for MDIO bus multiplexer to kernel 5.4..."
+	echo "CONFIG_MDIO_BUS_MUX_MULTIPLEXER=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
+	echo "done"
+	
+	# Add led support
+	echo -n "Adding LED support to kernel 5.4..."
+	for i in SWCONFIG_LEDS LED_TRIGGER_PHY LEDS_GPIO LEDTRIG_ACTIVITY LEDTRIG_GPIO LEDTRIG_ONESHOT LEDTRIG_TRANSIENT IPT_LED USB_LEDTRIG_USBSUPPORT; do
+		echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
+	done
+	echo "done"
+	
+	# 2021-03-05 Oliver Welter <oliver@welter.rocks>	
+fi
 
 cd "$OMR_TARGET/source"
 
