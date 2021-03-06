@@ -1,9 +1,3 @@
-uci set network.lan.type=bridge
-uci set network.wan1.type=bridge
-uci set network.wan2.type=bridge
-uci set network.wan3.type=bridge
-uci set network.wan4.type=bridge
-
 if [ -f "/etc/.lamobo-r1.dsa" ]; then
 	uci delete network.@switch_vlan[1]
 	uci delete network.@switch_vlan[0]
