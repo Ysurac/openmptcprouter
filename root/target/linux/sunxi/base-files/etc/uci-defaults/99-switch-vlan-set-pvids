@@ -1,0 +1,4 @@
+uci set network.@switch_vlan[0].vlan=10
+uci set network.@switch_vlan[1].vlan=20
+uci commit
+exit 0
