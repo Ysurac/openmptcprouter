@@ -226,6 +226,11 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 		exit 1
 	fi
 	
+	# Remove the 310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th patch
+	echo -n "Removing unwanted patches from kernel $OMR_KERNEL..."
+	rm -f "$OMR_TARGET/source/target/linux/sunxi/patches-$OMR_KERNEL/310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th.patch" >/dev/null 2>&1
+	echo "done"
+	
 	if [ "$OMR_FORCE_DSA" = "1" ]; then 
 		# Remove support for swconfig
 		echo -n "Removing swconfig support from openwrt config..."
@@ -253,11 +258,6 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 		# Mark as DSA
 		touch "$OMR_TARGET/source/target/linux/sunxi/base-files/etc/.lamobo-r1.dsa"
 	else
-		# Remove the 310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th patch
-		echo -n "Removing unwanted patches from kernel $OMR_KERNEL..."
-		rm -f "$OMR_TARGET/source/target/linux/sunxi/patches-$OMR_KERNEL/310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th.patch" >/dev/null 2>&1
-		echo "done"
-	
 		# Remove ip-bridge
 		echo -n "Removing ip-bridge support from openwrt config..."
 		for i in PACKAGE_ip-bridge; do
