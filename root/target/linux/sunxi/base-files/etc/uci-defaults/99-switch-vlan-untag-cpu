@@ -1,0 +1,4 @@
+uci set network.@switch_vlan[0].ports="4 0 1 2 8t"
+uci set network.@switch_vlan[1].ports="3 8"
+uci commit
+exit 0
