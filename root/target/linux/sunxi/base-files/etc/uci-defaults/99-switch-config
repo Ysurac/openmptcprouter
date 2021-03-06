@@ -9,11 +9,33 @@ if [ -f "/etc/.lamobo-r1.dsa" ]; then
 	uci set network.wan3.ifname="lan3"
 	uci set network.wan4.ifname="lan4"
 else
-	uci set network.@switch_vlan[0].vlan=10
-	uci set network.@switch_vlan[1].vlan=20
+	uci delete network.@switch_vlan[0]
+	uci delete network.@switch_vlan[1]
 
-	uci set network.@switch_vlan[0].ports="4 0 1 2 8t"
-	uci set network.@switch_vlan[1].ports="3 8"
+	uci add network switch_vlan
+	uci set network.@switch_vlan[0].vlan=5
+	uci set network.@switch_vlan[0].ports="8 3"
+	uci set network.@switch_vlan[0].device="switch0"
+
+	uci add network switch_vlan
+	uci set network.@switch_vlan[1].vlan=1
+	uci set network.@switch_vlan[1].ports="8t 4"
+	uci set network.@switch_vlan[1].device="switch0"
+
+	uci add network switch_vlan
+	uci set network.@switch_vlan[2].vlan=2
+	uci set network.@switch_vlan[2].ports="8t 0"
+	uci set network.@switch_vlan[2].device="switch0"
+
+	uci add network switch_vlan
+	uci set network.@switch_vlan[3].vlan=3
+	uci set network.@switch_vlan[3].ports="8t 1"
+	uci set network.@switch_vlan[3].device="switch0"
+
+	uci add network switch_vlan
+	uci set network.@switch_vlan[4].vlan=4
+	uci set network.@switch_vlan[4].ports="8t 2"
+	uci set network.@switch_vlan[4].device="switch0"
 
 	uci set network.lan.ifname="eth0"
 	uci set network.wan1.ifname="eth0.1"
