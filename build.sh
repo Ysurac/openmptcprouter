@@ -228,12 +228,12 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	if [ "$OMR_FORCE_DSA" = "1" ]; then 
 		# Remove support for swconfig
 		echo -n "Removing swconfig support from openwrt config..."
-		for i in DEFAULT_swconfig PACKAGE_swconfig PACKAGE_kmod-swconfig; do
+		for i in DEFAULT_swconfig PACKAGE_swconfig PACKAGE_kmod-swconfig PACKAGE_kmod-st10xp; do
 			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/.config"
 		done
 		echo "done"
 		echo -n "Removing B53 swconfig support from kernel 5.4..."
-		for i in SWCONFIG_B53 SWCONFIG_B53_PHY_DRIVER SWCONFIG_LEDS LED_TRIGGER_PHY SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER; do
+		for i in SWCONFIG_B53 SWCONFIG_B53_PHY_DRIVER SWCONFIG_LEDS LED_TRIGGER_PHY SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER DWMAC_GENERIC STMMAC_PLATFORM STMMAC_ETH NET_VENDOR_STMICRO; do
 			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/config-5.4"
 			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 		done
