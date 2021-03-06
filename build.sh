@@ -248,10 +248,10 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 		echo "done"
 
 		# Add support for distributed switch architecture
-		echo -n "Adding B53 DSA support to kernel $OMR_KERNEL..."
+		echo -n "Adding B53 DSA support to kernel $OMR_KERNEL..."		
 		for i in B53 B53_MDIO_DRIVER BRIDGE_VLAN_FILTERING MDIO_BUS_MUX_MULTIPLEXER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
-			check_sunxi_config=`cat "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" | grep "CONFIG_${i}=y"`
-			check_cortexa7_config=`cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" | grep "CONFIG_${i}=y"`
+			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
+			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
 			
 			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
 		done
@@ -283,20 +283,21 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	echo -n "Adding LED TRIGGER support to kernel $OMR_KERNEL..."
 	if [ "$OMR_FORCE_DSA" != "1" ]; then
 		for i in SWCONFIG_LEDS LED_TRIGGER_PHY; do
-			check_sunxi_config=`cat "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" | grep "CONFIG_${i}=y"`
-			check_cortexa7_config=`cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" | grep "CONFIG_${i}=y"`
+			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
+			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
 
 			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
 		done
 	fi
 	for i in TIMER ONESHOT DISK MTD HEARTBEAT BACKLIGHT CPU ACTIVITY GPIO DEFAULT_ON TRANSIENT CAMERA PANIC NETDEV PATTERN AUDIO; do
-		check_sunxi_config=`cat "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" | grep "CONFIG_LEDS_TRIGGER_${i}=y"`
-		check_cortexa7_config=`cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" | grep "CONFIG_LEDS_TRIGGER_${i}=y"`
+		check_sunxi_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
+		check_cortexa7_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
 
 		[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_LEDS_TRIGGER_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
 	done
 	echo "done"
 	
+	# BPI-R1 additions:
 	# 2021-03-05 Oliver Welter <oliver@welter.rocks>	
 fi
 
