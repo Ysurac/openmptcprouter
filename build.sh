@@ -248,6 +248,13 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 		done
 		echo "done"
 	else
+		# Remove ip-bridge
+		echo -n "Removing ip-bridge support from openwrt config..."
+		for i in PACKAGE_ip-bridge; do
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/.config"
+		done
+		echo "done"
+
 		# Remove swconfig parts
 		echo -n "Removing unneeded B53 swconfig parts from kernel 5.4..."
 		for i in SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER; do

@@ -20,6 +20,7 @@ CONFIG_PACKAGE_rtl8192cu-firmware=y
 CONFIG_PACKAGE_rtl8192su-firmware=y
 CONFIG_PACKAGE_kmod-switch-bcm53xx=y
 CONFIG_PACKAGE_kmod-switch-bcm53xx-mdio=y
+CONFIG_PACKAGE_ip-bridge=y
 CONFIG_PACKAGE_swconfig=y
 CONFIG_PACKAGE_kmod-swconfig=y
 CONFIG_PACKAGE_kmod-ste10xp=y
