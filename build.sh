@@ -241,12 +241,15 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 
 		# Add support for distributed switch architecture
 		echo -n "Adding B53 DSA support to kernel 5.4..."
-		for i in B53 B53_MDIO_DRIVER MDIO_BUS_MUX_MULTIPLEXER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
+		for i in B53 B53_MDIO_DRIVER BRIDGE_VLAN_FILTERING MDIO_BUS_MUX_MULTIPLEXER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
 			cat "$OMR_TARGET/source/target/linux/sunxi/config-5.4" | grep "CONFIG_${i}=y" || \
 			cat "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4" | grep "CONFIG_${i}=y" || \
 			echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 		done
 		echo "done"
+
+		# Mark as DSA
+		touch "$OMR_TARGET/source/target/linux/sunxi/base-files/etc/.lamobo-r1.dsa"
 	else
 		# Remove ip-bridge
 		echo -n "Removing ip-bridge support from openwrt config..."
@@ -262,6 +265,9 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-5.4"
 		done
 		echo "done"
+
+		# Mark as PHY
+		touch "$OMR_TARGET/source/target/linux/sunxi/base-files/etc/.lamobo-r1.phy"
 	fi
 		
 	# Add led support

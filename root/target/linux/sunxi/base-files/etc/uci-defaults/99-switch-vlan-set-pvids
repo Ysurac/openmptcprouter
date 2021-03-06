@@ -1,4 +1,10 @@
-uci set network.@switch_vlan[0].vlan=10
-uci set network.@switch_vlan[1].vlan=20
+if [ -f "/etc/.lamobo-r1.dsa" ]; then
+	uci delete network.@switch_vlan[1]
+	uci delete network.@switch_vlan[0]
+	uci delete network.@switch[0]
+else
+	uci set network.@switch_vlan[0].vlan=10
+	uci set network.@switch_vlan[1].vlan=20
+fi
 uci commit
 exit 0
