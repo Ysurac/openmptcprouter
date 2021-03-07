@@ -50,9 +50,14 @@ setup_switch_dsa() {
 				if [ "$eth" != "" ]; then
 					local vlan=`/bin/echo $iface | /usr/bin/cut -d . -f2`
 									
-					if [ "$vlan" != "" -a "$vlan" != "$eth" ]; then
-						/usr/bin/logger -t switch.sh "Found interface $my_interface for alias $iface in bridge $name - adding to VLAN $vlan"
-						/usr/sbin/bridge vlan add dev $my_interface vid $vlan pvid untagged
+					if [ "$vlan" != "" ]; then
+						if [ "$vlan" = "$eth" ]; then
+							/usr/bin/logger -t switch.sh "Found interface $my_interface for alias $iface in bridge $name - adding to master"
+							/usr/sbin/bridge vlan add dev $my_interface vid 1 master
+						else
+							/usr/bin/logger -t switch.sh "Found interface $my_interface for alias $iface in bridge $name - adding to VLAN $vlan"
+							/usr/sbin/bridge vlan add dev $my_interface vid $vlan pvid untagged
+						fi
 					fi
 				fi
 			done
