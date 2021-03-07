@@ -3,11 +3,20 @@ if [ -f "/etc/.lamobo-r1.dsa" ]; then
 	uci delete network.@switch_vlan[0]
 	uci delete network.@switch[0]
 
-	uci set network.lan.ifname="wan"
-	uci set network.wan1.ifname="lan1"
-	uci set network.wan2.ifname="lan2"
-	uci set network.wan3.ifname="lan3"
-	uci set network.wan4.ifname="lan4"
+	uci set network.lan.ifname="wan eth0"
+	uci set network.lan.type="bridge"
+	
+	uci set network.wan1.ifname="lan1 eth0.11"
+	uci set network.wan1.type="bridge"
+
+	uci set network.wan2.ifname="lan2 eth0.12"
+	uci set network.wan2.type="bridge"
+
+	uci set network.wan3.ifname="lan3 eth0.13"
+	uci set network.wan3.type="bridge"
+
+	uci set network.wan4.ifname="lan4 eth0.14"
+	uci set network.wan4.type="bridge"
 else
 	uci delete network.@switch_vlan[0]
 	uci delete network.@switch_vlan[1]
