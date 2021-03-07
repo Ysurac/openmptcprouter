@@ -293,10 +293,7 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 
 		[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_LEDS_TRIGGER_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
 	done
-	echo "done"
-	
-	# BPI-R1 additions:
-	# 2021-03-05 Oliver Welter <oliver@welter.rocks>	
+	echo "done"	
 fi
 
 cd "$OMR_TARGET/source"
