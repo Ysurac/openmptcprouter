@@ -12,6 +12,7 @@ labels: bug
 ## Current Behavior
 <!--- In English please. -->
 <!--- Tell us what happens instead of the expected behavior -->
+<!--- Did you checked log ? In Status->System log -->
 
 ## Possible Solution
 <!--- In English please. -->
