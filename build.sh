@@ -78,9 +78,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "482c9ff289c65480c8e7340e1740db24c62f91df"
-	_get_repo feeds/packages https://github.com/openwrt/packages "82ceca2619b0abf882b684599a2d62f45389a28b"
-	_get_repo feeds/luci https://github.com/openwrt/luci "cb0979ffb242d91f8a478438d27e2f004fb89e59"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "ffeb37047e85a5efd96890db12710e9d60b4b76a"
+	_get_repo feeds/packages https://github.com/openwrt/packages "7bc897eb94c09c8fe2472091709fab7446b37976"
+	_get_repo feeds/luci https://github.com/openwrt/luci "5af5f4a1ee5cbcd4a3099e6e210aca0099973410"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -290,11 +290,11 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
 fi
 echo "Done"
 
-echo "Remove check rsync"
-if [ "$(grep rsync include/prereq-build.mk)" != "" ]; then
-	patch -N -p1 -s < ../../patches/check-rsync.patch
-fi
-echo "Done"
+#echo "Remove check rsync"
+#if [ "$(grep rsync include/prereq-build.mk)" != "" ]; then
+#	patch -N -p1 -s < ../../patches/check-rsync.patch
+#fi
+#echo "Done"
 
 if [ -f target/linux/mediatek/patches-5.4/0999-hnat.patch ]; then
 	rm -f target/linux/mediatek/patches-5.4/0999-hnat.patch
