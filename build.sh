@@ -255,8 +255,11 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 		done
 		echo "done"
 
-		# Mark as DSA
-		touch "$OMR_TARGET/source/target/linux/sunxi/base-files/etc/.lamobo-r1.dsa"
+		# Create DSA port map file (will be filled on first boot, by uci-defaults and tells the system, that it is in DSA mode)
+		touch "$OMR_TARGET/source/target/linux/sunxi/base-files/etc/dsa.map"
+		
+		# Remove the b53 hack in preinit
+		rm -f "$OMR_TARGET/source/target/linux/sunxi/base-files/lib/preinit/03_b53_hack.sh"
 	else
 		# Remove ip-bridge
 		echo -n "Removing ip-bridge support from openwrt config..."
@@ -272,9 +275,6 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
 		done
 		echo "done"
-
-		# Mark as PHY
-		touch "$OMR_TARGET/source/target/linux/sunxi/base-files/etc/.lamobo-r1.phy"
 	fi
 		
 	# Add led support
