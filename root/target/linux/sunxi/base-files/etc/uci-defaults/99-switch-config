@@ -14,6 +14,7 @@ port_2_name="wan4"
 port_8_name="cpu"
 port_cpu="8"
 ' > /etc/dsa.map
+/sbin/swconfig-wrapper.sh setup-wrapper
 fi
 
 uci delete network.@switch_vlan[0]
