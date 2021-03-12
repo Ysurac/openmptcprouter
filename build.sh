@@ -49,6 +49,8 @@ CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 
 OMR_OPENWRT=${OMR_OPENWRT:-default}
 
+OMR_FORCE_DSA=${OMR_FORCE_DSA:-0}
+
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
 	#exit 1
@@ -64,6 +66,8 @@ elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "wrt32x" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
+elif [ "$OMR_TARGET" = "bpi-r1" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r64" ]; then
@@ -201,6 +205,98 @@ if [ "$OMR_PACKAGES" = "mini" ]; then
 fi
 if [ "$OMR_PACKAGES" = "zuixiao" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-zuixiao=y" >> "$OMR_TARGET/source/.config"
+fi
+
+if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
+	# We disable mc in master, because it leads to unknown compilation errors on bpi-r1 target
+	# No time to check this, now, cause i am focused on make this target work
+	# Maybe someone can do this later	
+	echo -n "Disabling error causing midnight commander (mc) package..."
+	sed -i "s/CONFIG_PACKAGE_mc=y/# CONFIG_PACKAGE_mc is not set/" "$OMR_TARGET/source/.config"
+	sed -i "s/CONFIG_MC_EDITOR=y/# CONFIG_MC_EDITOR is not set/" "$OMR_TARGET/source/.config"
+	sed -i "s/CONFIG_MC_SUBSHELL=y/# CONFIG_MC_SUBSHELL is not set/" "$OMR_TARGET/source/.config"
+	sed -i "s/CONFIG_MC_CHARSET=y/# CONFIG_MC_CHARSET is not set/" "$OMR_TARGET/source/.config"
+	sed -i "s/CONFIG_MC_VFS=y/# CONFIG_MC_VFS is not set/" "$OMR_TARGET/source/.config"	
+	echo "done"
+
+	# 2021-03-05 Oliver Welter <oliver@welter.rocks>
+fi
+
+if [ "$OMR_TARGET" = "bpi-r1" ]; then
+	# Check kernel version
+	if [ "$OMR_KERNEL" != "5.4" ]; then
+		echo "Sorry, but for now kernel 5.4 is the only supported one."
+		exit 1
+	fi
+	
+	# Remove the 310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th patch
+	echo -n "Removing unwanted patches from kernel $OMR_KERNEL..."
+	rm -f "$OMR_TARGET/source/target/linux/sunxi/patches-$OMR_KERNEL/310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th.patch" >/dev/null 2>&1
+	echo "done"
+	
+	if [ "$OMR_FORCE_DSA" = "1" ]; then 
+		# Remove support for swconfig
+		echo -n "Removing swconfig support from openwrt config..."
+		for i in DEFAULT_swconfig PACKAGE_swconfig PACKAGE_kmod-swconfig; do
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/.config"
+		done
+		echo "done"
+		echo -n "Removing B53 swconfig support from kernel $OMR_KERNEL..."
+		for i in SWCONFIG_B53 SWCONFIG_B53_PHY_DRIVER SWCONFIG_LEDS LED_TRIGGER_PHY SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER; do
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+		done
+		echo "done"
+
+		# Add support for distributed switch architecture
+		echo -n "Adding B53 DSA support to kernel $OMR_KERNEL..."		
+		for i in B53 B53_MDIO_DRIVER BRIDGE_VLAN_FILTERING MDIO_BUS_MUX_MULTIPLEXER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
+			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
+			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
+			
+			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+		done
+		echo "done"
+
+		# Create DSA port map file (will be filled on first boot, by uci-defaults and tells the system, that it is in DSA mode)
+		touch "$OMR_TARGET/source/target/linux/sunxi/base-files/etc/dsa.map"
+		
+		# Remove the b53 hack in preinit
+		rm -f "$OMR_TARGET/source/target/linux/sunxi/base-files/lib/preinit/03_b53_hack.sh"
+	else
+		# Remove ip-bridge
+		echo -n "Removing ip-bridge support from openwrt config..."
+		for i in PACKAGE_ip-bridge; do
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/.config"
+		done
+		echo "done"
+
+		# Remove swconfig parts
+		echo -n "Removing unneeded B53 swconfig parts from kernel $OMR_KERNEL..."
+		for i in SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER; do
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+		done
+		echo "done"
+	fi
+		
+	# Add led support
+	echo -n "Adding LED TRIGGER support to kernel $OMR_KERNEL..."
+	if [ "$OMR_FORCE_DSA" != "1" ]; then
+		for i in SWCONFIG_LEDS LED_TRIGGER_PHY; do
+			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
+			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
+
+			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+		done
+	fi
+	for i in TIMER ONESHOT DISK MTD HEARTBEAT BACKLIGHT CPU ACTIVITY GPIO DEFAULT_ON TRANSIENT CAMERA PANIC NETDEV PATTERN AUDIO; do
+		check_sunxi_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
+		check_cortexa7_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
+
+		[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_LEDS_TRIGGER_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+	done
+	echo "done"	
 fi
 
 cd "$OMR_TARGET/source"
