@@ -1,4 +1,3 @@
-#!/bin/sh
 #
 # Copyright (c) 2015 The Linux Foundation. All rights reserved.
 # Copyright (c) 2011-2015 OpenWrt.org
@@ -48,8 +47,6 @@ ipq40xx_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		;;
 	asus,rt-ac58u|\
-    p2w,r619ac-64m|\
-	p2w,r619ac-128m|\
 	zyxel,nbg6617)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
