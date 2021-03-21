@@ -47,7 +47,7 @@ OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 
-OMR_OPENWRT=${OMR_OPENWRT:-master}
+OMR_OPENWRT=${OMR_OPENWRT:-default}
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
@@ -62,7 +62,7 @@ elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "4018" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "4019" ]; then
+	elif [ "$OMR_TARGET" = "4019" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
