@@ -3727,10 +3727,11 @@ diff -aurN linux-5.4.64/net/ipv4/tcp.c linux-5.4.64.mptcp/net/ipv4/tcp.c
  
  	seq = tp->write_seq + tp->max_window + 2;
  	if (!seq)
-@@ -2624,20 +2750,14 @@
+@@ -2624,21 +2750,15 @@
  	icsk->icsk_backoff = 0;
  	tp->snd_cwnd = 2;
  	icsk->icsk_probes_out = 0;
+ 	icsk->icsk_probes_tstamp = 0;
 -	icsk->icsk_rto = TCP_TIMEOUT_INIT;
 -	tp->snd_ssthresh = TCP_INFINITE_SSTHRESH;
 -	tp->snd_cwnd = TCP_INIT_CWND;
@@ -18140,7 +18141,7 @@ diff -aurN linux-5.4.64/net/mptcp/mptcp_ndiffports.c linux-5.4.64.mptcp/net/mptc
 diff -aurN linux-5.4.64/net/mptcp/mptcp_netlink.c linux-5.4.64.mptcp/net/mptcp/mptcp_netlink.c
 --- linux-5.4.64/net/mptcp/mptcp_netlink.c	1970-01-01 01:00:00.000000000 +0100
 +++ linux-5.4.64.mptcp/net/mptcp/mptcp_netlink.c	2020-09-10 19:25:10.507220869 +0200
-@@ -0,0 +1,1271 @@
+@@ -0,0 +1,1272 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*	MPTCP implementation - Netlink Path Manager
 + *
@@ -18216,6 +18217,7 @@ diff -aurN linux-5.4.64/net/mptcp/mptcp_netlink.c linux-5.4.64.mptcp/net/mptcp/m
 +	[MPTCP_ATTR_SPORT]	= { .type	= NLA_U16,	},
 +	[MPTCP_ATTR_DPORT]	= { .type	= NLA_U16,	},
 +	[MPTCP_ATTR_BACKUP]	= { .type	= NLA_U8,	},
++	[MPTCP_ATTR_FLAGS]	= { .type	= NLA_U16,	},
 +	[MPTCP_ATTR_TIMEOUT]	= { .type	= NLA_U32,	},
 +	[MPTCP_ATTR_IF_IDX]	= { .type	= NLA_S32,	},
 +};
@@ -23651,33 +23653,337 @@ diff -aurN linux-5.4.64/tools/include/uapi/linux/bpf.h linux-5.4.64.mptcp/tools/
  
  	BPF_TCP_MAX_STATES	/* Leave at the end! */
  };
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index 221e055623c1..49555fee79b4 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -1707,8 +1707,11 @@ static void tcp_cwnd_validate(struct sock *sk, bool is_cwnd_limited)
+ 		 * 2) not cwnd limited (this else condition)
+ 		 * 3) no more data to send (tcp_write_queue_empty())
+ 		 * 4) application is hitting buffer limit (SOCK_NOSPACE)
++		 * 5) For MPTCP subflows, the scheduler determines
++		 *    sndbuf limited.
+ 		 */
+ 		if (tcp_write_queue_empty(sk) && sk->sk_socket &&
++		    !(mptcp(tcp_sk(sk)) && !is_meta_sk(sk)) &&
+ 		    test_bit(SOCK_NOSPACE, &sk->sk_socket->flags) &&
+ 		    (1 << sk->sk_state) & (TCPF_ESTABLISHED | TCPF_CLOSE_WAIT))
+ 			tcp_chrono_start(sk, TCP_CHRONO_SNDBUF_LIMITED);
+diff --git a/net/mptcp/mptcp_input.c b/net/mptcp/mptcp_input.c
+index 3d9eecd74683..1a08d94e8249 100644
+--- a/net/mptcp/mptcp_input.c
++++ b/net/mptcp/mptcp_input.c
+@@ -1425,6 +1425,19 @@ static void mptcp_snd_una_update(struct tcp_sock *meta_tp, u32 data_ack)
+ 	meta_tp->snd_una = data_ack;
+ }
+ 
++static void mptcp_stop_subflow_chronos(struct sock *meta_sk,
++				       const enum tcp_chrono type)
++{
++	const struct mptcp_cb *mpcb = tcp_sk(meta_sk)->mpcb;
++	struct mptcp_tcp_sock *mptcp;
++
++	mptcp_for_each_sub(mpcb, mptcp) {
++		struct sock *sk_it = mptcp_to_sock(mptcp);
++
++		tcp_chrono_stop(sk_it, type);
++	}
++}
++
+ /* Handle the DATA_ACK */
+ static bool mptcp_process_data_ack(struct sock *sk, const struct sk_buff *skb)
+ {
+@@ -1550,6 +1563,13 @@ static bool mptcp_process_data_ack(struct sock *sk, const struct sk_buff *skb)
+ 		if (meta_sk->sk_socket &&
+ 		    test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags))
+			meta_sk->sk_write_space(meta_sk);
++
++		if (meta_sk->sk_socket &&
++		    !test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags)) {
++			tcp_chrono_stop(meta_sk, TCP_CHRONO_SNDBUF_LIMITED);
++			mptcp_stop_subflow_chronos(meta_sk,
++						   TCP_CHRONO_SNDBUF_LIMITED);
++		}
+ 	}
+ 
+ 	if (meta_sk->sk_state != TCP_ESTABLISHED) {
+diff --git a/net/mptcp/mptcp_output.c b/net/mptcp/mptcp_output.c
+index fc71d41c608d..bf6b5324b823 100644
+--- a/net/mptcp/mptcp_output.c
++++ b/net/mptcp/mptcp_output.c
+@@ -801,6 +801,7 @@ bool mptcp_write_xmit(struct sock *meta_sk, unsigned int mss_now, int nonagle,
+ 		     int push_one, gfp_t gfp)
+ {
+ 	struct tcp_sock *meta_tp = tcp_sk(meta_sk), *subtp;
++	bool is_rwnd_limited = false;
+ 	struct mptcp_tcp_sock *mptcp;
+ 	struct sock *subsk = NULL;
+ 	struct mptcp_cb *mpcb = meta_tp->mpcb;
+@@ -848,8 +849,10 @@ bool mptcp_write_xmit(struct sock *meta_sk, unsigned int mss_now, int nonagle,
+ 		if (skb_unclone(skb, GFP_ATOMIC))
+ 			break;
+ 
+-		if (unlikely(!tcp_snd_wnd_test(meta_tp, skb, mss_now)))
++		if (unlikely(!tcp_snd_wnd_test(meta_tp, skb, mss_now))) {
++			is_rwnd_limited = true;
+ 			break;
++		}
+ 
+ 		/* Force tso_segs to 1 by using UINT_MAX.
+ 		 * We actually don't care about the exact number of segments
+@@ -932,6 +935,11 @@ bool mptcp_write_xmit(struct sock *meta_sk, unsigned int mss_now, int nonagle,
+ 			break;
+ 	}
+ 
++	if (is_rwnd_limited)
++		tcp_chrono_start(meta_sk, TCP_CHRONO_RWND_LIMITED);
++	else
++		tcp_chrono_stop(meta_sk, TCP_CHRONO_RWND_LIMITED);
++
+ 	mptcp_for_each_sub(mpcb, mptcp) {
+ 		subsk = mptcp_to_sock(mptcp);
+ 		subtp = tcp_sk(subsk);
+diff --git a/net/mptcp/mptcp_sched.c b/net/mptcp/mptcp_sched.c
+index 39a997f84209..a4d8c4a5e52d 100644
+--- a/net/mptcp/mptcp_sched.c
++++ b/net/mptcp/mptcp_sched.c
+@@ -372,14 +372,22 @@ static struct sk_buff *__mptcp_next_segment(struct sock *meta_sk, int *reinject)
+ 		if (!skb && meta_sk->sk_socket &&
+ 		    test_bit(SOCK_NOSPACE, &meta_sk->sk_socket->flags) &&
+ 		    sk_stream_wspace(meta_sk) < sk_stream_min_wspace(meta_sk)) {
+-			struct sock *subsk = mpcb->sched_ops->get_subflow(meta_sk, NULL,
+-									  false);
++			struct sock *subsk;
++
++			/* meta is send buffer limited */
++			tcp_chrono_start(meta_sk, TCP_CHRONO_SNDBUF_LIMITED);
++
++			subsk = mpcb->sched_ops->get_subflow(meta_sk,
++							     NULL, false);
+ 			if (!subsk)
+ 				return NULL;
+ 
+ 			skb = mptcp_rcv_buf_optimization(subsk, 0);
+ 			if (skb)
+ 				*reinject = -1;
++			else
++				tcp_chrono_start(subsk,
++						 TCP_CHRONO_SNDBUF_LIMITED);
+ 		}
+ 	}
+ 	return skb;
+@@ -411,6 +419,12 @@ struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
+ 	mss_now = tcp_current_mss(*subsk);
+ 
+ 	if (!*reinject && unlikely(!tcp_snd_wnd_test(tcp_sk(meta_sk), skb, mss_now))) {
++		/* an active flow is selected, but segment will not be sent due
++		 * to no more space in send window
++		 * this means the meta is receive window limited
++		 * the subflow might also be, if we have nothing to reinject
++		 */
++		tcp_chrono_start(meta_sk, TCP_CHRONO_RWND_LIMITED);
+ 		skb = mptcp_rcv_buf_optimization(*subsk, 1);
+ 		if (skb)
+ 			*reinject = -1;
+@@ -418,6 +432,11 @@ struct sk_buff *mptcp_next_segment(struct sock *meta_sk,
+ 			return NULL;
+ 	}
+ 
++	if (!*reinject) {
++		/* this will stop any other chronos on the meta */
++		tcp_chrono_start(meta_sk, TCP_CHRONO_BUSY);
++	}
++
+ 	/* No splitting required, as we will only send one single segment */
+ 	if (skb->len <= mss_now)
+ 		return skb;
+diff --git a/include/linux/tcp.h b/include/linux/tcp.h
+index 04fcc5219f7b..970fb566f94d 100644
+--- a/include/linux/tcp.h
++++ b/include/linux/tcp.h
+@@ -348,6 +348,7 @@ struct tcp_sock {
+ 	u32	rate_interval_us;  /* saved rate sample: time elapsed */
+ 
+  	u32	rcv_wnd;	/* Current receiver window		*/
++	u32	rcv_right_edge;	/* Highest announced right edge */
+ 	u32	write_seq;	/* Tail(+1) of data held in tcp send buffer */
+ 	u32	notsent_lowat;	/* TCP_NOTSENT_LOWAT */
+ 	u32	pushed_seq;	/* Last pushed seq, required to talk to windows */
+diff --git a/include/net/tcp.h b/include/net/tcp.h
+index 3e4f5179a835..93d53f5d5359 100644
+--- a/include/net/tcp.h
++++ b/include/net/tcp.h
+@@ -850,6 +850,32 @@ static inline u32 tcp_receive_window(const struct tcp_sock *tp)
+ 	return (u32) win;
+ }
+ 
++/* right edge only moves forward, even if window shrinks due
++ * to mptcp meta
++ */
++static inline void tcp_update_rcv_right_edge(struct tcp_sock *tp)
++{
++	if (after(tp->rcv_wup + tp->rcv_wnd, tp->rcv_right_edge))
++		tp->rcv_right_edge = tp->rcv_wup + tp->rcv_wnd;
++}
++
++/* Compute receive window which will never shrink. The way MPTCP handles
++ * the receive window can cause the effective right edge to shrink,
++ * causing valid segments to become out of window.
++ * This function should be used when checking if a segment is valid for
++ * the max right edge announced.
++ */
++static inline u32 tcp_receive_window_no_shrink(const struct tcp_sock *tp)
++{
++	s32 win = tp->rcv_right_edge - tp->rcv_nxt;
++
++	win = max_t(s32, win, tp->rcv_wup + tp->rcv_wnd - tp->rcv_nxt);
++
++	if (unlikely(win < 0))
++		win = 0;
++	return (u32) win;
++}
++
+ /* Choose a new window, without checks for shrinking, and without
+  * scaling applied to the result.  The caller does these things
+  * if necessary.  This is a "raw" window selection.
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 617c06364516..81d35b7b00c0 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -2824,6 +2824,7 @@ static int tcp_repair_set_window(struct tcp_sock *tp, char __user *optbuf, int l
+ 
+ 	tp->rcv_wnd	= opt.rcv_wnd;
+ 	tp->rcv_wup	= opt.rcv_wup;
++	tp->rcv_right_edge = tp->rcv_wup + tp->rcv_wnd;
+ 
+ 	return 0;
+ }
+diff --git a/net/ipv4/tcp_fastopen.c b/net/ipv4/tcp_fastopen.c
+index 42d7a7d208df..88c211d28bc5 100644
+--- a/net/ipv4/tcp_fastopen.c
++++ b/net/ipv4/tcp_fastopen.c
+@@ -277,6 +277,7 @@ static struct sock *tcp_fastopen_create_child(struct sock *sk,
+ 
+ 	tcp_rsk(req)->rcv_nxt = tp->rcv_nxt;
+ 	tp->rcv_wup = tp->rcv_nxt;
++	tp->rcv_right_edge = tp->rcv_wup + tp->rcv_wnd;
+ 
+ 	meta_sk = child;
+ 	ret = mptcp_check_req_fastopen(meta_sk, req);
 diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
-index 37e229d2f615..b428f61d959c 100644
---- linux-5.4.64/net/ipv4/tcp_input.c
-+++ linux-5.4.64.mptcp/net/ipv4/tcp_input.c
-@@ -4842,7 +4842,24 @@ static void tcp_data_queue(struct sock *sk, struct sk_buff *skb)
+index 37e229d2f615..d968cc6fddf7 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -4122,7 +4122,7 @@ static inline bool tcp_paws_discard(const struct sock *sk,
+ static inline bool tcp_sequence(const struct tcp_sock *tp, u32 seq, u32 end_seq)
+ {
+ 	return	!before(end_seq, tp->rcv_wup) &&
+-		!after(seq, tp->rcv_nxt + tcp_receive_window(tp));
++		!after(seq, tp->rcv_nxt + tcp_receive_window_no_shrink(tp));
+ }
+ 
+ /* When we get a reset we do this. */
+@@ -4842,7 +4842,7 @@ static void tcp_data_queue(struct sock *sk, struct sk_buff *skb)
  	 *  Out of sequence packets to the out_of_order_queue.
  	 */
  	if (TCP_SKB_CB(skb)->seq == tp->rcv_nxt) {
 -		if (tcp_receive_window(tp) == 0) {
-+		/* Receiving data on a zero window in MPTCP can occur due to
-+		 * reinjected data sent on another subflow filling the
-+		 * window. This semi-frequently occurs due to penalization
-+		 * while initially growing the congestion window.
-+		 * For the subflow, dropping the packet is seen (wrongly) as a
-+		 * loss, impacting the congestion control.
-+		 *
-+		 * To avoid this, accept the packet at the subflow level, and
-+		 * let the meta handle the segment.
-+		 * If it was a duplicate segment, or if it was a new segment
-+		 * somehow (a bug in the sender), it is up to the meta level to
-+		 * handle this and drop the segment. mptcp_data_ready is able to
-+		 * handle either case.
-+		 *
-+		 * We still check for rmem constraints, so there is no risk of
-+		 * queueing too much data.
-+		 */
-+		if (tcp_receive_window(tp) == 0 && !mptcp(tp)) {
++		if (tcp_receive_window_no_shrink(tp) == 0) {
  			NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPZEROWINDOWDROP);
  			goto out_of_window;
  		}
+@@ -4903,7 +4903,8 @@ static void tcp_data_queue(struct sock *sk, struct sk_buff *skb)
+ 	}
+ 
+ 	/* Out of window. F.e. zero window probe. */
+-	if (!before(TCP_SKB_CB(skb)->seq, tp->rcv_nxt + tcp_receive_window(tp)))
++	if (!before(TCP_SKB_CB(skb)->seq,
++		    tp->rcv_nxt + tcp_receive_window_no_shrink(tp)))
+ 		goto out_of_window;
+ 
+ 	if (before(TCP_SKB_CB(skb)->seq, tp->rcv_nxt)) {
+@@ -4913,7 +4914,7 @@ static void tcp_data_queue(struct sock *sk, struct sk_buff *skb)
+ 		/* If window is closed, drop tail of packet. But after
+ 		 * remembering D-SACK for its head made in previous line.
+ 		 */
+-		if (!tcp_receive_window(tp)) {
++		if (!tcp_receive_window_no_shrink(tp)) {
+ 			NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPZEROWINDOWDROP);
+ 			goto out_of_window;
+ 		}
+@@ -6069,6 +6070,7 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
+ 		 */
+ 		WRITE_ONCE(tp->rcv_nxt, TCP_SKB_CB(skb)->seq + 1);
+ 		tp->rcv_wup = TCP_SKB_CB(skb)->seq + 1;
++		tcp_update_rcv_right_edge(tp);
+ 
+ 		/* RFC1323: The window in SYN & SYN/ACK segments is
+ 		 * never scaled.
+@@ -6187,6 +6189,7 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
+ 		WRITE_ONCE(tp->rcv_nxt, TCP_SKB_CB(skb)->seq + 1);
+ 		WRITE_ONCE(tp->copied_seq, tp->rcv_nxt);
+ 		tp->rcv_wup = TCP_SKB_CB(skb)->seq + 1;
++		tcp_update_rcv_right_edge(tp);
+ 
+ 		/* RFC1323: The window in SYN & SYN/ACK segments is
+ 		 * never scaled.
+diff --git a/net/ipv4/tcp_minisocks.c b/net/ipv4/tcp_minisocks.c
+index c4b489bfa9ae..fa9f63e3caaa 100644
+--- a/net/ipv4/tcp_minisocks.c
++++ b/net/ipv4/tcp_minisocks.c
+@@ -550,6 +550,7 @@ struct sock *tcp_create_openreq_child(const struct sock *sk,
+ 	newtp->window_clamp = req->rsk_window_clamp;
+ 	newtp->rcv_ssthresh = req->rsk_rcv_wnd;
+ 	newtp->rcv_wnd = req->rsk_rcv_wnd;
++	newtp->rcv_right_edge = newtp->rcv_wnd + newtp->rcv_wup;
+ 	newtp->rx_opt.wscale_ok = ireq->wscale_ok;
+ 	if (newtp->rx_opt.wscale_ok) {
+ 		newtp->rx_opt.snd_wscale = ireq->snd_wscale;
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index 221e055623c1..0f3bb4467133 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -283,6 +283,7 @@ u16 tcp_select_window(struct sock *sk)
+ 
+	tp->rcv_wnd = new_win;
+ 	tp->rcv_wup = tp->rcv_nxt;
++	tcp_update_rcv_right_edge(tp);
+ 
+ 	/* Make sure we do not exceed the maximum possible
+ 	 * scaled window.
+@@ -3484,6 +3485,8 @@ static void tcp_connect_init(struct sock *sk)
+ 	else
+ 		tp->rcv_tstamp = tcp_jiffies32;
+ 	tp->rcv_wup = tp->rcv_nxt;
++	/* force set rcv_right_edge here at start of connection */
++	tp->rcv_right_edge = tp->rcv_wup + tp->rcv_wnd;
+ 	WRITE_ONCE(tp->copied_seq, tp->rcv_nxt);
+ 
+ 	inet_csk(sk)->icsk_rto = tcp_timeout_init(sk);
+diff --git a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
+index a6bbb7a688ba..9210e755ae3d 100644
+--- a/net/mptcp/mptcp_ctrl.c
++++ b/net/mptcp/mptcp_ctrl.c
+@@ -1278,6 +1278,7 @@ void mptcp_initialize_recv_vars(struct tcp_sock *meta_tp, struct mptcp_cb *mpcb,
+ 	meta_tp->copied_seq = (u32)idsn;
+ 	meta_tp->rcv_nxt = (u32)idsn;
+ 	meta_tp->rcv_wup = (u32)idsn;
++	meta_tp->rcv_right_edge = meta_tp->rcv_wup + meta_tp->rcv_wnd;
+ 
+ 	meta_tp->snd_wl1 = meta_tp->rcv_nxt - 1;
+ }
+diff --git a/net/mptcp/mptcp_output.c b/net/mptcp/mptcp_output.c
+index fc71d41c608d..bdea1a26e3fc 100644
+--- a/net/mptcp/mptcp_output.c
++++ b/net/mptcp/mptcp_output.c
+@@ -1229,6 +1229,10 @@ u16 mptcp_select_window(struct sock *sk)
+ 
+ 	meta_tp->rcv_wnd	= tp->rcv_wnd;
+ 	meta_tp->rcv_wup	= meta_tp->rcv_nxt;
++	/* no need to use tcp_update_rcv_right_edge, because at the meta level
++	 * right edge cannot go back
++	 */
++	meta_tp->rcv_right_edge = meta_tp->rcv_wnd + meta_tp->rcv_wup;
+ 
+ 	return new_win;
+ }

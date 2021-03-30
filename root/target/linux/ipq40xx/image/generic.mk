@@ -1,22 +1,7 @@
-include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/image.mk
 
 DEVICE_VARS += NETGEAR_BOARD_ID NETGEAR_HW_ID
 DEVICE_VARS += RAS_BOARD RAS_ROOTFS_SIZE RAS_VERSION
 DEVICE_VARS += WRGG_DEVNAME WRGG_SIGNATURE
-
-define Device/Default
-	PROFILES := Default
-	KERNEL_DEPENDS = $$(wildcard $(DTS_DIR)/$$(DEVICE_DTS).dts)
-	KERNEL_INITRAMFS_PREFIX := $$(IMG_PREFIX)-$(1)-initramfs
-	KERNEL_PREFIX := $$(IMAGE_PREFIX)
-	KERNEL_LOADADDR := 0x80208000
-	DEVICE_DTS = $$(SOC)-$(lastword $(subst _, ,$(1)))
-	SUPPORTED_DEVICES := $(subst _,$(comma),$(1))
-	IMAGES := sysupgrade.bin
-	IMAGE/sysupgrade.bin = sysupgrade-tar | append-metadata
-	IMAGE/sysupgrade.bin/squashfs :=
-endef
 
 define Device/FitImage
 	KERNEL_SUFFIX := -fit-uImage.itb
@@ -130,6 +115,21 @@ define Device/8dev_jalapeno
 endef
 TARGET_DEVICES += 8dev_jalapeno
 
+define Device/pangu_l1000
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := PANGU
+	DEVICE_MODEL := L1000
+	SOC := qcom-ipq4019
+	DEVICE_DTS := qcom-ipq4019-l1000
+	KERNEL_INSTALL := 1
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	BOARD_NAME := l1000
+	DEVICE_PACKAGES := ipq-wifi-pangu_l1000
+endef
+TARGET_DEVICES += pangu_l1000
+
 define Device/alfa-network_ap120c-ac
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
@@ -156,6 +156,7 @@ endef
 define Device/aruba_ap-303
 	$(call Device/aruba_glenmorangie)
 	DEVICE_MODEL := AP-303
+	DEVICE_PACKAGES += uboot-envtools
 endef
 TARGET_DEVICES += aruba_ap-303
 
@@ -168,7 +169,7 @@ TARGET_DEVICES += aruba_ap-303h
 define Device/aruba_ap-365
 	$(call Device/aruba_glenmorangie)
 	DEVICE_MODEL := AP-365
-	DEVICE_PACKAGES += kmod-hwmon-ad7418
+	DEVICE_PACKAGES += kmod-hwmon-ad7418 uboot-envtools
 endef
 TARGET_DEVICES += aruba_ap-365
 
@@ -682,48 +683,6 @@ define Device/openmesh_a62
 endef
 TARGET_DEVICES += openmesh_a62
 
-
-define Device/p2w_r619ac
- 	$(call Device/FitzImage)
- 	$(call Device/UbiFit)
- 	DEVICE_VENDOR := P&W
- 	DEVICE_MODEL := R619AC
- 	SOC := qcom-ipq4019
- 	DEVICE_DTS_CONFIG := config@10
- 	BLOCKSIZE := 128k
- 	PAGESIZE := 2048
- 	DEVICE_PACKAGES := ipq-wifi-p2w_r619ac
- endef
-
- define Device/p2w_r619ac-64m
- 	$(call Device/p2w_r619ac)
- 	DEVICE_VARIANT := 64M NAND
- 	IMAGES += nand-factory.bin
- 	IMAGE/nand-factory.bin := append-ubi | qsdk-ipq-factory-nand
- endef
- TARGET_DEVICES += p2w_r619ac-64m
-
- define Device/p2w_r619ac-128m
- 	$(call Device/p2w_r619ac)
- 	DEVICE_VARIANT := 128M NAND
- endef
- TARGET_DEVICES += p2w_r619ac-128m
-
-define Device/pangu_l1000
-	$(call Device/FitImage)
-	$(call Device/UbiFit)
-	DEVICE_VENDOR := PANGU
-	DEVICE_MODEL := L1000
-	SOC := qcom-ipq4019
-	DEVICE_DTS := qcom-ipq4019-l1000
-	KERNEL_INSTALL := 1
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	BOARD_NAME := l1000
-	DEVICE_PACKAGES := ipq-wifi-pangu_l1000
-endef
-TARGET_DEVICES += pangu_l1000
-
 define Device/plasmacloud_pa1200
 	$(call Device/FitImageLzma)
 	DEVICE_VENDOR := Plasma Cloud
@@ -861,5 +820,3 @@ define Device/zyxel_wre6606
 	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
 endef
 TARGET_DEVICES += zyxel_wre6606
-
-$(eval $(call BuildImage))
