@@ -1,0 +1,40 @@
+From d226d27f0419a6d1f2fa42abbf67eb4315223372 Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Sat, 5 Jan 2019 10:11:41 +0100
+Subject: [PATCH 16/77] [build.sh,dts] added devicetree-Overlay
+
+compile bpi-r2-mac.dts like this:
+
+dtc -@ -I dts -O dtb -o bpi-r2-mac.dtb bpi-r2-mac.dts
+
+in uboot you can load DTO with this (after loading base ftd):
+loaddto=echo "loaddto:${dto}";fdt addr ${dtaddr};fdt resize 8192; setexpr fdtovaddr ${dtaddr} + F000;
+  fatload ${device} ${partition} ${fdtovaddr} ${bpi}/${board}/${service}/dtb/${dto} && fdt apply ${fdtovaddr}
+
+uboot needs option CONFIG_OF_LIBFDT_OVERLAY=y
+---
+ bpi-r2-mac.dts | 12 ++++++++++++
+ 1 files changed, 12 insertions(+)
+ create mode 100644 bpi-r2-mac.dts
+
+diff --git a/bpi-r2-mac.dts b/bpi-r2-mac.dts
+new file mode 100644
+index 000000000000..f4eed976e158
+--- /dev/null
++++ b/bpi-r2-mac.dts
+@@ -0,0 +1,12 @@
++/dts-v1/;
++/plugin/;
++
++/ {
++    fragment@0 {
++        /*target = <&gmac0>;*/
++        target-path = "/eth/gmac0";
++        __overlay__ {
++            mac-address = [02 01 02 03 04 05];
++        };
++    };
++};
+-- 
+2.19.1
+
