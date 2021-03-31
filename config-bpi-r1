@@ -56,4 +56,5 @@ CONFIG_PACKAGE_kmod-ledtrig-pattern=y
 CONFIG_PACKAGE_kmod-ledtrig-audio=y
 CONFIG_PACKAGE_kmod-ipt-led=y
 CONFIG_PACKAGE_kmod-usb-ledtrig-usbport=y
+# CONFIG_PACKAGE_kmod-r8125 is not set
 CONFIG_KERNEL_ARM_MODULE_PLTS=y
