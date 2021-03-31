@@ -1,0 +1,7 @@
+#!/bin/sh
+uci -q set network.globals.default_rps_val=14
+uci -q set network.globals.default_rps_flow_cnt=256
+uci -q set network.globals.default_xps_val=14
+uci -q set network.globals.default_ps=1
+uci -q commit
+exit 0
