@@ -420,6 +420,9 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
+	echo "Set to kernel 5.4 for IPQ (4019)"
+	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
+	echo "Done"
 fi
 
 #rm -rf feeds/packages/libs/libwebp
@@ -442,6 +445,7 @@ cp .config .config.keep
 scripts/feeds clean
 scripts/feeds install -a
 scripts/feeds update -a
+./scripts/feeds update -a && ./scripts/feeds install -a
 
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
