@@ -64,7 +64,7 @@ elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "4018" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-	elif [ "$OMR_TARGET" = "4019" ]; then
+elif [ "$OMR_TARGET" = "4019" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
@@ -419,9 +419,6 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Done"
 	echo "Set to kernel 5.4 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
-	echo "Set to kernel 5.4 for IPQ"
-	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
-	echo "Done"
 	echo "Done"
 fi
 
@@ -443,7 +440,6 @@ cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
-./scripts/feeds update -a && ./scripts/feeds install -a
 scripts/feeds install -a
 scripts/feeds update -a
 
