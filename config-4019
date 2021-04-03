@@ -1,12 +1,184 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# OpenWrt Configuration
+#
+CONFIG_MODULES=y
+CONFIG_HAVE_DOT_CONFIG=y
+# CONFIG_TARGET_sunxi is not set
+# CONFIG_TARGET_apm821xx is not set
+# CONFIG_TARGET_ath25 is not set
+# CONFIG_TARGET_ath79 is not set
+# CONFIG_TARGET_bcm27xx is not set
+# CONFIG_TARGET_bcm53xx is not set
+# CONFIG_TARGET_bcm47xx is not set
+# CONFIG_TARGET_bcm4908 is not set
+# CONFIG_TARGET_bcm63xx is not set
+# CONFIG_TARGET_bmips is not set
+# CONFIG_TARGET_octeon is not set
+# CONFIG_TARGET_gemini is not set
+# CONFIG_TARGET_mpc85xx is not set
+# CONFIG_TARGET_imx6 is not set
+# CONFIG_TARGET_mxs is not set
+# CONFIG_TARGET_lantiq is not set
+# CONFIG_TARGET_malta is not set
+# CONFIG_TARGET_pistachio is not set
+# CONFIG_TARGET_mvebu is not set
+# CONFIG_TARGET_kirkwood is not set
+# CONFIG_TARGET_mediatek is not set
+# CONFIG_TARGET_ramips is not set
+# CONFIG_TARGET_at91 is not set
+# CONFIG_TARGET_tegra is not set
+# CONFIG_TARGET_layerscape is not set
+# CONFIG_TARGET_octeontx is not set
+# CONFIG_TARGET_oxnas is not set
+# CONFIG_TARGET_armvirt is not set
 CONFIG_TARGET_ipq40xx=y
+# CONFIG_TARGET_ipq806x is not set
+# CONFIG_TARGET_ipq807x is not set
+# CONFIG_TARGET_realtek is not set
+# CONFIG_TARGET_rockchip is not set
+# CONFIG_TARGET_arc770 is not set
+# CONFIG_TARGET_archs38 is not set
+# CONFIG_TARGET_omap is not set
+# CONFIG_TARGET_uml is not set
+# CONFIG_TARGET_zynq is not set
+# CONFIG_TARGET_x86 is not set
 CONFIG_TARGET_ipq40xx_generic=y
+# CONFIG_TARGET_ipq40xx_mikrotik is not set
+# CONFIG_TARGET_MULTI_PROFILE is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_8dev_habanero-dvk is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_8dev_jalapeno is not set
 CONFIG_TARGET_ipq40xx_generic_DEVICE_pangu_l1000=y
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_alfa-network_ap120c-ac is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_aruba_ap-303 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_aruba_ap-303h is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_aruba_ap-365 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_asus_map-ac2200 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_asus_rt-ac58u is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_avm_fritzbox-4040 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_avm_fritzbox-7530 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_avm_fritzrepeater-1200 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_avm_fritzrepeater-3000 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_buffalo_wtr-m2133hp is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_cellc_rtl30vw is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_cilab_meshpoint-one is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_compex_wpj419 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_compex_wpj428 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_devolo_magic-2-wifi-next is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_dlink_dap-2610 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_edgecore_ecw5211 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_edgecore_oap100 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_engenius_eap1300 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_engenius_eap2200 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_engenius_emd1 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_engenius_emr3500 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_engenius_ens620ext is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_ezviz_cs-w3-wd1200g-eup is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_glinet_gl-ap1300 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_glinet_gl-b1300 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_glinet_gl-s1300 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_linksys_ea6350v3 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_linksys_ea8300 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_linksys_mr8300 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_luma_wrtq-329acn is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_meraki_mr33 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_mobipromo_cm520-79f is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_netgear_ex6100v2 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_netgear_ex6150v2 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_openmesh_a42 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_openmesh_a62 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_plasmacloud_pa1200 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_plasmacloud_pa2200 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_qcom_ap-dk01.1-c1 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_qcom_ap-dk04.1-c1 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_qxwlan_e2600ac-c1 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_qxwlan_e2600ac-c2 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_unielec_u4019-32m is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_zyxel_nbg6617 is not set
+# CONFIG_TARGET_ipq40xx_generic_DEVICE_zyxel_wre6606 is not set
+CONFIG_HAS_SUBTARGETS=y
+CONFIG_HAS_DEVICES=y
 CONFIG_TARGET_BOARD="ipq40xx"
 CONFIG_TARGET_SUBTARGET="generic"
 CONFIG_TARGET_PROFILE="DEVICE_pangu_l1000"
 CONFIG_TARGET_ARCH_PACKAGES="arm_cortex-a7_neon-vfpv4"
+CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe"
+CONFIG_CPU_TYPE="cortex-a7+neon-vfpv4"
+CONFIG_LINUX_5_4=y
 CONFIG_DEFAULT_ath10k-firmware-qca4019-ct=y
+CONFIG_DEFAULT_base-files=y
+CONFIG_DEFAULT_busybox=y
+CONFIG_DEFAULT_ca-bundle=y
+CONFIG_DEFAULT_dnsmasq=y
+CONFIG_DEFAULT_dropbear=y
+CONFIG_DEFAULT_firewall=y
+CONFIG_DEFAULT_fstools=y
+CONFIG_DEFAULT_ip6tables=y
 CONFIG_DEFAULT_ipq-wifi-pangu_l1000=y
-CONFIG_PACKAGE_ath10k-board-qca4019=y
+CONFIG_DEFAULT_iptables=y
+CONFIG_DEFAULT_iwinfo=y
+CONFIG_DEFAULT_kmod-ath10k-ct=y
+CONFIG_DEFAULT_kmod-gpio-button-hotplug=y
+CONFIG_DEFAULT_kmod-ipt-offload=y
+CONFIG_DEFAULT_kmod-leds-gpio=y
+CONFIG_DEFAULT_kmod-usb-dwc3=y
+CONFIG_DEFAULT_kmod-usb-dwc3-qcom=y
+CONFIG_DEFAULT_kmod-usb3=y
+CONFIG_DEFAULT_libc=y
+CONFIG_DEFAULT_libgcc=y
+CONFIG_DEFAULT_libustream-wolfssl=y
+CONFIG_DEFAULT_logd=y
+CONFIG_DEFAULT_mtd=y
+CONFIG_DEFAULT_netifd=y
+CONFIG_DEFAULT_odhcp6c=y
+CONFIG_DEFAULT_odhcpd-ipv6only=y
+CONFIG_DEFAULT_opkg=y
+CONFIG_DEFAULT_ppp=y
+CONFIG_DEFAULT_ppp-mod-pppoe=y
+CONFIG_DEFAULT_procd=y
+CONFIG_DEFAULT_swconfig=y
+CONFIG_DEFAULT_uci=y
+CONFIG_DEFAULT_uclient-fetch=y
+CONFIG_DEFAULT_urandom-seed=y
+CONFIG_DEFAULT_urngd=y
+CONFIG_DEFAULT_wpad-basic-wolfssl=y
+CONFIG_HAS_FPU=y
+CONFIG_AUDIO_SUPPORT=y
+CONFIG_GPIO_SUPPORT=y
+CONFIG_PCI_SUPPORT=y
+CONFIG_PCIE_SUPPORT=y
+CONFIG_USB_SUPPORT=y
+CONFIG_RTC_SUPPORT=y
+CONFIG_USES_DEVICETREE=y
+CONFIG_USES_INITRAMFS=y
+CONFIG_USES_SQUASHFS=y
+CONFIG_NAND_SUPPORT=y
+CONFIG_arm=y
+CONFIG_arm_v7=y
+CONFIG_ARCH="arm"
+
+# Wireless Drivers
+#
+CONFIG_PACKAGE_kmod-adm8211=m
+CONFIG_PACKAGE_kmod-ar5523=m
+CONFIG_PACKAGE_kmod-ath=y
+CONFIG_ATH_USER_REGD=y
+# CONFIG_PACKAGE_ATH_DEBUG is not set
+CONFIG_PACKAGE_ATH_DFS=y
+# CONFIG_PACKAGE_ATH_DYNACK is not set
+CONFIG_PACKAGE_kmod-ath10k=m
+CONFIG_ATH10K_LEDS=y
+# CONFIG_ATH10K_THERMAL is not set
+CONFIG_PACKAGE_kmod-ath10k-ct=y
+CONFIG_ATH10K-CT_LEDS=y
+CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers=m
+CONFIG_PACKAGE_kmod-ath5k=m
+CONFIG_PACKAGE_kmod-ath6kl=m
+CONFIG_PACKAGE_kmod-ath6kl-sdio=m
+CONFIG_PACKAGE_kmod-ath6kl-usb=m
+CONFIG_PACKAGE_kmod-ath9k=m
+# CONFIG_ATH9K_HWRNG is not set
+# CONFIG_ATH9K_SUPPORT_PCOEM is not set
+# CONFIG_ATH9K_TX99 is not set
 CONFIG_KERNEL_ARM_MODULE_PLTS=y
-CONFIG_KERNEL_TCP_CONG_BBR2=y
+CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y
