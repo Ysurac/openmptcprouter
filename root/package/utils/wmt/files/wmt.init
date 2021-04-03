@@ -1,0 +1,119 @@
+#!/bin/sh /etc/rc.common
+
+START=69
+
+check_mtk_device() {
+	config_get phy "$1" phy
+	[ "$phy" = "mtkp2p0" ] && {
+		[ "$(uci -q get wireless.$1.disabled)" = "1" ] || apmode="$1"
+		[ -z "$(uci -q get wireless.default_$1.ifname)" ] && {
+			uci -q batch <<-EOF
+				set wireless.default_$1.ifname=mtkap0
+				set wireless.default_$1.bss_load_update_period=0
+				rename wireless.$1=ap
+				rename wireless.default_$1=default_ap
+				set wireless.default_$1.device=ap
+			EOF
+		}
+	}
+	[ "$phy" = "mtkphy0" ] && {
+		[ "$(uci -q get wireless.$1.disabled)" = "1" ] || wlanmode="$1"
+		[ "$(uci -q get wireless.default_$1.mode)" = "ap" ] && {
+			uci -q batch <<-EOF
+				set wireless.default_$1.mode=sta
+			EOF
+		}
+		[ -z "$(uci -q get wireless.default_$1.ifname)" ] && {
+			uci -q batch <<-EOF
+				set wireless.default_$1.ifname=mtkwlan0
+				set wireless.default_$1.bss_load_update_period=0
+				rename wireless.$1=client
+				rename wireless.default_$1=default_client
+				set wireless.default_$1.device=client
+			EOF
+		}
+	}
+}
+
+find_radio() {
+	config_load wireless
+	apmode=""
+	wlanmode=""
+	config_foreach check_mtk_device wifi-device
+	uci -q commit wireless
+}
+
+start_ap() {
+	echo A > /dev/wmtWifi
+	# Those are recommended by vendor to avoid chip lockup.
+	tc qdisc add dev mtkap0 root handle 1: htb default 11
+	tc class add dev mtkap0 parent 1:1 classid 1:2 htb rate 8Mbit ceil 4Mbit prio 2
+
+	find_radio
+	if [ -n "$apmode" ]; then
+		config_get_bool disabled "$apmode" disabled
+		[ "$disabled" = "1" ] || wifi up "$apmode" 2>/dev/null
+	fi
+}
+
+start_wlan() {
+	echo 1 > /dev/wmtWifi
+	# Those are recommended by vendor to avoid chip lockup.
+	tc qdisc add dev mtkap0 root handle 1: htb default 11
+	tc class add dev mtkap0 parent 1:1 classid 1:2 htb rate 8Mbit ceil 4Mbit prio 2
+
+	find_radio
+	if [ -n "$wlanmode" ]; then
+		config_get_bool disabled "$wlanmode" disabled
+		[ "$disabled" = "1" ] || wifi up "$wlanmode" 2>/dev/null
+	fi
+}
+
+stop_apwlan() {
+	find_radio
+	[ -n "$apmode" ] && wifi down "$apmode" 2>/dev/null
+	[ -n "$wlanmode" ] && wifi down "$wlanmode" 2>/dev/null
+	echo 0 > /dev/wmtWifi
+
+}
+
+start() {
+	find_radio
+
+	[ -c /dev/stpwmt ] || /usr/bin/wmt_loader 2>&1
+	/usr/bin/stp_uart_launcher -p /etc/firmware 2>&1 | logger -t stp_uart_launcher &
+	echo "$!" > /var/run/stp_uart_launcher.pid
+	sleep 3
+	if [ -c /dev/wmtWifi ]; then
+		[ -n "$apmode" ] && start_ap
+		[ -n "$wlanmode" ] && start_wlan
+		[ -z "$apmode" ] && [ -z "$wlanmode" ] && start_ap
+		return 0
+	else
+		return 1
+	fi
+}
+
+stop() {
+	find_radio
+
+	if [ -c /dev/wmtWifi ]; then
+		stop_apwlan
+		stp_pid="$(cat /var/run/stp_uart_launcher.pid 2>/dev/null)"
+		if [ -n "$stp_pid" ]; then
+			kill "$stp_pid"
+			rm /var/run/stp_uart_launcher.pid
+		fi
+	fi
+}
+
+reload() {
+	find_radio
+
+	if [ -c /dev/wmtWifi ]; then
+		stop_apwlan
+		[ -n "$apmode" ] && start_ap
+		[ -n "$wlanmode" ] && start_wlan
+		[ -z "$apmode" ] && [ -z "$wlanmode" ] && start_ap
+	fi
+}
