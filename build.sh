@@ -445,6 +445,7 @@ cp .config .config.keep
 scripts/feeds clean
 scripts/feeds install -a
 scripts/feeds update -a
+./scripts/feeds update -a && ./scripts/feeds install -a
 
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
