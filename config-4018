@@ -8088,3 +8088,4 @@ CONFIG_PACKAGE_whois=y
 # end of Xorg
 
 CONFIG_OVERRIDE_PKGS="6in4 umbim"
+CONFIG_PACKAGE_luci-app-status=y
