@@ -1,0 +1,37 @@
+--- a/package/libs/libubox/Makefile	2021-02-17 14:45:19.981073050 +0100
++++ b/package/libs/libubox/Makefile	2021-02-17 14:45:57.232466168 +0100
+@@ -73,12 +73,12 @@
+ 
+ define Package/libubox/install
+ 	$(INSTALL_DIR) $(1)/lib/
+-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libubox.so.* $(1)/lib/
++	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libubox.so $(1)/lib/
+ endef
+ 
+ define Package/libblobmsg-json/install
+ 	$(INSTALL_DIR) $(1)/lib/
+-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libblobmsg_json.so.* $(1)/lib/
++	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libblobmsg_json.so $(1)/lib/
+ endef
+ 
+ define Package/jshn/install
+@@ -89,7 +89,7 @@
+ 
+ define Package/libjson-script/install
+ 	$(INSTALL_DIR) $(1)/lib/
+-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libjson_script.so.* $(1)/lib/
++	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libjson_script.so $(1)/lib/
+ endef
+ 
+ define Package/libubox-lua/install
+--- a/package/system/ubus/Makefile	2021-02-17 15:16:34.450301703 +0100
++++ b/package/system/ubus/Makefile	2021-02-17 15:16:55.289957767 +0100
+@@ -69,7 +69,7 @@
+ 
+ define Package/libubus/install
+ 	$(INSTALL_DIR) $(1)/lib
+-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libubus.so.* $(1)/lib/
++	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libubus.so $(1)/lib/
+ endef
+ 
+ define Package/libubus-lua/install
