@@ -11,7 +11,7 @@
 
 / {
 
-	model = "GZ841902_55860.com";
+	model = "PANGU L1000";
 	compatible = "pangu,l1000", "qcom,ipq4019";
 
 	
