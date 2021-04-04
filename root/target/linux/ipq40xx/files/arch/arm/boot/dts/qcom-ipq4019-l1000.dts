@@ -11,10 +11,10 @@
 
 / {
 
-	model = "PANGU L1000";
+	model = "GZ841902_55860.com";
 	compatible = "pangu,l1000", "qcom,ipq4019";
 
-	
+
 	memory {
 		device_type = "memory";
 		reg = <0x80000000 0x20000000>; /* 512MB */
