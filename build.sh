@@ -443,6 +443,7 @@ cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
+scripts/feeds install -a
 scripts/feeds update -a
 
 #cd -
