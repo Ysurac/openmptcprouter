@@ -62,14 +62,10 @@ elif [ "$OMR_TARGET" = "rpi4" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a72"
 elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "4018" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "4019" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
-	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
+	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "wrt32x" ]; then
-	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
+	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "bpi-r1" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
@@ -86,9 +82,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "b36068d35d9edbd8ed6aaeed6f4c863bfe4cfbee"
-	_get_repo feeds/packages https://github.com/openwrt/packages "1e3c22d81dec069893fec04784d4ce48a6b883cd"
-	_get_repo feeds/luci https://github.com/openwrt/luci "c615dd1387883faa76c0455c45db03438ea05e59"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "81edc842f6277bc9c12a86f295caab70ad519d27"
+	_get_repo feeds/packages https://github.com/openwrt/packages "1677e5fcd7a701e881612729400c03084328a69f"
+	_get_repo feeds/luci https://github.com/openwrt/luci "1dc16d9d3ffeee30d072c569e9a3c693d303e9fc"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -419,9 +415,6 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Done"
 	echo "Set to kernel 5.4 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.4 for IPQ (4019)"
-	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
 fi
 
