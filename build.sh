@@ -62,14 +62,10 @@ elif [ "$OMR_TARGET" = "rpi4" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a72"
 elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "4018" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "4019" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
-	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
+	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "wrt32x" ]; then
-	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
+	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
 elif [ "$OMR_TARGET" = "bpi-r1" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
@@ -339,13 +335,6 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
 fi
 echo "Done"
 
-echo "Checking if remove_abi patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/remove_abi.patch; then
-	echo "apply..."
-	patch -N -p1 -s < ../../patches/remove_abi.patch
-fi
-echo "Done"
-
 # Add BBR2 patch, only working on 64bits images for now
 if [ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "rpi3" ]; then
 	echo "Checking if BBRv2 patch is set or not"
@@ -427,9 +416,6 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
-	echo "Set to kernel 5.4 for IPQ (4019)"
-	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
-	echo "Done"
 fi
 
 #rm -rf feeds/packages/libs/libwebp
@@ -450,6 +436,7 @@ cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
+scripts/feeds install -a
 scripts/feeds update -a
 
 #cd -
