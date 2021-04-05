@@ -1,0 +1,55 @@
+if [ -f "/etc/dsa.map" ]; then
+echo 'ports="0 1 2 3 4 8"
+port_3="wan"
+port_4="lan1"
+port_0="lan2"
+port_1="lan3"
+port_2="lan4"
+port_8="eth0"
+port_3_name="lan"
+port_4_name="wan1"
+port_0_name="wan2"
+port_1_name="wan3"
+port_2_name="wan4"
+port_8_name="cpu"
+port_cpu="8"
+' > /etc/dsa.map
+/sbin/swconfig-wrapper.sh setup-wrapper
+fi
+
+uci delete network.@switch_vlan[0]
+uci delete network.@switch_vlan[1]
+
+uci add network switch_vlan
+uci set network.@switch_vlan[0].vlan=10
+uci set network.@switch_vlan[0].ports="8t 3"
+uci set network.@switch_vlan[0].device="switch0"
+
+uci add network switch_vlan
+uci set network.@switch_vlan[1].vlan=11
+uci set network.@switch_vlan[1].ports="8t 4"
+uci set network.@switch_vlan[1].device="switch0"
+
+uci add network switch_vlan
+uci set network.@switch_vlan[2].vlan=12
+uci set network.@switch_vlan[2].ports="8t 0"
+uci set network.@switch_vlan[2].device="switch0"
+
+uci add network switch_vlan
+uci set network.@switch_vlan[3].vlan=13
+uci set network.@switch_vlan[3].ports="8t 1"
+uci set network.@switch_vlan[3].device="switch0"
+
+uci add network switch_vlan
+uci set network.@switch_vlan[4].vlan=14
+uci set network.@switch_vlan[4].ports="8t 2"
+uci set network.@switch_vlan[4].device="switch0"
+
+uci set network.lan.ifname="eth0.10"
+uci set network.wan1.ifname="eth0.11"
+uci set network.wan2.ifname="eth0.12"
+uci set network.wan3.ifname="eth0.13"
+uci set network.wan4.ifname="eth0.14"
+
+uci commit
+exit 0

@@ -1,0 +1,12 @@
+CONFIG_TARGET_ipq40xx=y
+CONFIG_TARGET_ipq40xx_generic=y
+CONFIG_TARGET_ipq40xx_generic_DEVICE_pangu_l1000=y
+CONFIG_TARGET_BOARD="ipq40xx"
+CONFIG_TARGET_SUBTARGET="generic"
+CONFIG_TARGET_ARCH_PACKAGES="arm_cortex-a7_neon-vfpv4"
+CONFIG_DEFAULT_ath10k-firmware-qca4019-ct=y
+CONFIG_DEFAULT_ipq-wifi-pangu_l1000=y
+CONFIG_DEFAULT_kmod-ath10k-ct=y
+CONFIG_PACKAGE_ipq-wifi-pangu_l1000=y
+CONFIG_PACKAGE_ath10k-firmware-qca4019-ct
+CONFIG_KERNEL_ARM_MODULE_PLTS=y

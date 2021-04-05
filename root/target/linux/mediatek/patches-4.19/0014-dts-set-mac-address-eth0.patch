@@ -1,0 +1,34 @@
+From 961d318c99fb0019f0fa571a160af09e859d63e8 Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Mon, 31 Dec 2018 17:00:56 +0100
+Subject: [PATCH 14/77] [dts] set mac-address (eth0)
+
+can be overwritten by uboot (ethaddr) if using separated fdt
+or devicetree-overlay
+---
+ arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
+index 465fb887b2ca..a47022765326 100644
+--- a/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
++++ b/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
+@@ -15,6 +15,7 @@
+ 
+ 	aliases {
+ 		serial2 = &uart2;
++		ethernet0 = &gmac0;
+ 	};
+ 
+ 	chosen {
+@@ -147,6 +148,7 @@
+ 		compatible = "mediatek,eth-mac";
+ 		reg = <0>;
+ 		phy-mode = "trgmii";
++		mac-address = [02 02 02 02 02 02];
+ 
+ 		fixed-link {
+ 			speed = <1000>;
+-- 
+2.19.1
+
