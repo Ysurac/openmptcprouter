@@ -37,6 +37,7 @@ OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 OMR_KERNEL=${OMR_KERNEL:-5.4}
+SHORTCUT_FE=${SHORTCUT_FE:-no}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
 #OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
 OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)}
@@ -205,6 +206,18 @@ if [ "$OMR_PACKAGES" = "mini" ]; then
 fi
 if [ "$OMR_PACKAGES" = "zuixiao" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-zuixiao=y" >> "$OMR_TARGET/source/.config"
+fi
+
+if [ "$SHORTCUT_FE" = "yes" ]; then
+	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_kmod-fast-classifier-noload=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut_fe_cm=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut_fe=y" >> "$OMR_TARGET/source/.config"
+else
+	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-fast-classifier-noload is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-shortcut_fe_cm is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-shortcut_fe is not set" >> "$OMR_TARGET/source/.config"
 fi
 
 if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
