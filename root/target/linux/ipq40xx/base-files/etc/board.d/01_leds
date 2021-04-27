@@ -59,6 +59,15 @@ pangu,l1000)
 	ucidef_set_led_netdev "4g2" "4g2" "blue:4g2" "4g2"
 	ucidef_set_led_netdev "4g3" "4g3" "blue:4g3" "4g3"
     ;;
+
+8dev,jalapeno)
+	ucidef_set_led_default "power" "POWER" "blue:power" "1"
+    ucidef_set_led_wlan "wlan2g" "WLAN2G" "blue:wlan2g" "phy0tpt"
+	ucidef_set_led_netdev "wan" "WAN" "blue:wan" "eth1"
+	ucidef_set_led_netdev "4g1" "4g1" "blue:4g1" "4g1"
+	ucidef_set_led_netdev "4g2" "4g2" "blue:4g2" "4g2"
+	ucidef_set_led_netdev "4g3" "4g3" "blue:4g3" "4g3"
+    ;;
 netgear,ex6100v2 |\
 netgear,ex6150v2)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "green:router" "phy0tpt"
