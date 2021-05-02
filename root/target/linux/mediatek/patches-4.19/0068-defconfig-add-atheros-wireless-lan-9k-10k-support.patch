@@ -1,0 +1,35 @@
+From 9cbdef979d2119a250d4b8724b247f2a4cad899c Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Wed, 20 Feb 2019 17:29:38 +0100
+Subject: [PATCH 68/77] [defconfig] add atheros wireless lan 9k/10k support
+
+---
+ arch/arm/configs/mt7623n_evb_fwu_defconfig | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/mt7623n_evb_fwu_defconfig b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+index 44b34cac3614..ad85e0d37e3f 100644
+--- a/arch/arm/configs/mt7623n_evb_fwu_defconfig
++++ b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+@@ -630,9 +630,17 @@ CONFIG_NET_CLS_RSVP=m
+ CONFIG_NET_CLS_RSVP6=m
+ CONFIG_NET_CLS_POLICE=y
+ 
++CONFIG_WLAN_VENDOR_ATH=y
++CONFIG_ATH9K=m
++CONFIG_ATH9K_PCI=y
++CONFIG_ATH9K_RFKILL=y
++CONFIG_ATH9K_HWRNG=y
++CONFIG_ATH10K=m
++CONFIG_ATH10K_PCI=m
++
++
+ #unused drivers which are set by default
+ CONFIG_WLAN_VENDOR_ADMTEK=n
+-CONFIG_WLAN_VENDOR_ATH=n
+ CONFIG_WLAN_VENDOR_ATMEL=n
+ CONFIG_WLAN_VENDOR_BROADCOM=n
+ CONFIG_WLAN_VENDOR_CISCO=n
+-- 
+2.19.1
+

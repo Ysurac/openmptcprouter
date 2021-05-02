@@ -1,0 +1,11 @@
+--- a/package/Makefile	2020-04-04 15:52:15.706831084 +0200
++++ b/package/Makefile	2020-04-04 15:53:54.645052663 +0200
+@@ -66,7 +66,7 @@
+ 	rm -rf $(TARGET_DIR) $(TARGET_DIR_ORIG)
+ 	mkdir -p $(TARGET_DIR)/tmp
+ 	$(call opkg,$(TARGET_DIR)) install \
+-		$(call opkg_package_files,$(foreach pkg,$(shell cat $(PACKAGE_INSTALL_FILES) 2>/dev/null),$(pkg)$(call GetABISuffix,$(pkg))))
++	$(subst $(TOPDIR)/,,$(call opkg_package_files,$(foreach pkg,$(shell cat $(PACKAGE_INSTALL_FILES) 2>/dev/null),$(pkg)$(call GetABISuffix,$(pkg)))))
+ 	@for file in $(PACKAGE_INSTALL_FILES); do \
+ 		[ -s $$file.flags ] || continue; \
+ 		for flag in `cat $$file.flags`; do \

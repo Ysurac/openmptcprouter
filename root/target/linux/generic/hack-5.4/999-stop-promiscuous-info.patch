@@ -1,0 +1,47 @@
+--- a/net/core/dev.c	2018-08-10 10:31:41.199494561 +0200
++++ b/net/core/dev.c	2018-08-10 10:32:03.635272509 +0200
+@@ -6613,9 +6613,11 @@
+ 		}
+ 	}
+ 	if (dev->flags != old_flags) {
++		/*
+ 		pr_info("device %s %s promiscuous mode\n",
+ 			dev->name,
+ 			dev->flags & IFF_PROMISC ? "entered" : "left");
++		*/
+ 		if (audit_enabled) {
+ 			current_uid_gid(&uid, &gid);
+ 			audit_log(current->audit_context, GFP_ATOMIC,
+--- a/drivers/net/usb/r8152.c	2020-08-13 13:11:25.866435255 +0200
++++ b/drivers/net/usb/r8152.c	2020-08-13 13:11:51.973994306 +0200
+@@ -2353,7 +2353,7 @@
+ 
+ 	if (netdev->flags & IFF_PROMISC) {
+ 		/* Unconditionally log net taps. */
+-		netif_notice(tp, link, netdev, "Promiscuous mode enabled\n");
++		//netif_notice(tp, link, netdev, "Promiscuous mode enabled\n");
+ 		ocp_data |= RCR_AM | RCR_AAP;
+ 		mc_filter[1] = 0xffffffff;
+ 		mc_filter[0] = 0xffffffff;
+--- a/drivers/net/usb/pegasus.c	2020-08-13 13:14:15.519570376 +0200
++++ b/drivers/net/usb/pegasus.c	2020-08-13 13:14:26.795380006 +0200
+@@ -1031,7 +1031,7 @@
+ 
+ 	if (net->flags & IFF_PROMISC) {
+ 		pegasus->eth_regs[EthCtrl2] |= RX_PROMISCUOUS;
+-		netif_info(pegasus, link, net, "Promiscuous mode enabled\n");
++		//netif_info(pegasus, link, net, "Promiscuous mode enabled\n");
+ 	} else if (!netdev_mc_empty(net) || (net->flags & IFF_ALLMULTI)) {
+ 		pegasus->eth_regs[EthCtrl0] |= RX_MULTICAST;
+ 		pegasus->eth_regs[EthCtrl2] &= ~RX_PROMISCUOUS;
+--- a/drivers/net/ethernet/realtek/r8169_main.c	2020-08-13 13:15:44.478068638 +0200
++++ b/drivers/net/ethernet/realtek/r8169_main.c	2020-08-13 13:15:59.181820450 +0200
+@@ -4313,7 +4313,7 @@
+ 
+ 	if (dev->flags & IFF_PROMISC) {
+ 		/* Unconditionally log net taps. */
+-		netif_notice(tp, link, dev, "Promiscuous mode enabled\n");
++		//netif_notice(tp, link, dev, "Promiscuous mode enabled\n");
+ 		rx_mode |= AcceptAllPhys;
+ 	} else if (netdev_mc_count(dev) > MC_FILTER_LIMIT ||
+ 		   dev->flags & IFF_ALLMULTI ||
