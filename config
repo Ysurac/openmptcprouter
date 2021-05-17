@@ -235,3 +235,4 @@ CONFIG_PACKAGE_minicom=y
 CONFIG_PACKAGE_irqbalance=y
 CONFIG_PACKAGE_mtr=y
 CONFIG_PACKAGE_sysstat=y
+CONFIG_PACKAGE_coreutils-stty=y
