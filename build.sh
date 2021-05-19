@@ -77,6 +77,12 @@ elif [ "$OMR_TARGET" = "espressobin" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "x86" ]; then
 	OMR_REAL_TARGET="i386_pentium4"
+elif [ "$OMR_TARGET" = "r2s" ]; then
+	OMR_REAL_TARGET="aarch64_generic"
+elif [ "$OMR_TARGET" = "r4s" ]; then
+	OMR_REAL_TARGET="aarch64_generic"
+elif [ "$OMR_TARGET" = "ubnt-erx" ]; then
+	OMR_REAL_TARGET="mipsel_24kc"
 else
 	OMR_REAL_TARGET=${OMR_TARGET}
 fi
