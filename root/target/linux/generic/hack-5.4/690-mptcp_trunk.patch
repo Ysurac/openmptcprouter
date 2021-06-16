@@ -11843,7 +11843,7 @@ diff -aurN linux-5.4.64/net/mptcp/mptcp_ctrl.c linux-5.4.64.mptcp/net/mptcp/mptc
 +#endif
 +	}
 +drop:
-+	__NET_INC_STATS(sock_net(sk), LINUX_MIB_LISTENDROPS);
++	NET_INC_STATS(sock_net(sk), LINUX_MIB_LISTENDROPS);
 +	return 0;
 +}
 +
@@ -14734,7 +14734,7 @@ diff -aurN linux-5.4.64/net/mptcp/mptcp_input.c linux-5.4.64.mptcp/net/mptcp/mpt
 +			   meta_tp->rcv_nxt))) {
 +			mptcp_send_active_reset(meta_sk, GFP_ATOMIC);
 +			tcp_done(meta_sk);
-+			__NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_TCPABORTONDATA);
++			NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_TCPABORTONDATA);
 +			return -1;
 +		}
 +
@@ -14775,7 +14775,7 @@ diff -aurN linux-5.4.64/net/mptcp/mptcp_input.c linux-5.4.64.mptcp/net/mptcp/mpt
 +			if (TCP_SKB_CB(skb)->end_seq != TCP_SKB_CB(skb)->seq &&
 +			    after(TCP_SKB_CB(skb)->end_seq - th->fin, tp->rcv_nxt) &&
 +			    !mptcp_is_data_fin2(skb, tp)) {
-+				__NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_TCPABORTONDATA);
++				NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_TCPABORTONDATA);
 +				mptcp_send_active_reset(meta_sk, GFP_ATOMIC);
 +				tcp_reset(meta_sk);
 +				return -1;
@@ -21440,7 +21440,7 @@ diff -aurN linux-5.4.64/net/mptcp/mptcp_output.c linux-5.4.64.mptcp/net/mptcp/mp
 +	return 0;
 +
 +failed:
-+	__NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_TCPRETRANSFAIL);
++	NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_TCPRETRANSFAIL);
 +	return err;
 +}
 +
@@ -21499,7 +21499,7 @@ diff -aurN linux-5.4.64/net/mptcp/mptcp_output.c linux-5.4.64.mptcp/net/mptcp/mp
 +		return;
 +
 +	if (meta_icsk->icsk_retransmits == 0)
-+		__NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_TCPTIMEOUTS);
++		NET_INC_STATS(sock_net(meta_sk), LINUX_MIB_TCPTIMEOUTS);
 +
 +	meta_icsk->icsk_ca_state = TCP_CA_Loss;
 +
