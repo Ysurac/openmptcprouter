@@ -484,6 +484,7 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
 cp .config.keep .config
+scripts/feeds install kmod-macremapper
 echo "Done"
 
 if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
