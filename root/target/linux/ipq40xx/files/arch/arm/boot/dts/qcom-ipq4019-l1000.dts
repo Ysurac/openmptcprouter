@@ -11,9 +11,8 @@
 
 / {
 
-	model = "GZ841902_55860.com";
+	model = "GZ419";
 	compatible = "pangu,l1000", "qcom,ipq4019";
-
 
 	memory {
 		device_type = "memory";
@@ -26,11 +25,15 @@
 		led-failsafe = &power;
 		led-running = &power;
 		led-upgrade = &power;
+		serial0 = &blsp1_uart1;
+		serial1 = &blsp1_uart2;
         };
 
 	chosen {
 		bootargs-append = " root=/dev/ubiblock0_1 rootfstype=squashfs";
+		linux,stdout-path = "serial0:115200n8";
 	};
+
 
 	soc {
 		rng@22000 {

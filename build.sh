@@ -77,6 +77,12 @@ elif [ "$OMR_TARGET" = "espressobin" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "x86" ]; then
 	OMR_REAL_TARGET="i386_pentium4"
+elif [ "$OMR_TARGET" = "r2s" ]; then
+	OMR_REAL_TARGET="aarch64_generic"
+elif [ "$OMR_TARGET" = "r4s" ]; then
+	OMR_REAL_TARGET="aarch64_generic"
+elif [ "$OMR_TARGET" = "ubnt-erx" ]; then
+	OMR_REAL_TARGET="mipsel_24kc"
 else
 	OMR_REAL_TARGET=${OMR_TARGET}
 fi
@@ -122,6 +128,8 @@ cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
  VERSION:     $(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)
+ TARGET:      $OMR_TARGET
+ ARCH:        $OMR_REAL_TARGET
 
  BUILD REPO:  $(git config --get remote.origin.url)
  BUILD DATE:  $(date -u)
@@ -349,7 +357,7 @@ fi
 echo "Done"
 
 # Add BBR2 patch, only working on 64bits images for now
-if [ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "rpi3" ]; then
+if [ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]; then
 	echo "Checking if BBRv2 patch is set or not"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/bbr2.patch; then
 		echo "apply..."
@@ -404,6 +412,10 @@ fi
 
 if [ -f target/linux/ipq40xx/patches-5.4/100-GPIO-add-named-gpio-exports.patch ]; then
 	rm -f target/linux/ipq40xx/patches-5.4/100-GPIO-add-named-gpio-exports.patch
+fi
+
+if [ -f package/boot/uboot-rockchip/patches/100-rockchip-rk3328-Add-support-for-FriendlyARM-NanoPi-R.patch ]; then
+	rm -f package/boot/uboot-rockchip/patches/100-rockchip-rk3328-Add-support-for-FriendlyARM-NanoPi-R.patch
 fi
 
 #echo "Patch protobuf wrong hash"
@@ -472,6 +484,7 @@ else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
 cp .config.keep .config
+scripts/feeds install kmod-macremapper
 echo "Done"
 
 if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
