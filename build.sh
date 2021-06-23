@@ -27,7 +27,7 @@ _get_repo() (
 )
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
-OMR_HOST=${OMR_HOST:-https://55860.com}
+OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
@@ -41,7 +41,7 @@ SHORTCUT_FE=${SHORTCUT_FE:-no}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
 #OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
 OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)}
-OMR_REPO=${OMR_REPO:-http://baidu.com}
+OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/suyuan168/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
