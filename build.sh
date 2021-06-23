@@ -465,8 +465,6 @@ cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
-scripts/feeds update -a
-scripts/feeds install -a
 
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
