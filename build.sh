@@ -27,7 +27,7 @@ _get_repo() (
 )
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
-OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
+OMR_HOST=${OMR_HOST:-https://55860.com/bak/down/develop/5.4)}
 OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
@@ -466,6 +466,7 @@ echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
+scripts/feeds install -a
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
 ##if ! patch -Rf -N -p1 -s --dry-run < patches/fullconenat-luci.patch; then
