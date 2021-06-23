@@ -1,0 +1,22 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+start() {
+	mask=4
+	for rps in /sys/class/net/eth0/queues/rx-*
+	do
+		echo "$mask" > "$rps/rps_cpus"
+	done
+	for irq in $(grep -F "ath10k_ahb" /proc/interrupts | cut -d: -f1 | sed 's, *,,')
+	do
+		echo "$mask" > "/proc/irq/$irq/smp_affinity"
+		mask=8
+	done
+
+	mask=2
+	for irq in $(grep -F "edma_eth_rx" /proc/interrupts | cut -d: -f1 | sed 's, *,,')
+	do
+		echo "$mask" > "/proc/irq/$irq/smp_affinity"
+	done
+}
