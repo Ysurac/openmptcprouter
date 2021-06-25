@@ -64,9 +64,9 @@ elif [ "$OMR_TARGET" = "rpi4" ]; then
 elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
-	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
+	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
 elif [ "$OMR_TARGET" = "wrt32x" ]; then
-	OMR_REAL_TARGET="arm_cortex-a9_vfpv3"
+	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
 elif [ "$OMR_TARGET" = "bpi-r1" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
@@ -89,9 +89,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "b36068d35d9edbd8ed6aaeed6f4c863bfe4cfbee"
-	_get_repo feeds/packages https://github.com/openwrt/packages "1e3c22d81dec069893fec04784d4ce48a6b883cd"
-	_get_repo feeds/luci https://github.com/openwrt/luci "c615dd1387883faa76c0455c45db03438ea05e59"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "1818b038d7275273adbd525b5ee76bc60b7d628c"
+	_get_repo feeds/packages https://github.com/openwrt/packages "fd62db1dc791deeb0d8a74cfcf0db425c6a5bdf7"
+	_get_repo feeds/luci https://github.com/openwrt/luci "4314d8f3300825a9c72e249250a60da860da5a7f"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -211,9 +211,6 @@ if [ "$OMR_PACKAGES" = "full" ]; then
 fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
-fi
-if [ "$OMR_PACKAGES" = "zuixiao" ]; then
-	echo "CONFIG_PACKAGE_${OMR_DIST}-zuixiao=y" >> "$OMR_TARGET/source/.config"
 fi
 
 if [ "$SHORTCUT_FE" = "yes" ]; then
@@ -356,6 +353,13 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
 fi
 echo "Done"
 
+#echo "Checking if remove_abi patch is set or not"
+#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/remove_abi.patch; then
+#	echo "apply..."
+#	patch -N -p1 -s < ../../patches/remove_abi.patch
+#fi
+#echo "Done"
+
 # Add BBR2 patch, only working on 64bits images for now
 if [ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]; then
 	echo "Checking if BBRv2 patch is set or not"
@@ -387,12 +391,12 @@ echo "Done"
 #fi
 #echo "Done"
 
-echo "Checking if opkg install arguement too long patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/package-too-long.patch; then
-	echo "apply..."
-	patch -N -p1 -s < ../../patches/package-too-long.patch
-fi
-echo "Done"
+#echo "Checking if opkg install arguement too long patch is set or not"
+#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/package-too-long.patch; then
+#	echo "apply..."
+#	patch -N -p1 -s < ../../patches/package-too-long.patch
+#fi
+#echo "Done"
 
 echo "Download via IPv4"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
@@ -461,8 +465,8 @@ cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
-scripts/feeds install -a
 scripts/feeds update -a
+scripts/feeds install -a
 
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
