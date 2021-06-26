@@ -316,7 +316,6 @@ generate_static_system() {
 		add_list system.ntp.server='time.ustc.edu.cn'
 		add_list system.ntp.server='cn.pool.ntp.org'
 	EOF
-	EOF
 
 	if json_is_a system object; then
 		json_select system
