@@ -509,6 +509,17 @@ define Device/glinet_gl-b1300
 endef
 TARGET_DEVICES += glinet_gl-b1300
 
+define Device/zbt_z4019
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := ZBT
+	DEVICE_MODEL := Z4019
+	SOC := qcom-ipq4019
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+endef
+TARGET_DEVICES += zbt_z4019
+
 define Device/glinet_gl-s1300
 	$(call Device/FitImage)
 	DEVICE_VENDOR := GL.iNet
