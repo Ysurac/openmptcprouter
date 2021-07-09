@@ -20,7 +20,7 @@
 #include <dt-bindings/soc/qcom,tcsr.h>
 
 / {
-	model = "ZBT Z4019";
+	model = "Z4019";
 	compatible = "zbt,z4019";
 
 	aliases {
