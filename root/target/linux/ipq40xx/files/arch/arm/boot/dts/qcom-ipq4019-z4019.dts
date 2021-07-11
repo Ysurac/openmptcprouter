@@ -20,7 +20,7 @@
 #include <dt-bindings/soc/qcom,tcsr.h>
 
 / {
-	model = "Z4019";
+	model = "ZBT Z4019";
 	compatible = "zbt,z4019";
 
 	aliases {
@@ -28,13 +28,10 @@
 		led-failsafe = &power;
 		led-running = &power;
 		led-upgrade = &power;
-		serial0 = &blsp1_uart1;
-		serial1 = &blsp1_uart2;
 	};
 
 	chosen {
 		bootargs-append = " root=/dev/ubiblock0_1 rootfstype=squashfs";
-		linux,stdout-path = "serial0:115200n8";
 	};
 
 	memory {
@@ -51,8 +48,6 @@
 			status = "okay";
 			pinctrl-0 = <&mdio_pins>;
 			pinctrl-names = "default";
-			reset-gpios = <&tlmm 47 GPIO_ACTIVE_LOW>;
-			reset-delay-us = <1000>;
 		};
 
 		ess-psgmii@98000 {
