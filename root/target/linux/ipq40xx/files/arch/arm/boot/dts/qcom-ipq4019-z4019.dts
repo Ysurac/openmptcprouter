@@ -20,7 +20,7 @@
 #include <dt-bindings/soc/qcom,tcsr.h>
 
 / {
-	model = "ZBT Z4019";
+	model = "Z4019";
 	compatible = "zbt,z4019";
 
 	aliases {
@@ -51,6 +51,8 @@
 			status = "okay";
 			pinctrl-0 = <&mdio_pins>;
 			pinctrl-names = "default";
+			reset-gpios = <&tlmm 47 GPIO_ACTIVE_LOW>;
+			reset-delay-us = <1000>;
 		};
 
 		ess-psgmii@98000 {
