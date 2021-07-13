@@ -51,7 +51,7 @@
 			status = "okay";
 			pinctrl-0 = <&mdio_pins>;
 			pinctrl-names = "default";
-			reset-gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
+			reset-gpios = <&tlmm 47 GPIO_ACTIVE_LOW>;
 			reset-delay-us = <1000>;
 		};
 
@@ -105,7 +105,7 @@
 			status = "okay";
 			switch_mac_mode = <0x0>; /* mac mode for RGMII RMII */
 			switch_initvlas = <0x0007c 0x54>; /* port0 status */
-		
+			switch_lan_bmp = <0x10>;
 		};
 			led_source@0 {
 				led = <0x3>;     /*led number */
@@ -142,7 +142,6 @@
 				speed = "all";   /*10M,100M,1000M,all */
 				freq = "auto";   /*2Hz,4Hz,8Hz,auto*/
 			};
-		};
 
 		edma@c080000 {
 			status = "okay";
