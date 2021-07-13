@@ -102,10 +102,11 @@
 		};
 
 		ess-switch@c000000 {
+			status = "okay";
 			switch_mac_mode = <0x0>; /* mac mode for RGMII RMII */
-			switch_initvlas = <
-				0x0007c 0x54 /* PORT0_STATUS */
-			>;
+			switch_initvlas = <0x0007c 0x54>; /* port0 status */
+			switch_lan_bmp = <0x10>;
+		};
 			led_source@0 {
 				led = <0x3>;     /*led number */
 				source = <0x1>;  /*source id 1 */
