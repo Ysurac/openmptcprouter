@@ -52,7 +52,7 @@
 			pinctrl-0 = <&mdio_pins>;
 			pinctrl-names = "default";
 			reset-gpios = <&tlmm 47 GPIO_ACTIVE_LOW>;
-			reset-delay-us = <1000>;
+			reset-delay-us = <2000>;
 		};
 
 		ess-psgmii@98000 {
@@ -103,45 +103,7 @@
 
 		ess-switch@c000000 {
 			status = "okay";
-			switch_mac_mode = <0x0>; /* mac mode for RGMII RMII */
-			switch_initvlas = <0x0007c 0x54>; /* port0 status */
-			switch_lan_bmp = <0x10>;
 		};
-			led_source@0 {
-				led = <0x3>;     /*led number */
-				source = <0x1>;  /*source id 1 */
-				mode = "normal"; /*on,off,blink,normal */
-				speed = "all";   /*10M,100M,1000M,all */
-				freq = "auto";   /*2Hz,4Hz,8Hz,auto*/
-			};
-			led_source@1 {
-				led = <0x4>;     /*led number */
-				source = <0x4>;  /*source id 4 */
-				mode = "normal"; /*on,off,blink,normal */
-				speed = "all";   /*10M,100M,1000M,all */
-				freq = "auto";   /*2Hz,4Hz,8Hz,auto*/
-			};
-			led_source@2 {
-				led = <0x5>;     /*led number */
-				source = <0x7>;  /*source id 7 */
-				mode = "normal"; /*on,off,blink,normal */
-				speed = "all";   /*10M,100M,1000M,all */
-				freq = "auto";   /*2Hz,4Hz,8Hz,auto*/
-			};
-			led_source@3 {
-				led = <0x6>;     /*led number */
-				source = <0xa>;  /*source id 10 */
-				mode = "normal"; /*on,off,blink,normal */
-				speed = "all";   /*10M,100M,1000M,all */
-				freq = "auto";   /*2Hz,4Hz,8Hz,auto*/
-			};
-			led_source@4 {
-				led = <0x7>;     /*led number */
-				source = <0xd>;  /*source id 13 */
-				mode = "normal"; /*on,off,blink,normal */
-				speed = "all";   /*10M,100M,1000M,all */
-				freq = "auto";   /*2Hz,4Hz,8Hz,auto*/
-			};
 
 		edma@c080000 {
 			status = "okay";
