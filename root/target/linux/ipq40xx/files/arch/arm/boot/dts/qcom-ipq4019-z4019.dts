@@ -50,8 +50,8 @@
 		mdio@90000 {
 			status = "okay";
 			pinctrl-0 = <&mdio_pins>;
-			pinctrl-names = "default";
-			reset-gpios = <&tlmm 47 GPIO_ACTIVE_LOW>;
+			phy-reset-gpio = <&tlmm 47 0>;
+			bias-disable;
 		};
 
 		ess-psgmii@98000 {
