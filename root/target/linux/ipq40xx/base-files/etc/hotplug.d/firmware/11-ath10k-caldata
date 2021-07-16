@@ -165,6 +165,7 @@ case "$FIRMWARE" in
 		;;
 	zbt,z4019)
 		caldata_extract "0:ART" 0x1000 0x2f20
+		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_binary "0:ART" 0x6) +1)
 		;;
 	esac
 	;;
@@ -286,6 +287,7 @@ case "$FIRMWARE" in
 		;;
 	zbt,z4019)
 		caldata_extract "0:ART" 0x5000 0x2f20
+		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_binary "0:ART" 0x6) +2)
 		;;
 	esac
 	;;
