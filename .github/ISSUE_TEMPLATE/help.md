@@ -18,6 +18,7 @@ labels: help wanted
 
   - OpenMPTCProuter version: <!--- (Last is not a version) -->
   - OpenMPTCProuter VPS version: <!--- (Last is not a version) -->
+  - OpenMPTCProuter VPS provider:
   - OpenMPTCProuter platform: <!--- (RPI2/RPI3/x86/x86_64) -->
 
 <!--- (please do not attach text files) -->

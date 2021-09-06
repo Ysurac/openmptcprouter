@@ -59,7 +59,13 @@ pangu,l1000)
 	ucidef_set_led_netdev "4g2" "4g2" "blue:4g2" "4g2"
 	ucidef_set_led_netdev "4g3" "4g3" "blue:4g3" "4g3"
     ;;
-
+zbt,z4019)
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "green:wlan0" "phy0tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "green:wlan1" "phy1tpt"
+	ucidef_set_led_netdev "wwan0" "4G" "green:4g" "wwan0"
+	ucidef_set_led_netdev "wwan1" "4G1" "green:4g2" "wwan1"
+	ucidef_set_led_netdev "wwan2" "4G2" "green:4g3" "wwan2"
+	;;
 8dev,jalapeno)
 	ucidef_set_led_default "power" "POWER" "blue:power" "1"
     ucidef_set_led_wlan "wlan2g" "WLAN2G" "blue:wlan2g" "phy0tpt"
