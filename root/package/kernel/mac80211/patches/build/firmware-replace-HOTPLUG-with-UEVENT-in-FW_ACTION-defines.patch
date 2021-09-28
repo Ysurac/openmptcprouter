@@ -1,0 +1,13 @@
+diff --git a/drivers/net/wireless/ti/wlcore/main.c b/drivers/net/wireless/ti/wlcore/main.c
+index 8509b989940c..5bf15355c2b3 100644
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -6784,7 +6784,7 @@ int wlcore_probe(struct wl1271 *wl, struct platform_device *pdev)
+ 
+ 	if (pdev_data->family && pdev_data->family->nvs_name) {
+ 		nvs_name = pdev_data->family->nvs_name;
+-		ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
++		ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_UEVENT,
+ 					      nvs_name, &pdev->dev, GFP_KERNEL,
+ 					      wl, wlcore_nvs_cb);
+ 		if (ret < 0) {
