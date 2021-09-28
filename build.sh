@@ -36,7 +36,7 @@ OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
-UPSTREAM=${UPSTREAM:-yes}
+UPSTREAM=${UPSTREAM:-no}
 if [ "$UPSTREAM" = "no" ]; then
 	OMR_KERNEL=${OMR_KERNEL:-5.4}
 else
@@ -370,7 +370,7 @@ echo "Done"
 #echo "Done"
 
 # Add BBR2 patch, only working on 64bits images for now
-if [ "$UPSTREAM" = "no" ] && ([ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]); then
+if [ "$UPSTREAM" = "no" ] && [ "$OMR_KERNEL" != "5.14" ] && ([ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]); then
 	echo "Checking if BBRv2 patch is set or not"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/bbr2.patch; then
 		echo "apply..."
