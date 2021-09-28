@@ -36,7 +36,7 @@ OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
-UPSTREAM=${UPSTREAM:-no}
+UPSTREAM=${UPSTREAM:-yes}
 if [ "$UPSTREAM" = "no" ]; then
 	OMR_KERNEL=${OMR_KERNEL:-5.4}
 else
@@ -94,9 +94,9 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "86a61e716efe2e0ef2f4ce9b2fdd7a532661ef56"
-	_get_repo feeds/packages https://github.com/openwrt/packages "66e0dfa7cd02eccab614fdf962355a32a0a523d3"
-	_get_repo feeds/luci https://github.com/openwrt/luci "5ff3ef7cbb9719d3476feb836cac86ee421f666d"
+	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "830c2e53781ade1817b03bbb8ece6291ae34df5d"
+	_get_repo feeds/packages https://github.com/openwrt/packages "a94ef655ff2d4544083f79cd8cef9599865f0005"
+	_get_repo feeds/luci https://github.com/openwrt/luci "0b49ed45c6e9f4bc10abdcea392125aec3794e58"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -201,10 +201,10 @@ else
 	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF
 fi
-if [ "$OMR_KERNEL" = "5.14" ]; then
-	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> "$OMR_TARGET/source/.config"
-	echo 'CONFIG_KERNEL_GIT_REF="f733ba14728e8e7856721ca821ea62ba6c72a948"' >> "$OMR_TARGET/source/.config"
-fi
+#if [ "$OMR_KERNEL" = "5.14" ]; then
+#	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> "$OMR_TARGET/source/.config"
+#	echo 'CONFIG_KERNEL_GIT_REF="78828adaef8fe9b69f9a8c4b60f74b01c5a31c7a"' >> "$OMR_TARGET/source/.config"
+#fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	echo 'CONFIG_ALL=y' >> "$OMR_TARGET/source/.config"
 	echo 'CONFIG_ALL_NONSHARED=y' >> "$OMR_TARGET/source/.config"
@@ -222,7 +222,7 @@ if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
 fi
 
-if [ "$SHORTCUT_FE" = "yes" ]; then
+if [ "$SHORTCUT_FE" = "yes" ] && [ "$OMR_KERNEL" != "5.14" ]; then
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
 	echo "CONFIG_PACKAGE_kmod-fast-classifier-noload=y" >> "$OMR_TARGET/source/.config"
 	echo "CONFIG_PACKAGE_kmod-shortcut_fe_cm=y" >> "$OMR_TARGET/source/.config"
@@ -455,12 +455,28 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=4.19%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
 fi
+if [ "$OMR_KERNEL" = "5.10" ]; then
+	echo "Set to kernel 5.10 for rpi arch"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.14 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.14 for mvebu arch (WRT)"
+	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.14 for mediatek arch (BPI-R2)"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
+	echo "Done"
+fi
 if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Set to kernel 5.14 for rpi arch"
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	echo "Set to kernel 5.14 for x86 arch"
-	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	echo "Set to kernel 5.14 for mvebu arch (WRT)"
 	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
@@ -468,6 +484,7 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Set to kernel 5.14 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
+	rm -rf /target/linux/generic/files/drivers/net/phy/b53
 fi
 
 #rm -rf feeds/packages/libs/libwebp
@@ -490,6 +507,7 @@ echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
+scripts/feeds install -a
 
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
