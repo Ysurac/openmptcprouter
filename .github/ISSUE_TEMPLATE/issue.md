@@ -37,5 +37,6 @@ labels: bug
   - OpenMPTCProuter VPS version: <!--- (Last is not a version) -->
   - OpenMPTCProuter VPS provider:
   - OpenMPTCProuter platform: <!--- (RPI2/RPI3/x86/x86_64) -->
+  - Country: <!--- Some ISP have restrictions in many countries -->
 
 <!--- (please do not attach text files) -->
