@@ -225,13 +225,13 @@ fi
 if [ "$SHORTCUT_FE" = "yes" ] && [ "$OMR_KERNEL" != "5.14" ]; then
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
 	echo "CONFIG_PACKAGE_kmod-fast-classifier-noload=y" >> "$OMR_TARGET/source/.config"
-	echo "CONFIG_PACKAGE_kmod-shortcut_fe_cm=y" >> "$OMR_TARGET/source/.config"
-	echo "CONFIG_PACKAGE_kmod-shortcut_fe=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut-fe=y" >> "$OMR_TARGET/source/.config"
 else
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier-noload is not set" >> "$OMR_TARGET/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-shortcut_fe_cm is not set" >> "$OMR_TARGET/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-shortcut_fe is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-shortcut-fe is not set" >> "$OMR_TARGET/source/.config"
 fi
 
 if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
