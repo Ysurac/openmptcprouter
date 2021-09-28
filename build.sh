@@ -36,7 +36,7 @@ OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
-UPSTREAM=${UPSTREAM:-yes}
+UPSTREAM=${UPSTREAM:-no}
 if [ "$UPSTREAM" = "no" ]; then
 	OMR_KERNEL=${OMR_KERNEL:-5.4}
 else
@@ -225,13 +225,13 @@ fi
 if [ "$SHORTCUT_FE" = "yes" ] && [ "$OMR_KERNEL" != "5.14" ]; then
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
 	echo "CONFIG_PACKAGE_kmod-fast-classifier-noload=y" >> "$OMR_TARGET/source/.config"
-	echo "CONFIG_PACKAGE_kmod-shortcut_fe_cm=y" >> "$OMR_TARGET/source/.config"
-	echo "CONFIG_PACKAGE_kmod-shortcut_fe=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut-fe=y" >> "$OMR_TARGET/source/.config"
 else
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier-noload is not set" >> "$OMR_TARGET/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-shortcut_fe_cm is not set" >> "$OMR_TARGET/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-shortcut_fe is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-shortcut-fe is not set" >> "$OMR_TARGET/source/.config"
 fi
 
 if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
@@ -370,7 +370,7 @@ echo "Done"
 #echo "Done"
 
 # Add BBR2 patch, only working on 64bits images for now
-if [ "$UPSTREAM" = "no" ] && ([ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]); then
+if [ "$UPSTREAM" = "no" ] && [ "$OMR_KERNEL" != "5.14" ] && ([ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]); then
 	echo "Checking if BBRv2 patch is set or not"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/bbr2.patch; then
 		echo "apply..."
