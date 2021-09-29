@@ -437,8 +437,13 @@ fi
 #fi
 #echo "Done"
 
+if [ -f target/linux/generic/backport-5.4/370-netfilter-nf_flow_table-fix-offloaded-connection-tim.patch ]; then
+	rm -f target/linux/generic/backport-5.4/370-netfilter-nf_flow_table-fix-offloaded-connection-tim.patch
+fi
+
 if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for rpi arch"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.10%KERNEL_PATCHVER:=5.4%g' {} \;
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
 	echo "Set to kernel 5.4 for x86 arch"
@@ -456,13 +461,13 @@ if [ "$OMR_KERNEL" = "5.10" ]; then
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
 	echo "Done"
-	echo "Set to kernel 5.14 for x86 arch"
+	echo "Set to kernel 5.10 for x86 arch"
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
 	echo "Done"
-	echo "Set to kernel 5.14 for mvebu arch (WRT)"
+	echo "Set to kernel 5.10 for mvebu arch (WRT)"
 	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
 	echo "Done"
-	echo "Set to kernel 5.14 for mediatek arch (BPI-R2)"
+	echo "Set to kernel 5.10 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
 	echo "Done"
 fi
@@ -533,7 +538,7 @@ if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
 	exit 1
 fi
 
-echo "Building $OMR_DIST for the target $OMR_TARGET"
+echo "Building $OMR_DIST for the target $OMR_TARGET with kernel $OMR_KERNEL"
 make defconfig
 make IGNORE_ERRORS=m "$@"
 echo "Done"
