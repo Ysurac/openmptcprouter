@@ -440,6 +440,9 @@ fi
 if [ -f target/linux/generic/backport-5.4/370-netfilter-nf_flow_table-fix-offloaded-connection-tim.patch ]; then
 	rm -f target/linux/generic/backport-5.4/370-netfilter-nf_flow_table-fix-offloaded-connection-tim.patch
 fi
+if [ -f target/linux/generic/pending-5.4/640-netfilter-nf_flow_table-add-hardware-offload-support.patch ]; then
+	rm -f target/linux/generic/pending-5.4/640-netfilter-nf_flow_table-add-hardware-offload-support.patch
+fi
 
 if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for rpi arch"
@@ -484,6 +487,12 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Done"
 	echo "Set to kernel 5.14 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.14 for rockchip arch (R2S/R4S)"
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.14 for ramips"
+	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	rm -rf /target/linux/generic/files/drivers/net/phy/b53
 fi
