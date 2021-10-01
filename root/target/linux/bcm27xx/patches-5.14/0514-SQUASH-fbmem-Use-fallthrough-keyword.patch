@@ -1,0 +1,29 @@
+From ec1eaac3f6ea6c6f33652d049f35105dd11b63a8 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 27 Jul 2021 09:24:20 +0100
+Subject: [PATCH 514/552] SQUASH: fbmem: Use fallthrough keyword
+
+Avoid a compiler warning by using the "fallthrough" pseudo-keyword in
+place of the old "/* fall through */" comment convention.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/video/fbdev/core/fbmem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
+index f3f4b965111e..c5fad893bfcb 100644
+--- a/drivers/video/fbdev/core/fbmem.c
++++ b/drivers/video/fbdev/core/fbmem.c
+@@ -1195,7 +1195,7 @@ static long do_fb_ioctl(struct fb_info *info, unsigned int cmd,
+ 			ret = fb_copyarea_user(info, &copy);
+ 			break;
+ 		}
+-		/* fall through */
++		fallthrough;
+ 	default:
+ 		lock_fb_info(info);
+ 		fb = info->fbops;
+-- 
+2.33.0
+

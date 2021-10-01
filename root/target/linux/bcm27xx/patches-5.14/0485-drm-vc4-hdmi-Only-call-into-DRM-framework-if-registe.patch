@@ -1,0 +1,40 @@
+From 5c4b0dfa8690edd61030bfd328e9d0e1bb342b1a Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Mon, 5 Jul 2021 16:15:56 +0200
+Subject: [PATCH 485/552] drm/vc4: hdmi: Only call into DRM framework if
+ registered
+
+Our hotplug handler will currently call the drm_kms_helper_hotplug_event
+every time a hotplug interrupt is called.
+
+However, since the device is registered after all the drivers have
+finished their bind callback, we have a window between when we install
+our interrupt handler and when drm_dev_register() is eventually called
+where our handler can run and call drm_kms_helper_hotplug_event but the
+device hasn't been registered yet, causing a null pointer dereference.
+
+Fix this by making sure we only call drm_kms_helper_hotplug_event if our
+device has been properly registered.
+
+Fixes: f4790083c7c2 ("drm/vc4: hdmi: Rely on interrupts to handle hotplug")
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+---
+ drivers/gpu/drm/vc4/vc4_hdmi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
+index 55fca8d53d14..b3219755240e 100644
+--- a/drivers/gpu/drm/vc4/vc4_hdmi.c
++++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
+@@ -2156,7 +2156,7 @@ static irqreturn_t vc4_hdmi_hpd_irq_thread(int irq, void *priv)
+ 	struct vc4_hdmi *vc4_hdmi = priv;
+ 	struct drm_device *dev = vc4_hdmi->connector.dev;
+ 
+-	if (dev)
++	if (dev && dev->registered)
+ 		drm_kms_helper_hotplug_event(dev);
+ 
+ 	return IRQ_HANDLED;
+-- 
+2.33.0
+

@@ -1,0 +1,29 @@
+From c4af0a61ec775dc9edb45b2f21426609e26bb757 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Tue, 14 Jul 2015 10:26:09 +0100
+Subject: [PATCH 016/552] spi: spidev: Completely disable the spidev warning
+
+An alternative strategy would be to use "rpi,spidev" instead, but that
+would require many Raspberry Pi Device Tree changes.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ drivers/spi/spidev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
+index d196c6cb2c2f..5db5cfafe5b1 100644
+--- a/drivers/spi/spidev.c
++++ b/drivers/spi/spidev.c
+@@ -734,7 +734,7 @@ static int spidev_probe(struct spi_device *spi)
+ 	 * compatible string, it is a Linux implementation thing
+ 	 * rather than a description of the hardware.
+ 	 */
+-	WARN(spi->dev.of_node &&
++	WARN(0 && spi->dev.of_node &&
+ 	     of_device_is_compatible(spi->dev.of_node, "spidev"),
+ 	     "%pOF: buggy DT: spidev listed directly in DT\n", spi->dev.of_node);
+ 
+-- 
+2.33.0
+

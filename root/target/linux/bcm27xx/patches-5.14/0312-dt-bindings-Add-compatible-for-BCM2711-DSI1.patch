@@ -1,0 +1,28 @@
+From 80a023d2c5d1f63cd31cb0592eabc79e0fc61fe4 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Thu, 12 Nov 2020 17:01:52 +0000
+Subject: [PATCH 312/552] dt-bindings: Add compatible for BCM2711 DSI1
+
+DSI1 on BCM2711 doesn't require the DMA workaround that is used
+on BCM2835/6/7, therefore it needs a new compatible string.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ Documentation/devicetree/bindings/display/brcm,bcm2835-dsi0.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Documentation/devicetree/bindings/display/brcm,bcm2835-dsi0.yaml b/Documentation/devicetree/bindings/display/brcm,bcm2835-dsi0.yaml
+index 32608578a352..112bc56de0b1 100644
+--- a/Documentation/devicetree/bindings/display/brcm,bcm2835-dsi0.yaml
++++ b/Documentation/devicetree/bindings/display/brcm,bcm2835-dsi0.yaml
+@@ -21,6 +21,7 @@ properties:
+       - brcm,bcm2711-dsi1
+       - brcm,bcm2835-dsi0
+       - brcm,bcm2835-dsi1
++      - brcm,bcm2711-dsi1
+ 
+   reg:
+     maxItems: 1
+-- 
+2.33.0
+

@@ -1,0 +1,43 @@
+From f7377fd90fe5c6c111718b217a2cdae90029945a Mon Sep 17 00:00:00 2001
+From: Mathias Anhalt <mathiasanhalt@web.de>
+Date: Sun, 24 Jan 2021 15:15:01 +0100
+Subject: [PATCH 366/552] Fixed picture line bug in all ov9281 modes
+
+Signed-off-by: Mathias Anhalt <mathiasanhalt@web.de>
+---
+ drivers/media/i2c/ov9281.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/ov9281.c b/drivers/media/i2c/ov9281.c
+index 132cbf6aad8a..eff9bc356326 100644
+--- a/drivers/media/i2c/ov9281.c
++++ b/drivers/media/i2c/ov9281.c
+@@ -205,7 +205,7 @@ static const struct regval ov9281_common_regs[] = {
+ };
+ 
+ static const struct regval ov9281_1280x800_regs[] = {
+-	{0x3778, 0x10},
++	{0x3778, 0x00},
+ 	{0x3800, 0x00},
+ 	{0x3801, 0x00},
+ 	{0x3802, 0x00},
+@@ -241,7 +241,7 @@ static const struct regval ov9281_1280x800_regs[] = {
+ };
+ 
+ static const struct regval ov9281_1280x720_regs[] = {
+-	{0x3778, 0x10},
++	{0x3778, 0x00},
+ 	{0x3800, 0x00},
+ 	{0x3801, 0x00},
+ 	{0x3802, 0x00},
+@@ -277,6 +277,7 @@ static const struct regval ov9281_1280x720_regs[] = {
+ };
+ 
+ static const struct regval ov9281_640x400_regs[] = {
++	{0x3778, 0x10},
+ 	{0x3800, 0x00},
+ 	{0x3801, 0x00},
+ 	{0x3802, 0x00},
+-- 
+2.33.0
+

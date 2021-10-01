@@ -1,0 +1,31 @@
+From 047af333a7785be6bf6e012da9ec3fc8f5a146c2 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Wed, 17 Feb 2021 09:21:30 +0000
+Subject: [PATCH 341/552] gpio-fsm: Fix shutdown timeout handling
+
+The driver is intended to jump directly to a shutdown state in the
+event of a timeout during shutdown, but the sense of the test was
+inverted.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/gpio/gpio-fsm.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpio/gpio-fsm.c b/drivers/gpio/gpio-fsm.c
+index d71a81d9b669..306f5123546c 100644
+--- a/drivers/gpio/gpio-fsm.c
++++ b/drivers/gpio/gpio-fsm.c
+@@ -1142,7 +1142,8 @@ static int gpio_fsm_remove(struct platform_device *pdev)
+ 				   gf->current_state->shutdown_target ==
+ 				   gf->current_state,
+ 				   msecs_to_jiffies(gf->shutdown_timeout_ms));
+-		if (gf->current_state->shutdown_target == gf->current_state)
++		/* On failure to reach a shutdown state, jump to one */
++		if (gf->current_state->shutdown_target != gf->current_state)
+ 			gpio_fsm_enter_state(gf, gf->shutdown_state);
+ 	}
+ 	cancel_work_sync(&gf->work);
+-- 
+2.33.0
+

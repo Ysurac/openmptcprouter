@@ -1,0 +1,29 @@
+From ccb2425e27b2ed88c5d017aec0b92d28f9c39dac Mon Sep 17 00:00:00 2001
+From: Ahmet Inan <inan@aicodix.de>
+Date: Wed, 4 Aug 2021 10:10:11 +0200
+Subject: [PATCH 540/552] Revert "overlays: Update display GPIO declarations"
+ for Goodix
+
+This reverts commit b7d685c0b1bd1b98af0e9c1f5d43769982bdbfb2 for Goodix
+
+Signed-off-by: Ahmet Inan <inan@aicodix.de>
+---
+ arch/arm/boot/dts/overlays/goodix-overlay.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/overlays/goodix-overlay.dts b/arch/arm/boot/dts/overlays/goodix-overlay.dts
+index a11d65f81c5e..8571527de49a 100644
+--- a/arch/arm/boot/dts/overlays/goodix-overlay.dts
++++ b/arch/arm/boot/dts/overlays/goodix-overlay.dts
+@@ -31,7 +31,7 @@ gt9271: gt9271@14 {
+ 				interrupt-parent = <&gpio>;
+ 				interrupts = <4 2>; // high-to-low edge triggered
+ 				irq-gpios = <&gpio 4 0>; // Pin7 on GPIO header
+-				reset-gpios = <&gpio 17 1>; // Pin11 on GPIO header
++				reset-gpios = <&gpio 17 0>; // Pin11 on GPIO header
+ 			};
+ 		};
+ 	};
+-- 
+2.33.0
+

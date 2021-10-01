@@ -1,0 +1,25 @@
+From ab3c904b783be0841e6c04cf3d803cbafc03bbb0 Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Wed, 17 Mar 2021 12:46:09 +0000
+Subject: [PATCH 358/552] hack: Fixup rpi-poe-fan
+
+---
+ drivers/hwmon/rpi-poe-fan.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/rpi-poe-fan.c b/drivers/hwmon/rpi-poe-fan.c
+index c9654e9e9f2d..4c19680cf832 100644
+--- a/drivers/hwmon/rpi-poe-fan.c
++++ b/drivers/hwmon/rpi-poe-fan.c
+@@ -363,7 +363,7 @@ static int rpi_poe_fan_probe(struct platform_device *pdev)
+ 		goto err;
+ 	}
+ 	ctx->cdev = cdev;
+-	thermal_cdev_update(cdev);
++	//thermal_cdev_update(cdev);
+ 
+ 	return 0;
+ err:
+-- 
+2.33.0
+

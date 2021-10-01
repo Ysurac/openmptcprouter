@@ -1,0 +1,34 @@
+From 085f6112a56a82aecc5976f2cd9065ddacad724f Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Mon, 8 Feb 2021 11:22:01 +0000
+Subject: [PATCH 460/552] drm/vc4: Register dsi0 as the correct vc4 encoder
+ type
+
+vc4_dsi was registering both dsi0 and dsi1 as VC4_ENCODER_TYPE_DSI1
+which seemed to work OK for a single DSI display, but fails
+if there are two DSI displays connected.
+
+Update to register the correct type.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/gpu/drm/vc4/vc4_dsi.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_dsi.c b/drivers/gpu/drm/vc4/vc4_dsi.c
+index a55256ed0955..81cb82bc4eb9 100644
+--- a/drivers/gpu/drm/vc4/vc4_dsi.c
++++ b/drivers/gpu/drm/vc4/vc4_dsi.c
+@@ -1514,7 +1514,8 @@ static int vc4_dsi_bind(struct device *dev, struct device *master, void *data)
+ 		return -ENOMEM;
+ 
+ 	INIT_LIST_HEAD(&dsi->bridge_chain);
+-	vc4_dsi_encoder->base.type = VC4_ENCODER_TYPE_DSI1;
++	vc4_dsi_encoder->base.type = dsi->variant->port ?
++			VC4_ENCODER_TYPE_DSI1 : VC4_ENCODER_TYPE_DSI0;
+ 	vc4_dsi_encoder->dsi = dsi;
+ 	dsi->encoder = &vc4_dsi_encoder->base.base;
+ 
+-- 
+2.33.0
+
