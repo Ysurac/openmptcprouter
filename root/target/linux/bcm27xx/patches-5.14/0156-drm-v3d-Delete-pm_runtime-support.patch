@@ -1,0 +1,69 @@
+From 08a649a427f32374c49a696b7a731542818ee75b Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 18 Sep 2019 17:22:36 +0100
+Subject: [PATCH 156/552] drm/v3d: Delete pm_runtime support
+
+The pm_runtime was blocking changelist submission, so delete it as a
+temporary workaround.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ drivers/gpu/drm/v3d/v3d_gem.c |  5 -----
+ drivers/gpu/drm/v3d/v3d_mmu.c | 11 -----------
+ 2 files changed, 16 deletions(-)
+
+diff --git a/drivers/gpu/drm/v3d/v3d_gem.c b/drivers/gpu/drm/v3d/v3d_gem.c
+index b0e8f6960676..13bd2e148f3f 100644
+--- a/drivers/gpu/drm/v3d/v3d_gem.c
++++ b/drivers/gpu/drm/v3d/v3d_gem.c
+@@ -480,10 +480,6 @@ v3d_job_init(struct v3d_dev *v3d, struct drm_file *file_priv,
+ 	job->v3d = v3d;
+ 	job->free = free;
+ 
+-	ret = pm_runtime_get_sync(v3d->drm.dev);
+-	if (ret < 0)
+-		return ret;
+-
+ 	xa_init_flags(&job->deps, XA_FLAGS_ALLOC);
+ 
+ 	ret = drm_syncobj_find_fence(file_priv, in_sync, 0, 0, &in_fence);
+@@ -500,7 +496,6 @@ v3d_job_init(struct v3d_dev *v3d, struct drm_file *file_priv,
+ 	return 0;
+ fail:
+ 	xa_destroy(&job->deps);
+-	pm_runtime_put_autosuspend(v3d->drm.dev);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/gpu/drm/v3d/v3d_mmu.c b/drivers/gpu/drm/v3d/v3d_mmu.c
+index 8986e7b96461..618503f2f2f1 100644
+--- a/drivers/gpu/drm/v3d/v3d_mmu.c
++++ b/drivers/gpu/drm/v3d/v3d_mmu.c
+@@ -36,14 +36,6 @@ static int v3d_mmu_flush_all(struct v3d_dev *v3d)
+ {
+ 	int ret;
+ 
+-	/* Keep power on the device on until we're done with this
+-	 * call, but skip the flush if the device is off and will be
+-	 * reset when powered back on.
+-	 */
+-	ret = pm_runtime_get_if_in_use(v3d->dev);
+-	if (ret == 0)
+-		return 0;
+-
+ 	/* Make sure that another flush isn't already running when we
+ 	 * start this one.
+ 	 */
+@@ -71,9 +63,6 @@ static int v3d_mmu_flush_all(struct v3d_dev *v3d)
+ 	if (ret)
+ 		dev_err(v3d->drm.dev, "MMUC flush wait idle failed\n");
+ 
+-	pm_runtime_mark_last_busy(v3d->dev);
+-	pm_runtime_put_autosuspend(v3d->dev);
+-
+ 	return ret;
+ }
+ 
+-- 
+2.33.0
+

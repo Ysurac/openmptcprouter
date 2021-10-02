@@ -1,0 +1,41 @@
+From 5f54a68352e69474a4367003c80ca3e9a681b64f Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Thu, 15 Apr 2021 11:07:55 +0100
+Subject: [PATCH 392/552] staging/bcm2835-codec: Do not update crop from S_FMT
+ after res change
+
+During decode, setting the CAPTURE queue format was setting the crop
+rectangle to the requested height before aligning up the format to
+cater for simple clients that weren't expecting to deal with cropping
+and the SELECTION API.
+This caused problems on some resolution change events if the client
+didn't also then use the selection API.
+
+Disable the crop update after a resolution change.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ .../vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c       | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c b/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
+index 3ed9f47a37fe..a97666a1a4be 100644
+--- a/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
++++ b/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
+@@ -999,6 +999,13 @@ static void handle_fmt_changed(struct bcm2835_codec_ctx *ctx,
+ 
+ 	q_data->crop_width = format->es.video.crop.width;
+ 	q_data->crop_height = format->es.video.crop.height;
++	/*
++	 * Stop S_FMT updating crop_height should it be unaligned.
++	 * Client can still update the crop region via S_SELECTION should it
++	 * really want to, but the decoder is likely to complain that the
++	 * format then doesn't match.
++	 */
++	q_data->selection_set = true;
+ 	q_data->bytesperline = get_bytesperline(format->es.video.width,
+ 						q_data->fmt);
+ 
+-- 
+2.33.0
+

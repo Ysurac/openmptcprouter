@@ -1,0 +1,33 @@
+From 281b05f6e80aa1a779c3401175939df2627f3356 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Wed, 1 May 2019 13:27:23 +0100
+Subject: [PATCH 118/552] staging: mmal-vchiq: Free the event context for
+ control ports
+
+vchiq_mmal_component_init calls init_event_context for the
+control port, but vchiq_mmal_component_finalise didn't free
+it, causing a memory leak..
+
+Add the free call.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c b/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c
+index d6d98b20c76a..b4893e08f54a 100644
+--- a/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c
++++ b/drivers/staging/vc04_services/vchiq-mmal/mmal-vchiq.c
+@@ -1901,6 +1901,8 @@ int vchiq_mmal_component_finalise(struct vchiq_mmal_instance *instance,
+ 	for (idx = 0; idx < component->clocks; idx++)
+ 		free_event_context(&component->clock[idx]);
+ 
++	free_event_context(&component->control);
++
+ 	mutex_unlock(&instance->vchiq_mutex);
+ 
+ 	return ret;
+-- 
+2.33.0
+

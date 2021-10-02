@@ -1,0 +1,73 @@
+From 73cfbe7ed676bd06d5b2ae6b85380aefad9dd57b Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Wed, 25 Aug 2021 13:09:01 +0200
+Subject: [PATCH 551/552] drm/vc4: Set a default HSM rate
+
+When the firmware doesn't setup the HSM rate (such as when booting
+without an HDMI cable plugged in), its rate is 0 and thus any register
+access results in a CPU stall, even though HSM is enabled.
+
+Let's enforce a minimum rate at boot to avoid this issue.
+
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+---
+ drivers/gpu/drm/vc4/vc4_hdmi.c | 29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
+index aeb1e4b23310..207ff08485ed 100644
+--- a/drivers/gpu/drm/vc4/vc4_hdmi.c
++++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
+@@ -96,6 +96,7 @@
+ # define VC4_HD_M_SW_RST			BIT(2)
+ # define VC4_HD_M_ENABLE			BIT(0)
+ 
++#define HSM_MIN_CLOCK_FREQ	120000000
+ #define CEC_CLOCK_FREQ 40000
+ 
+ #define HDMI_14_MAX_TMDS_CLK   (340 * 1000 * 1000)
+@@ -1188,7 +1189,7 @@ static u32 vc5_hdmi_calc_hsm_clock(struct vc4_hdmi *vc4_hdmi, unsigned long pixe
+ 	 * pixel clock, but HSM ends up being the limiting factor.
+ 	 */
+ 
+-	return max_t(unsigned long, 120000000, (pixel_rate / 100) * 101);
++	return max_t(unsigned long, HSM_MIN_CLOCK_FREQ, (pixel_rate / 100) * 101);
+ }
+ 
+ static u32 vc4_hdmi_channel_map(struct vc4_hdmi *vc4_hdmi, u32 channel_mask)
+@@ -2311,6 +2312,32 @@ static int vc4_hdmi_bind(struct device *dev, struct device *master, void *data)
+ 			vc4_hdmi->disable_4kp60 = true;
+ 	}
+ 
++	/*
++	 * If we boot without any cable connected to the HDMI connector,
++	 * the firmware will skip the HSM initialization and leave it
++	 * with a rate of 0, resulting in a bus lockup when we're
++	 * accessing the registers even if it's enabled.
++	 *
++	 * Let's put a sensible default at runtime_resume so that we
++	 * don't end up in this situation.
++	 *
++	 * Strictly speaking we should be using clk_set_min_rate.
++	 * However, the clk-bcm2835 clock driver favors clock rates
++	 * under the expected rate, which in the case where we set the
++	 * minimum clock rate will be rejected by the clock framework.
++	 *
++	 * However, even for the two HDMI controllers found on the
++	 * BCM2711, using clk_set_rate doesn't cause any issue. Indeed,
++	 * the bind callbacks are called in sequence, and before the DRM
++	 * device is registered and therefore a mode is set. As such,
++	 * we're not at risk of having the first controller set a
++	 * different mode and then the second overriding the HSM clock
++	 * frequency in its bind.
++	 */
++	ret = clk_set_rate(vc4_hdmi->hsm_clock, HSM_MIN_CLOCK_FREQ);
++	if (ret)
++		goto err_put_ddc;
++
+ 	if (vc4_hdmi->variant->reset)
+ 		vc4_hdmi->variant->reset(vc4_hdmi);
+ 
+-- 
+2.33.0
+

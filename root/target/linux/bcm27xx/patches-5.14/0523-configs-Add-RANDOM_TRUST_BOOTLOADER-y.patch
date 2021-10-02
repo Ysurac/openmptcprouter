@@ -1,0 +1,79 @@
+From 6e47889afd24c907eed33b16c753b54d9b78a410 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Wed, 28 Jul 2021 11:18:24 +0100
+Subject: [PATCH 523/552] configs: Add RANDOM_TRUST_BOOTLOADER=y
+
+See: https://github.com/raspberrypi/firmware/issues/1595
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 +
+ arch/arm/configs/bcm2711_defconfig   | 1 +
+ arch/arm/configs/bcmrpi_defconfig    | 1 +
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ arch/arm64/configs/bcmrpi3_defconfig | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index b4a4e72d9944..13d84a45147f 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -663,6 +663,7 @@ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
++CONFIG_RANDOM_TRUST_BOOTLOADER=y
+ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=m
+ CONFIG_I2C_MUX_GPMUX=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 35cc383fe844..18253657cac0 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -676,6 +676,7 @@ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
++CONFIG_RANDOM_TRUST_BOOTLOADER=y
+ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=m
+ CONFIG_I2C_MUX_GPMUX=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 504f23f6cabf..76c27e0b019a 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -657,6 +657,7 @@ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
++CONFIG_RANDOM_TRUST_BOOTLOADER=y
+ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=m
+ CONFIG_I2C_MUX_GPMUX=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 034d8ad2afab..a83b472a0085 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -673,6 +673,7 @@ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
++CONFIG_RANDOM_TRUST_BOOTLOADER=y
+ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=m
+ CONFIG_I2C_MUX_GPMUX=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index aca29fba8a8b..a810072e9a3b 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -649,6 +649,7 @@ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
++CONFIG_RANDOM_TRUST_BOOTLOADER=y
+ CONFIG_I2C=y
+ CONFIG_I2C_CHARDEV=m
+ CONFIG_I2C_MUX=m
+-- 
+2.33.0
+

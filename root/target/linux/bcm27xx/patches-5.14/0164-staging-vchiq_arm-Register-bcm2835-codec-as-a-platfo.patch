@@ -1,0 +1,45 @@
+From 2badb900b46921a94bb3f0119b4a548001e509e3 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Wed, 6 Nov 2019 13:57:58 +0000
+Subject: [PATCH 164/552] staging: vchiq_arm: Register bcm2835-codec as a
+ platform driver
+
+Following the same pattern as bcm2835-camera and bcm2835-audio,
+register the V4L2 codec driver as a platform driver
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+index 855721f22e1b..e56585fa060f 100644
+--- a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
++++ b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+@@ -109,6 +109,7 @@ static struct class  *vchiq_class;
+ static DEFINE_SPINLOCK(msg_queue_spinlock);
+ static struct platform_device *bcm2835_camera;
+ static struct platform_device *bcm2835_audio;
++static struct platform_device *bcm2835_codec;
+ static struct platform_device *vcsm_cma;
+ 
+ static struct vchiq_drvdata bcm2835_drvdata = {
+@@ -2701,6 +2702,7 @@ static int vchiq_probe(struct platform_device *pdev)
+ 		MAJOR(vchiq_devid), MINOR(vchiq_devid));
+ 
+ 	vcsm_cma = vchiq_register_child(pdev, "vcsm-cma");
++	bcm2835_codec = vchiq_register_child(pdev, "bcm2835-codec");
+ 	bcm2835_camera = vchiq_register_child(pdev, "bcm2835-camera");
+ 	bcm2835_audio = vchiq_register_child(pdev, "bcm2835_audio");
+ 
+@@ -2717,6 +2719,7 @@ static int vchiq_remove(struct platform_device *pdev)
+ {
+ 	platform_device_unregister(bcm2835_audio);
+ 	platform_device_unregister(bcm2835_camera);
++	platform_device_unregister(bcm2835_codec);
+ 	platform_device_unregister(vcsm_cma);
+ 	vchiq_debugfs_deinit();
+ 	device_destroy(vchiq_class, vchiq_devid);
+-- 
+2.33.0
+

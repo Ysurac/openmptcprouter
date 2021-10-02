@@ -1,0 +1,25 @@
+From f83ad20e01c1ab51aabe682e939f15a688875548 Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Mon, 9 Nov 2020 19:49:32 +0000
+Subject: [PATCH 451/552] vc4_hdmi: Report that 3d/stereo is allowed
+
+Signed-off-by: Dom Cobley <popcornmix@gmail.com>
+---
+ drivers/gpu/drm/vc4/vc4_hdmi.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
+index 52e3503204e8..520c5e853b97 100644
+--- a/drivers/gpu/drm/vc4/vc4_hdmi.c
++++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
+@@ -665,6 +665,7 @@ static int vc4_hdmi_connector_init(struct drm_device *dev,
+ 
+ 	connector->interlace_allowed = 1;
+ 	connector->doublescan_allowed = 0;
++	connector->stereo_allowed = 1;
+ 
+ 	if (vc4_hdmi->variant->supports_hdr)
+ 		drm_connector_attach_hdr_output_metadata_property(connector);
+-- 
+2.33.0
+
