@@ -526,7 +526,7 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	echo "Set to kernel 5.14 for rockchip arch (R2S/R4S)"
-	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	echo "Set to kernel 5.14 for ramips"
 	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
