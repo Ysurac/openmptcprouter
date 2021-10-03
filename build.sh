@@ -531,7 +531,8 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Set to kernel 5.14 for ramips"
 	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
-	rm -rf /target/linux/generic/files/drivers/net/phy/b53
+	rm -rf target/linux/generic/files/drivers/net/phy/b53
+	rm -f target/linux/bcm27xx/modules/sound.mk
 fi
 
 #rm -rf feeds/packages/libs/libwebp
