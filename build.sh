@@ -90,9 +90,16 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "585cef5f1a9c1c3aecd7d231364618e96d03ab65"
-	_get_repo feeds/packages https://github.com/openwrt/packages "e2055b5433da245e6ff8fb060d018d036499cf38"
-	_get_repo feeds/luci https://github.com/openwrt/luci "7c943a1d6bcf449019ca8a43e800e51f269bb8f6"
+	if [ "$OMR_KERNEL" = "5.4" ]; then
+		# Use OpenWrt 21.02 for 5.4 kernel
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "76d90a5eaf3b7fc5bb1a1b8626db0e4e2487e876"
+		_get_repo feeds/packages https://github.com/openwrt/packages "dc5faddacba4a2d8c18ad65614a34ae9c9f24d52"
+		_get_repo feeds/luci https://github.com/openwrt/luci "b39d9bf4bb88acd3120098c3a087e47331d1d757"
+	else
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "585cef5f1a9c1c3aecd7d231364618e96d03ab65"
+		_get_repo feeds/packages https://github.com/openwrt/packages "e2055b5433da245e6ff8fb060d018d036499cf38"
+		_get_repo feeds/luci https://github.com/openwrt/luci "7c943a1d6bcf449019ca8a43e800e51f269bb8f6"
+	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/packages https://github.com/openwrt/packages "master"
@@ -494,7 +501,18 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.4%g' {} \;
 	echo "Done"
-	rm package/kernel/mac80211/patches/build/firmware-replace-HOTPLUG-with-UEVENT-in-FW_ACTION-defines.patch
+	if [ -f package/kernel/mac80211/patches/build/firmware-replace-HOTPLUG-with-UEVENT-in-FW_ACTION-defines.patch ]; then
+		rm -f package/kernel/mac80211/patches/build/firmware-replace-HOTPLUG-with-UEVENT-in-FW_ACTION-defines.patch
+	fi
+	if [ -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch ]; then
+		rm -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch
+	fi
+	if [ -f target/linux/mvebu/patches-5.4/021-arm64-dts-marvell-armada-37xx-Move-PCIe-comphy-handl.patch ]; then
+		rm -f target/linux/mvebu/patches-5.4/021-arm64-dts-marvell-armada-37xx-Move-PCIe-comphy-handl.patch
+	fi
+	if [ -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch ]; then
+		rm -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch
+	fi
 fi
 if [ "$OMR_KERNEL" = "5.10" ]; then
 	echo "Set to kernel 5.10 for rpi arch"
