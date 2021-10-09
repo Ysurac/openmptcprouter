@@ -236,6 +236,10 @@ else
 	echo "# CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set" >> "$OMR_TARGET/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-shortcut-fe is not set" >> "$OMR_TARGET/source/.config"
 fi
+if [ "$OMR_KERNEL" = "5.14" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "x86" ]; then
+	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/source/.config"
+fi
 
 if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
 	# We disable mc in master, because it leads to unknown compilation errors on bpi-r1 target
