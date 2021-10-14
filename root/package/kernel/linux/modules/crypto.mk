@@ -717,7 +717,7 @@ ifndef CONFIG_TARGET_x86_64
     FILES+= \
 	$(LINUX_DIR)/arch/x86/crypto/twofish-i586.ko \
 	$(LINUX_DIR)/arch/x86/crypto/serpent-sse2-i586.ko \
-	$(LINUX_DIR)/arch/x86/crypto/glue_helper.ko \
+	$(LINUX_DIR)/arch/x86/crypto/glue_helper.ko@lt5.14 \
 	$(LINUX_DIR)/crypto/cryptd.ko \
 	$(LINUX_DIR)/crypto/crypto_simd.ko
     AUTOLOAD+= $(call AutoLoad,10,cryptd glue_helper \
