@@ -43,7 +43,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +	bool "Atheros AR8216 switch LED support"
 +	depends on (AR8216_PHY && LEDS_CLASS)
 +
-+#source "drivers/net/phy/b53/Kconfig"
++source "drivers/net/phy/b53/Kconfig"
 +
 +config IP17XX_PHY
 +	tristate "Driver for IC+ IP17xx switches"
@@ -102,7 +102,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +obj-$(CONFIG_SWCONFIG)		+= swconfig.o
 +obj-$(CONFIG_ADM6996_PHY)	+= adm6996.o
 +obj-$(CONFIG_AR8216_PHY)	+= ar8216.o ar8327.o
-+#obj-$(CONFIG_SWCONFIG_B53)	+= b53/
++obj-$(CONFIG_SWCONFIG_B53)	+= b53/
 +obj-$(CONFIG_IP17XX_PHY)	+= ip17xx.o
 +obj-$(CONFIG_PSB6970_PHY)	+= psb6970.o
 +obj-$(CONFIG_RTL8306_PHY)	+= rtl8306.o
