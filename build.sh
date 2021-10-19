@@ -546,6 +546,7 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Done"
 	echo "Set to kernel 5.14 for mediatek arch (BPI-R2)"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	echo "Set to kernel 5.14 for rockchip arch (R2S/R4S)"
 	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
@@ -553,8 +554,10 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Set to kernel 5.14 for ramips"
 	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
-	rm -rf target/linux/generic/files/drivers/net/phy/b53
+	#rm -rf target/linux/generic/files/drivers/net/phy/b53
 	rm -f target/linux/bcm27xx/modules/sound.mk
+	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
+	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
 fi
 
 #rm -rf feeds/packages/libs/libwebp
