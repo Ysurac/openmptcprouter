@@ -1,0 +1,16 @@
+--- a/hif/pcie/pcie.c	2021-10-20 16:25:17.694566730 +0200
++++ b/hif/pcie/pcie.c	2021-10-20 16:25:54.349957479 +0200
+@@ -31,7 +31,6 @@
+ #include "hif/pcie/rx_ndp.h"
+ 
+ #define PCIE_DRV_DESC "Marvell Mac80211 Wireless PCIE Network Driver"
+-#define PCIE_DEV_NAME "Marvell 802.11ac PCIE Adapter"
+ 
+ #define MAX_WAIT_FW_COMPLETE_ITERATIONS 10000
+ #define CHECK_BA_TRAFFIC_TIME           300 /* msec */
+@@ -1641,5 +1640,4 @@
+ MODULE_VERSION(PCIE_DRV_VERSION);
+ MODULE_AUTHOR("Marvell Semiconductor, Inc.");
+ MODULE_LICENSE("GPL v2");
+-MODULE_SUPPORTED_DEVICE(PCIE_DEV_NAME);
+ MODULE_DEVICE_TABLE(pci, pcie_id_tbl);
