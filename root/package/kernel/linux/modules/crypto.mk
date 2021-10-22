@@ -452,8 +452,8 @@ define KernelPackage/crypto-lib-blake2s
   KCONFIG:=CONFIG_CRYPTO_LIB_BLAKE2S
   HIDDEN:=1
   FILES:= \
-	$(LINUX_DIR)/lib/crypto/libblake2s.ko \
-	$(LINUX_DIR)/lib/crypto/libblake2s-generic.ko
+	$(LINUX_DIR)/lib/crypto/libblake2s.ko@lt5.14 \
+	$(LINUX_DIR)/lib/crypto/libblake2s-generic.ko@lt5.14
   $(call AddDepends/crypto,+PACKAGE_kmod-crypto-hash:kmod-crypto-hash)
 endef
 
