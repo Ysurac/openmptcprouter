@@ -556,8 +556,16 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Done"
 	#rm -rf target/linux/generic/files/drivers/net/phy/b53
 	rm -f target/linux/bcm27xx/modules/sound.mk
+	echo "CONFIG_DEVEL=y" >> ".config"
+	echo "CONFIG_NEED_TOOLCHAIN=y" >> ".config"
+	echo "CONFIG_TOOLCHAINOPTS=y" >> ".config"
+	echo 'CONFIG_BINUTILS_VERSION_2_36_1=y' >> ".config"
+	echo 'CONFIG_BINUTILS_VERSION="2.36.1' >> ".config"
 	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
 	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
+	if [ "$TARGET" = "bpi-r2" ]; then
+		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
+	fi
 fi
 
 #rm -rf feeds/packages/libs/libwebp
