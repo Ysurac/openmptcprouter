@@ -92,9 +92,9 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "76d90a5eaf3b7fc5bb1a1b8626db0e4e2487e876"
-		_get_repo feeds/packages https://github.com/openwrt/packages "dc5faddacba4a2d8c18ad65614a34ae9c9f24d52"
-		_get_repo feeds/luci https://github.com/openwrt/luci "b39d9bf4bb88acd3120098c3a087e47331d1d757"
+        _get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f441be3921c769b732f0148f005d4f1bbace0508"
+		_get_repo feeds/packages https://github.com/openwrt/packages "3aa30ceee4fcf7b131bdc0f98658391069573e12"
+		_get_repo feeds/luci https://github.com/openwrt/luci "f28aaa35cd5c0cbbe59d8cc6a67de88ceeac382e"
 	else
 		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "585cef5f1a9c1c3aecd7d231364618e96d03ab65"
 		_get_repo feeds/packages https://github.com/openwrt/packages "e2055b5433da245e6ff8fb060d018d036499cf38"
@@ -553,6 +553,9 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Done"
 	echo "Set to kernel 5.14 for ramips"
 	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.14 for ramips"
+	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	#rm -rf target/linux/generic/files/drivers/net/phy/b53
 	rm -f target/linux/bcm27xx/modules/sound.mk
