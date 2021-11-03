@@ -13,7 +13,7 @@ export SAVE_CONFIG=1
 export SAVE_OVERLAY=0
 export SAVE_OVERLAY_PATH=
 export SAVE_PARTITIONS=1
-export SAVE_INSTALLED_PKGS=1
+export SAVE_INSTALLED_PKGS=0
 export SKIP_UNCHANGED=0
 export CONF_IMAGE=
 export CONF_BACKUP_LIST=0
@@ -112,18 +112,6 @@ EOF
 # prevent messages from clobbering the tarball when using stdout
 [ "$CONF_BACKUP" = "-" ] && export VERBOSE=0
 
-missing_lines() {
-	local file1 file2 line
-	file1="$1"
-	file2="$2"
-	oIFS="$IFS"
-	IFS=":"
-	while read line; do
-		set -- $line
-		grep -q "^$1:" "$file2" || echo "$*"
-	done < "$file1"
-	IFS="$oIFS"
-}
 
 list_conffiles() {
 	awk '
@@ -299,13 +287,8 @@ if [ -n "$CONF_RESTORE" ]; then
 	fi
 
 	[ "$VERBOSE" -gt 1 ] && TAR_V="v" || TAR_V=""
-	cp /etc/passwd /etc/group /etc/shadow /tmp
+	v "Restoring config files..."
 	tar -C / -x${TAR_V}zf "$CONF_RESTORE"
-	missing_lines /tmp/passwd /etc/passwd >> /etc/passwd
-	missing_lines /tmp/group /etc/group >> /etc/group
-	missing_lines /tmp/shadow /etc/shadow >> /etc/shadow
-	rm /tmp/passwd /tmp/group /tmp/shadow
-
 	exit $?
 fi
 
