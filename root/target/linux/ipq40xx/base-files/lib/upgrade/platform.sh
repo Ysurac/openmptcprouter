@@ -74,7 +74,6 @@ platform_do_upgrade() {
 	luma,wrtq-329acn |\
 	zbt,z4019 |\
 	mobipromo,cm520-79f |\
-	netgear,wac510 |\
 	p2w,r619ac-64m |\
  	p2w,r619ac-128m |\
 	qxwlan,e2600ac-c2)

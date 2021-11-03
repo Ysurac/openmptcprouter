@@ -62,15 +62,6 @@ define Build/mkmylofw_32m
 	@mv $@.new $@
 endef
 
-define Build/wac5xx-netgear-tar
-	mkdir $@.tmp
-	mv $@ $@.tmp/wac5xx-ubifs-root.img
-	md5sum $@.tmp/wac5xx-ubifs-root.img > $@.tmp/wac5xx-ubifs-root.md5sum
-	echo "WAC505 WAC510" > $@.tmp/metadata.txt
-	echo "WAC505_V9.9.9.9" > $@.tmp/version
-	tar -C $@.tmp/ -cf $@ .
-	rm -rf $@.tmp
-endef
 
 define Build/qsdk-ipq-factory-nand-askey
 	$(TOPDIR)/scripts/mkits-qsdk-ipq-image.sh $@.its\
