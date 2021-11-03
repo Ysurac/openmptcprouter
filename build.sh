@@ -90,11 +90,11 @@ fi
 
 #_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 if [ "$OMR_OPENWRT" = "default" ]; then
-	if [ "$OMR_KERNEL" = "5.4" ]; then
+if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-        _get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "e245ae13eed498891bbca25b961022cb7938ff5c"
-		_get_repo feeds/packages https://github.com/openwrt/packages "cb54cef066ea2860f30f53ab17968221605443e0"
-		_get_repo feeds/luci https://github.com/openwrt/luci "0eda002942480a6e330df0077c8f6f74636176be"
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f441be3921c769b732f0148f005d4f1bbace0508"
+		_get_repo feeds/packages https://github.com/openwrt/packages "3aa30ceee4fcf7b131bdc0f98658391069573e12"
+		_get_repo feeds/luci https://github.com/openwrt/luci "f28aaa35cd5c0cbbe59d8cc6a67de88ceeac382e"
 	else
 		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "585cef5f1a9c1c3aecd7d231364618e96d03ab65"
 		_get_repo feeds/packages https://github.com/openwrt/packages "e2055b5433da245e6ff8fb060d018d036499cf38"
