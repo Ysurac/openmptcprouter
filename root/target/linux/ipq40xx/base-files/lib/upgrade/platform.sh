@@ -120,8 +120,6 @@ platform_do_upgrade() {
 		[ "$(rootfs_type)" = "tmpfs" ] && mtd erase firmware
 		default_do_upgrade "$1"
 		;;
-	netgear,rbr50 |\
-	netgear,rbs50 |\
 	netgear,srr60 |\
 	netgear,srs60)
 		platform_do_upgrade_netgear_orbi_upgrade "$1"
