@@ -115,15 +115,6 @@ platform_do_upgrade() {
 		CI_KERNPART="part.safe"
 		nand_do_upgrade "$1"
 		;;
-	mikrotik,hap-ac2|\
-	mikrotik,sxtsq-5-ac)
-		[ "$(rootfs_type)" = "tmpfs" ] && mtd erase firmware
-		default_do_upgrade "$1"
-		;;
-	netgear,srr60 |\
-	netgear,srs60)
-		platform_do_upgrade_netgear_orbi_upgrade "$1"
-		;;
 	openmesh,a42 |\
 	openmesh,a62 |\
 	plasmacloud,pa1200 |\
