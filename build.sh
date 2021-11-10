@@ -96,9 +96,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/packages https://github.com/openwrt/packages "3aa30ceee4fcf7b131bdc0f98658391069573e12"
 		_get_repo feeds/luci https://github.com/openwrt/luci "f28aaa35cd5c0cbbe59d8cc6a67de88ceeac382e"
 	else
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "585cef5f1a9c1c3aecd7d231364618e96d03ab65"
-		_get_repo feeds/packages https://github.com/openwrt/packages "e2055b5433da245e6ff8fb060d018d036499cf38"
-		_get_repo feeds/luci https://github.com/openwrt/luci "7c943a1d6bcf449019ca8a43e800e51f269bb8f6"
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "8a6b1a8d29cbd62f005ba20998ca9c8048ff49fc"
+		_get_repo feeds/packages https://github.com/openwrt/packages "b5132de5cf4f7d0562445cf3c65f9f1a4bcb1bbf"
+		_get_repo feeds/luci https://github.com/openwrt/luci "02398a33837d1fe8fd23d933ad7ac32025144805"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
