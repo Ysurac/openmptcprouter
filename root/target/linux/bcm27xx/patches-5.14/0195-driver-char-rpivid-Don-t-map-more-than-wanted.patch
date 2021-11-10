@@ -1,0 +1,56 @@
+From 8a267bffd2fb201e39f2f770f6eeadb9f0b21c5d Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 21 Apr 2020 11:30:23 +0100
+Subject: [PATCH 195/552] driver: char: rpivid: Don't map more than wanted
+
+Limit mappings to the permitted range, but don't map more than asked
+for otherwise we walk off the end of the allocated VMA.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/char/broadcom/rpivid-mem.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/char/broadcom/rpivid-mem.c b/drivers/char/broadcom/rpivid-mem.c
+index 5f4c91924ec1..9f38083f4cb6 100644
+--- a/drivers/char/broadcom/rpivid-mem.c
++++ b/drivers/char/broadcom/rpivid-mem.c
+@@ -100,6 +100,7 @@ static int rpivid_mem_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct rpivid_mem_priv *priv;
+ 	unsigned long pages;
++	unsigned long len;
+ 
+ 	priv = file->private_data;
+ 	pages = priv->regs_phys >> PAGE_SHIFT;
+@@ -107,14 +108,13 @@ static int rpivid_mem_mmap(struct file *file, struct vm_area_struct *vma)
+ 	 * The address decode is far larger than the actual number of registers.
+ 	 * Just map the whole lot in.
+ 	 */
+-	vma->vm_page_prot = phys_mem_access_prot(file, pages,
+-						 priv->mem_window_len,
++	len = min(vma->vm_end - vma->vm_start, priv->mem_window_len);
++	vma->vm_page_prot = phys_mem_access_prot(file, pages, len,
+ 						 vma->vm_page_prot);
+ 	vma->vm_ops = &rpivid_mem_vm_ops;
+ 	if (remap_pfn_range(vma, vma->vm_start,
+-			pages,
+-			priv->mem_window_len,
+-			vma->vm_page_prot)) {
++			    pages, len,
++			    vma->vm_page_prot)) {
+ 		return -EAGAIN;
+ 	}
+ 	return 0;
+@@ -156,7 +156,7 @@ static int rpivid_mem_probe(struct platform_device *pdev)
+ 	ioresource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (ioresource) {
+ 		priv->regs_phys = ioresource->start;
+-		priv->mem_window_len = ioresource->end - ioresource->start;
++		priv->mem_window_len = (ioresource->end + 1) - ioresource->start;
+ 	} else {
+ 		dev_err(priv->dev, "failed to get IO resource");
+ 		err = -ENOENT;
+-- 
+2.33.0
+

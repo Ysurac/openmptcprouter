@@ -1,0 +1,103 @@
+From e8f5fa243c5be2ee7b469269e9be1198184c7308 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Mon, 2 Aug 2021 14:48:41 +0100
+Subject: [PATCH 524/552] configs: NOP_USB_XCEIV=y and USB_GADGET=y
+
+As of 5.13, "suppliers" (kinds of dependencies such as power and
+PHY drivers) are checked by the driver framework rather than the
+driver, making declaring such a supplier for a device without having
+a driver available effectively fatal even if the "consumer" driver
+makes no reference to it. The generic USB PHY declared for the DWC
+USB block is such a supplier, but the Pi 1-3 defconfigs don't include
+the generic PHY driver, making USB on those Pis unusable.
+
+Add USB generic PHY support to the remaining Pi defconfigs, which for
+Kconfig reasons also requires gadget support to be built-in (the kernel
+size increase appears to be minimal).
+
+See: https://github.com/raspberrypi/linux/issues/4496
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 4 ++--
+ arch/arm/configs/bcmrpi_defconfig    | 4 ++--
+ arch/arm64/configs/bcmrpi3_defconfig | 5 +++--
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 13d84a45147f..070d284167e2 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -1182,7 +1182,8 @@ CONFIG_USB_SPEEDTOUCH=m
+ CONFIG_USB_CXACRU=m
+ CONFIG_USB_UEAGLEATM=m
+ CONFIG_USB_XUSBATM=m
+-CONFIG_USB_GADGET=m
++CONFIG_NOP_USB_XCEIV=y
++CONFIG_USB_GADGET=y
+ CONFIG_USB_ZERO=m
+ CONFIG_USB_AUDIO=m
+ CONFIG_USB_ETH=m
+@@ -1319,7 +1320,6 @@ CONFIG_MAILBOX=y
+ CONFIG_BCM2835_MBOX=y
+ # CONFIG_IOMMU_SUPPORT is not set
+ CONFIG_RASPBERRYPI_POWER=y
+-CONFIG_EXTCON=m
+ CONFIG_IIO=m
+ CONFIG_IIO_BUFFER_CB=m
+ CONFIG_MCP320X=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 76c27e0b019a..cf7ad14a5d27 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -1175,7 +1175,8 @@ CONFIG_USB_SPEEDTOUCH=m
+ CONFIG_USB_CXACRU=m
+ CONFIG_USB_UEAGLEATM=m
+ CONFIG_USB_XUSBATM=m
+-CONFIG_USB_GADGET=m
++CONFIG_NOP_USB_XCEIV=y
++CONFIG_USB_GADGET=y
+ CONFIG_USB_CONFIGFS=m
+ CONFIG_USB_CONFIGFS_SERIAL=y
+ CONFIG_USB_CONFIGFS_ACM=y
+@@ -1330,7 +1331,6 @@ CONFIG_MAILBOX=y
+ CONFIG_BCM2835_MBOX=y
+ # CONFIG_IOMMU_SUPPORT is not set
+ CONFIG_RASPBERRYPI_POWER=y
+-CONFIG_EXTCON=m
+ CONFIG_IIO=m
+ CONFIG_IIO_BUFFER_CB=m
+ CONFIG_MCP320X=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index a810072e9a3b..0981b42aff5b 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -1025,6 +1025,7 @@ CONFIG_USBIP_CORE=m
+ CONFIG_USBIP_VHCI_HCD=m
+ CONFIG_USBIP_HOST=m
+ CONFIG_USB_DWC2=y
++CONFIG_USB_DWC2_HOST=y
+ CONFIG_USB_SERIAL=m
+ CONFIG_USB_SERIAL_GENERIC=y
+ CONFIG_USB_SERIAL_AIRCABLE=m
+@@ -1095,7 +1096,8 @@ CONFIG_USB_SPEEDTOUCH=m
+ CONFIG_USB_CXACRU=m
+ CONFIG_USB_UEAGLEATM=m
+ CONFIG_USB_XUSBATM=m
+-CONFIG_USB_GADGET=m
++CONFIG_NOP_USB_XCEIV=y
++CONFIG_USB_GADGET=y
+ CONFIG_MMC=y
+ CONFIG_MMC_BLOCK_MINORS=32
+ CONFIG_MMC_BCM2835_MMC=y
+@@ -1218,7 +1220,6 @@ CONFIG_MAILBOX=y
+ CONFIG_BCM2835_MBOX=y
+ # CONFIG_IOMMU_SUPPORT is not set
+ CONFIG_RASPBERRYPI_POWER=y
+-CONFIG_EXTCON=m
+ CONFIG_IIO=m
+ CONFIG_IIO_BUFFER_CB=m
+ CONFIG_MCP320X=m
+-- 
+2.33.0
+

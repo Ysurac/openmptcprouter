@@ -1,0 +1,64 @@
+From 0adbe055584d683b09b918abb4dd4f665dca0c55 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Fri, 16 Jul 2021 13:53:15 +0100
+Subject: [PATCH 431/552] configs: Remove RAW_DRIVER=y (driver deleted)
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 -
+ arch/arm/configs/bcmrpi_defconfig    | 1 -
+ arch/arm64/configs/bcm2711_defconfig | 1 -
+ arch/arm64/configs/bcmrpi3_defconfig | 1 -
+ 4 files changed, 4 deletions(-)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 056c650646d6..a34550cfff73 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -661,7 +661,6 @@ CONFIG_SERIAL_SC16IS7XX_SPI=y
+ CONFIG_SERIAL_DEV_BUS=y
+ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_RAW_DRIVER=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
+ CONFIG_I2C=y
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 7783423c9a91..a812fc9a1f36 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -655,7 +655,6 @@ CONFIG_SERIAL_SC16IS7XX_SPI=y
+ CONFIG_SERIAL_DEV_BUS=y
+ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_RAW_DRIVER=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
+ CONFIG_I2C=y
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index c696c7f7a0d3..e4716451721d 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -670,7 +670,6 @@ CONFIG_SERIAL_SC16IS7XX_SPI=y
+ CONFIG_SERIAL_DEV_BUS=y
+ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_RAW_DRIVER=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
+ CONFIG_I2C=y
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 721e0780622a..12d03e1ec3f3 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -647,7 +647,6 @@ CONFIG_SERIAL_SC16IS7XX_SPI=y
+ CONFIG_SERIAL_DEV_BUS=y
+ CONFIG_TTY_PRINTK=y
+ CONFIG_HW_RANDOM=y
+-CONFIG_RAW_DRIVER=y
+ CONFIG_TCG_TPM=m
+ CONFIG_TCG_TIS_SPI=m
+ CONFIG_I2C=y
+-- 
+2.33.0
+

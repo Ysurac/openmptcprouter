@@ -1,0 +1,79 @@
+From 8cc31724cf8e592508de802ec7f37b71fb137e64 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Thu, 8 Jul 2021 09:40:07 +0100
+Subject: [PATCH 411/552] mmc: sdhost: Pass DT pointer to rpi_firmware_get
+
+Using the rpi_firmware API as intended allows proper reference counting
+of the firmware device and means we can remove a downstream patch to
+the firmware driver.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/mmc/host/bcm2835-sdhost.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mmc/host/bcm2835-sdhost.c b/drivers/mmc/host/bcm2835-sdhost.c
+index 7caba5e12f79..2c4124082785 100644
+--- a/drivers/mmc/host/bcm2835-sdhost.c
++++ b/drivers/mmc/host/bcm2835-sdhost.c
+@@ -147,6 +147,8 @@
+ struct bcm2835_host {
+ 	spinlock_t		lock;
+ 
++	struct rpi_firmware	*fw;
++
+ 	void __iomem		*ioaddr;
+ 	phys_addr_t		bus_addr;
+ 
+@@ -1558,7 +1560,7 @@ void bcm2835_sdhost_set_clock(struct bcm2835_host *host, unsigned int clock)
+ 	if (host->firmware_sets_cdiv) {
+ 		u32 msg[3] = { clock, 0, 0 };
+ 
+-		rpi_firmware_property(rpi_firmware_get(NULL),
++		rpi_firmware_property(host->fw,
+ 				      RPI_FIRMWARE_SET_SDHOST_CLOCK,
+ 				      &msg, sizeof(msg));
+ 
+@@ -2100,6 +2102,13 @@ static int bcm2835_sdhost_probe(struct platform_device *pdev)
+ 		goto err;
+ 	}
+ 
++	host->fw = rpi_firmware_get(
++		of_parse_phandle(dev->of_node, "firmware", 0));
++	if (!host->fw) {
++		ret = -EPROBE_DEFER;
++		goto err;
++	}
++
+ 	host->max_clk = clk_get_rate(clk);
+ 
+ 	host->irq = platform_get_irq(pdev, 0);
+@@ -2124,7 +2133,7 @@ static int bcm2835_sdhost_probe(struct platform_device *pdev)
+ 	msg[1] = ~0;
+ 	msg[2] = ~0;
+ 
+-	rpi_firmware_property(rpi_firmware_get(NULL),
++	rpi_firmware_property(host->fw,
+ 			      RPI_FIRMWARE_SET_SDHOST_CLOCK,
+ 			      &msg, sizeof(msg));
+ 
+@@ -2142,6 +2151,8 @@ static int bcm2835_sdhost_probe(struct platform_device *pdev)
+ 
+ err:
+ 	pr_debug("bcm2835_sdhost_probe -> err %d\n", ret);
++	if (host->fw)
++		rpi_firmware_put(host->fw);
+ 	if (host->dma_chan_rxtx)
+ 		dma_release_channel(host->dma_chan_rxtx);
+ 	mmc_free_host(mmc);
+@@ -2164,6 +2175,7 @@ static int bcm2835_sdhost_remove(struct platform_device *pdev)
+ 	del_timer_sync(&host->timer);
+ 
+ 	tasklet_kill(&host->finish_tasklet);
++	rpi_firmware_put(host->fw);
+ 	if (host->dma_chan_rxtx)
+ 		dma_release_channel(host->dma_chan_rxtx);
+ 	mmc_free_host(host->mmc);
+-- 
+2.33.0
+

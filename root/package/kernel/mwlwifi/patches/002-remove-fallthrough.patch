@@ -1,0 +1,12 @@
+--- a/mac80211.c	2021-10-20 15:48:58.682784216 +0200
++++ b/mac80211.c	2021-10-20 15:50:38.921118149 +0200
+@@ -766,8 +766,8 @@
+ 					    buf_size, params->ssn,
+ 					    params->amsdu);
+ 			spin_lock_bh(&priv->stream_lock);
+-			break;
+ 		}
++		break;
+ 	case IEEE80211_AMPDU_RX_STOP:
+ 		if (priv->chip_type == MWL8964) {
+ 			struct mwl_ampdu_stream tmp;

@@ -18,3 +18,5 @@ CONFIG_PACKAGE_mkf2fs=y
 # CONFIG_PACKAGE_kmod-mt6625l-bt is not set
 # CONFIG_PACKAGE_kmod-mt6625l-wlan-gen-2 is not set
 CONFIG_KERNEL_ARM_MODULE_PLTS=y
+# CONFIG_PACKAGE_kmod-r8125 is not set
+# CONFIG_PACKAGE_kmod-r8168 is not set

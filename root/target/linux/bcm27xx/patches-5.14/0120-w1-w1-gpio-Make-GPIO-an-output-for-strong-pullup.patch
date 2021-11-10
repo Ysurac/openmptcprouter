@@ -1,0 +1,32 @@
+From 7bf861b37a4236d29cae7bd3bd81be58d2dffa7d Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 12 Jun 2019 17:15:05 +0100
+Subject: [PATCH 120/552] w1: w1-gpio: Make GPIO an output for strong pullup
+
+The logic to drive the data line high to implement a strong pullup
+assumed that the pin was already an output - setting a value does
+not change an input.
+
+See: https://github.com/raspberrypi/firmware/issues/1143
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ drivers/w1/masters/w1-gpio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/w1/masters/w1-gpio.c b/drivers/w1/masters/w1-gpio.c
+index d4632aace402..4832cd8c2596 100644
+--- a/drivers/w1/masters/w1-gpio.c
++++ b/drivers/w1/masters/w1-gpio.c
+@@ -30,7 +30,7 @@ static u8 w1_gpio_set_pullup(void *data, int delay)
+ 			 * This will OVERRIDE open drain emulation and force-pull
+ 			 * the line high for some time.
+ 			 */
+-			gpiod_set_raw_value(pdata->gpiod, 1);
++			gpiod_direction_output_raw(pdata->gpiod, 1);
+ 			msleep(pdata->pullup_duration);
+ 			/*
+ 			 * This will simply set the line as input since we are doing
+-- 
+2.33.0
+

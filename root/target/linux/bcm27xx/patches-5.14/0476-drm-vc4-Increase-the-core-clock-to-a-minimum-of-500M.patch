@@ -1,0 +1,46 @@
+From 1badca92a80de81d28104d4cc19860b6de0855e7 Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Mon, 28 Jun 2021 11:15:13 +0200
+Subject: [PATCH 476/552] drm/vc4: Increase the core clock to a minimum of
+ 500MHz
+
+The core clock needs to be raised temporarily during a modeset to
+500MHz. However, the HVS core clock requirement might be higher than
+500MHz. This rate will be enforced at the end of the mode setting,
+meaning that might might end up with a core clock rate lower than
+planned on the first mode set.
+
+Use the maximum value of 500MHz and the HVS core clock rate for our
+temporary boost to fix this issue.
+
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+---
+ drivers/gpu/drm/vc4/vc4_kms.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_kms.c b/drivers/gpu/drm/vc4/vc4_kms.c
+index 284e5a7ca168..34c4b7ef56cb 100644
+--- a/drivers/gpu/drm/vc4/vc4_kms.c
++++ b/drivers/gpu/drm/vc4/vc4_kms.c
+@@ -366,11 +366,17 @@ static void vc4_atomic_commit_tail(struct drm_atomic_state *state)
+ 	}
+ 
+ 	if (vc4->hvs && vc4->hvs->hvs5) {
++		unsigned long core_rate = max_t(unsigned long,
++						500000000,
++						new_hvs_state->core_clock_rate);
++
++		drm_dbg(dev, "Raising the core clock at %lu Hz\n", core_rate);
++
+ 		/*
+ 		 * Do a temporary request on the core clock during the
+ 		 * modeset.
+ 		 */
+-		core_req = clk_request_start(hvs->core_clk, 500000000);
++		core_req = clk_request_start(hvs->core_clk, core_rate);
+ 
+ 		/*
+ 		 * And remove the previous one based on the HVS
+-- 
+2.33.0
+

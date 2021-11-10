@@ -1,0 +1,42 @@
+From 0d8a2d3692f8057633aab5f7fc328c31a2063f60 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Thu, 19 Aug 2021 14:28:56 +0100
+Subject: [PATCH 546/552] Makefiles: dt: Always set '-@' on ARCH_BCM2835
+
+On the BCM2835 architecture, always add the '-@' option to enable the
+generation of symbols, rather than relying on DTC_FLAGS being empty
+or correct.
+
+See: https://github.com/raspberrypi/linux/issues/3846
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/boot/dts/Makefile            | 2 +-
+ arch/arm64/boot/dts/broadcom/Makefile | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 521878db3a78..331fcdfb76be 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -1480,5 +1480,5 @@ subdir-y	:= overlays
+ 
+ # Enable fixups to support overlays on BCM2835 platforms
+ ifeq ($(CONFIG_ARCH_BCM2835),y)
+-	DTC_FLAGS ?= -@
++	DTC_FLAGS += -@
+ endif
+diff --git a/arch/arm64/boot/dts/broadcom/Makefile b/arch/arm64/boot/dts/broadcom/Makefile
+index 90860d5a36a1..5a90727064ee 100644
+--- a/arch/arm64/boot/dts/broadcom/Makefile
++++ b/arch/arm64/boot/dts/broadcom/Makefile
+@@ -19,5 +19,5 @@ subdir-y	+= stingray
+ 
+ # Enable fixups to support overlays on BCM2835 platforms
+ ifeq ($(CONFIG_ARCH_BCM2835),y)
+-	DTC_FLAGS ?= -@
++	DTC_FLAGS += -@
+ endif
+-- 
+2.33.0
+

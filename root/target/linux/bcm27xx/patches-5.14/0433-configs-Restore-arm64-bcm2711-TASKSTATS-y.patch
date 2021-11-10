@@ -1,0 +1,27 @@
+From bd155cc5e14b398b81f4373d81b87fc635dc31be Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Fri, 16 Jul 2021 14:34:17 +0100
+Subject: [PATCH 433/552] configs: Restore arm64 bcm2711 TASKSTATS=y
+
+CONFIG_KVM=y no longer selects TASKSTATS, so make it explicit again.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 88c729614442..77c4e7435aab 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -9,6 +9,7 @@ CONFIG_BPF_SYSCALL=y
+ CONFIG_PREEMPT=y
+ CONFIG_BSD_PROCESS_ACCT=y
+ CONFIG_BSD_PROCESS_ACCT_V3=y
++CONFIG_TASKSTATS=y
+ CONFIG_TASK_XACCT=y
+ CONFIG_TASK_IO_ACCOUNTING=y
+ CONFIG_IKCONFIG=m
+-- 
+2.33.0
+

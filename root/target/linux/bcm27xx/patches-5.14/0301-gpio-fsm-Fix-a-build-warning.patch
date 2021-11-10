@@ -1,0 +1,27 @@
+From 4ee740bd03cfed85c69fed422e47b6b67468778b Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 27 Oct 2020 12:10:04 +0000
+Subject: [PATCH 301/552] gpio-fsm: Fix a build warning
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/gpio/gpio-fsm.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpio/gpio-fsm.c b/drivers/gpio/gpio-fsm.c
+index eb8b4d58d2d0..2cab50e51315 100644
+--- a/drivers/gpio/gpio-fsm.c
++++ b/drivers/gpio/gpio-fsm.c
+@@ -956,7 +956,8 @@ static int gpio_fsm_probe(struct platform_device *pdev)
+ 	// add reserved words to the symbol table
+ 	for (i = 0; i < ARRAY_SIZE(reserved_symbols); i++) {
+ 		if (reserved_symbols[i])
+-			add_symbol(&gf->symtab, reserved_symbols[i], (void *)i);
++			add_symbol(&gf->symtab, reserved_symbols[i],
++				   (void *)(uintptr_t)i);
+ 	}
+ 
+ 	// parse the state
+-- 
+2.33.0
+
