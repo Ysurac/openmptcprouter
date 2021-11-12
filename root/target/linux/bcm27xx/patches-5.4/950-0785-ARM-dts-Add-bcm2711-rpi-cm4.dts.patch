@@ -27,7 +27,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,589 @@
+@@ -0,0 +1,601 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -75,51 +75,63 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		wan {
 +				label = "bule:wan";
 +				gpios = <&gpio 27 GPIO_ACTIVE_LOW>;
-+			};     
++			};  
++	   
 +		5g1 {
 +				label = "bule:5g1";
 +				gpios = <&gpio 21 GPIO_ACTIVE_LOW>;
-+			};     
++			};  
++	   
 +		5g2 {
 +				label = "bule:5g2";
 +				gpios = <&gpio 20 GPIO_ACTIVE_LOW>;
-+			};     
++			};  
++	   
 +		5g3 {
 +				label = "bule:5g3";
 +				gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
 +			};  
++	
 +		5g4 {
 +				label = "bule:5g4";
 +				gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
-+			};     
++			};   
++	  
 +		5g5 {
 +				label = "bule:5g5";
 +				gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
-+			};     
++			}; 
++	    
 +		5g6 {
 +				label = "bule:5g6";
 +				gpios = <&gpio 22 GPIO_ACTIVE_LOW>;
-+			};  
++			};
++	  
 +		5gpwr1 {
 +				label = "bule:5gpwr1";
 +				gpios = <&gpio 26 GPIO_ACTIVE_LOW>;
-+			};     
++			}; 
++	    
 +		5gpwr2 {
 +				label = "bule:5gpwr2";
 +				gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
-+			};     
++			};  
++	   
 +		5gpwr3 {
 +				label = "bule:5gpwr3";
 +				gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
 +			};  
++	
 +		5gpwr4 {
 +				label = "bule:5gpwr4";
 +				gpios = <&gpio 24 GPIO_ACTIVE_LOW>;
-+			};     
++			};    
++	 
 +		5gpwr5 {
 +				label = "bule:5gpwr5";
 +				gpios = <&gpio 23 GPIO_ACTIVE_LOW>;
-+			};     
++			};  
++	   
 +		5gpwr6 {
 +				label = "bule:5gpwr6";
 +				gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
