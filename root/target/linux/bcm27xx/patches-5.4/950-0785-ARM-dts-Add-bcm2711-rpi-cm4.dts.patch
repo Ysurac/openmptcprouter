@@ -27,7 +27,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,586 @@
+@@ -0,0 +1,589 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -61,6 +61,69 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +			label = "PWR";
 +			gpios = <&expgpio 2 GPIO_ACTIVE_LOW>;
 +		};
++	
++		wlan2g {
++				label = "blue:wlan2g";
++				gpios = <&gpio 17 GPIO_ACTIVE_LOW>;
++			};
++	
++		wlan5g {
++				label = "bule:wlan5g";
++				gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
++			};
++	
++		wan {
++				label = "bule:wan";
++				gpios = <&gpio 27 GPIO_ACTIVE_LOW>;
++			};     
++		5g1 {
++				label = "bule:5g1";
++				gpios = <&gpio 21 GPIO_ACTIVE_LOW>;
++			};     
++		5g2 {
++				label = "bule:5g2";
++				gpios = <&gpio 20 GPIO_ACTIVE_LOW>;
++			};     
++		5g3 {
++				label = "bule:5g3";
++				gpios = <&gpio 16 GPIO_ACTIVE_LOW>;
++			};  
++		5g4 {
++				label = "bule:5g4";
++				gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
++			};     
++		5g5 {
++				label = "bule:5g5";
++				gpios = <&gpio 10 GPIO_ACTIVE_LOW>;
++			};     
++		5g6 {
++				label = "bule:5g6";
++				gpios = <&gpio 22 GPIO_ACTIVE_LOW>;
++			};  
++		5gpwr1 {
++				label = "bule:5gpwr1";
++				gpios = <&gpio 26 GPIO_ACTIVE_LOW>;
++			};     
++		5gpwr2 {
++				label = "bule:5gpwr2";
++				gpios = <&gpio 19 GPIO_ACTIVE_LOW>;
++			};     
++		5gpwr3 {
++				label = "bule:5gpwr3";
++				gpios = <&gpio 13 GPIO_ACTIVE_LOW>;
++			};  
++		5gpwr4 {
++				label = "bule:5gpwr4";
++				gpios = <&gpio 24 GPIO_ACTIVE_LOW>;
++			};     
++		5gpwr5 {
++				label = "bule:5gpwr5";
++				gpios = <&gpio 23 GPIO_ACTIVE_LOW>;
++			};     
++		5gpwr6 {
++				label = "bule:5gpwr6";
++				gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
++			};  
 +	};
 +
 +	wifi_pwrseq: wifi-pwrseq {
@@ -323,11 +386,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +};
 +
 +&gpio {
-+	spi0_pins: spi0_pins {
-+		brcm,pins = <9 10 11>;
-+		brcm,function = <BCM2835_FSEL_ALT0>;
-+	};
-+
 +	spi0_cs_pins: spi0_cs_pins {
 +		brcm,pins = <8 7>;
 +		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
@@ -336,11 +394,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	spi3_pins: spi3_pins {
 +		brcm,pins = <1 2 3>;
 +		brcm,function = <BCM2835_FSEL_ALT3>;
-+	};
-+
-+	spi3_cs_pins: spi3_cs_pins {
-+		brcm,pins = <0 24>;
-+		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
 +	};
 +
 +	spi4_pins: spi4_pins {
@@ -358,36 +411,9 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		brcm,function = <BCM2835_FSEL_ALT3>;
 +	};
 +
-+	spi5_cs_pins: spi5_cs_pins {
-+		brcm,pins = <12 26>;
-+		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
-+	};
-+
-+	spi6_pins: spi6_pins {
-+		brcm,pins = <19 20 21>;
-+		brcm,function = <BCM2835_FSEL_ALT3>;
-+	};
-+
-+	spi6_cs_pins: spi6_cs_pins {
-+		brcm,pins = <18 27>;
-+		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
-+	};
-+
 +	i2c0_pins: i2c0 {
 +		brcm,pins = <0 1>;
 +		brcm,function = <BCM2835_FSEL_ALT0>;
-+		brcm,pull = <BCM2835_PUD_UP>;
-+	};
-+
-+	i2c1_pins: i2c1 {
-+		brcm,pins = <2 3>;
-+		brcm,function = <BCM2835_FSEL_ALT0>;
-+		brcm,pull = <BCM2835_PUD_UP>;
-+	};
-+
-+	i2c3_pins: i2c3 {
-+		brcm,pins = <4 5>;
-+		brcm,function = <BCM2835_FSEL_ALT5>;
 +		brcm,pull = <BCM2835_PUD_UP>;
 +	};
 +
@@ -395,23 +421,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		brcm,pins = <8 9>;
 +		brcm,function = <BCM2835_FSEL_ALT5>;
 +		brcm,pull = <BCM2835_PUD_UP>;
-+	};
-+
-+	i2c5_pins: i2c5 {
-+		brcm,pins = <12 13>;
-+		brcm,function = <BCM2835_FSEL_ALT5>;
-+		brcm,pull = <BCM2835_PUD_UP>;
-+	};
-+
-+	i2c6_pins: i2c6 {
-+		brcm,pins = <22 23>;
-+		brcm,function = <BCM2835_FSEL_ALT5>;
-+		brcm,pull = <BCM2835_PUD_UP>;
-+	};
-+
-+	i2s_pins: i2s {
-+		brcm,pins = <18 19 20 21>;
-+		brcm,function = <BCM2835_FSEL_ALT0>;
 +	};
 +
 +	sdio_pins: sdio_pins {
@@ -453,12 +462,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +	uart4_pins: uart4_pins {
 +		brcm,pins = <8 9>;
-+		brcm,function = <BCM2835_FSEL_ALT4>;
-+		brcm,pull = <0 2>;
-+	};
-+
-+	uart5_pins: uart5_pins {
-+		brcm,pins = <12 13>;
 +		brcm,function = <BCM2835_FSEL_ALT4>;
 +		brcm,pull = <0 2>;
 +	};
