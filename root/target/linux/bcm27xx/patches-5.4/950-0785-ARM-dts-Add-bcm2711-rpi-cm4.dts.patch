@@ -27,7 +27,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,589 @@
+@@ -0,0 +1,536 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -293,28 +293,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	pinctrl-0 = <&uart1_pins>;
 +};
 +
-+&spi0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&spi0_pins &spi0_cs_pins>;
-+	cs-gpios = <&gpio 8 1>, <&gpio 7 1>;
-+
-+	spidev0: spidev@0{
-+		compatible = "spidev";
-+		reg = <0>;	/* CE0 */
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		spi-max-frequency = <125000000>;
-+	};
-+
-+	spidev1: spidev@1{
-+		compatible = "spidev";
-+		reg = <1>;	/* CE1 */
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		spi-max-frequency = <125000000>;
-+	};
-+};
-+
 +&gpio {
 +	spi0_cs_pins: spi0_cs_pins {
 +		brcm,pins = <8 7>;
@@ -394,24 +372,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +&i2c0if {
 +	clock-frequency = <100000>;
-+};
-+
-+&i2c1 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins>;
-+	clock-frequency = <100000>;
-+};
-+
-+&i2s {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2s_pins>;
-+};
-+
-+/ {
-+	__overrides__ {
-+		/delete-property/ i2c2_baudrate;
-+		/delete-property/ i2c2_iknowwhatimdoing;
-+	};
 +};
 +
 +// =============================================
@@ -599,19 +559,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +		eth_led0 = <&phy1>,"led-modes:0";
 +		eth_led1 = <&phy1>,"led-modes:4";
-+
-+		ant1 =  <&ant1>,"output-high?=on",
-+			<&ant1>, "output-low?=off",
-+			<&ant2>, "output-high?=off",
-+			<&ant2>, "output-low?=on";
-+		ant2 =  <&ant1>,"output-high?=off",
-+			<&ant1>, "output-low?=on",
-+			<&ant2>, "output-high?=on",
-+			<&ant2>, "output-low?=off";
-+		noant = <&ant1>,"output-high?=off",
-+			<&ant1>, "output-low?=on",
-+			<&ant2>, "output-high?=off",
-+			<&ant2>, "output-low?=on";
 +
 +		spi_dma4 = <&spi0>, "dmas:0=", <&dma40>,
 +			   <&spi0>, "dmas:8=", <&dma40>;
