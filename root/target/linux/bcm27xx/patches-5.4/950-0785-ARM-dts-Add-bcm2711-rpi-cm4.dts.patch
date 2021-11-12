@@ -27,7 +27,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,590 @@
+@@ -0,0 +1,589 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -91,7 +91,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		gpio-line-names = "BT_ON",
 +				  "WL_ON",
 +				  "PWR_LED_OFF",
-+				  "ANT1",
 +				  "VDD_SD_IO_SEL",
 +				  "CAM_GPIO",
 +				  "SD_PWR_ON",
