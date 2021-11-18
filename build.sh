@@ -517,6 +517,7 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	if [ -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch ]; then
 		rm -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch
 	fi
+	echo "CONFIG_VERSION_CODE=5.4" >> ".config"
 fi
 if [ "$OMR_KERNEL" = "5.10" ]; then
 	echo "Set to kernel 5.10 for rpi arch"
@@ -565,6 +566,7 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo 'CONFIG_BINUTILS_VERSION_2_36_1=y' >> ".config"
 	echo 'CONFIG_BINUTILS_VERSION="2.36.1' >> ".config"
 	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
+	echo "CONFIG_VERSION_CODE=5.14" >> ".config"
 	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
 	if [ "$TARGET" = "bpi-r2" ]; then
 		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
