@@ -94,11 +94,11 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
 		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f441be3921c769b732f0148f005d4f1bbace0508"
 		_get_repo feeds/packages https://github.com/openwrt/packages "3aa30ceee4fcf7b131bdc0f98658391069573e12"
-		_get_repo feeds/luci https://github.com/openwrt/luci "f28aaa35cd5c0cbbe59d8cc6a67de88ceeac382e"
+		_get_repo feeds/luci https://github.com/openwrt/luci "6ddea93e8a6e6768e4a50f0bc37a8fe75cf81d13"
 	else
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "585cef5f1a9c1c3aecd7d231364618e96d03ab65"
-		_get_repo feeds/packages https://github.com/openwrt/packages "e2055b5433da245e6ff8fb060d018d036499cf38"
-		_get_repo feeds/luci https://github.com/openwrt/luci "7c943a1d6bcf449019ca8a43e800e51f269bb8f6"
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "8a6b1a8d29cbd62f005ba20998ca9c8048ff49fc"
+		_get_repo feeds/packages https://github.com/openwrt/packages "b5132de5cf4f7d0562445cf3c65f9f1a4bcb1bbf"
+		_get_repo feeds/luci https://github.com/openwrt/luci "02398a33837d1fe8fd23d933ad7ac32025144805"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
@@ -517,6 +517,7 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	if [ -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch ]; then
 		rm -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch
 	fi
+	echo "CONFIG_VERSION_CODE=5.4" >> ".config"
 fi
 if [ "$OMR_KERNEL" = "5.10" ]; then
 	echo "Set to kernel 5.10 for rpi arch"
@@ -565,6 +566,7 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo 'CONFIG_BINUTILS_VERSION_2_36_1=y' >> ".config"
 	echo 'CONFIG_BINUTILS_VERSION="2.36.1' >> ".config"
 	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
+	echo "CONFIG_VERSION_CODE=5.14" >> ".config"
 	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
 	if [ "$TARGET" = "bpi-r2" ]; then
 		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
