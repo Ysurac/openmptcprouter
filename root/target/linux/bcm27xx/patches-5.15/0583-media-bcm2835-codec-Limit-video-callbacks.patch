@@ -1,0 +1,41 @@
+From e84199df6a504860f7e2b14008bee6f674f6f1c7 Mon Sep 17 00:00:00 2001
+From: John Cox <jc@kynesim.co.uk>
+Date: Fri, 22 Oct 2021 13:11:38 +0100
+Subject: [PATCH 583/634] media: bcm2835-codec: Limit video callbacks
+
+Limit the number of allowed video callbacks. This helps with limiting
+the size of the coded input FIFO which in turn helps to control latency.
+Choose -5 as the magic number as it translates to DPB+5 buffers which
+has been proven to be a good number in the past.
+
+Ideally coded buffers would not be returned to the user until they
+had been decoded into the DPB or been discarded as bad, but that grade
+of control is unavailable to us.
+
+Signed-off-by: John Cox <jc@kynesim.co.uk>
+---
+ .../vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c      | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c b/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
+index 6078d6e2ace0..e8452c82d088 100644
+--- a/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
++++ b/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
+@@ -2510,6 +2510,14 @@ static int bcm2835_codec_create_component(struct bcm2835_codec_ctx *ctx)
+ 					      MMAL_PARAMETER_VIDEO_STOP_ON_PAR_COLOUR_CHANGE,
+ 					      &enable,
+ 					      sizeof(enable));
++
++		enable = (unsigned int)-5;
++		vchiq_mmal_port_parameter_set(dev->instance,
++					      &ctx->component->control,
++					      MMAL_PARAMETER_VIDEO_MAX_NUM_CALLBACKS,
++					      &enable,
++					      sizeof(enable));
++
+ 	} else if (dev->role == DEINTERLACE) {
+ 		/* Select the default deinterlace algorithm. */
+ 		int half_framerate = 0;
+-- 
+2.33.1
+

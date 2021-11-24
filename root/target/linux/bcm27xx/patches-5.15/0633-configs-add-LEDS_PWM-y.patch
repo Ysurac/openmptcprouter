@@ -1,0 +1,79 @@
+From 436be1a460d6fd67e8aaabcc33b1f6ac12eaf1d0 Mon Sep 17 00:00:00 2001
+From: Michael Heimpold <mhei@heimpold.de>
+Date: Thu, 4 Nov 2021 23:09:07 +0100
+Subject: [PATCH 633/634] configs: add LEDS_PWM=y
+
+Enable support for PWM driven LEDs.
+
+Signed-off-by: Michael Heimpold <mhei@heimpold.de>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 +
+ arch/arm/configs/bcm2711_defconfig   | 1 +
+ arch/arm/configs/bcmrpi_defconfig    | 1 +
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ arch/arm64/configs/bcmrpi3_defconfig | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index cd4148fcdc4b..317b0018d6e2 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -1169,6 +1169,7 @@ CONFIG_LEDS_PCA9532=m
+ CONFIG_LEDS_GPIO=y
+ CONFIG_LEDS_PCA955X=m
+ CONFIG_LEDS_PCA963X=m
++CONFIG_LEDS_PWM=y
+ CONFIG_LEDS_IS31FL32XX=m
+ CONFIG_LEDS_TRIGGER_TIMER=y
+ CONFIG_LEDS_TRIGGER_ONESHOT=y
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 6cceda505484..94d15dfe2793 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -1206,6 +1206,7 @@ CONFIG_LEDS_PCA9532=m
+ CONFIG_LEDS_GPIO=y
+ CONFIG_LEDS_PCA955X=m
+ CONFIG_LEDS_PCA963X=m
++CONFIG_LEDS_PWM=y
+ CONFIG_LEDS_IS31FL32XX=m
+ CONFIG_LEDS_TRIGGER_TIMER=y
+ CONFIG_LEDS_TRIGGER_ONESHOT=y
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index f7d84b00778e..95a11f27dfad 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -1180,6 +1180,7 @@ CONFIG_LEDS_PCA9532=m
+ CONFIG_LEDS_GPIO=y
+ CONFIG_LEDS_PCA955X=m
+ CONFIG_LEDS_PCA963X=m
++CONFIG_LEDS_PWM=y
+ CONFIG_LEDS_IS31FL32XX=m
+ CONFIG_LEDS_TRIGGER_TIMER=y
+ CONFIG_LEDS_TRIGGER_ONESHOT=y
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 00aa6d7ebb36..0fffa3b4f72b 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -1211,6 +1211,7 @@ CONFIG_LEDS_PCA9532=m
+ CONFIG_LEDS_GPIO=y
+ CONFIG_LEDS_PCA955X=m
+ CONFIG_LEDS_PCA963X=m
++CONFIG_LEDS_PWM=y
+ CONFIG_LEDS_IS31FL32XX=m
+ CONFIG_LEDS_TRIGGER_TIMER=y
+ CONFIG_LEDS_TRIGGER_ONESHOT=y
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 2a319d0550a2..c4dff0b42461 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -1075,6 +1075,7 @@ CONFIG_LEDS_PCA9532=m
+ CONFIG_LEDS_GPIO=y
+ CONFIG_LEDS_PCA955X=m
+ CONFIG_LEDS_PCA963X=m
++CONFIG_LEDS_PWM=y
+ CONFIG_LEDS_IS31FL32XX=m
+ CONFIG_LEDS_TRIGGER_TIMER=y
+ CONFIG_LEDS_TRIGGER_ONESHOT=y
+-- 
+2.33.1
+

@@ -1,0 +1,84 @@
+From 7d9e3fd5588ff325e87844e3bcb0d167a9456e78 Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Thu, 23 Sep 2021 20:50:13 +0200
+Subject: [PATCH 010/634] drm/vc4: crtc: Make sure the HDMI controller is
+ powered when disabling
+
+Since commit 875a4d536842 ("drm/vc4: drv: Disable the CRTC at boot
+time"), during the initial setup of the driver we call into the VC4 HDMI
+controller hooks to make sure the controller is properly disabled.
+
+However, we were never making sure that the device was properly powered
+while doing so. This never resulted in any (reported) issue in practice,
+but since the introduction of commit 4209f03fcb8e ("drm/vc4: hdmi: Warn
+if we access the controller while disabled") we get a loud complaint
+when we do that kind of access.
+
+Let's make sure we have the HDMI controller properly powered while
+disabling it.
+
+Fixes: 875a4d536842 ("drm/vc4: drv: Disable the CRTC at boot time")
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+Reviewed-by: Nicolas Saenz Julienne <nsaenz@kernel.org>
+Tested-by: Nicolas Saenz Julienne <nsaenz@kernel.org>
+Link: https://patchwork.freedesktop.org/patch/msgid/20210923185013.826679-1-maxime@cerno.tech
+---
+ drivers/gpu/drm/vc4/vc4_crtc.c | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_crtc.c b/drivers/gpu/drm/vc4/vc4_crtc.c
+index 18f5009ce90e..c0df11e5fcf2 100644
+--- a/drivers/gpu/drm/vc4/vc4_crtc.c
++++ b/drivers/gpu/drm/vc4/vc4_crtc.c
+@@ -32,6 +32,7 @@
+ #include <linux/clk.h>
+ #include <linux/component.h>
+ #include <linux/of_device.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_atomic_helper.h>
+@@ -42,6 +43,7 @@
+ #include <drm/drm_vblank.h>
+ 
+ #include "vc4_drv.h"
++#include "vc4_hdmi.h"
+ #include "vc4_regs.h"
+ 
+ #define HVS_FIFO_LATENCY_PIX	6
+@@ -496,8 +498,10 @@ int vc4_crtc_disable_at_boot(struct drm_crtc *crtc)
+ 	enum vc4_encoder_type encoder_type;
+ 	const struct vc4_pv_data *pv_data;
+ 	struct drm_encoder *encoder;
++	struct vc4_hdmi *vc4_hdmi;
+ 	unsigned encoder_sel;
+ 	int channel;
++	int ret;
+ 
+ 	if (!(of_device_is_compatible(vc4_crtc->pdev->dev.of_node,
+ 				      "brcm,bcm2711-pixelvalve2") ||
+@@ -525,7 +529,20 @@ int vc4_crtc_disable_at_boot(struct drm_crtc *crtc)
+ 	if (WARN_ON(!encoder))
+ 		return 0;
+ 
+-	return vc4_crtc_disable(crtc, encoder, NULL, channel);
++	vc4_hdmi = encoder_to_vc4_hdmi(encoder);
++	ret = pm_runtime_resume_and_get(&vc4_hdmi->pdev->dev);
++	if (ret)
++		return ret;
++
++	ret = vc4_crtc_disable(crtc, encoder, NULL, channel);
++	if (ret)
++		return ret;
++
++	ret = pm_runtime_put(&vc4_hdmi->pdev->dev);
++	if (ret)
++		return ret;
++
++	return 0;
+ }
+ 
+ static void vc4_crtc_atomic_disable(struct drm_crtc *crtc,
+-- 
+2.33.1
+

@@ -1,0 +1,35 @@
+From 34b3c67f34338cbdf08d927dbbedbb9074bb072d Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Fri, 27 Aug 2021 18:20:25 +0200
+Subject: [PATCH 610/634] drm/vc4: kms: Add missing drm_crtc_commit_put
+
+Commit 9ec03d7f1ed3 ("drm/vc4: kms: Wait on previous FIFO users before a
+commit") introduced a global state for the HVS, with each FIFO storing
+the current CRTC commit so that we can properly synchronize commits.
+
+However, the refcounting was off and we thus ended up leaking the
+drm_crtc_commit structure every commit. Add a drm_crtc_commit_put to
+prevent the leakage.
+
+Fixes: 9ec03d7f1ed3 ("drm/vc4: kms: Wait on previous FIFO users before a commit")
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+---
+ drivers/gpu/drm/vc4/vc4_kms.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_kms.c b/drivers/gpu/drm/vc4/vc4_kms.c
+index 2511113a6f82..8c63b962b2e6 100644
+--- a/drivers/gpu/drm/vc4/vc4_kms.c
++++ b/drivers/gpu/drm/vc4/vc4_kms.c
+@@ -389,6 +389,8 @@ static void vc4_atomic_commit_tail(struct drm_atomic_state *state)
+ 		ret = drm_crtc_commit_wait(commit);
+ 		if (ret)
+ 			drm_err(dev, "Timed out waiting for commit\n");
++
++		drm_crtc_commit_put(commit);
+ 	}
+ 
+ 	if (vc4->hvs && vc4->hvs->hvs5) {
+-- 
+2.33.1
+

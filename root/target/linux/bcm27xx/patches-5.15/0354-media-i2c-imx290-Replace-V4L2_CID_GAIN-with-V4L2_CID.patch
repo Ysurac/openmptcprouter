@@ -1,0 +1,43 @@
+From 6086bef4432a9dafcbde3fa8b7fe31a78f475961 Mon Sep 17 00:00:00 2001
+From: David Plowman <david.plowman@raspberrypi.com>
+Date: Thu, 4 Feb 2021 17:29:32 +0000
+Subject: [PATCH 354/634] media: i2c: imx290: Replace V4L2_CID_GAIN with
+ V4L2_CID_ANALOGUE_GAIN
+
+Most software (including libcamera) requires V4L2_CID_ANALOGUE_GAIN,
+not V4L2_CID_GAIN.
+
+The range for the control is 0 to 100 for which the sensor uses only
+analogue gain; higher values would involve digital gain which this
+control should not apply.
+
+Signed-off-by: David Plowman <david.plowman@raspberrypi.com>
+---
+ drivers/media/i2c/imx290.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/imx290.c b/drivers/media/i2c/imx290.c
+index def5e8fe41a0..1028a339beee 100644
+--- a/drivers/media/i2c/imx290.c
++++ b/drivers/media/i2c/imx290.c
+@@ -647,7 +647,7 @@ static int imx290_set_ctrl(struct v4l2_ctrl *ctrl)
+ 		return 0;
+ 
+ 	switch (ctrl->id) {
+-	case V4L2_CID_GAIN:
++	case V4L2_CID_ANALOGUE_GAIN:
+ 		ret = imx290_set_gain(imx290, ctrl->val);
+ 		break;
+ 	case V4L2_CID_EXPOSURE:
+@@ -1327,7 +1327,7 @@ static int imx290_probe(struct i2c_client *client)
+ 	v4l2_ctrl_handler_init(&imx290->ctrls, 4);
+ 
+ 	v4l2_ctrl_new_std(&imx290->ctrls, &imx290_ctrl_ops,
+-			  V4L2_CID_GAIN, 0, 238, 1, 0);
++			  V4L2_CID_ANALOGUE_GAIN, 0, 100, 1, 0);
+ 
+ 	mode = imx290->current_mode;
+ 	imx290->hblank = v4l2_ctrl_new_std(&imx290->ctrls, &imx290_ctrl_ops,
+-- 
+2.33.1
+

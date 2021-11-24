@@ -1,0 +1,52 @@
+From 4bfb738710a3ea66e51eefbc8cd8e8673c84a5b3 Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Wed, 22 Sep 2021 14:54:19 +0200
+Subject: [PATCH 004/634] drm/vc4: hdmi: Make sure the controller is powered in
+ detect
+
+If the HPD GPIO is not available and drm_probe_ddc fails, we end up
+reading the HDMI_HOTPLUG register, but the controller might be powered
+off resulting in a CPU hang. Make sure we have the power domain and the
+HSM clock powered during the detect cycle to prevent the hang from
+happening.
+
+Fixes: 4f6e3d66ac52 ("drm/vc4: Add runtime PM support to the HDMI encoder driver")
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+Reviewed-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Reviewed-by: Nicolas Saenz Julienne <nsaenz@kernel.org>
+Tested-by: Nicolas Saenz Julienne <nsaenz@kernel.org>
+Tested-by: Michael Stapelberg <michael@stapelberg.ch>
+Link: https://patchwork.freedesktop.org/patch/msgid/20210922125419.4125779-6-maxime@cerno.tech
+---
+ drivers/gpu/drm/vc4/vc4_hdmi.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
+index 6b0700d0b408..21510ae31a9e 100644
+--- a/drivers/gpu/drm/vc4/vc4_hdmi.c
++++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
+@@ -168,6 +168,8 @@ vc4_hdmi_connector_detect(struct drm_connector *connector, bool force)
+ 	struct vc4_hdmi *vc4_hdmi = connector_to_vc4_hdmi(connector);
+ 	bool connected = false;
+ 
++	WARN_ON(pm_runtime_resume_and_get(&vc4_hdmi->pdev->dev));
++
+ 	if (vc4_hdmi->hpd_gpio &&
+ 	    gpiod_get_value_cansleep(vc4_hdmi->hpd_gpio)) {
+ 		connected = true;
+@@ -188,10 +190,12 @@ vc4_hdmi_connector_detect(struct drm_connector *connector, bool force)
+ 			}
+ 		}
+ 
++		pm_runtime_put(&vc4_hdmi->pdev->dev);
+ 		return connector_status_connected;
+ 	}
+ 
+ 	cec_phys_addr_invalidate(vc4_hdmi->cec_adap);
++	pm_runtime_put(&vc4_hdmi->pdev->dev);
+ 	return connector_status_disconnected;
+ }
+ 
+-- 
+2.33.1
+
