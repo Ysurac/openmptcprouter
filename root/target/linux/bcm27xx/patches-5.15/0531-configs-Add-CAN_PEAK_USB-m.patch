@@ -1,0 +1,81 @@
+From 55ca80e8dec9113305389535bdae3c7495e1c460 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Fri, 17 Sep 2021 15:18:51 +0100
+Subject: [PATCH 531/634] configs: Add CAN_PEAK_USB=m
+
+Add the driver for the PEAK Systems USB CAN interface.
+
+See: https://github.com/raspberrypi/linux/issues/4583
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 +
+ arch/arm/configs/bcm2711_defconfig   | 1 +
+ arch/arm/configs/bcmrpi_defconfig    | 1 +
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ arch/arm64/configs/bcmrpi3_defconfig | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index c791261d7827..bbb951e55b19 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -415,6 +415,7 @@ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_GS_USB=m
++CONFIG_CAN_PEAK_USB=m
+ CONFIG_BT=m
+ CONFIG_BT_RFCOMM=m
+ CONFIG_BT_RFCOMM_TTY=y
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 219f2ac0bbee..89d4845f708f 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -416,6 +416,7 @@ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_GS_USB=m
++CONFIG_CAN_PEAK_USB=m
+ CONFIG_BT=m
+ CONFIG_BT_RFCOMM=m
+ CONFIG_BT_RFCOMM_TTY=y
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 18540a4f9cd7..7804862696c1 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -409,6 +409,7 @@ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_GS_USB=m
++CONFIG_CAN_PEAK_USB=m
+ CONFIG_BT=m
+ CONFIG_BT_RFCOMM=m
+ CONFIG_BT_RFCOMM_TTY=y
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index bab586713394..989aefe7a389 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -415,6 +415,7 @@ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_GS_USB=m
++CONFIG_CAN_PEAK_USB=m
+ CONFIG_BT=m
+ CONFIG_BT_RFCOMM=m
+ CONFIG_BT_RFCOMM_TTY=y
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 235fecf9c903..6af6d68a8f38 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -408,6 +408,7 @@ CONFIG_CAN_VCAN=m
+ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
+ CONFIG_CAN_EMS_USB=m
++CONFIG_CAN_PEAK_USB=m
+ CONFIG_BT=m
+ CONFIG_BT_RFCOMM=m
+ CONFIG_BT_RFCOMM_TTY=y
+-- 
+2.33.1
+

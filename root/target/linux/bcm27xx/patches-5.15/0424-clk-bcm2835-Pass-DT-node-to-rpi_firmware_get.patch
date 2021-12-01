@@ -1,0 +1,29 @@
+From 37c1ec02ab1bdb4aff5873a5e3679758036689f4 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Thu, 8 Jul 2021 09:37:10 +0100
+Subject: [PATCH 424/634] clk: bcm2835: Pass DT node to rpi_firmware_get
+
+The fw_node pointer has already been retrieved, and using it allows
+us to remove a downstream patch to the firmware driver.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/clk/bcm/clk-bcm2835.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/bcm/clk-bcm2835.c b/drivers/clk/bcm/clk-bcm2835.c
+index 961acade005f..e4dfbe2cf50e 100644
+--- a/drivers/clk/bcm/clk-bcm2835.c
++++ b/drivers/clk/bcm/clk-bcm2835.c
+@@ -2339,7 +2339,7 @@ static int bcm2835_clk_probe(struct platform_device *pdev)
+ 
+ 	fw_node = of_parse_phandle(dev->of_node, "firmware", 0);
+ 	if (fw_node) {
+-		struct rpi_firmware *fw = rpi_firmware_get(NULL);
++		struct rpi_firmware *fw = rpi_firmware_get(fw_node);
+ 		if (!fw)
+ 			return -EPROBE_DEFER;
+ 		cprman->fw = fw;
+-- 
+2.33.1
+

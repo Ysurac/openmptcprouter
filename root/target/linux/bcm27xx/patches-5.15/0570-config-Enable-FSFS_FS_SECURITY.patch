@@ -1,0 +1,82 @@
+From 0c4c7f1f2321ec48fc1c67da167907a861d48774 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Mon, 18 Oct 2021 16:39:11 +0100
+Subject: [PATCH 570/634] config: Enable FSFS_FS_SECURITY
+
+Add a negligible amount of core kernel code for capability-based
+access control on F2FS.
+
+See: https://github.com/raspberrypi/linux/issues/2778
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 +
+ arch/arm/configs/bcm2711_defconfig   | 1 +
+ arch/arm/configs/bcmrpi_defconfig    | 1 +
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ arch/arm64/configs/bcmrpi3_defconfig | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 39a79c6a0b52..77553d32412e 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -1320,6 +1320,7 @@ CONFIG_BTRFS_FS=m
+ CONFIG_BTRFS_FS_POSIX_ACL=y
+ CONFIG_NILFS2_FS=m
+ CONFIG_F2FS_FS=y
++CONFIG_F2FS_FS_SECURITY=y
+ CONFIG_FS_ENCRYPTION=y
+ CONFIG_FANOTIFY=y
+ CONFIG_QFMT_V1=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index c1d7afb36a2e..a15b3e0a02f6 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -1359,6 +1359,7 @@ CONFIG_BTRFS_FS=m
+ CONFIG_BTRFS_FS_POSIX_ACL=y
+ CONFIG_NILFS2_FS=m
+ CONFIG_F2FS_FS=y
++CONFIG_F2FS_FS_SECURITY=y
+ CONFIG_FS_ENCRYPTION=y
+ CONFIG_FANOTIFY=y
+ CONFIG_QFMT_V1=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 2f64a60e1e63..f1a78aa3966c 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -1331,6 +1331,7 @@ CONFIG_BTRFS_FS=m
+ CONFIG_BTRFS_FS_POSIX_ACL=y
+ CONFIG_NILFS2_FS=m
+ CONFIG_F2FS_FS=y
++CONFIG_F2FS_FS_SECURITY=y
+ CONFIG_FANOTIFY=y
+ CONFIG_QFMT_V1=m
+ CONFIG_QFMT_V2=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 234e68865bff..2a7e9aaf2b4d 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -1368,6 +1368,7 @@ CONFIG_BTRFS_FS=m
+ CONFIG_BTRFS_FS_POSIX_ACL=y
+ CONFIG_NILFS2_FS=m
+ CONFIG_F2FS_FS=y
++CONFIG_F2FS_FS_SECURITY=y
+ CONFIG_FS_ENCRYPTION=y
+ CONFIG_FANOTIFY=y
+ CONFIG_QFMT_V1=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 6b0ca5314ab3..f16857163068 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -1217,6 +1217,7 @@ CONFIG_BTRFS_FS=m
+ CONFIG_BTRFS_FS_POSIX_ACL=y
+ CONFIG_NILFS2_FS=m
+ CONFIG_F2FS_FS=y
++CONFIG_F2FS_FS_SECURITY=y
+ CONFIG_FS_ENCRYPTION=y
+ CONFIG_FANOTIFY=y
+ CONFIG_QFMT_V1=m
+-- 
+2.33.1
+

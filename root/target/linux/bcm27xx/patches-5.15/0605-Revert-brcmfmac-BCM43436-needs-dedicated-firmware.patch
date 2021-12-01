@@ -1,0 +1,34 @@
+From 4e102e98bf30c8337b329a86cfceb6a97e397e91 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 2 Nov 2021 16:53:20 +0000
+Subject: [PATCH 605/634] Revert "brcmfmac: BCM43436 needs dedicated firmware"
+
+This reverts commit 0a2690fa8c3a0b356a0cf5fc63c2428264ead0e7.
+---
+ drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+index fd1a09228f9a..6bcaa402a356 100644
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+@@ -616,7 +616,6 @@ BRCMF_FW_DEF(4335, "brcmfmac4335-sdio");
+ BRCMF_FW_DEF(43362, "brcmfmac43362-sdio");
+ BRCMF_FW_DEF(4339, "brcmfmac4339-sdio");
+ BRCMF_FW_DEF(43430A0, "brcmfmac43430a0-sdio");
+-BRCMF_FW_DEF(43436, "brcmfmac43436-sdio");
+ /* Note the names are not postfixed with a1 for backward compatibility */
+ BRCMF_FW_CLM_DEF(43430A1, "brcmfmac43430-sdio");
+ BRCMF_FW_DEF(43430B0, "brcmfmac43430b0-sdio");
+@@ -651,8 +650,6 @@ static const struct brcmf_firmware_mapping brcmf_sdio_fwnames[] = {
+ 	BRCMF_FW_ENTRY(BRCM_CC_4339_CHIP_ID, 0xFFFFFFFF, 4339),
+ 	BRCMF_FW_ENTRY(BRCM_CC_43430_CHIP_ID, 0x00000001, 43430A0),
+ 	BRCMF_FW_ENTRY(BRCM_CC_43430_CHIP_ID, 0x00000002, 43430A1),
+-	BRCMF_FW_ENTRY(BRCM_CC_43430_CHIP_ID, 0x00000004, 43436),
+-	BRCMF_FW_ENTRY(BRCM_CC_43430_CHIP_ID, 0xFFFFFFFA, 43430A1),
+ 	BRCMF_FW_ENTRY(BRCM_CC_43430_CHIP_ID, 0xFFFFFFFC, 43430B0),
+ 	BRCMF_FW_ENTRY(BRCM_CC_4345_CHIP_ID, 0x00000200, 43456),
+ 	BRCMF_FW_ENTRY(BRCM_CC_4345_CHIP_ID, 0xFFFFFDC0, 43455),
+-- 
+2.33.1
+

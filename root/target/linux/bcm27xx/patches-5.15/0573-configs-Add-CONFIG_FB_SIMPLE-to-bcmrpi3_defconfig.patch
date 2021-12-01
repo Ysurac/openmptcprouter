@@ -1,0 +1,27 @@
+From 0474407795d611cea0108e7ef21190512a992353 Mon Sep 17 00:00:00 2001
+From: Erik Tagirov <tgsc2009@gmail.com>
+Date: Wed, 20 Oct 2021 09:51:26 +0200
+Subject: [PATCH 573/634] configs: Add CONFIG_FB_SIMPLE to bcmrpi3_defconfig
+
+See: https://github.com/raspberrypi/linux/pull/4640
+
+Signed-off-by: Erik Tagirov <erik@tagirov.ch>
+---
+ arch/arm64/configs/bcmrpi3_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index f16857163068..b252255397fa 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -829,6 +829,7 @@ CONFIG_DRM_GUD=m
+ CONFIG_FB=y
+ CONFIG_FB_BCM2708=y
+ CONFIG_FB_UDL=m
++CONFIG_FB_SIMPLE=y
+ CONFIG_FB_SSD1307=m
+ CONFIG_FB_RPISENSE=m
+ CONFIG_BACKLIGHT_RPI=m
+-- 
+2.33.1
+

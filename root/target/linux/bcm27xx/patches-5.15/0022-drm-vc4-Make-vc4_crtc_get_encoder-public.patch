@@ -1,0 +1,52 @@
+From 6ca024fdd37a7953f7f6ee301fef026cf9446272 Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Wed, 26 May 2021 16:07:01 +0200
+Subject: [PATCH 022/634] drm/vc4: Make vc4_crtc_get_encoder public
+
+We'll need that function in vc4_kms to compute the core clock rate
+requirements.
+
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+---
+ drivers/gpu/drm/vc4/vc4_crtc.c | 8 ++++----
+ drivers/gpu/drm/vc4/vc4_drv.h  | 5 +++++
+ 2 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_crtc.c b/drivers/gpu/drm/vc4/vc4_crtc.c
+index e3ed52d96f42..7cfd4a097847 100644
+--- a/drivers/gpu/drm/vc4/vc4_crtc.c
++++ b/drivers/gpu/drm/vc4/vc4_crtc.c
+@@ -281,10 +281,10 @@ static u32 vc4_crtc_get_fifo_full_level_bits(struct vc4_crtc *vc4_crtc,
+  * allows drivers to push pixels to more than one encoder from the
+  * same CRTC.
+  */
+-static struct drm_encoder *vc4_get_crtc_encoder(struct drm_crtc *crtc,
+-						struct drm_atomic_state *state,
+-						struct drm_connector_state *(*get_state)(struct drm_atomic_state *state,
+-											 struct drm_connector *connector))
++struct drm_encoder *vc4_get_crtc_encoder(struct drm_crtc *crtc,
++					 struct drm_atomic_state *state,
++					 struct drm_connector_state *(*get_state)(struct drm_atomic_state *state,
++										  struct drm_connector *connector))
+ {
+ 	struct drm_connector *connector;
+ 	struct drm_connector_list_iter conn_iter;
+diff --git a/drivers/gpu/drm/vc4/vc4_drv.h b/drivers/gpu/drm/vc4/vc4_drv.h
+index 4b550ebd9572..f5e678491502 100644
+--- a/drivers/gpu/drm/vc4/vc4_drv.h
++++ b/drivers/gpu/drm/vc4/vc4_drv.h
+@@ -544,6 +544,11 @@ vc4_crtc_to_vc4_pv_data(const struct vc4_crtc *crtc)
+ 	return container_of(data, struct vc4_pv_data, base);
+ }
+ 
++struct drm_encoder *vc4_get_crtc_encoder(struct drm_crtc *crtc,
++					 struct drm_atomic_state *state,
++					 struct drm_connector_state *(*get_state)(struct drm_atomic_state *state,
++										  struct drm_connector *connector));
++
+ struct vc4_crtc_state {
+ 	struct drm_crtc_state base;
+ 	/* Dlist area for this CRTC configuration. */
+-- 
+2.33.1
+
