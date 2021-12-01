@@ -1,0 +1,117 @@
+From bc1237c403e9b95446a9c1da36d0ba83b5421aae Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Wed, 10 Nov 2021 09:48:50 +0000
+Subject: [PATCH 617/634] configs: Regenerate defconfigs
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 2 +-
+ arch/arm/configs/bcm2711_defconfig   | 2 +-
+ arch/arm/configs/bcmrpi_defconfig    | 2 +-
+ arch/arm64/configs/bcm2711_defconfig | 2 +-
+ arch/arm64/configs/bcmrpi3_defconfig | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 77553d32412e..b3b1cb8fec95 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -55,7 +55,6 @@ CONFIG_VFP=y
+ CONFIG_NEON=y
+ CONFIG_KERNEL_MODE_NEON=y
+ # CONFIG_SUSPEND is not set
+-CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_CRYPTO_SHA1_ARM_NEON=m
+ CONFIG_CRYPTO_AES_ARM=m
+ CONFIG_CRYPTO_AES_ARM_BS=m
+@@ -446,6 +445,7 @@ CONFIG_NFC=m
+ CONFIG_UEVENT_HELPER=y
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_MTD=m
+ CONFIG_MTD_BLOCK=m
+ CONFIG_MTD_BLOCK2MTD=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index a15b3e0a02f6..ee616a188ca4 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -55,7 +55,6 @@ CONFIG_VFP=y
+ CONFIG_NEON=y
+ CONFIG_KERNEL_MODE_NEON=y
+ # CONFIG_SUSPEND is not set
+-CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_CRYPTO_SHA1_ARM_NEON=m
+ CONFIG_CRYPTO_AES_ARM=m
+ CONFIG_CRYPTO_AES_ARM_BS=m
+@@ -452,6 +451,7 @@ CONFIG_PCIE_BRCMSTB=y
+ CONFIG_UEVENT_HELPER=y
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_MTD=m
+ CONFIG_MTD_BLOCK=m
+ CONFIG_MTD_BLOCK2MTD=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index f1a78aa3966c..ec5810249709 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -50,7 +50,6 @@ CONFIG_CPUFREQ_DT=y
+ CONFIG_ARM_RASPBERRYPI_CPUFREQ=y
+ CONFIG_VFP=y
+ # CONFIG_SUSPEND is not set
+-CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_CRYPTO_SHA1_ARM=m
+ CONFIG_CRYPTO_AES_ARM=m
+ CONFIG_JUMP_LABEL=y
+@@ -440,6 +439,7 @@ CONFIG_NFC=m
+ CONFIG_UEVENT_HELPER=y
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_MTD=m
+ CONFIG_MTD_BLOCK=m
+ CONFIG_MTD_BLOCK2MTD=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 2a7e9aaf2b4d..56718edb5c54 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -54,7 +54,6 @@ CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+ CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y
+ CONFIG_CPUFREQ_DT=y
+ CONFIG_ARM_RASPBERRYPI_CPUFREQ=y
+-CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_VIRTUALIZATION=y
+ CONFIG_KVM=y
+ CONFIG_CRYPTO_AES_ARM64_BS=m
+@@ -448,6 +447,7 @@ CONFIG_PCIE_BRCMSTB=y
+ CONFIG_UEVENT_HELPER=y
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_MTD=m
+ CONFIG_MTD_BLOCK=m
+ CONFIG_MTD_BLOCK2MTD=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index b252255397fa..29d98dc91225 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -58,7 +58,6 @@ CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+ CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y
+ CONFIG_CPUFREQ_DT=y
+ CONFIG_ARM_RASPBERRYPI_CPUFREQ=y
+-CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_CRYPTO_AES_ARM64_BS=m
+ CONFIG_JUMP_LABEL=y
+ CONFIG_MODULES=y
+@@ -439,6 +438,7 @@ CONFIG_NFC=m
+ CONFIG_UEVENT_HELPER=y
+ CONFIG_DEVTMPFS=y
+ CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_RASPBERRYPI_FIRMWARE=y
+ CONFIG_MTD=m
+ CONFIG_MTD_BLOCK=m
+ CONFIG_MTD_UBI=m
+-- 
+2.33.1
+

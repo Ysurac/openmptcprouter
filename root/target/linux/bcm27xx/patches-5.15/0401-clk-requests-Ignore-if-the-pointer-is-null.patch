@@ -1,0 +1,27 @@
+From 4cc73465decfa96f1042b005da313e1ff6b26be6 Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Wed, 21 Apr 2021 12:14:44 +0200
+Subject: [PATCH 401/634] clk: requests: Ignore if the pointer is null
+
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+---
+ drivers/clk/clk.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 0898c0f8959f..5a659cd1fccf 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -2517,6 +2517,9 @@ void clk_request_done(struct clk_request *req)
+ {
+ 	struct clk_core *core = req->clk->core;
+ 
++	if (!req)
++		return;
++
+ 	clk_prepare_lock();
+ 
+ 	list_del(&req->list);
+-- 
+2.33.1
+

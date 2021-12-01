@@ -1,0 +1,25 @@
+From 2fa1a23df8dd065af38db8950c50b385cc96e583 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 15 Jun 2016 16:48:41 +0100
+Subject: [PATCH 050/634] rtc: Add SPI alias for pcf2123 driver
+
+Without this alias, Device Tree won't cause the driver
+to be loaded.
+
+See: https://github.com/raspberrypi/linux/pull/1510
+---
+ drivers/rtc/rtc-pcf2123.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/rtc/rtc-pcf2123.c b/drivers/rtc/rtc-pcf2123.c
+index 7473e6c8a183..4b986b338654 100644
+--- a/drivers/rtc/rtc-pcf2123.c
++++ b/drivers/rtc/rtc-pcf2123.c
+@@ -473,3 +473,4 @@ module_spi_driver(pcf2123_driver);
+ MODULE_AUTHOR("Chris Verges <chrisv@cyberswitching.com>");
+ MODULE_DESCRIPTION("NXP PCF2123 RTC driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:rtc-pcf2123");
+-- 
+2.33.1
+

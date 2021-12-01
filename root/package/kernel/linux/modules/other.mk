@@ -126,7 +126,7 @@ define KernelPackage/dma-buf
   KCONFIG:=CONFIG_DMA_SHARED_BUFFER
   ifeq ($(strip $(CONFIG_EXTERNAL_KERNEL_TREE)),"")
     ifeq ($(strip $(CONFIG_KERNEL_GIT_CLONE_URI)),"")
-      FILES:=$(LINUX_DIR)/drivers/dma-buf/dma-shared-buffer.ko@gt5.14
+      FILES:=$(LINUX_DIR)/drivers/dma-buf/dma-shared-buffer.ko@lt5.14
     endif
   endif
   AUTOLOAD:=$(call AutoLoad,20,dma-shared-buffer)

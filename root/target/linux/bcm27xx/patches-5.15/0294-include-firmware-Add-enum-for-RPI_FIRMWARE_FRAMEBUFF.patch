@@ -1,0 +1,28 @@
+From 822365ad80675dd82e8715193380e1bcdc37d15e Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Thu, 3 Sep 2020 17:09:07 +0100
+Subject: [PATCH 294/634] include/firmware: Add enum for
+ RPI_FIRMWARE_FRAMEBUFFER_GET_DISPLAY_ID
+
+Used by audio and FKMS.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ include/soc/bcm2835/raspberrypi-firmware.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/soc/bcm2835/raspberrypi-firmware.h b/include/soc/bcm2835/raspberrypi-firmware.h
+index 5ccd6dd0b74e..23f51be65801 100644
+--- a/include/soc/bcm2835/raspberrypi-firmware.h
++++ b/include/soc/bcm2835/raspberrypi-firmware.h
+@@ -112,6 +112,7 @@ enum rpi_firmware_property_tag {
+ 	RPI_FIRMWARE_FRAMEBUFFER_GET_TOUCHBUF =               0x0004000f,
+ 	RPI_FIRMWARE_FRAMEBUFFER_GET_GPIOVIRTBUF =            0x00040010,
+ 	RPI_FIRMWARE_FRAMEBUFFER_RELEASE =                    0x00048001,
++	RPI_FIRMWARE_FRAMEBUFFER_GET_DISPLAY_ID =             0x00040016,
+ 	RPI_FIRMWARE_FRAMEBUFFER_SET_DISPLAY_NUM =            0x00048013,
+ 	RPI_FIRMWARE_FRAMEBUFFER_GET_NUM_DISPLAYS =           0x00040013,
+ 	RPI_FIRMWARE_FRAMEBUFFER_GET_DISPLAY_SETTINGS =       0x00040014,
+-- 
+2.33.1
+

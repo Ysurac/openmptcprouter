@@ -1,0 +1,30 @@
+From c06128d6327e1d90ac90e8ace390b22a6e01749c Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Thu, 25 Jun 2020 17:53:32 +0100
+Subject: [PATCH 276/634] media: bcm2835-unicam: Add support for 12bit mono
+ packed format
+
+Now that V4L2_PIX_FMT_Y12P is defined, allow passing raw 12bit
+mono packed data through the peripheral.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/media/platform/bcm2835/bcm2835-unicam.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/bcm2835/bcm2835-unicam.c b/drivers/media/platform/bcm2835/bcm2835-unicam.c
+index a65e1da55142..5edb58cc9f03 100644
+--- a/drivers/media/platform/bcm2835/bcm2835-unicam.c
++++ b/drivers/media/platform/bcm2835/bcm2835-unicam.c
+@@ -336,7 +336,7 @@ static const struct unicam_fmt formats[] = {
+ 		.depth		= 10,
+ 		.csi_dt		= 0x2b,
+ 	}, {
+-		/* NB There is no packed V4L2 fourcc for this format. */
++		.fourcc		= V4L2_PIX_FMT_Y12P,
+ 		.repacked_fourcc = V4L2_PIX_FMT_Y12,
+ 		.code		= MEDIA_BUS_FMT_Y12_1X12,
+ 		.depth		= 12,
+-- 
+2.33.1
+

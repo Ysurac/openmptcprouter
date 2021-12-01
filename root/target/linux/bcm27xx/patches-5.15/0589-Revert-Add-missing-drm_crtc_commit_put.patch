@@ -1,0 +1,26 @@
+From 4b11270886ebe8019e079040638ed0766d505ae5 Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Wed, 27 Oct 2021 16:22:41 +0100
+Subject: [PATCH 589/634] Revert "Add missing drm_crtc_commit_put"
+
+This reverts commit c3ca5d8eccbb8a380e784ba01421dd484618d0d1.
+---
+ drivers/gpu/drm/vc4/vc4_kms.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_kms.c b/drivers/gpu/drm/vc4/vc4_kms.c
+index 8c63b962b2e6..2511113a6f82 100644
+--- a/drivers/gpu/drm/vc4/vc4_kms.c
++++ b/drivers/gpu/drm/vc4/vc4_kms.c
+@@ -389,8 +389,6 @@ static void vc4_atomic_commit_tail(struct drm_atomic_state *state)
+ 		ret = drm_crtc_commit_wait(commit);
+ 		if (ret)
+ 			drm_err(dev, "Timed out waiting for commit\n");
+-
+-		drm_crtc_commit_put(commit);
+ 	}
+ 
+ 	if (vc4->hvs && vc4->hvs->hvs5) {
+-- 
+2.33.1
+

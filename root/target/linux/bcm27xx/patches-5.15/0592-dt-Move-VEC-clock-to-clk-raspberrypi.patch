@@ -1,0 +1,43 @@
+From f7cd6bada78c3820ee14630954d8fc7a2d4fcdae Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Tue, 19 Oct 2021 14:15:45 +0100
+Subject: [PATCH 592/634] dt: Move VEC clock to clk-raspberrypi
+
+clk-2835 is deprecated and gets an innacurate clock for VEC (107MHz).
+Switch to clk-raspberrypi which uses the right PLL to get an accurate 108MHz.
+
+Signed-off-by: Dom Cobley <popcornmix@gmail.com>
+---
+ arch/arm/boot/dts/bcm2711.dtsi        | 2 +-
+ arch/arm/boot/dts/bcm2835-common.dtsi | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/bcm2711.dtsi b/arch/arm/boot/dts/bcm2711.dtsi
+index 05ef7089868f..b1ea654eac64 100644
+--- a/arch/arm/boot/dts/bcm2711.dtsi
++++ b/arch/arm/boot/dts/bcm2711.dtsi
+@@ -303,7 +303,7 @@ pixelvalve3: pixelvalve@7ec12000 {
+ 		vec: vec@7ec13000 {
+ 			compatible = "brcm,bcm2711-vec";
+ 			reg = <0x7ec13000 0x1000>;
+-			clocks = <&clocks BCM2835_CLOCK_VEC>;
++			clocks = <&firmware_clocks 15>;
+ 			interrupts = <GIC_SPI 123 IRQ_TYPE_LEVEL_HIGH>;
+ 			status = "disabled";
+ 		};
+diff --git a/arch/arm/boot/dts/bcm2835-common.dtsi b/arch/arm/boot/dts/bcm2835-common.dtsi
+index 06d8c3882cb7..15f3975f1ca1 100644
+--- a/arch/arm/boot/dts/bcm2835-common.dtsi
++++ b/arch/arm/boot/dts/bcm2835-common.dtsi
+@@ -109,7 +109,7 @@ i2c2: i2c@7e805000 {
+ 		vec: vec@7e806000 {
+ 			compatible = "brcm,bcm2835-vec";
+ 			reg = <0x7e806000 0x1000>;
+-			clocks = <&clocks BCM2835_CLOCK_VEC>;
++			clocks = <&firmware_clocks 15>;
+ 			interrupts = <2 27>;
+ 			status = "disabled";
+ 		};
+-- 
+2.33.1
+

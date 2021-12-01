@@ -1,0 +1,25 @@
+From 670579d8778e9c0e545ca914453d0cda91e2f89b Mon Sep 17 00:00:00 2001
+From: Eric Anholt <eric@anholt.net>
+Date: Thu, 4 Oct 2018 17:22:43 -0700
+Subject: [PATCH 166/634] drm/v3d: Add support for 2711.
+
+Signed-off-by: Eric Anholt <eric@anholt.net>
+---
+ drivers/gpu/drm/v3d/v3d_drv.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/v3d/v3d_drv.c b/drivers/gpu/drm/v3d/v3d_drv.c
+index 9403c3b36aca..02c6f4d67837 100644
+--- a/drivers/gpu/drm/v3d/v3d_drv.c
++++ b/drivers/gpu/drm/v3d/v3d_drv.c
+@@ -199,6 +199,7 @@ static const struct drm_driver v3d_drm_driver = {
+ static const struct of_device_id v3d_of_match[] = {
+ 	{ .compatible = "brcm,7268-v3d" },
+ 	{ .compatible = "brcm,7278-v3d" },
++	{ .compatible = "brcm,2711-v3d" },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, v3d_of_match);
+-- 
+2.33.1
+
