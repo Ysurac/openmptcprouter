@@ -538,6 +538,7 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Set to kernel 5.14 for rpi arch"
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	echo "Set to kernel 5.14 for x86 arch"
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
@@ -576,6 +577,7 @@ if [ "$OMR_KERNEL" = "5.15" ]; then
 	echo "Set to kernel 5.15 for rpi arch"
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.15%g' {} \;
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.10%KERNEL_PATCHVER:=5.15%g' {} \;
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.15%g' {} \;
 	echo "Done"
 	echo "Set to kernel 5.15 for x86 arch"
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.15%g' {} \;
