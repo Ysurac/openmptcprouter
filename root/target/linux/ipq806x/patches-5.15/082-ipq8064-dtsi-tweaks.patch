@@ -1,0 +1,77 @@
+--- a/arch/arm/boot/dts/qcom-ipq8064.dtsi
++++ b/arch/arm/boot/dts/qcom-ipq8064.dtsi
+@@ -128,6 +128,7 @@
+ 			gpio-ranges = <&qcom_pinmux 0 0 69>;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
++			#address-cells = <0>;
+ 			#interrupt-cells = <2>;
+ 			interrupts = <GIC_SPI 16 IRQ_TYPE_LEVEL_HIGH>;
+ 
+@@ -155,6 +156,7 @@
+ 					function = "pcie3_rst";
+ 					drive-strength = <12>;
+ 					bias-disable;
++					output-low;
+ 				};
+ 			};
+ 
+@@ -190,6 +192,7 @@
+ 		intc: interrupt-controller@2000000 {
+ 			compatible = "qcom,msm-qgic2";
+ 			interrupt-controller;
++			#address-cells = <0>;
+ 			#interrupt-cells = <3>;
+ 			reg = <0x02000000 0x1000>,
+ 			      <0x02002000 0x1000>;
+@@ -630,10 +736,13 @@
+ 			tsens_calib_backup: calib_backup@410 {
+ 				reg = <0x410 0xb>;
+ 			};
++			speedbin_efuse: speedbin@0c0 {
++				reg = <0x0c0 0x4>;
++			};
+ 		};
+ 
+ 		gcc: clock-controller@900000 {
+-			compatible = "qcom,gcc-ipq8064";
++			compatible = "qcom,gcc-ipq8064", "syscon";
+ 			reg = <0x00900000 0x4000>;
+ 			#clock-cells = <1>;
+ 			#reset-cells = <1>;
+@@ -722,7 +749,7 @@
+ 
+ 		gmac0: ethernet@37000000 {
+ 			device_type = "network";
+-			compatible = "qcom,ipq806x-gmac";
++			compatible = "qcom,ipq806x-gmac", "snps,dwmac";
+ 			reg = <0x37000000 0x200000>;
+ 			interrupts = <GIC_SPI 220 IRQ_TYPE_LEVEL_HIGH>;
+ 			interrupt-names = "macirq";
+@@ -745,7 +772,7 @@
+ 
+ 		gmac1: ethernet@37200000 {
+ 			device_type = "network";
+-			compatible = "qcom,ipq806x-gmac";
++			compatible = "qcom,ipq806x-gmac", "snps,dwmac";
+ 			reg = <0x37200000 0x200000>;
+ 			interrupts = <GIC_SPI 223 IRQ_TYPE_LEVEL_HIGH>;
+ 			interrupt-names = "macirq";
+@@ -768,7 +795,7 @@
+ 
+ 		gmac2: ethernet@37400000 {
+ 			device_type = "network";
+-			compatible = "qcom,ipq806x-gmac";
++			compatible = "qcom,ipq806x-gmac", "snps,dwmac";
+ 			reg = <0x37400000 0x200000>;
+ 			interrupts = <GIC_SPI 226 IRQ_TYPE_LEVEL_HIGH>;
+ 			interrupt-names = "macirq";
+@@ -791,7 +818,7 @@
+ 
+ 		gmac3: ethernet@37600000 {
+ 			device_type = "network";
+-			compatible = "qcom,ipq806x-gmac";
++			compatible = "qcom,ipq806x-gmac", "snps,dwmac";
+ 			reg = <0x37600000 0x200000>;
+ 			interrupts = <GIC_SPI 229 IRQ_TYPE_LEVEL_HIGH>;
+ 			interrupt-names = "macirq";
