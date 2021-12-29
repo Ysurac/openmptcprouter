@@ -639,7 +639,6 @@ cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
-./scripts/feeds update -a && ./scripts/feeds install -a
 scripts/feeds install -a
 scripts/feeds update -a
 
@@ -664,6 +663,7 @@ else
 fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
+./scripts/feeds update -a && ./scripts/feeds install -a
 echo "Done"
 
 if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
