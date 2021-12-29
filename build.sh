@@ -44,7 +44,7 @@ SHORTCUT_FE=${SHORTCUT_FE:-no}
 OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE/$OMR_TARGET}
 
-OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/suyuan168/openmptcprouter-feeds}"
+OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
@@ -63,10 +63,6 @@ if [ "$OMR_TARGET" = "rpi3" ]; then
 elif [ "$OMR_TARGET" = "rpi4" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a72"
 elif [ "$OMR_TARGET" = "rpi2" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "l1000" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "zbt4019" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
@@ -639,7 +635,6 @@ cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
-scripts/feeds install -a
 scripts/feeds update -a
 
 #cd -
