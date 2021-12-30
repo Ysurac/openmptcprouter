@@ -225,9 +225,6 @@ CONFIG_OPENSSL_WITH_CHACHA_POLY1305=y
 CONFIG_KERNEL_DEVMEM=y
 CONFIG_KERNEL_DEVKMEM=y
 CONFIG_AUTOREMOVE=y
-# CONFIG_PACKAGE_kmod-sound-core is not set
-# CONFIG_PACKAGE_kmod-video-core is not set 
-CONFIG_PACKAGE_luci-theme-argon=y
 CONFIG_PACKAGE_luci-theme-bootstrap=y
 CONFIG_PACKAGE_luci-theme-openwrt-2020=y
 CONFIG_PACKAGE_luci-theme-argon is not set
