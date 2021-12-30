@@ -636,6 +636,7 @@ echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
 scripts/feeds update -a
+scripts/feeds install -a
 
 #cd -
 #echo "Checking if fullconenat-luci patch is set or not"
@@ -656,7 +657,6 @@ if [ -n "$CUSTOM_FEED" ]; then
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
-exit
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
