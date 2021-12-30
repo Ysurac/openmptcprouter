@@ -634,7 +634,6 @@ echo "Done"
 cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
-exit
 scripts/feeds clean
 scripts/feeds update -a
 
@@ -657,6 +656,7 @@ if [ -n "$CUSTOM_FEED" ]; then
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
+exit
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
