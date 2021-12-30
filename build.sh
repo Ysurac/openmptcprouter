@@ -634,7 +634,6 @@ echo "Done"
 cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
-exit
 scripts/feeds clean
 scripts/feeds update -a
 
@@ -660,6 +659,7 @@ fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
+exit
 
 if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found ! You have to configure and compile your kernel manually."
