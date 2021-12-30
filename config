@@ -227,7 +227,7 @@ CONFIG_KERNEL_DEVKMEM=y
 CONFIG_AUTOREMOVE=y
 CONFIG_PACKAGE_luci-theme-bootstrap=y
 CONFIG_PACKAGE_luci-theme-openwrt-2020=y
-C#ONFIG_PACKAGE_luci-theme-argon is not set
+#ONFIG_PACKAGE_luci-theme-argon is not set
 CONFIG_PACKAGE_luci-app-status=m
 CONFIG_PACKAGE_luci-mod-status=y
 CONFIG_PACKAGE_frpc=y
