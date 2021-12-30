@@ -64,10 +64,6 @@ elif [ "$OMR_TARGET" = "rpi4" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a72"
 elif [ "$OMR_TARGET" = "rpi2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "l1000" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "zbt4019" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "wrt3200acm" ]; then
 	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
 elif [ "$OMR_TARGET" = "wrt32x" ]; then
@@ -96,7 +92,7 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f441be3921c769b732f0148f005d4f1bbace0508"
+        _get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f441be3921c769b732f0148f005d4f1bbace0508"
 		_get_repo feeds/packages https://github.com/openwrt/packages "3aa30ceee4fcf7b131bdc0f98658391069573e12"
 		_get_repo feeds/luci https://github.com/openwrt/luci "f28aaa35cd5c0cbbe59d8cc6a67de88ceeac382e"
 	else
@@ -639,7 +635,6 @@ cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
-scripts/feeds install -a
 scripts/feeds update -a
 
 #cd -
@@ -663,7 +658,6 @@ else
 fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
-./scripts/feeds update -a && ./scripts/feeds install -a
 echo "Done"
 
 if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
