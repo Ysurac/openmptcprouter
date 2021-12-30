@@ -1,0 +1,118 @@
+diff --git a/drivers/dma/qcom/bam_dma.c b/drivers/dma/qcom/bam_dma.c
+index 4eeb8bb27..ad205ea7e 100644
+--- a/drivers/dma/qcom/bam_dma.c
++++ b/drivers/dma/qcom/bam_dma.c
+@@ -391,6 +391,8 @@ struct bam_device {
+ 
+ 	const struct reg_offset_data *layout;
+ 
++	struct clk *iface_clk;
++
+ 	struct clk *bamclk;
+ 	int irq;
+ 
+@@ -1274,10 +1276,26 @@ static int bam_dma_probe(struct platform_device *pdev)
+ 			dev_err(bdev->dev, "num-ees unspecified in dt\n");
+ 	}
+ 
++	bdev->iface_clk = devm_clk_get_optional(bdev->dev, "iface_clk");
++	if (IS_ERR(bdev->iface_clk)) {
++		if (!bdev->controlled_remotely)
++			return PTR_ERR(bdev->iface_clk);
++
++		bdev->iface_clk = NULL;
++	}
++
++	ret = clk_prepare_enable(bdev->iface_clk);
++	if (ret) {
++		dev_err(bdev->dev, "failed to prepare/enable iface clock\n");
++		return ret;
++	}
++
+ 	bdev->bamclk = devm_clk_get(bdev->dev, "bam_clk");
+ 	if (IS_ERR(bdev->bamclk)) {
+-		if (!bdev->controlled_remotely)
+-			return PTR_ERR(bdev->bamclk);
++		if (!bdev->controlled_remotely) {
++			ret = PTR_ERR(bdev->bamclk);
++			goto err_disable_iface_clk;
++		}
+ 
+ 		bdev->bamclk = NULL;
+ 	}
+@@ -1285,7 +1303,7 @@ static int bam_dma_probe(struct platform_device *pdev)
+ 	ret = clk_prepare_enable(bdev->bamclk);
+ 	if (ret) {
+ 		dev_err(bdev->dev, "failed to prepare/enable clock\n");
+-		return ret;
++		goto err_disable_iface_clk;
+ 	}
+ 
+ 	ret = bam_init(bdev);
+@@ -1377,6 +1395,8 @@ static int bam_dma_probe(struct platform_device *pdev)
+ 	tasklet_kill(&bdev->task);
+ err_disable_clk:
+ 	clk_disable_unprepare(bdev->bamclk);
++err_disable_iface_clk:
++	clk_disable_unprepare(bdev->iface_clk);
+ 
+ 	return ret;
+ }
+@@ -1411,6 +1431,7 @@ static int bam_dma_remove(struct platform_device *pdev)
+ 	tasklet_kill(&bdev->task);
+ 
+ 	clk_disable_unprepare(bdev->bamclk);
++	clk_disable_unprepare(bdev->iface_clk);
+ 
+ 	return 0;
+ }
+@@ -1420,6 +1441,7 @@ static int __maybe_unused bam_dma_runtime_suspend(struct device *dev)
+ 	struct bam_device *bdev = dev_get_drvdata(dev);
+ 
+ 	clk_disable(bdev->bamclk);
++	clk_disable(bdev->iface_clk);
+ 
+ 	return 0;
+ }
+@@ -1429,8 +1451,15 @@ static int __maybe_unused bam_dma_runtime_resume(struct device *dev)
+ 	struct bam_device *bdev = dev_get_drvdata(dev);
+ 	int ret;
+ 
++	ret = clk_enable(bdev->iface_clk);
++	if (ret < 0) {
++		dev_err(dev, "iface clk_enable failed: %d\n", ret);
++		return ret;
++	}
++
+ 	ret = clk_enable(bdev->bamclk);
+ 	if (ret < 0) {
++		clk_disable(bdev->iface_clk);
+ 		dev_err(dev, "clk_enable failed: %d\n", ret);
+ 		return ret;
+ 	}
+@@ -1446,6 +1475,7 @@ static int __maybe_unused bam_dma_suspend(struct device *dev)
+ 		pm_runtime_force_suspend(dev);
+ 
+ 	clk_unprepare(bdev->bamclk);
++	clk_unprepare(bdev->iface_clk);
+ 
+ 	return 0;
+ }
+@@ -1455,10 +1485,16 @@ static int __maybe_unused bam_dma_resume(struct device *dev)
+ 	struct bam_device *bdev = dev_get_drvdata(dev);
+ 	int ret;
+ 
+-	ret = clk_prepare(bdev->bamclk);
++	ret = clk_prepare(bdev->iface_clk);
+ 	if (ret)
+ 		return ret;
+ 
++	ret = clk_prepare(bdev->bamclk);
++	if (ret) {
++		clk_unprepare(bdev->iface_clk);
++		return ret;
++	}
++
+ 	if (!bdev->controlled_remotely)
+ 		pm_runtime_force_resume(dev);
+ 

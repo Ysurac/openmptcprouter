@@ -16,18 +16,25 @@
 
 &CPU0 {
 	operating-points-v2 = <&cpu_opp_table>;
+	voltage-tolerance = <1>;
+	cpu-supply = <&apc_vreg>;
 };
 
 &CPU1 {
 	operating-points-v2 = <&cpu_opp_table>;
+	voltage-tolerance = <1>;
+	cpu-supply = <&apc_vreg>;
 };
 
 &CPU2 {
 	operating-points-v2 = <&cpu_opp_table>;
+	voltage-tolerance = <1>;
+	cpu-supply = <&apc_vreg>;
 };
 
 &CPU3 {
 	operating-points-v2 = <&cpu_opp_table>;
+	cpu-supply = <&apc_vreg>;
 };
 
 &cpus {

@@ -132,7 +132,7 @@
 			reg = <0x0 0x4d400000 0x0 0x100000>;
 		};
 
-		rpm_msg_ram: rpm_msg_ram@0x60000 {
+		rpm_msg_ram: rpm_msg_ram@60000 {
 			no-map;
 			reg = <0x0 0x60000 0x0 0x6000>;
 		};
@@ -256,7 +256,7 @@
 			reg = <0x0 0x4e300000 0x0 0x100000>;
 		};
 
-		rpm_msg_ram: rpm_msg_ram@0x60000 {
+		rpm_msg_ram: rpm_msg_ram@60000 {
 			no-map;
 			reg = <0x0 0x60000 0x0 0x6000>;
 		};
@@ -383,7 +383,7 @@
 			reg = <0x0 0x50100000 0x0 0x100000>;
 		};
 
-		rpm_msg_ram: rpm_msg_ram@0x60000 {
+		rpm_msg_ram: rpm_msg_ram@60000 {
 			no-map;
 			reg = <0x0 0x60000 0x0 0x6000>;
 		};
