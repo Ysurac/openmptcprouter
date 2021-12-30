@@ -204,9 +204,6 @@ else
 	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF
 fi
-echo "$OMR_DIST"
-echo "$OMR_REPO"
-echo "$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 #if [ "$OMR_KERNEL" = "5.14" ]; then
 #	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> "$OMR_TARGET/source/.config"
 #	echo 'CONFIG_KERNEL_GIT_REF="78828adaef8fe9b69f9a8c4b60f74b01c5a31c7a"' >> "$OMR_TARGET/source/.config"
@@ -633,6 +630,9 @@ if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
 fi
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
 echo "Done"
+echo "$OMR_DIST"
+echo "$OMR_REPO"
+echo "$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 
 cd "$OMR_TARGET/source"
 echo "Update feeds index"
