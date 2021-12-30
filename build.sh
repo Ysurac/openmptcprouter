@@ -634,6 +634,7 @@ echo "Done"
 cd "$OMR_TARGET/source"
 echo "Update feeds index"
 cp .config .config.keep
+exit
 scripts/feeds clean
 scripts/feeds update -a
 
