@@ -150,13 +150,11 @@ define KernelPackage/nf-flow
   TITLE:=Netfilter flowtable support
   KCONFIG:= \
 	CONFIG_NETFILTER_INGRESS=y \
-	CONFIG_NF_FLOW_TABLE \
-	CONFIG_NF_FLOW_TABLE_HW
+	CONFIG_NF_FLOW_TABLE
   DEPENDS:=+kmod-nf-conntrack
   FILES:= \
-	$(LINUX_DIR)/net/netfilter/nf_flow_table.ko \
-	$(if $(CONFIG_LINUX_5_4),$(LINUX_DIR)/net/netfilter/nf_flow_table_hw.ko)
-  AUTOLOAD:=$(call AutoProbe,nf_flow_table nf_flow_table_hw)
+	$(LINUX_DIR)/net/netfilter/nf_flow_table.ko
+  AUTOLOAD:=$(call AutoProbe,nf_flow_table)
 endef
 
 $(eval $(call KernelPackage,nf-flow))
@@ -1087,7 +1085,7 @@ define KernelPackage/nft-bridge
   FILES:=$(foreach mod,$(NFT_BRIDGE-m),$(LINUX_DIR)/net/$(mod).ko)
   AUTOLOAD:=$(call AutoProbe,$(notdir $(NFT_BRIDGE-m)))
   KCONFIG:= \
-	CONFIG_NF_LOG_BRIDGE=n@lt5.13 \
+	CONFIG_NF_LOG_BRIDGE=n \
 	$(KCONFIG_NFT_BRIDGE)
 endef
 

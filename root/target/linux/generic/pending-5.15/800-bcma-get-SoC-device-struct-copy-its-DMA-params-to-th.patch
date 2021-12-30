@@ -54,14 +54,12 @@ Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
  
  void bcma_prepare_core(struct bcma_bus *bus, struct bcma_device *core)
  {
--	device_initialize(&core->dev);
 +	struct device *dev = &core->dev;
 +
-+	device_initialize(dev);
+ 	device_initialize(&core->dev);
  	core->dev.release = bcma_release_core_dev;
  	core->dev.bus = &bcma_bus_type;
--	dev_set_name(&core->dev, "bcma%d:%d", bus->num, core->core_index);
-+	dev_set_name(dev, "bcma%d:%d", bus->num, core->core_index);
+ 	dev_set_name(&core->dev, "bcma%d:%d", bus->num, core->core_index);
  	core->dev.parent = bus->dev;
 -	if (bus->dev)
 +	if (bus->dev) {

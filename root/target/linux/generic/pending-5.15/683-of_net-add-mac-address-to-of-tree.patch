@@ -1,7 +1,7 @@
 --- a/drivers/of/of_net.c
 +++ b/drivers/of/of_net.c
-@@ -95,6 +95,27 @@ static int of_get_mac_addr_nvmem(struct
- 	return 0;
+@@ -141,6 +141,26 @@ static int of_get_mac_address_mtd(struct
+ 	return -EINVAL;
  }
  
 +static int of_add_mac_address(struct device_node *np, u8* addr)
@@ -24,13 +24,12 @@
 +	kfree(prop);
 +	return -ENOMEM;
 +}
-+
+ 
  /**
   * of_get_mac_address()
-  * @np:		Caller's Device Node
-@@ -175,6 +196,7 @@ found:
- 		addr[5] = (mac_val >> 0) & 0xff;
- 	}
+@@ -220,6 +240,7 @@ found:
+ 	if (!of_property_read_u32(np, "mac-address-increment", &mac_inc))
+ 		addr[inc_idx] += mac_inc;
  
 +	of_add_mac_address(np, addr);
  	return ret;
