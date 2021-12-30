@@ -98,7 +98,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
 --- /dev/null
 +++ b/net/netfilter/xt_FLOWOFFLOAD.c
-@@ -0,0 +1,658 @@
+@@ -0,0 +1,656 @@
 +/*
 + * Copyright (C) 2018-2021 Felix Fietkau <nbd@nbd.name>
 + *
@@ -278,8 +278,6 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +		hook->used = true;
 +	}
 +	spin_unlock_bh(&hooks_lock);
-+
-+	cond_resched();
 +}
 +
 +static void
@@ -767,7 +765,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #include <net/netfilter/nf_flow_table.h>
  #include <net/netfilter/nf_conntrack.h>
  #include <net/netfilter/nf_conntrack_core.h>
-@@ -407,8 +406,7 @@ flow_offload_lookup(struct nf_flowtable
+@@ -397,8 +396,7 @@ flow_offload_lookup(struct nf_flowtable
  }
  EXPORT_SYMBOL_GPL(flow_offload_lookup);
  
@@ -777,7 +775,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		      void (*iter)(struct flow_offload *flow, void *data),
  		      void *data)
  {
-@@ -440,6 +438,7 @@ nf_flow_table_iterate(struct nf_flowtabl
+@@ -430,6 +428,7 @@ nf_flow_table_iterate(struct nf_flowtabl
  
  	return err;
  }
