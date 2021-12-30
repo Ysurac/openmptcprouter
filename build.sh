@@ -664,7 +664,7 @@ if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found ! You have to configure and compile your kernel manually."
 	exit 1
 fi
-exit
+
 echo "Building $OMR_DIST for the target $OMR_TARGET with kernel $OMR_KERNEL"
 make defconfig
 make IGNORE_ERRORS=m "$@"
