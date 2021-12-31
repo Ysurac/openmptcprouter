@@ -88,14 +88,19 @@ define KernelPackage/fs-cifs
   SUBMENU:=$(FS_MENU)
   TITLE:=CIFS support
   KCONFIG:= \
+  CONFIG_SMBFS_COMMON@ge5.15 \
 	CONFIG_CIFS \
 	CONFIG_CIFS_DFS_UPCALL=n \
 	CONFIG_CIFS_UPCALL=n
-  FILES:=$(LINUX_DIR)/fs/cifs/cifs.ko
+  FILES:= \
+	$(LINUX_DIR)/fs/smbfs_common/cifs_arc4.ko@ge5.15 \
+	$(LINUX_DIR)/fs/smbfs_common/cifs_md4.ko@ge5.15 \
+	$(LINUX_DIR)/fs/cifs/cifs.ko
   AUTOLOAD:=$(call AutoLoad,30,cifs)
   $(call AddDepends/nls)
   DEPENDS+= \
-    +kmod-crypto-md4 \
+    +(LINUX_5_4||LINUX_5_10):kmod-crypto-md4\
+    +(LINUX_5_4||LINUX_5_10):kmod-crypto-arc4 \
     +kmod-crypto-md5 \
     +kmod-crypto-sha256 \
     +kmod-crypto-sha512 \
@@ -105,7 +110,9 @@ define KernelPackage/fs-cifs
     +kmod-crypto-aead \
     +kmod-crypto-ccm \
     +kmod-crypto-ecb \
-    +kmod-crypto-des
+    +(LINUX_5_15):kmod-asn1-decoder \
+    +(LINUX_5_15):kmod-oid-registry \
+    +(LINUX_5_15):kmod-dnsresolver
 endef
 
 define KernelPackage/fs-cifs/description
@@ -238,12 +245,21 @@ define KernelPackage/fs-f2fs/description
 endef
 
 $(eval $(call KernelPackage,fs-f2fs))
+define KernelPackage/fs-netfs
+  SUBMENU:=$(FS_MENU)
+  TITLE:=Network Filesystems support
+  DEPENDS:=@LINUX_5_15
+  KCONFIG:= CONFIG_NETFS_SUPPORT
+  FILES:=$(LINUX_DIR)/fs/netfs/netfs.ko
+  AUTOLOAD:=$(call AutoLoad,28,netfs)
+endef
 
+$(eval $(call KernelPackage,fs-netfs))
 
 define KernelPackage/fs-fscache
   SUBMENU:=$(FS_MENU)
   TITLE:=General filesystem local cache manager
-  DEPENDS:=
+  DEPENDS:=+kmod-fs-netfs
   KCONFIG:=\
 	CONFIG_FSCACHE=m \
 	CONFIG_FSCACHE_STATS=y \
@@ -377,10 +393,21 @@ endef
 
 $(eval $(call KernelPackage,fs-nfs))
 
+define KernelPackage/fs-nfs-ssc
+  SUBMENU:=$(FS_MENU)
+  TITLE:=Common NFS filesystem SSC Helper module
+  KCONFIG:= CONFIG_NFS_V4_2@ge5.15
+  FILES:= $(LINUX_DIR)/fs/nfs_common/nfs_ssc.ko@ge5.10
+  AUTOLOAD:=$(call AutoLoad,30,nfs_ssc)
+endef
+
+$(eval $(call KernelPackage,fs-nfs-ssc))
+
 
 define KernelPackage/fs-nfs-common
   SUBMENU:=$(FS_MENU)
   TITLE:=Common NFS filesystem modules
+  DEPENDS:=+LINUX_5_10:kmod-fs-nfs-ssc
   KCONFIG:= \
 	CONFIG_LOCKD \
 	CONFIG_SUNRPC \
@@ -388,8 +415,7 @@ define KernelPackage/fs-nfs-common
   FILES:= \
 	$(LINUX_DIR)/fs/lockd/lockd.ko \
 	$(LINUX_DIR)/net/sunrpc/sunrpc.ko \
-	$(LINUX_DIR)/fs/nfs_common/grace.ko \
-	$(LINUX_DIR)/fs/nfs_common/nfs_ssc.ko@eq5.10
+	$(LINUX_DIR)/fs/nfs_common/grace.ko
   AUTOLOAD:=$(call AutoLoad,30,grace sunrpc lockd)
 endef
 
@@ -416,7 +442,7 @@ define KernelPackage/fs-nfs-common-rpcsec
 	$(LINUX_DIR)/lib/oid_registry.ko \
 	$(LINUX_DIR)/net/sunrpc/auth_gss/auth_rpcgss.ko \
 	$(LINUX_DIR)/net/sunrpc/auth_gss/rpcsec_gss_krb5.ko
-  AUTOLOAD:=$(call AutoLoad,31,oid_registry auth_rpcgss rpcsec_gss_krb5)
+  AUTOLOAD:=$(call AutoLoad,31,auth_rpcgss rpcsec_gss_krb5)
 endef
 
 define KernelPackage/fs-nfs-common-rpcsec/description
@@ -429,7 +455,7 @@ $(eval $(call KernelPackage,fs-nfs-common-rpcsec))
 define KernelPackage/fs-nfs-v3
   SUBMENU:=$(FS_MENU)
   TITLE:=NFS3 filesystem client support
-  DEPENDS:=+kmod-fs-nfs
+  DEPENDS:=+kmod-fs-nfs +LINUX_5_15:kmod-fs-nfs-ssc
   FILES:= \
 	$(LINUX_DIR)/fs/nfs/nfsv3.ko
   AUTOLOAD:=$(call AutoLoad,41,nfsv3)
