@@ -656,7 +656,6 @@ if [ -n "$CUSTOM_FEED" ]; then
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
 fi
-scripts/feeds install -a
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
