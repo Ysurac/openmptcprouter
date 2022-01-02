@@ -499,10 +499,6 @@
 	brcm,disable-headphones = <1>;
 };
 
-cam0_reg: &cam1_reg {
-	gpio = <&expgpio 5 GPIO_ACTIVE_HIGH>;
-};
-
 / {
 	__overrides__ {
 		act_led_gpio = <&act_led>,"gpios:4";
