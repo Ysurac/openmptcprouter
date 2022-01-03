@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 ARCH:=arm
 BOARD:=bcm27xx
 BOARDNAME:=Broadcom BCM27xx
-FEATURES:=ext4 usb usbgadget display gpio fpu squashfs rootfs-part boot-part
+FEATURES:=ext4 audio usb usbgadget display gpio fpu squashfs rootfs-part boot-part
 SUBTARGETS:=bcm2708 bcm2709 bcm2710 bcm2711
 
 KERNEL_PATCHVER=5.4
@@ -22,7 +22,9 @@ include $(INCLUDE_DIR)/target.mk
 
 DEFAULT_PACKAGES := $(filter-out urngd,$(DEFAULT_PACKAGES))
 DEFAULT_PACKAGES += \
+	bcm27xx-gpu-fw \
 	kmod-usb-hid \
+	kmod-sound-core kmod-sound-arm-bcm2835 \
 	kmod-fs-vfat kmod-nls-cp437 kmod-nls-iso8859-1 \
 	partx-utils mkf2fs e2fsprogs
 
