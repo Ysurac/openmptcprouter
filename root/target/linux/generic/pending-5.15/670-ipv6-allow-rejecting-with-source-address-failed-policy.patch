@@ -20,7 +20,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
 
 --- a/include/net/netns/ipv6.h
 +++ b/include/net/netns/ipv6.h
-@@ -82,6 +82,7 @@ struct netns_ipv6 {
+@@ -84,6 +84,7 @@ struct netns_ipv6 {
  	unsigned int		fib6_routes_require_src;
  #endif
  	struct rt6_info         *ip6_prohibit_entry;

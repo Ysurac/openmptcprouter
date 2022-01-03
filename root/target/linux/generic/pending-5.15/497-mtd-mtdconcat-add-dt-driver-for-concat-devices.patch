@@ -43,7 +43,7 @@ Signed-off-by: Bernhard Frauendienst <kernel@nospam.obeliks.de>
 
 --- a/drivers/mtd/Kconfig
 +++ b/drivers/mtd/Kconfig
-@@ -239,4 +239,6 @@ source "drivers/mtd/ubi/Kconfig"
+@@ -241,4 +241,6 @@ source "drivers/mtd/ubi/Kconfig"
  
  source "drivers/mtd/hyperbus/Kconfig"
  
