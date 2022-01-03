@@ -27,7 +27,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,494 @@
+@@ -0,0 +1,536 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -507,7 +507,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +		eth_led0 = <&phy1>,"led-modes:0";
 +		eth_led1 = <&phy1>,"led-modes:4";
-+
 +		ant2 =  <&ant1>,"output-high?=off",
 +			<&ant1>, "output-low?=on",
 +			<&ant2>, "output-high?=on",
@@ -524,4 +523,16 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +};
 --- a/arch/arm/boot/dts/overlays/README
 +++ b/arch/arm/boot/dts/overlays/README
+@@ -92,6 +92,12 @@ Name:   <The base DTB>
+ Info:   Configures the base Raspberry Pi hardware
+ Load:   <loaded automatically>
+ Params:
++        ant1                    Select antenna 1 (default). CM4 only.
++
++        ant2                    Select antenna 2. CM4 only.
++
++        noant                   Disable both antennas. CM4 only.
++
+         audio                   Set to "on" to enable the onboard ALSA audio
+                                 interface (default "off")
  
