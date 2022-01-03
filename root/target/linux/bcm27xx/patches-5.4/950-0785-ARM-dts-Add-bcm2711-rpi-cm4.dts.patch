@@ -27,7 +27,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,543 @@
+@@ -0,0 +1,536 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -49,9 +49,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	};
 +
 +	aliases {
-+       emmc2bus = &emmc2bus;
 +		ethernet0 = &genet;
-+       pcie0 = &pcie0;
 +	};
 +
 +	leds {
@@ -62,8 +60,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		pwr {
 +			label = "PWR";
 +			gpios = <&expgpio 2 GPIO_ACTIVE_LOW>;
-+            default-state = "keep";
-+			linux,default-trigger = "default-on";
 +		};
 +	};
 +
@@ -111,7 +107,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +&pwm1 {
 +	pinctrl-names = "default";
-+   brcm,disable-headphones = <1>;
 +	pinctrl-0 = <&pwm1_0_gpio40 &pwm1_1_gpio41>;
 +	status = "okay";
 +};
@@ -569,4 +564,18 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +			   <&spi0>, "dmas:8=", <&dma40>;
 +	};
 +};
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -92,6 +92,12 @@ Name:   <The base DTB>
+ Info:   Configures the base Raspberry Pi hardware
+ Load:   <loaded automatically>
+ Params:
++        ant1                    Select antenna 1 (default). CM4 only.
++
++        ant2                    Select antenna 2. CM4 only.
++
++        noant                   Disable both antennas. CM4 only.
++
+         audio                   Set to "on" to enable the onboard ALSA audio
+                                 interface (default "off")
  
