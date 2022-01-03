@@ -1,5 +1,5 @@
 --- a/target/linux/bcm27xx/modules/sound.mk	2022-01-04 05:35:20.202715290 +0800
-+++ b/target/linux/bcm27xx/modules/sound1.mk	2022-01-04 05:35:16.419898622 +0800
++++ b/target/linux/bcm27xx/modules/sound.mk	2022-01-04 05:35:16.419898622 +0800
 @@ -130,29 +130,6 @@
  
  $(eval $(call KernelPackage,sound-soc-allo-boss-dac))
