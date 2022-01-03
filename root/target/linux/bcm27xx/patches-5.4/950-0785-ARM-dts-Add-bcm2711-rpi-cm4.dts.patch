@@ -14,7 +14,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
-@@ -12,7 +12,8 @@ dtb-$(CONFIG_ARCH_BCM2835) += \
+@@ -84,7 +84,8 @@ dtb-$(CONFIG_ARCH_BCM2835) += \
  	bcm2710-rpi-3-b.dtb \
  	bcm2711-rpi-4-b.dtb \
  	bcm2710-rpi-3-b-plus.dtb \
