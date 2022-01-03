@@ -569,18 +569,3 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +			   <&spi0>, "dmas:8=", <&dma40>;
 +	};
 +};
---- a/arch/arm/boot/dts/overlays/README
-+++ b/arch/arm/boot/dts/overlays/README
-@@ -92,6 +92,12 @@ Name:   <The base DTB>
- Info:   Configures the base Raspberry Pi hardware
- Load:   <loaded automatically>
- Params:
-+        ant1                    Select antenna 1 (default). CM4 only.
-+
-+        ant2                    Select antenna 2. CM4 only.
-+
-+        noant                   Disable both antennas. CM4 only.
-+
-         audio                   Set to "on" to enable the onboard ALSA audio
-                                 interface (default "off")
- 
