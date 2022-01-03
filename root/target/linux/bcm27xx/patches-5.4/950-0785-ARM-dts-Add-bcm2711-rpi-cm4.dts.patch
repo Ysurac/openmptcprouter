@@ -14,13 +14,16 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
-@@ -12,7 +12,8 @@ dtb-$(CONFIG_ARCH_BCM2835) += \
- 	bcm2710-rpi-3-b.dtb \
- 	bcm2710-rpi-3-b-plus.dtb \
--	bcm2710-rpi-cm3.dtb
+@@ -85,6 +85,8 @@
+ 	bcm2837-rpi-cm3-io3.dtb \
+ 	bcm2835-rpi-zero.dtb \
+ 	bcm2835-rpi-zero-w.dtb
 +	bcm2710-rpi-cm3.dtb \
 +	bcm2711-rpi-cm4.dtb
- 
+ dtb-$(CONFIG_ARCH_BCM_5301X) += \
+ 	bcm4708-asus-rt-ac56u.dtb \
+ 	bcm4708-asus-rt-ac68u.dtb \
+
  dtb-$(CONFIG_ARCH_ALPINE) += \
  	alpine-db.dtb
 --- /dev/null
