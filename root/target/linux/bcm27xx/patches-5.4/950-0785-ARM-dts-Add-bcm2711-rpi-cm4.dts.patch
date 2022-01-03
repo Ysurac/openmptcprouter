@@ -26,7 +26,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,541 @@
+@@ -0,0 +1,536 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -48,9 +48,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	};
 +
 +	aliases {
-+       emmc2bus = &emmc2bus;
 +		ethernet0 = &genet;
-+       pcie0 = &pcie0;
 +	};
 +
 +	leds {
@@ -108,7 +106,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +&pwm1 {
 +	pinctrl-names = "default";
-+   brcm,disable-headphones = <1>;
 +	pinctrl-0 = <&pwm1_0_gpio40 &pwm1_1_gpio41>;
 +	status = "okay";
 +};
