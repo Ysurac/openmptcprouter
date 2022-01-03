@@ -511,5 +511,5 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		spi_dma4 = <&spi0>, "dmas:0=", <&dma40>,
 +			   <&spi0>, "dmas:8=", <&dma40>;
 +	};
-+};
++   };
 +
