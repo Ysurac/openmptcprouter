@@ -8,7 +8,7 @@ Add initial DTS file for Compute Module 4.
 Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 ---
  arch/arm/boot/dts/Makefile            |   2 +-
- arch/arm/boot/dts/bcm2711-rpi-cm4.dts | 486 ++++++++++++++++++++++++++
+ arch/arm/boot/dts/bcm2711-rpi-cm4.dts | 481 ++++++++++++++++++++++++++
  2 files changed, 487 insertions(+), 1 deletion(-)
  create mode 100644 arch/arm/boot/dts/bcm2711-rpi-cm4.dts
 
@@ -26,7 +26,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,486 @@
+@@ -0,0 +1,481 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -506,10 +506,5 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +		eth_led0 = <&phy1>,"led-modes:0";
 +		eth_led1 = <&phy1>,"led-modes:4";
-+
-+		sd_poll_once = <&emmc2>, "non-removable?";
-+		spi_dma4 = <&spi0>, "dmas:0=", <&dma40>,
-+			   <&spi0>, "dmas:8=", <&dma40>;
 +	};
 +   };
-+
