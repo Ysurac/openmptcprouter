@@ -386,6 +386,16 @@ if [ "$OMR_KERNEL" = "5.4" ] && ([ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET"
 	echo "Done"
 fi
 
+# Add fix bcm2711-rpi-cm4 patch, only working on 64bits images for now
+if [ "$OMR_KERNEL" = "5.4" ] && ([ "$OMR_TARGET" = "rpi4" ]); then
+	echo "Checking if bcm2711-rpi-cm4 patch is set or not"
+	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/950-0785-fixcm4soundboss2.patch; then
+		echo "apply..."
+		patch -N -p1 -s < ../../patches/950-0785-fixcm4soundboss2.patch
+	fi
+	echo "Done"
+fi
+
 echo "Checking if smsc75xx patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/smsc75xx.patch; then
 	echo "apply..."
