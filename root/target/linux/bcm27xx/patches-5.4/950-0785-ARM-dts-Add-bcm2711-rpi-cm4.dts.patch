@@ -8,28 +8,26 @@ Add initial DTS file for Compute Module 4.
 Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 ---
  arch/arm/boot/dts/Makefile            |   3 +-
+ arch/arm/boot/dts/bcm2711-rpi-cm4.dts | 586 ++++++++++++++++++++++++++
  arch/arm/boot/dts/overlays/README     |   6 +
- arch/arm/boot/dts/bcm2711-rpi-cm4.dts | 493 ++++++++++++++++++++++++++
- 3 files changed, 493 insertions(+), 1 deletion(-)
+ 3 files changed, 594 insertions(+), 1 deletion(-)
  create mode 100644 arch/arm/boot/dts/bcm2711-rpi-cm4.dts
 
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
-@@ -85,6 +85,8 @@
- 	bcm2837-rpi-cm3-io3.dtb \
- 	bcm2835-rpi-zero.dtb \
- 	bcm2835-rpi-zero-w.dtb
+@@ -12,7 +12,8 @@ dtb-$(CONFIG_ARCH_BCM2835) += \
+ 	bcm2710-rpi-3-b.dtb \
+ 	bcm2711-rpi-4-b.dtb \
+ 	bcm2710-rpi-3-b-plus.dtb \
+-	bcm2710-rpi-cm3.dtb
 +	bcm2710-rpi-cm3.dtb \
 +	bcm2711-rpi-cm4.dtb
- dtb-$(CONFIG_ARCH_BCM_5301X) += \
- 	bcm4708-asus-rt-ac56u.dtb \
- 	bcm4708-asus-rt-ac68u.dtb \
-
+ 
  dtb-$(CONFIG_ARCH_ALPINE) += \
  	alpine-db.dtb
 --- /dev/null
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts
-@@ -0,0 +1,493 @@
+@@ -0,0 +1,536 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/dts-v1/;
 +#include "bcm2711.dtsi"
@@ -51,9 +49,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	};
 +
 +	aliases {
-+		emmc2bus = &emmc2bus;
 +		ethernet0 = &genet;
-+		pcie0 = &pcie0;
 +	};
 +
 +	leds {
@@ -64,8 +60,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		pwr {
 +			label = "PWR";
 +			gpios = <&expgpio 2 GPIO_ACTIVE_LOW>;
-+			default-state = "keep";
-+			linux,default-trigger = "default-on";
 +		};
 +	};
 +
@@ -179,11 +173,50 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
 +};
 +
++&vc4 {
++	status = "okay";
++};
++
++&pixelvalve0 {
++	status = "okay";
++};
++
++&pixelvalve1 {
++	status = "okay";
++};
++
++&pixelvalve2 {
++	status = "okay";
++};
++
++&pixelvalve3 {
++	status = "okay";
++};
++
++&pixelvalve4 {
++	status = "okay";
++};
++
++&hdmi0 {
++	status = "okay";
++};
++
++&ddc0 {
++	status = "okay";
++};
++
++&hdmi1 {
++	status = "okay";
++};
++
++&ddc1 {
++	status = "okay";
++};
++
 +// =============================================
 +// Downstream rpi- changes
 +
 +#include "bcm270x.dtsi"
-+#include "bcm271x-rpi-bt.dtsi"
 +
 +/ {
 +	soc {
@@ -193,13 +226,14 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +};
 +
 +#include "bcm2711-rpi.dtsi"
-+#include "bcm283x-rpi-csi0-2lane.dtsi"
-+#include "bcm283x-rpi-csi1-4lane.dtsi"
++#include "bcm283x-rpi-csi1-2lane.dtsi"
 +#include "bcm283x-rpi-i2c0mux_0_44.dtsi"
++
++/delete-node/ &emmc2;
 +
 +/ {
 +	chosen {
-+		bootargs = "coherent_pool=1M 8250.nr_uarts=1 snd_bcm2835.enable_compat_alsa=0 snd_bcm2835.enable_hdmi=1";
++		bootargs = "coherent_pool=1M 8250.nr_uarts=1 snd_bcm2835.enable_compat_alsa=0 snd_bcm2835.enable_hdmi=1 snd_bcm2835.enable_headphones=1";
 +	};
 +
 +	aliases {
@@ -213,14 +247,32 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		i2c4 = &i2c4;
 +		i2c5 = &i2c5;
 +		i2c6 = &i2c6;
++		/delete-property/ ethernet;
 +		/delete-property/ intc;
++		pcie0 = &pcie0;
++		emmc2bus = &emmc2bus;
++	};
++
++	emmc2bus: emmc2bus {
++		compatible = "simple-bus";
++		#address-cells = <2>;
++		#size-cells = <1>;
++
++		ranges = <0x0 0x7e000000  0x0 0xfe000000  0x01800000>;
++		dma-ranges = <0x0 0xc0000000  0x0 0x00000000  0x40000000>;
++
++		emmc2: emmc2@7e340000 {
++			compatible = "brcm,bcm2711-emmc2";
++			status = "okay";
++			interrupts = <GIC_SPI 126 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&clocks BCM2711_CLOCK_EMMC2>;
++			reg = <0x0 0x7e340000 0x100>;
++			vqmmc-supply = <&sd_io_1v8_reg>;
++			broken-cd;
++		};
 +	};
 +
 +	/delete-node/ wifi-pwrseq;
-+};
-+
-+&pcie0 {
-+       brcm,enable-l1ss;
 +};
 +
 +&mmcnr {
@@ -233,6 +285,8 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +&uart0 {
 +	pinctrl-0 = <&uart0_pins &bt_pins>;
 +	status = "okay";
++
++	/delete-node/ bluetooth;
 +};
 +
 +&uart1 {
@@ -240,14 +294,14 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +};
 +
 +&gpio {
-+	spi0_pins: spi0_pins {
-+		brcm,pins = <9 10 11>;
-+		brcm,function = <BCM2835_FSEL_ALT0>;
-+	};
-+
 +	spi0_cs_pins: spi0_cs_pins {
 +		brcm,pins = <8 7>;
 +		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
++	};
++
++	spi3_pins: spi3_pins {
++		brcm,pins = <1 2 3>;
++		brcm,function = <BCM2835_FSEL_ALT3>;
 +	};
 +
 +	spi4_pins: spi4_pins {
@@ -320,10 +374,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	clock-frequency = <100000>;
 +};
 +
-+&firmwarekms {
-+	compatible = "raspberrypi,rpi-firmware-kms-2711";
-+};
-+
 +// =============================================
 +// Board specific stuff here
 +
@@ -354,8 +404,8 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +&gpio {
 +	audio_pins: audio_pins {
-+		brcm,pins = <>;
-+		brcm,function = <>;
++		brcm,pins = <40 41>;
++		brcm,function = <4>;
 +	};
 +};
 +
@@ -371,6 +421,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		linux,default-trigger = "default-on";
 +		gpios = <&expgpio 2 GPIO_ACTIVE_LOW>;
 +	};
++	
 +		wlan2g {
 +				label = "wlan2g";
 +				gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
@@ -454,7 +505,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +&audio {
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&audio_pins>;
-+	brcm,disable-headphones = <1>;
 +};
 +
 +&vc4 {
@@ -509,21 +559,12 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +		eth_led0 = <&phy1>,"led-modes:0";
 +		eth_led1 = <&phy1>,"led-modes:4";
-+		ant2 =  <&ant1>,"output-high?=off",
-+			<&ant1>, "output-low?=on",
-+			<&ant2>, "output-high?=on",
-+			<&ant2>, "output-low?=off";
-+		noant = <&ant1>,"output-high?=off",
-+			<&ant1>, "output-low?=on",
-+			<&ant2>, "output-high?=off",
-+			<&ant2>, "output-low?=on";
 +
-+		sd_poll_once = <&emmc2>, "non-removable?";
 +		spi_dma4 = <&spi0>, "dmas:0=", <&dma40>,
 +			   <&spi0>, "dmas:8=", <&dma40>;
 +	};
 +};
- --- a/arch/arm/boot/dts/overlays/README
+--- a/arch/arm/boot/dts/overlays/README
 +++ b/arch/arm/boot/dts/overlays/README
 @@ -92,6 +92,12 @@ Name:   <The base DTB>
  Info:   Configures the base Raspberry Pi hardware
@@ -537,3 +578,4 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
          audio                   Set to "on" to enable the onboard ALSA audio
                                  interface (default "off")
+ 
