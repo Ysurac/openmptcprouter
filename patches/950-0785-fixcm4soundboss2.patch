@@ -1,9 +1,35 @@
 --- a/target/linux/bcm27xx/modules/sound.mk	2022-01-04 05:35:20.202715290 +0800
 +++ b/target/linux/bcm27xx/modules/sound.mk	2022-01-04 05:35:16.419898622 +0800
-@@ -130,29 +130,6 @@
+@@ -104,55 +104,6 @@
  
- $(eval $(call KernelPackage,sound-soc-allo-boss-dac))
+ $(eval $(call KernelPackage,sound-soc-adau1977-adc))
  
+-
+-define KernelPackage/sound-soc-allo-boss-dac
+-  TITLE:=Support for Allo Boss DAC
+-  KCONFIG:= \
+-    CONFIG_SND_BCM2708_SOC_ALLO_BOSS_DAC \
+-    CONFIG_SND_SOC_PCM512x \
+-    CONFIG_SND_SOC_PCM512x_I2C
+-  FILES:= \
+-    $(LINUX_DIR)/sound/soc/bcm/snd-soc-allo-boss-dac.ko \
+-    $(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm512x.ko \
+-    $(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm512x-i2c.ko
+-  AUTOLOAD:=$(call AutoLoad,68,snd-soc-pcm512x-i2c snd-soc-pcm512x \
+-    snd-soc-allo-boss-dac)
+-  DEPENDS:= \
+-    kmod-sound-soc-bcm2835-i2s \
+-    +kmod-i2c-bcm2835 \
+-    +kmod-regmap-i2c
+-  $(call AddDepends/sound)
+-endef
+-
+-define KernelPackage/sound-soc-allo-boss-dac/description
+-  This package contains support for Allo Boss DAC
+-endef
+-
+-$(eval $(call KernelPackage,sound-soc-allo-boss-dac))
+-
 -
 -define KernelPackage/sound-soc-allo-boss2-dac
 -  TITLE:=Support for Allo Boss2 DAC
@@ -30,7 +56,7 @@
  define KernelPackage/sound-soc-allo-digione
    TITLE:=Support for Allo Piano DigiOne
    KCONFIG:= \
-@@ -867,29 +844,6 @@
+@@ -867,29 +818,6 @@
  
  $(eval $(call KernelPackage,sound-soc-justboom-digi))
  
