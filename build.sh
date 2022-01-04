@@ -92,13 +92,13 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "4a2cca78245e9291096e7c8c98627426df50ef58"
-		_get_repo feeds/packages https://github.com/openwrt/packages "978e2265968e36c9dc03004225198b85570f60d2"
-		_get_repo feeds/luci https://github.com/openwrt/luci "87bed0547156aca6e31ad6c72e2cd45cf198537f"
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f441be3921c769b732f0148f005d4f1bbace0508"
+		_get_repo feeds/packages https://github.com/openwrt/packages "ab94e0709a9c796d34d723ddba44380f7b3d8698"
+		_get_repo feeds/luci https://github.com/openwrt/luci "0818d835cacd9fa75b8685aabe6378ac09b95145"
 	else
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "8a6b1a8d29cbd62f005ba20998ca9c8048ff49fc"
-		_get_repo feeds/packages https://github.com/openwrt/packages "b5132de5cf4f7d0562445cf3c65f9f1a4bcb1bbf"
-		_get_repo feeds/luci https://github.com/openwrt/luci "02398a33837d1fe8fd23d933ad7ac32025144805"
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "02de391b086dd2b7a72c2394cfb66cec666a51c1"
+		_get_repo feeds/packages https://github.com/openwrt/packages "7b2dd3e9efbc20ef4e7f47f60c3db9aaef37c0a5"
+		_get_repo feeds/luci https://github.com/openwrt/luci "73e21c3b5791ac97aa7b437c8e683cdbea407395"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
@@ -382,16 +382,6 @@ if [ "$OMR_KERNEL" = "5.4" ] && ([ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/bbr2.patch; then
 		echo "apply..."
 		patch -N -p1 -s < ../../patches/bbr2.patch
-	fi
-	echo "Done"
-fi
-
-# Add fix bcm2711-rpi-cm4 patch, only working on 64bits images for now
-if [ "$OMR_KERNEL" = "5.4" ] && ([ "$OMR_TARGET" = "rpi4" ]); then
-	echo "Checking if bcm2711-rpi-cm4 patch is set or not"
-	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/950-0785-fixcm4soundboss2.patch; then
-		echo "apply..."
-		patch -N -p1 -s < ../../patches/950-0785-fixcm4soundboss2.patch
 	fi
 	echo "Done"
 fi
