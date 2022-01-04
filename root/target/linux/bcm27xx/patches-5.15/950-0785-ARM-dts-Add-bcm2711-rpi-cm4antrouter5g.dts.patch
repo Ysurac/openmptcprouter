@@ -1,5 +1,5 @@
 --- a/arch/arm/boot/dts/bcm2711-rpi-cm4.dts 2022-01-04 02:51:16.000000000 +0800
-+++ b/arch/arm/boot/dts/bcm2711-rpi-cm41.dts    2022-01-04 03:10:34.000000000 +0800
++++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts    2022-01-04 03:10:34.000000000 +0800
 @@ -74,12 +74,6 @@
  			  "SD_PWR_ON",
  			  "ANT2";
