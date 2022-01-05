@@ -1,19 +1,26 @@
 --- a/arch/arm/boot/dts/bcm2711-rpi-cm4.dts 2022-01-04 02:51:16.000000000 +0800
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts    2022-01-04 03:10:34.000000000 +0800
-@@ -74,12 +74,6 @@
- 			  "SD_PWR_ON",
- 			  "ANT2";
+@@ -91,19 +91,12 @@
+ 		gpio-line-names = "BT_ON",
+ 				  "WL_ON",
+ 				  "PWR_LED_OFF",
+-				  "ANT1",
+ 				  "VDD_SD_IO_SEL",
+ 				  "CAM_GPIO",
+ 				  "SD_PWR_ON",
+ 				  "ANT2";
+ 		status = "okay";
  
--	ant1: ant1 {
--		gpio-hog;
--		gpios = <3 GPIO_ACTIVE_HIGH>;
--		output-high;
--	};
+-		ant1: ant1 {
+-			gpio-hog;
+-			gpios = <3 GPIO_ACTIVE_HIGH>;
+-			output-high;
+-		};
 -
- 	ant2: ant2 {
- 		gpio-hog;
- 		gpios = <7 GPIO_ACTIVE_HIGH>;
-@@ -108,23 +102,10 @@
+ 		ant2: ant2 {
+ 			gpio-hog;
+ 			gpios = <7 GPIO_ACTIVE_HIGH>;
+@@ -138,23 +131,10 @@
  			  "SPI_MISO",
  			  "SPI_MOSI",
  			  "SPI_SCLK",
@@ -37,7 +44,7 @@
  			  "RGMII_MDIO",
  			  "RGMIO_MDC",
  			  /* Used by BT module */
-@@ -311,14 +292,9 @@
+@@ -368,14 +348,9 @@
  		mmc2 = &sdhost;
  		i2c3 = &i2c3;
  		i2c4 = &i2c4;
@@ -52,7 +59,7 @@
  		/delete-property/ intc;
  	};
  
-@@ -341,49 +317,7 @@
+@@ -398,49 +373,7 @@
  	pinctrl-0 = <&uart1_pins>;
  };
  
@@ -102,7 +109,7 @@
  	spi4_pins: spi4_pins {
  		brcm,pins = <5 6 7>;
  		brcm,function = <BCM2835_FSEL_ALT3>;
-@@ -394,38 +328,12 @@
+@@ -451,38 +384,12 @@
  		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
  	};
  
@@ -141,7 +148,7 @@
  	i2c3_pins: i2c3 {
  		brcm,pins = <4 5>;
  		brcm,function = <BCM2835_FSEL_ALT5>;
-@@ -438,23 +346,6 @@
+@@ -495,23 +402,6 @@
  		brcm,pull = <BCM2835_PUD_UP>;
  	};
  
@@ -165,7 +172,7 @@
  	sdio_pins: sdio_pins {
  		brcm,pins =     <34 35 36 37 38 39>;
  		brcm,function = <BCM2835_FSEL_ALT3>; // alt3 = SD1
-@@ -497,29 +388,12 @@
+@@ -554,29 +444,12 @@
  		brcm,function = <BCM2835_FSEL_ALT4>;
  		brcm,pull = <0 2>;
  	};
@@ -195,10 +202,11 @@
  // =============================================
  // Board specific stuff here
  
-@@ -554,6 +428,80 @@
+@@ -611,6 +484,81 @@
  		linux,default-trigger = "default-on";
  		gpios = <&expgpio 2 GPIO_ACTIVE_LOW>;
  	};
++
 +	wlan2g {
 +              label = "wlan2g";
 +              gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
@@ -276,7 +284,7 @@
  };
  
  &pwm1 {
-@@ -583,21 +531,6 @@
+@@ -640,21 +588,6 @@
  		eth_led0 = <&phy1>,"led-modes:0";
  		eth_led1 = <&phy1>,"led-modes:4";
  
@@ -298,4 +306,3 @@
 -			   <&spi0>, "dmas:8=", <&dma40>;
  	};
  };
-\ No newline at end of file
