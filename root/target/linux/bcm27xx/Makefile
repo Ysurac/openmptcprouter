@@ -22,7 +22,6 @@ include $(INCLUDE_DIR)/target.mk
 
 DEFAULT_PACKAGES := $(filter-out urngd,$(DEFAULT_PACKAGES))
 DEFAULT_PACKAGES += \
-	bcm27xx-gpu-fw \
 	kmod-usb-hid \
 	kmod-fs-vfat kmod-nls-cp437 kmod-nls-iso8859-1 \
 	partx-utils mkf2fs e2fsprogs
