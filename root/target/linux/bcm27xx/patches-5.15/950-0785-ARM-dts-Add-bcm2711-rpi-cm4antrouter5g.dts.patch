@@ -1,5 +1,14 @@
 --- a/arch/arm/boot/dts/bcm2711-rpi-cm4.dts 2022-01-04 02:51:16.000000000 +0800
 +++ b/arch/arm/boot/dts/bcm2711-rpi-cm4.dts    2022-01-04 03:10:34.000000000 +0800
+@@ -7,7 +7,7 @@
+ 
+ / {
+ 	compatible = "raspberrypi,4-compute-module", "brcm,bcm2711";
+-	model = "Raspberry Pi Compute Module 4";
++	model = "openmptcprouter_5G_CM4";
+ 
+ 	chosen {
+ 		/* 8250 auxiliary UART instead of pl011 */
 @@ -91,19 +91,12 @@
  		gpio-line-names = "BT_ON",
  				  "WL_ON",
