@@ -238,6 +238,7 @@ CONFIG_PACKAGE_mtr=y
 CONFIG_PACKAGE_sysstat=y
 CONFIG_PACKAGE_coreutils-stty=y
 CONFIG_PACKAGE_cfdisk=y
+CONFIG_PACKAGE_fdisk=y
 CONFIG_PACKAGE_lsblk=y
 CONFIG_PACKAGE_xfs-mkfs=y
 # CONFIG_PACKAGE_kmod-sound-core is not set
