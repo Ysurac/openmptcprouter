@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /lib/functions/uci-defaults.sh
 
 board_config_update

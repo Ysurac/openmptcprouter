@@ -35,7 +35,7 @@ define Device/DniImage
 	IMAGES += factory.img
 	IMAGE/factory.img := append-kernel | pad-offset 64k 64 | append-uImage-fakehdr filesystem | append-rootfs | pad-rootfs | netgear-dni
 	IMAGE/sysupgrade.bin := append-kernel | pad-offset 64k 64 | append-uImage-fakehdr filesystem | \
-		append-rootfs | pad-rootfs | check-size | append-metadata
+		append-rootfs | pad-rootfs | append-metadata | check-size
 endef
 
 define Build/append-rootfshdr
@@ -61,7 +61,6 @@ define Build/mkmylofw_32m
 		$@.new
 	@mv $@.new $@
 endef
-
 
 define Build/qsdk-ipq-factory-nand-askey
 	$(TOPDIR)/scripts/mkits-qsdk-ipq-image.sh $@.its\
@@ -97,24 +96,9 @@ define Device/8dev_habanero-dvk
 	IMAGE_SIZE := 30976k
 	SOC := qcom-ipq4019
 	DEVICE_PACKAGES := ipq-wifi-8dev_habanero-dvk
-	IMAGE/sysupgrade.bin := append-kernel | pad-to 64k | append-rootfs | pad-rootfs | check-size | append-metadata
+	IMAGE/sysupgrade.bin := append-kernel | pad-to 64k | append-rootfs | pad-rootfs | append-metadata | check-size
 endef
 TARGET_DEVICES += 8dev_habanero-dvk
-
-define Device/8dev_jalapeno-common
-	$(call Device/FitImage)
-	$(call Device/UbiFit)
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	SOC := qcom-ipq4018
-endef
-
-define Device/8dev_jalapeno
-	$(call Device/8dev_jalapeno-common)
-	DEVICE_VENDOR := 8devices
-	DEVICE_MODEL := Jalapeno
-endef
-TARGET_DEVICES += 8dev_jalapeno
 
 define Device/pangu_l1000
 	$(call Device/FitImage)
@@ -130,6 +114,34 @@ define Device/pangu_l1000
 	DEVICE_PACKAGES := ipq-wifi-pangu_l1000
 endef
 TARGET_DEVICES += pangu_l1000
+
+define Device/zbt_z4019
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := ZBT
+	DEVICE_MODEL := Z4019
+	SOC := qcom-ipq4019
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
+endef
+TARGET_DEVICES += zbt_z4019
+
+
+define Device/8dev_jalapeno-common
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	SOC := qcom-ipq4018
+endef
+
+define Device/8dev_jalapeno
+	$(call Device/8dev_jalapeno-common)
+	DEVICE_VENDOR := 8devices
+	DEVICE_MODEL := Jalapeno
+endef
+TARGET_DEVICES += 8dev_jalapeno
 
 define Device/alfa-network_ap120c-ac
 	$(call Device/FitImage)
@@ -213,7 +225,7 @@ define Device/avm_fritzbox-4040
 	UBOOT_PARTITION_SIZE := 524288
 	IMAGES += eva.bin
 	IMAGE/eva.bin := append-uboot | pad-to $$$$(UBOOT_PARTITION_SIZE) | append-kernel | append-rootfs | pad-rootfs
-	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size | append-metadata
+	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size
 	DEVICE_PACKAGES := fritz-tffs fritz-caldata
 endef
 TARGET_DEVICES += avm_fritzbox-4040
@@ -501,7 +513,7 @@ endef
 TARGET_DEVICES += glinet_gl-ap1300
 
 define Device/glinet_gl-b1300
-	$(call Device/FitzImage)
+	$(call Device/FitImage)
 	DEVICE_VENDOR := GL.iNet
 	DEVICE_MODEL := GL-B1300
 	BOARD_NAME := gl-b1300
@@ -512,20 +524,8 @@ define Device/glinet_gl-b1300
 endef
 TARGET_DEVICES += glinet_gl-b1300
 
-define Device/zbt_z4019
-	$(call Device/FitImage)
-	$(call Device/UbiFit)
-	DEVICE_VENDOR := ZBT
-	DEVICE_MODEL := Z4019
-	SOC := qcom-ipq4019
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
-endef
-TARGET_DEVICES += zbt_z4019
-
 define Device/glinet_gl-s1300
-	$(call Device/FitzImage)
+	$(call Device/FitImage)
 	DEVICE_VENDOR := GL.iNet
 	DEVICE_MODEL := GL-S1300
 	SOC := qcom-ipq4029
@@ -828,7 +828,7 @@ define Device/zyxel_wre6606
 	DEVICE_DTS_CONFIG := config@4
 	SOC := qcom-ipq4018
 	IMAGE_SIZE := 13184k
-	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | check-size | append-metadata
+	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size
 	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
 endef
 TARGET_DEVICES += zyxel_wre6606
