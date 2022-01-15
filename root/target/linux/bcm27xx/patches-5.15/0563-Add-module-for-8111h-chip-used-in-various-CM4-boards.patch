@@ -1,0 +1,37 @@
+From 3b480e2bf556dc77cb25d5fb2d3f7b203d3d6e37 Mon Sep 17 00:00:00 2001
+From: Sten Spans <sten@sp5.nl>
+Date: Tue, 12 Oct 2021 20:10:00 +0200
+Subject: [PATCH 563/634] Add module for 8111h chip used in various CM4 boards
+
+---
+ arch/arm/configs/bcm2711_defconfig   | 1 +
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 2db662527444..c1d7afb36a2e 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -509,6 +509,7 @@ CONFIG_BCMGENET=y
+ CONFIG_ENC28J60=m
+ CONFIG_QCA7000_SPI=m
+ CONFIG_QCA7000_UART=m
++CONFIG_R8169=m
+ CONFIG_WIZNET_W5100=m
+ CONFIG_WIZNET_W5100_SPI=m
+ CONFIG_MICREL_PHY=y
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index d1966d92664b..234e68865bff 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -506,6 +506,7 @@ CONFIG_BCMGENET=y
+ CONFIG_ENC28J60=m
+ CONFIG_QCA7000_SPI=m
+ CONFIG_QCA7000_UART=m
++CONFIG_R8169=m
+ CONFIG_WIZNET_W5100=m
+ CONFIG_WIZNET_W5100_SPI=m
+ CONFIG_MICREL_PHY=y
+-- 
+2.33.1
+

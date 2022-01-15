@@ -1,0 +1,136 @@
+From 58b75a603967b8de888949220993bafd65fcca60 Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 26 Oct 2021 06:49:54 +0100
+Subject: [PATCH 631/634] media: v4l2-core: fix VIDIOC_DQEVENT handling on
+ non-x86
+
+My previous bugfix addressed an API inconsistency found by syzbot,
+and it correctly fixed the issue on x86-64 machines, which now behave
+correctly for both native and compat tasks.
+
+Unfortunately, John found that the patch broke compat mode on all other
+architectures, as they can no longer rely on the VIDIOC_DQEVENT_TIME32
+code from the native handler as a fallback in the compat code.
+
+The best way I can see for addressing this is to generalize the
+VIDIOC_DQEVENT32_TIME32 code from x86 and use that for all architectures,
+leaving only the VIDIOC_DQEVENT32 variant as x86 specific. The original
+code was trying to be clever and use the same conversion helper for native
+32-bit code and compat mode, but that turned out to be too obscure so
+even I missed that bit I had introduced myself when I made the fix.
+
+Fixes: c344f07aa1b4 ("media: v4l2-core: ignore native time32 ioctls on 64-bit")
+Reported-by: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Tested-by: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 41 ++++++++-----------
+ 1 file changed, 17 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 47aff3b19742..80aaf07b16f2 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -744,10 +744,6 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *p64,
+ /*
+  * x86 is the only compat architecture with different struct alignment
+  * between 32-bit and 64-bit tasks.
+- *
+- * On all other architectures, v4l2_event32 and v4l2_event32_time32 are
+- * the same as v4l2_event and v4l2_event_time32, so we can use the native
+- * handlers, converting v4l2_event to v4l2_event_time32 if necessary.
+  */
+ struct v4l2_event32 {
+ 	__u32				type;
+@@ -765,21 +761,6 @@ struct v4l2_event32 {
+ 	__u32				reserved[8];
+ };
+ 
+-#ifdef CONFIG_COMPAT_32BIT_TIME
+-struct v4l2_event32_time32 {
+-	__u32				type;
+-	union {
+-		compat_s64		value64;
+-		__u8			data[64];
+-	} u;
+-	__u32				pending;
+-	__u32				sequence;
+-	struct old_timespec32		timestamp;
+-	__u32				id;
+-	__u32				reserved[8];
+-};
+-#endif
+-
+ static int put_v4l2_event32(struct v4l2_event *p64,
+ 			    struct v4l2_event32 __user *p32)
+ {
+@@ -795,7 +776,22 @@ static int put_v4l2_event32(struct v4l2_event *p64,
+ 	return 0;
+ }
+ 
++#endif
++
+ #ifdef CONFIG_COMPAT_32BIT_TIME
++struct v4l2_event32_time32 {
++	__u32				type;
++	union {
++		compat_s64		value64;
++		__u8			data[64];
++	} u;
++	__u32				pending;
++	__u32				sequence;
++	struct old_timespec32		timestamp;
++	__u32				id;
++	__u32				reserved[8];
++};
++
+ static int put_v4l2_event32_time32(struct v4l2_event *p64,
+ 				   struct v4l2_event32_time32 __user *p32)
+ {
+@@ -811,7 +807,6 @@ static int put_v4l2_event32_time32(struct v4l2_event *p64,
+ 	return 0;
+ }
+ #endif
+-#endif
+ 
+ struct v4l2_edid32 {
+ 	__u32 pad;
+@@ -873,9 +868,7 @@ static int put_v4l2_edid32(struct v4l2_edid *p64,
+ #define VIDIOC_QUERYBUF32_TIME32	_IOWR('V',  9, struct v4l2_buffer32_time32)
+ #define VIDIOC_QBUF32_TIME32		_IOWR('V', 15, struct v4l2_buffer32_time32)
+ #define VIDIOC_DQBUF32_TIME32		_IOWR('V', 17, struct v4l2_buffer32_time32)
+-#ifdef CONFIG_X86_64
+ #define	VIDIOC_DQEVENT32_TIME32		_IOR ('V', 89, struct v4l2_event32_time32)
+-#endif
+ #define VIDIOC_PREPARE_BUF32_TIME32	_IOWR('V', 93, struct v4l2_buffer32_time32)
+ #endif
+ 
+@@ -929,10 +922,10 @@ unsigned int v4l2_compat_translate_cmd(unsigned int cmd)
+ #ifdef CONFIG_X86_64
+ 	case VIDIOC_DQEVENT32:
+ 		return VIDIOC_DQEVENT;
++#endif
+ #ifdef CONFIG_COMPAT_32BIT_TIME
+ 	case VIDIOC_DQEVENT32_TIME32:
+ 		return VIDIOC_DQEVENT;
+-#endif
+ #endif
+ 	}
+ 	return cmd;
+@@ -1025,10 +1018,10 @@ int v4l2_compat_put_user(void __user *arg, void *parg, unsigned int cmd)
+ #ifdef CONFIG_X86_64
+ 	case VIDIOC_DQEVENT32:
+ 		return put_v4l2_event32(parg, arg);
++#endif
+ #ifdef CONFIG_COMPAT_32BIT_TIME
+ 	case VIDIOC_DQEVENT32_TIME32:
+ 		return put_v4l2_event32_time32(parg, arg);
+-#endif
+ #endif
+ 	}
+ 	return 0;
+-- 
+2.33.1
+

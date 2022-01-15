@@ -1,0 +1,88 @@
+--- a/target/linux/bcm27xx/modules/sound.mk	2022-01-04 05:35:20.202715290 +0800
++++ b/target/linux/bcm27xx/modules/sound.mk	2022-01-04 05:35:16.419898622 +0800
+@@ -104,55 +104,6 @@
+ 
+ $(eval $(call KernelPackage,sound-soc-adau1977-adc))
+ 
+-
+-define KernelPackage/sound-soc-allo-boss-dac
+-  TITLE:=Support for Allo Boss DAC
+-  KCONFIG:= \
+-    CONFIG_SND_BCM2708_SOC_ALLO_BOSS_DAC \
+-    CONFIG_SND_SOC_PCM512x \
+-    CONFIG_SND_SOC_PCM512x_I2C
+-  FILES:= \
+-    $(LINUX_DIR)/sound/soc/bcm/snd-soc-allo-boss-dac.ko \
+-    $(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm512x.ko \
+-    $(LINUX_DIR)/sound/soc/codecs/snd-soc-pcm512x-i2c.ko
+-  AUTOLOAD:=$(call AutoLoad,68,snd-soc-pcm512x-i2c snd-soc-pcm512x \
+-    snd-soc-allo-boss-dac)
+-  DEPENDS:= \
+-    kmod-sound-soc-bcm2835-i2s \
+-    +kmod-i2c-bcm2835 \
+-    +kmod-regmap-i2c
+-  $(call AddDepends/sound)
+-endef
+-
+-define KernelPackage/sound-soc-allo-boss-dac/description
+-  This package contains support for Allo Boss DAC
+-endef
+-
+-$(eval $(call KernelPackage,sound-soc-allo-boss-dac))
+-
+-
+-define KernelPackage/sound-soc-allo-boss2-dac
+-  TITLE:=Support for Allo Boss2 DAC
+-  KCONFIG:= \
+-    CONFIG_SND_AUDIO_GRAPH_CARD \
+-    CONFIG_SND_BCM2708_SOC_ALLO_BOSS2_DAC
+-  FILES:= \
+-    $(LINUX_DIR)/sound/soc/bcm/snd-soc-allo-boss2-dac.ko
+-  AUTOLOAD:=$(call AutoLoad,68,snd-soc-allo-boss2-dac)
+-  DEPENDS:= \
+-    kmod-sound-soc-bcm2835-i2s \
+-    +kmod-i2c-bcm2835 \
+-    +kmod-regmap-i2c
+-  $(call AddDepends/sound)
+-endef
+-
+-define KernelPackage/sound-soc-allo-boss2-dac/description
+-  This package contains support for Allo Boss2 DAC
+-endef
+-
+-$(eval $(call KernelPackage,sound-soc-allo-boss2-dac))
+-
+-
+ define KernelPackage/sound-soc-allo-digione
+   TITLE:=Support for Allo Piano DigiOne
+   KCONFIG:= \
+@@ -867,29 +818,6 @@
+ 
+ $(eval $(call KernelPackage,sound-soc-justboom-digi))
+ 
+-
+-define KernelPackage/sound-soc-pifi-40-amp
+-  TITLE:=Support for PiFi-40 amp
+-  KCONFIG:= \
+-    CONFIG_SND_BCM2708_SOC_PIFI_40 \
+-    CONFIG_SND_PIFI_40 \
+-    CONFIG_SND_SOC_TAS571X
+-  FILES:= \
+-    $(LINUX_DIR)/sound/soc/bcm/snd-soc-pifi-40.ko \
+-    $(LINUX_DIR)/sound/soc/codecs/snd-soc-tas571x.ko
+-  AUTOLOAD:=$(call AutoLoad,68,snd-soc-tas571x)
+-  DEPENDS:= \
+-    kmod-sound-soc-bcm2835-i2s
+-  $(call AddDepends/sound)
+-endef
+-
+-define KernelPackage/sound-soc-pifi-40-amp/description
+-  This package contains support for PiFi-40 amp
+-endef
+-
+-$(eval $(call KernelPackage,sound-soc-pifi-40-amp))
+-
+-
+ define KernelPackage/sound-soc-pisound
+   TITLE:=Support for Blokas Labs PiSound
+   KCONFIG:= \

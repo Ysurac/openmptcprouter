@@ -1,0 +1,65 @@
+From 82eae7910c0537100d4b5a6bb697bb3e9996cd2a Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Wed, 26 May 2021 16:13:02 +0200
+Subject: [PATCH 465/634] drm/vc4: Increase the core clock based on HVS load
+
+Depending on a given HVS output (HVS to PixelValves) and input (planes
+attached to a channel) load, the HVS needs for the core clock to be
+raised above its boot time default.
+
+Failing to do so will result in a vblank timeout and a stalled display
+pipeline.
+
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+---
+ drivers/gpu/drm/vc4/vc4_drv.h |  1 +
+ drivers/gpu/drm/vc4/vc4_kms.c | 14 ++++++++++++++
+ 2 files changed, 15 insertions(+)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_drv.h b/drivers/gpu/drm/vc4/vc4_drv.h
+index 4329e09d357c..3921959b4a5e 100644
+--- a/drivers/gpu/drm/vc4/vc4_drv.h
++++ b/drivers/gpu/drm/vc4/vc4_drv.h
+@@ -321,6 +321,7 @@ struct vc4_hvs {
+ 	u32 __iomem *dlist;
+ 
+ 	struct clk *core_clk;
++	struct clk_request *core_req;
+ 
+ 	/* Memory manager for CRTCs to allocate space in the display
+ 	 * list.  Units are dwords.
+diff --git a/drivers/gpu/drm/vc4/vc4_kms.c b/drivers/gpu/drm/vc4/vc4_kms.c
+index f9dce01c052f..a750b1e6c733 100644
+--- a/drivers/gpu/drm/vc4/vc4_kms.c
++++ b/drivers/gpu/drm/vc4/vc4_kms.c
+@@ -372,6 +372,12 @@ static void vc4_atomic_commit_tail(struct drm_atomic_state *state)
+ 						new_hvs_state->core_clock_rate);
+ 
+ 		core_req = clk_request_start(hvs->core_clk, core_rate);
++
++		/*
++		 * And remove the previous one based on the HVS
++		 * requirements if any.
++		 */
++		clk_request_done(hvs->core_req);
+ 	}
+ 
+ 	for_each_old_crtc_in_state(state, crtc, old_crtc_state, i) {
+@@ -416,6 +422,14 @@ static void vc4_atomic_commit_tail(struct drm_atomic_state *state)
+ 		drm_dbg(dev, "Running the core clock at %lu Hz\n",
+ 			new_hvs_state->core_clock_rate);
+ 
++		/*
++		 * Request a clock rate based on the current HVS
++		 * requirements.
++		 */
++		hvs->core_req = clk_request_start(hvs->core_clk,
++						  new_hvs_state->core_clock_rate);
++
++		/* And drop the temporary request */
+ 		clk_request_done(core_req);
+ 	}
+ }
+-- 
+2.33.1
+

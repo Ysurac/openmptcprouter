@@ -1,0 +1,41 @@
+From 4daac50723f2e04465fd054431ac9976447e395b Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Tue, 19 Oct 2021 14:13:53 +0100
+Subject: [PATCH 591/634] clk-raspberrypi: Support VEC clock
+
+Signed-off-by: Dom Cobley <popcornmix@gmail.com>
+---
+ drivers/clk/bcm/clk-raspberrypi.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/clk/bcm/clk-raspberrypi.c b/drivers/clk/bcm/clk-raspberrypi.c
+index 1e1bee7f43ed..c4829d62faad 100644
+--- a/drivers/clk/bcm/clk-raspberrypi.c
++++ b/drivers/clk/bcm/clk-raspberrypi.c
+@@ -33,6 +33,7 @@ enum rpi_firmware_clk_id {
+ 	RPI_FIRMWARE_EMMC2_CLK_ID,
+ 	RPI_FIRMWARE_M2MC_CLK_ID,
+ 	RPI_FIRMWARE_PIXEL_BVB_CLK_ID,
++	RPI_FIRMWARE_VEC_CLK_ID,
+ 	RPI_FIRMWARE_NUM_CLK_ID,
+ };
+ 
+@@ -51,6 +52,7 @@ static char *rpi_firmware_clk_names[] = {
+ 	[RPI_FIRMWARE_EMMC2_CLK_ID]	= "emmc2",
+ 	[RPI_FIRMWARE_M2MC_CLK_ID]	= "m2mc",
+ 	[RPI_FIRMWARE_PIXEL_BVB_CLK_ID]	= "pixel-bvb",
++	[RPI_FIRMWARE_VEC_CLK_ID]	= "vec",
+ };
+ 
+ #define RPI_FIRMWARE_STATE_ENABLE_BIT	BIT(0)
+@@ -273,6 +275,7 @@ static int raspberrypi_discover_clocks(struct raspberrypi_clk *rpi,
+ 		case RPI_FIRMWARE_V3D_CLK_ID:
+ 		case RPI_FIRMWARE_HEVC_CLK_ID:
+ 		case RPI_FIRMWARE_PIXEL_BVB_CLK_ID:
++		case RPI_FIRMWARE_VEC_CLK_ID:
+ 			hw = raspberrypi_clk_register(rpi, clks->parent,
+ 						      clks->id);
+ 			if (IS_ERR(hw))
+-- 
+2.33.1
+

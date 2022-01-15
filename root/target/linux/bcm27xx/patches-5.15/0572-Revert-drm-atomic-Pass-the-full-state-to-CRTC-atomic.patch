@@ -1,0 +1,27 @@
+From 50a03c2090d1d6631a66764669ef1bd392dcb1fa Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Wed, 20 Oct 2021 16:47:09 +0100
+Subject: [PATCH 572/634] Revert "drm/atomic: Pass the full state to CRTC
+ atomic enable/disable"
+
+This reverts commit a40d37ed7f14b152d098532802d2a676b76d145c.
+---
+ drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c b/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c
+index eff9dc6029c2..768012243b44 100644
+--- a/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c
++++ b/drivers/gpu/drm/msm/disp/dpu1/dpu_crtc.c
+@@ -797,8 +797,6 @@ static void dpu_crtc_disable(struct drm_crtc *crtc,
+ 									      crtc);
+ 	struct dpu_crtc *dpu_crtc = to_dpu_crtc(crtc);
+ 	struct dpu_crtc_state *cstate = to_dpu_crtc_state(crtc->state);
+-	struct drm_crtc_state *old_crtc_state = drm_atomic_get_old_crtc_state(state,
+-									      crtc);
+ 	struct drm_encoder *encoder;
+ 	unsigned long flags;
+ 	bool release_bandwidth = false;
+-- 
+2.33.1
+

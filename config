@@ -225,11 +225,9 @@ CONFIG_OPENSSL_WITH_CHACHA_POLY1305=y
 CONFIG_KERNEL_DEVMEM=y
 CONFIG_KERNEL_DEVKMEM=y
 CONFIG_AUTOREMOVE=y
-CONFIG_AUTOREMOVE=y
-CONFIG_PACKAGE_luci-theme-argon=y
 CONFIG_PACKAGE_luci-theme-bootstrap=y
 CONFIG_PACKAGE_luci-theme-openwrt-2020=y
-# CONFIG_PACKAGE_luci-theme-argon is not set
+#ONFIG_PACKAGE_luci-theme-argon is not set
 CONFIG_PACKAGE_luci-app-status=m
 CONFIG_PACKAGE_luci-mod-status=y
 CONFIG_PACKAGE_frpc=y
@@ -239,3 +237,9 @@ CONFIG_PACKAGE_irqbalance=y
 CONFIG_PACKAGE_mtr=y
 CONFIG_PACKAGE_sysstat=y
 CONFIG_PACKAGE_coreutils-stty=y
+CONFIG_PACKAGE_cfdisk=y
+CONFIG_PACKAGE_fdisk=y
+CONFIG_PACKAGE_lsblk=y
+CONFIG_PACKAGE_xfs-mkfs=y
+# CONFIG_PACKAGE_kmod-sound-core is not set
+# CONFIG_PACKAGE_kmod-video-core is not set

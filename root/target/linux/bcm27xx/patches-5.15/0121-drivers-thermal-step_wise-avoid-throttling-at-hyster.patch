@@ -1,0 +1,27 @@
+From d1a47976d8df8e6b983d674ba530f2a2301e9095 Mon Sep 17 00:00:00 2001
+From: Serge Schneider <serge@raspberrypi.org>
+Date: Tue, 2 Oct 2018 11:14:15 +0100
+Subject: [PATCH 121/634] drivers: thermal: step_wise: avoid throttling at
+ hysteresis temperature after dropping below it
+
+Signed-off-by: Serge Schneider <serge@raspberrypi.org>
+---
+ drivers/thermal/gov_step_wise.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/thermal/gov_step_wise.c b/drivers/thermal/gov_step_wise.c
+index 9c8d615f3b63..629f02fce2f2 100644
+--- a/drivers/thermal/gov_step_wise.c
++++ b/drivers/thermal/gov_step_wise.c
+@@ -153,7 +153,7 @@ static void thermal_zone_trip_update(struct thermal_zone_device *tz, int trip)
+ 		 */
+ 		if (tz->temperature >= trip_temp ||
+ 		   (tz->temperature >= hyst_temp &&
+-		   old_target != THERMAL_NO_TARGET)) {
++		   old_target == instance->upper)) {
+ 			throttle = true;
+ 			trace_thermal_zone_trip(tz, trip, trip_type);
+ 		}
+-- 
+2.33.1
+

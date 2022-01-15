@@ -1,0 +1,32 @@
+From 461a10651749985a42f7c77918977c50546ad700 Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Tue, 9 Nov 2021 00:14:16 +0000
+Subject: [PATCH 620/634] Revert "media: bcm2835-codec: Limit video callbacks"
+
+This reverts commit f7abe646a35b6f873abc88c47be2651472793823.
+---
+ .../vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c      | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c b/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
+index 351d693873ed..97c8afa0861e 100644
+--- a/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
++++ b/drivers/staging/vc04_services/bcm2835-codec/bcm2835-v4l2-codec.c
+@@ -2505,14 +2505,6 @@ static int bcm2835_codec_create_component(struct bcm2835_codec_ctx *ctx)
+ 					      MMAL_PARAMETER_VIDEO_STOP_ON_PAR_COLOUR_CHANGE,
+ 					      &enable,
+ 					      sizeof(enable));
+-
+-		enable = (unsigned int)-5;
+-		vchiq_mmal_port_parameter_set(dev->instance,
+-					      &ctx->component->control,
+-					      MMAL_PARAMETER_VIDEO_MAX_NUM_CALLBACKS,
+-					      &enable,
+-					      sizeof(enable));
+-
+ 	} else if (dev->role == DEINTERLACE) {
+ 		/* Select the default deinterlace algorithm. */
+ 		int half_framerate = 0;
+-- 
+2.33.1
+
