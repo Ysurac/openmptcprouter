@@ -646,6 +646,9 @@ scripts/feeds update -a
 #echo "Done"
 #cd "$OMR_TARGET/source"
 
+# force netifd remove
+rm -rf package/network/config/netifd
+
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
 	scripts/feeds install -a -d m -p luci
