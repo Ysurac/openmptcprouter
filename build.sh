@@ -622,6 +622,7 @@ rm -rf feeds/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/luci/modules/luci-mod-status
 [ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/luci/applications/luci-app-statistics
 [ -d feeds/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/luci/protocols/luci-proto-modemmanager
+[ -d feeds/${OMR_DIST}/netifd ] && rm -rf package/network/config/netifd
 
 echo "Add Occitan translation support"
 if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
@@ -645,9 +646,6 @@ scripts/feeds update -a
 #fi
 #echo "Done"
 #cd "$OMR_TARGET/source"
-
-# force netifd remove
-rm -rf package/network/config/netifd
 
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
