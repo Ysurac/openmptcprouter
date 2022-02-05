@@ -187,13 +187,13 @@ fi
 #src/gz openwrt_telephony http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/telephony
 #EOF
 
-if [ -f "$OMR_TARGET_CONFIG" ]; then
+if [ -f $OMR_TARGET_CONFIG ]; then
 	cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)"
 	EOF
 else
 	cat config -> "$OMR_TARGET/source/.config" <<-EOF
@@ -201,7 +201,7 @@ else
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF
 fi
 #if [ "$OMR_KERNEL" = "5.14" ]; then
@@ -622,6 +622,8 @@ rm -rf feeds/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/luci/modules/luci-mod-status
 [ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/luci/applications/luci-app-statistics
 [ -d feeds/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/luci/protocols/luci-proto-modemmanager
+[ -d feeds/${OMR_DIST}/netifd ] && rm -rf package/network/config/netifd
+[ -d feeds/${OMR_DIST}/iperf3 ] && rm -rf feeds/packages/net/iperf3
 
 echo "Add Occitan translation support"
 if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
@@ -645,9 +647,6 @@ scripts/feeds update -a
 #fi
 #echo "Done"
 #cd "$OMR_TARGET/source"
-
-# force netifd remove
-rm -rf package/network/config/netifd
 
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
