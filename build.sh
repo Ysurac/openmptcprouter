@@ -187,13 +187,13 @@ fi
 #src/gz openwrt_telephony http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/telephony
 #EOF
 
-if [ -f "$OMR_TARGET_CONFIG" ]; then
+if [ -f $OMR_TARGET_CONFIG ]; then
 	cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)"
 	EOF
 else
 	cat config -> "$OMR_TARGET/source/.config" <<-EOF
@@ -201,7 +201,7 @@ else
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
+	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF
 fi
 #if [ "$OMR_KERNEL" = "5.14" ]; then
