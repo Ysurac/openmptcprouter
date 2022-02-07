@@ -1,7 +1,7 @@
-From dd109ded2b526636fff438d33433ab64ffd21583 Mon Sep 17 00:00:00 2001
+From 63e4b45c82ed1bde979da7052229a4229ce9cabf Mon Sep 17 00:00:00 2001
 From: Georgi Valkov <gvalkov@abv.bg>
-Date: Fri, 16 Apr 2021 20:44:36 +0300
-Subject: [PATCH] ipheth: fix EOVERFLOW in ipheth_rcvbulk_callback
+Date: Tue, 1 Feb 2022 08:16:18 +0100
+Subject: ipheth: fix EOVERFLOW in ipheth_rcvbulk_callback
 
 When rx_buf is allocated we need to account for IPHETH_IP_ALIGN,
 which reduces the usable size by 2 bytes. Otherwise we have 1512
@@ -9,15 +9,20 @@ bytes usable instead of 1514, and if we receive more than 1512
 bytes, ipheth_rcvbulk_callback is called with status -EOVERFLOW,
 after which the driver malfunctiones and all communication stops.
 
-Fixes: ipheth 2-1:4.2: ipheth_rcvbulk_callback: urb status: -75
+Resolves ipheth 2-1:4.2: ipheth_rcvbulk_callback: urb status: -75
 
+Fixes: f33d9e2b48a3 ("usbnet: ipheth: fix connectivity with iOS 14")
 Signed-off-by: Georgi Valkov <gvalkov@abv.bg>
+Tested-by: Jan Kiszka <jan.kiszka@siemens.com>
+Link: https://lore.kernel.org/all/B60B8A4B-92A0-49B3-805D-809A2433B46C@abv.bg/
+Link: https://lore.kernel.org/all/24851bd2769434a5fc24730dce8e8a984c5a4505.1643699778.git.jan.kiszka@siemens.com/
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
  drivers/net/usb/ipheth.c | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/usb/ipheth.c b/drivers/net/usb/ipheth.c
-index 207e59e74935..06d9f19ca142 100644
+index cd33955df0b65f..6a769df0b4213c 100644
 --- a/drivers/net/usb/ipheth.c
 +++ b/drivers/net/usb/ipheth.c
 @@ -121,7 +121,7 @@ static int ipheth_alloc_urbs(struct ipheth_device *iphone)
@@ -29,7 +34,7 @@ index 207e59e74935..06d9f19ca142 100644
  				    GFP_KERNEL, &rx_urb->transfer_dma);
  	if (rx_buf == NULL)
  		goto free_tx_buf;
-@@ -146,7 +146,7 @@ static int ipheth_alloc_urbs(struct ipheth_device *iphone)
+@@ -146,7 +146,7 @@ error_nomem:
  
  static void ipheth_free_urbs(struct ipheth_device *iphone)
  {
@@ -48,5 +53,5 @@ index 207e59e74935..06d9f19ca142 100644
  			  dev);
  	dev->rx_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
 -- 
-2.31.1
+cgit 
 
