@@ -193,7 +193,7 @@ if [ -f $OMR_TARGET_CONFIG ]; then
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)"
+	CONFIG_VERSION_NUMBER="${OMR_RELEASE}-${OMR_KERNEL}"
 	EOF
 else
 	cat config -> "$OMR_TARGET/source/.config" <<-EOF
@@ -201,7 +201,7 @@ else
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
 	CONFIG_VERSION_REPO="$OMR_REPO"
-	CONFIG_VERSION_NUMBER="$(git -C "$OMR_FEED" describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
+	CONFIG_VERSION_NUMBER="${OMR_RELEASE}-${OMR_FEED_SRC}-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF
 fi
 #if [ "$OMR_KERNEL" = "5.14" ]; then
