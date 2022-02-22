@@ -39,7 +39,8 @@ ALLWIFIBOARDS:= \
 	linksys_ea8300 \
 	p2w_r619ac \
 	mobipromo_cm520-79f \
-	qxwlan_e2600ac
+	qxwlan_e2600ac \
+	teltonika_rutx
 
 ALLWIFIPACKAGES:=$(foreach BOARD,$(ALLWIFIBOARDS),ipq-wifi-$(BOARD))
 
@@ -115,5 +116,6 @@ $(eval $(call generate-ipq-wifi-package,linksys_ea8300,Linksys EA8300))
 $(eval $(call generate-ipq-wifi-package,mobipromo_cm520-79f,MobiPromo CM520-79F))
 $(eval $(call generate-ipq-wifi-package,qxwlan_e2600ac,Qxwlan E2600AC))
 $(eval $(call generate-ipq-wifi-package,p2w_r619ac,P&W R619AC))
+$(eval $(call generate-ipq-wifi-package,teltonika_rutx,Teltonika RUTX))
 
 $(foreach PACKAGE,$(ALLWIFIPACKAGES),$(eval $(call BuildPackage,$(PACKAGE))))
