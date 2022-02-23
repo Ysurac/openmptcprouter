@@ -798,22 +798,26 @@ define Device/qxwlan_e2600ac-c2
 endef
 TARGET_DEVICES += qxwlan_e2600ac-c2
 
-define Device/teltonika_rutx10
+define Device/teltonika_rutx
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
 	DEVICE_VENDOR := Teltonika
-	DEVICE_MODEL := RUTX10
+	DEVICE_MODEL := RUTX
 	SOC := qcom-ipq4018
+	#DEVICE_DTS := qcom-ipq4018-rutx-12
+	DEVICE_DTS := qcom-ipq4018-rutx-12 qcom-ipq4018-rutx-08_10 qcom-ipq4018-rutx-09_11 qcom-ipq4018-rutx-R1 qcom-ipq4018-rutx-STM32
 	DEVICE_DTS_CONFIG := config@5
+	#KERNEL = kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+	KERNEL = kernel-bin | gzip | fit gzip "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addsuffix .dtb,$$(DEVICE_DTS)))}"
+	#KERNEL = kernel-bin | gzip | fit gzip "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
 	KERNEL_INSTALL := 1
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	FILESYSTEMS := squashfs
 	IMAGE/nand-factory.ubi := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
-	DEVICE_PACKAGES := kmod-bluetooth
-#	DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth
+	DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth
 endef
-TARGET_DEVICES += teltonika_rutx10
+TARGET_DEVICES += teltonika_rutx
 
 define Device/unielec_u4019-32m
 	$(call Device/FitImage)
