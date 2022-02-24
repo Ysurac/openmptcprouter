@@ -113,7 +113,7 @@ platform_do_upgrade() {
 		PART_NAME="inactive"
 		platform_do_upgrade_openmesh "$1"
 		;;
-	teltonika,rutx10)
+	teltonika,rutx)
 		CI_UBIPART="rootfs"
 		nand_do_upgrade "$1"
 	;;
