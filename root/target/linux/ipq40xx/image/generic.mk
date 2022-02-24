@@ -806,7 +806,7 @@ define Device/teltonika_rutx
 	SOC := qcom-ipq4018
 	DEVICE_DTS := qcom-ipq4018-rutx-12 qcom-ipq4018-rutx-08_10 qcom-ipq4018-rutx-09_11 qcom-ipq4018-rutx-R1 qcom-ipq4018-rutx-STM32
 	DEVICE_DTS_CONFIG := config@5
-mc	KERNEL = kernel-bin | gzip | fit gzip "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
+	KERNEL = kernel-bin | gzip | fit gzip "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
 	KERNEL_INSTALL := 1
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
