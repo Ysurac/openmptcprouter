@@ -1,0 +1,30 @@
+#!/bin/sh /etc/rc.common
+# (C) 2013 openwrt.org
+
+START=81
+
+boot() {
+	SHA_ALGS="sha1-neon sha224-neon sha256-neon sha384-neon sha512-neon md5-generic"
+
+	for alg in $SHA_ALGS; do
+		crconf add driver "authenc(hmac($alg),cbc(aes-generic))" type 3
+		crconf add driver "pcrypt(authenc(hmac($alg),cbc(aes-generic)))" type 3
+	done
+
+	for alg in $SHA_ALGS; do
+		crconf add driver "authenc(hmac($alg),cbc(des3_ede-generic))" type 3
+		crconf add driver "pcrypt(authenc(hmac($alg),cbc(des3_ede-generic)))" type 3
+	done
+}
+
+start() {
+	return 0
+}
+
+restart() {
+	return 0
+}
+
+stop() {
+	return 0
+}

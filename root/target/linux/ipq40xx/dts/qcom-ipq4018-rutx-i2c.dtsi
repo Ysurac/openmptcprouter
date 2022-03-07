@@ -1,0 +1,20 @@
+/ {
+	soc {
+		pinctrl@1000000 {
+			i2c_0_pins: i2c_0_pinmux {
+				mux {
+					pins = "gpio58", "gpio59";
+					function = "blsp_i2c0";
+					bias-disable;
+				};
+			};
+		};
+
+		i2c_0: i2c@78b7000 { /* BLSP1 QUP2 */
+			pinctrl-0 = <&i2c_0_pins>;
+			pinctrl-names = "default";
+			clock-frequency = <400000>;
+			status = "ok";
+		};
+	};
+};

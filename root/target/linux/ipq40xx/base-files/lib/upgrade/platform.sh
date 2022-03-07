@@ -1,127 +1,45 @@
 PART_NAME=firmware
 REQUIRE_IMAGE_METADATA=1
 
-RAMFS_COPY_BIN='fw_printenv fw_setenv'
-RAMFS_COPY_DATA='/etc/fw_env.config /var/lock/fw_printenv.lock'
-
 platform_check_image() {
-	case "$(board_name)" in
-	asus,rt-ac58u)
-		CI_UBIPART="UBI_DEV"
-		local ubidev=$(nand_find_ubi $CI_UBIPART)
-		local asus_root=$(nand_find_volume $ubidev jffs2)
-
-		[ -n "$asus_root" ] || return 0
-
-		cat << EOF
-jffs2 partition is still present.
-There's probably no space left
-to install the filesystem.
-
-You need to delete the jffs2 partition first:
-# ubirmvol /dev/ubi0 --name=jffs2
-
-Once this is done. Retry.
-EOF
-		return 1
-		;;
-	esac
-	return 0;
-}
-
-askey_do_upgrade() {
-	local tar_file="$1"
-
-	local board_dir=$(tar tf $tar_file | grep -m 1 '^sysupgrade-.*/$')
-	board_dir=${board_dir%/}
-
-	tar Oxf $tar_file ${board_dir}/root | mtd write - rootfs
-
-	nand_do_upgrade "$1"
-}
-
-zyxel_do_upgrade() {
-	local tar_file="$1"
-
-	local board_dir=$(tar tf $tar_file | grep -m 1 '^sysupgrade-.*/$')
-	board_dir=${board_dir%/}
-
-	tar Oxf $tar_file ${board_dir}/kernel | mtd write - kernel
-
-	if [ -n "$UPGRADE_BACKUP" ]; then
-		tar Oxf $tar_file ${board_dir}/root | mtd -j "$UPGRADE_BACKUP" write - rootfs
-	else
-		tar Oxf $tar_file ${board_dir}/root | mtd write - rootfs
-	fi
+	platform_check_image_ipq "$1"
 }
 
 platform_do_upgrade() {
-	case "$(board_name)" in
-	8dev,jalapeno |\
-	aruba,ap-303 |\
-	aruba,ap-303h |\
-	aruba,ap-365 |\
-	avm,fritzbox-7530 |\
-	avm,fritzrepeater-1200 |\
-	avm,fritzrepeater-3000 |\
-	buffalo,wtr-m2133hp |\
-	cilab,meshpoint-one |\
-	engenius,eap2200 |\
-	mobipromo,cm520-79f |\
-	qxwlan,e2600ac-c2)
-		nand_do_upgrade "$1"
-		;;
-	alfa-network,ap120c-ac)
-		part="$(awk -F 'ubi.mtd=' '{printf $2}' /proc/cmdline | sed -e 's/ .*$//')"
-		if [ "$part" = "rootfs1" ]; then
-			fw_setenv active 2 || exit 1
-			CI_UBIPART="rootfs2"
+	platform_do_upgrade_ipq "$1"
+}
+
+# added with io_expander validation
+platform_check_hw_support() {
+	local metadata="/tmp/sysupgrade.meta"
+	local io_expander_file="/proc/device-tree/io_expander"
+	local found=0
+
+	[ -e "$metadata" ] || ( fwtool -q -i $metadata $1 ) && {
+		json_load_file "$metadata"
+		# previous devices were always supported
+		[ ! -e "$io_expander_file" ] && return 0
+		json_select hw_support
+
+# io_expander type validation
+		local io_expander="$(cat $io_expander_file)"
+		# if support type is absent in metadata, we assume it's supported
+		if ( json_select io_expander 2> /dev/null ); then
+			json_select io_expander
+			json_get_values io_exp_values
+
+			for val in $io_exp_values; do
+				regex_value=$(echo "$io_expander" | grep -e "$val")
+				[ "$io_expander" = "$regex_value" ] && found=1
+			done
+
+			[ $found -eq 0 ] && return 1
+			json_select ..
 		else
-			fw_setenv active 1 || exit 1
-			CI_UBIPART="rootfs1"
+		# fail if not default/initial type
+			[ "$io_expander" != "stm32" ] && return 1
 		fi
-		nand_do_upgrade "$1"
-		;;
-	asus,map-ac2200)
-		CI_KERNPART="linux"
-		nand_do_upgrade "$1"
-		;;
-	asus,rt-ac58u)
-		CI_UBIPART="UBI_DEV"
-		CI_KERNPART="linux"
-		nand_do_upgrade "$1"
-		;;
-	cellc,rtl30vw)
-		CI_UBIPART="ubifs"
-		askey_do_upgrade "$1"
-		;;
-	compex,wpj419|\
-	p2w,r619ac-128m|\
-	p2w,r619ac)
-		nand_do_upgrade "$1"
-		;;
-	linksys,ea6350v3 |\
-	linksys,ea8300)
-		platform_do_upgrade_linksys "$1"
-		;;
-	meraki,mr33)
-		CI_KERNPART="part.safe"
-		nand_do_upgrade "$1"
-		;;
-	openmesh,a42 |\
-	openmesh,a62)
-		PART_NAME="inactive"
-		platform_do_upgrade_openmesh "$1"
-		;;
-	teltonika,rutx)
-		CI_UBIPART="rootfs"
-		nand_do_upgrade "$1"
-	;;
-	zyxel,nbg6617)
-		zyxel_do_upgrade "$1"
-		;;
-	*)
-		default_do_upgrade "$1"
-		;;
-	esac
+# ...
+	}
+	return 0;
 }

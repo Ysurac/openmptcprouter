@@ -1,0 +1,20 @@
+Index: linux-5.4.124/drivers/mtd/nand/spi/gigadevice.c
+===================================================================
+--- linux-5.4.124.orig/drivers/mtd/nand/spi/gigadevice.c
++++ linux-5.4.124/drivers/mtd/nand/spi/gigadevice.c
+@@ -242,6 +242,15 @@ static const struct spinand_info gigadev
+ 		     SPINAND_HAS_QE_BIT,
+ 		     SPINAND_ECCINFO(&gd5fxgq4xa_ooblayout,
+ 				     gd5fxgq4xa_ecc_get_status)),
++	SPINAND_INFO("GD5F2GQ4xB", 0xD2,
++		     NAND_MEMORG(1, 2048, 64, 64, 2048, 40, 1, 1, 1),
++		     NAND_ECCREQ(8, 512),
++		     SPINAND_INFO_OP_VARIANTS(&read_cache_variants,
++					      &write_cache_variants,
++					      &update_cache_variants),
++		     SPINAND_HAS_QE_BIT,
++		     SPINAND_ECCINFO(&gd5fxgq4xa_ooblayout,
++				     gd5fxgq4xa_ecc_get_status)),
+ 	SPINAND_INFO("GD5F4GQ4xA", 0xF4,
+ 		     NAND_MEMORG(1, 2048, 64, 64, 4096, 80, 1, 1, 1),
+ 		     NAND_ECCREQ(8, 512),

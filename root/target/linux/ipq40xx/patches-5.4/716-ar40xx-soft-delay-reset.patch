@@ -1,0 +1,63 @@
+Index: linux-5.4.124/drivers/net/phy/ar40xx.c
+===================================================================
+--- linux-5.4.124.orig/drivers/net/phy/ar40xx.c
++++ linux-5.4.124/drivers/net/phy/ar40xx.c
+@@ -771,9 +771,58 @@ ar40xx_sw_get_port_link(struct switch_de
+ 	return 0;
+ }
+ 
++static int
++ar40xx_sw_delay_reset(struct switch_dev *dev,
++                         const struct switch_attr *attr,
++                         struct switch_val *value)
++{
++	struct ar40xx_priv *priv = swdev_to_ar40xx(dev);
++	struct mii_bus *bus;
++	int i;
++	u16 val;
++
++	bus = priv->mii_bus;
++	for (i = 0; i < AR40XX_NUM_PORTS - 2; i++) {
++		mdiobus_write(bus, i, MII_CTRL1000, 0);
++		mdiobus_write(bus, i, MII_ADVERTISE, 0);
++		mdiobus_write(bus, i, MII_BMCR, BMCR_RESET | BMCR_ANENABLE);
++		ar40xx_phy_dbg_read(priv, i, AR40XX_PHY_DEBUG_0, &val);
++		val |= AR40XX_PHY_MANU_CTRL_EN;
++		ar40xx_phy_dbg_write(priv, i, AR40XX_PHY_DEBUG_0, val);
++		/* disable transmit */
++		ar40xx_phy_dbg_read(priv, i, AR40XX_PHY_DEBUG_2, &val);
++		val &= 0xf00f;
++		ar40xx_phy_dbg_write(priv, i, AR40XX_PHY_DEBUG_2, val);
++	}
++
++	msleep(1000 * value->value.i);
++
++	for (i = 0; i < AR40XX_NUM_PORTS - 2; i++) {
++		ar40xx_phy_dbg_read(priv, i, AR40XX_PHY_DEBUG_0, &val);
++		val &= ~AR40XX_PHY_MANU_CTRL_EN;
++		ar40xx_phy_dbg_write(priv, i, AR40XX_PHY_DEBUG_0, val);
++		mdiobus_write(bus, i,
++				MII_ADVERTISE, ADVERTISE_ALL |
++				ADVERTISE_PAUSE_CAP |
++				ADVERTISE_PAUSE_ASYM);
++		mdiobus_write(bus, i, MII_CTRL1000, ADVERTISE_1000FULL);
++		mdiobus_write(bus, i, MII_BMCR, BMCR_RESET | BMCR_ANENABLE);
++	}
++
++	ar40xx_phy_poll_reset(priv);
++
++	return 0;
++}
++
+ static const struct switch_attr ar40xx_sw_attr_globals[] = {
+ 	{
+ 		.type = SWITCH_TYPE_INT,
++		.name = "soft_reset",
++		.description = "Switch soft reset with delay (seconds)",
++		.set = ar40xx_sw_delay_reset
++	},
++	{
++		.type = SWITCH_TYPE_INT,
+ 		.name = "enable_vlan",
+ 		.description = "Enable VLAN mode",
+ 		.set = ar40xx_sw_set_vlan,

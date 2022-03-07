@@ -1,0 +1,14 @@
+#!/bin/sh
+
+tar_file="/etc/default-config/config.tar.gz"
+
+[ ! -f "$tar_file" ] && return 1
+
+/usr/bin/ledman --clean
+cp $tar_file /tmp/user_defaults.tgz
+firstboot -y
+[ -d /tmp/overlay ] || mkdir /tmp/overlay
+mount -t ubifs ubi0:rootfs_data /tmp/overlay
+cp /tmp/user_defaults.tgz /tmp/overlay/
+sync
+umount /tmp/overlay

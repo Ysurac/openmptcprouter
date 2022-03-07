@@ -1,0 +1,80 @@
+Index: linux-5.4.147/kernel/bpf/syscall.c
+===================================================================
+--- linux-5.4.147.orig/kernel/bpf/syscall.c
++++ linux-5.4.147/kernel/bpf/syscall.c
+@@ -593,6 +593,11 @@ static int map_create(union bpf_attr *at
+ 			err = PTR_ERR(btf);
+ 			goto free_map;
+ 		}
++		if (btf_is_kernel(btf)) {
++			btf_put(btf);
++			err = -EACCES;
++			goto free_map;
++		}
+ 
+ 		err = map_check_btf(map, btf, attr->btf_key_type_id,
+ 				    attr->btf_value_type_id);
+Index: linux-5.4.147/kernel/bpf/verifier.c
+===================================================================
+--- linux-5.4.147.orig/kernel/bpf/verifier.c
++++ linux-5.4.147/kernel/bpf/verifier.c
+@@ -6959,6 +6959,11 @@ static int check_btf_info(struct bpf_ver
+ 	btf = btf_get_by_fd(attr->prog_btf_fd);
+ 	if (IS_ERR(btf))
+ 		return PTR_ERR(btf);
++	if (btf_is_kernel(btf)) {
++		btf_put(btf);
++		return -EACCES;
++	}
++
+ 	env->prog->aux->btf = btf;
+ 
+ 	err = check_btf_func(env, attr, uattr);
+Index: linux-5.4.147/include/linux/btf.h
+===================================================================
+--- linux-5.4.147.orig/include/linux/btf.h
++++ linux-5.4.147/include/linux/btf.h
+@@ -47,6 +47,7 @@ void btf_type_seq_show(const struct btf
+ 		       struct seq_file *m);
+ int btf_get_fd_by_id(u32 id);
+ u32 btf_id(const struct btf *btf);
++bool btf_is_kernel(const struct btf *btf);
+ bool btf_member_is_reg_int(const struct btf *btf, const struct btf_type *s,
+ 			   const struct btf_member *m,
+ 			   u32 expected_offset, u32 expected_size);
+Index: linux-5.4.147/kernel/bpf/btf.c
+===================================================================
+--- linux-5.4.147.orig/kernel/bpf/btf.c
++++ linux-5.4.147/kernel/bpf/btf.c
+@@ -212,6 +212,7 @@ struct btf {
+ 	refcount_t refcnt;
+ 	u32 id;
+ 	struct rcu_head rcu;
++	bool kernel_btf;
+ };
+ 
+ enum verifier_phase {
+@@ -352,6 +353,11 @@ static bool btf_type_nosize(const struct
+ 	       btf_type_is_func(t) || btf_type_is_func_proto(t);
+ }
+ 
++bool btf_is_kernel(const struct btf *btf)
++{
++	return btf->kernel_btf;
++}
++
+ static bool btf_type_nosize_or_null(const struct btf_type *t)
+ {
+ 	return !t || btf_type_nosize(t);
+Index: linux-5.4.147/include/uapi/linux/bpf.h
+===================================================================
+--- linux-5.4.147.orig/include/uapi/linux/bpf.h
++++ linux-5.4.147/include/uapi/linux/bpf.h
+@@ -3275,6 +3275,7 @@ struct bpf_btf_info {
+ 	__aligned_u64 btf;
+ 	__u32 btf_size;
+ 	__u32 id;
++	__u32 kernel_btf;
+ } __attribute__((aligned(8)));
+ 
+ /* User bpf_sock_addr struct to access socket fields and sockaddr struct passed

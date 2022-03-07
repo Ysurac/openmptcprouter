@@ -1,0 +1,84 @@
+#include "qcom-ipq4018-rutx-common.dtsi"
+#include "qcom-ipq4018-rutx-shiftreg.dtsi"
+#include "qcom-ipq4018-rutx-i2c.dtsi" // SFP
+
+/ {
+	model = "RUTXR1";
+
+	soc {
+		gpio-export {
+			compatible = "gpio-export";
+			#size-cells = <0>;
+
+			gpio_modem_reset {
+				gpio-export,name = "modem_reset";
+				gpio-export,output = <0>;
+				gpios = <&shift_io 1 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio_modem_power {
+				gpio-export,name = "modem_power";
+				gpio-export,output = <0>;
+				gpios = <&shift_io 2 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio_sim_select {
+				gpio-export,name = "sim_sel";
+				gpio-export,output = <1>;
+				gpios = <&shift_io 3 GPIO_ACTIVE_LOW>;
+			};
+		};
+
+		leds {
+			compatible = "gpio-leds";
+
+			led_wan_sim1 {
+				label = "wan_sim_1";
+				gpios = <&shift_io 4 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_wan_sim2 {
+				label = "wan_sim_2";
+				gpios = <&shift_io 5 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_wan_eth {
+				label = "wan_wifi_4"; // not wan_eth_3 !
+				gpios = <&shift_io 11 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_wan_mob {
+				label = "wan_mob_5";
+				gpios = <&shift_io 0 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_gen_3 {
+				label = "mob_gen_3";
+				gpios = <&shift_io 6 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_gen_4 {
+				label = "mob_gen_4";
+				gpios = <&shift_io 7 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_ssid_1 {
+				label = "mob_ssid_1";
+				gpios = <&shift_io 8 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "timer";
+			};
+
+			led_ssid_3 {
+				label = "mob_ssid_3";
+				gpios = <&shift_io 9 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "timer";
+			};
+
+			led_ssid_5 {
+				label = "mob_ssid_5";
+				gpios = <&shift_io 10 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "timer";
+			};
+		};
+	};
+};

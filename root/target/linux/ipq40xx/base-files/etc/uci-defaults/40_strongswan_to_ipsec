@@ -1,0 +1,140 @@
+#!/bin/sh
+
+[ -e /etc/config/strongswan ] || exit 0
+
+. /lib/functions.sh
+ENABLED=0
+
+move_config() {
+
+	local name=$1
+
+	#get old config
+	config_get_bool 	enabled						"$1" "enabled" 		"0"
+	config_get 		keyexchange 					"$1" "keyexchange"
+	config_get 		aggressive 						"$1" "aggressive"
+	config_get 		ipsec_type 						"$1" "ipsec_type"
+	config_get 		my_identifier_type 				"$1" "my_identifier_type"
+	config_get 		my_identifier 					"$1" "my_identifier"
+	config_get 		leftfirewall 					"$1" "leftfirewall"
+	config_get 		forceencaps 					"$1" "forceencaps"
+	config_get 		dpdaction 						"$1" "dpdaction" "none"
+	config_get 		dpddelay 						"$1" "dpddelay"
+	config_get 		dpdtimeout 						"$1" "dpdtimeout"
+	config_get 		psk_key 						"$1" "psk_key"
+	config_get 		right 							"$1" "right"
+	config_get 		rightfirewall 					"$1" "rightfirewall"
+	config_get 		ike_encryption_algorithm 		"$1" "ike_encryption_algorithm"
+	config_get 		ike_authentication_algorithm 	"$1" "ike_authentication_algorithm"
+	config_get 		ike_dh_group 					"$1" "ike_dh_group"
+	config_get 		ikelifetime 					"$1" "ikelifetime"
+	config_get 		esp_encryption_algorithm 		"$1" "esp_encryption_algorithm"
+	config_get 		esp_hash_algorithm 				"$1" "esp_hash_algorithm"
+	config_get 		esp_pfs_group 					"$1" "esp_pfs_group"
+	config_get 		keylife 						"$1" "keylife"
+	config_get 		leftsubnet 						"$1" "leftsubnet"
+	config_get 		rightsubnet 					"$1" "rightsubnet"
+	config_get  		leftprotoport					"$1" "leftprotoport"
+	config_get  		rightprotoport					"$1" "rightprotoport"
+
+	[ "$enabled" = 1 ] && ENABLED=1
+	#set new config structure
+
+	config_set
+	uci_add "ipsec" "proposal"		"${name}_ph1"
+	uci_set "ipsec" $CONFIG_SECTION	"encryption_algorithm"	"$ike_encryption_algorithm"
+	uci_set "ipsec" $CONFIG_SECTION	"hash_algorithm"	"$ike_authentication_algorithm"
+	uci_set "ipsec" $CONFIG_SECTION	"dh_group"	"$ike_dh_group"
+
+	uci_add "ipsec" "proposal"		"${name}_ph2"
+	uci_set "ipsec" $CONFIG_SECTION	"encryption_algorithm"	"$esp_encryption_algorithm"
+	uci_set "ipsec" $CONFIG_SECTION	"hash_algorithm"	"$esp_hash_algorithm"
+	uci_set "ipsec" $CONFIG_SECTION	"dh_group"	"$esp_pfs_group"
+
+	uci_add "ipsec" "connection"		"${name}_c"
+	uci_set "ipsec" $CONFIG_SECTION		"mode"				"start"
+	uci_set "ipsec" $CONFIG_SECTION		"type"				"$ipsec_type"
+	uci_set "ipsec" $CONFIG_SECTION		"local_subnet"		"$leftsubnet"
+	uci_set "ipsec" $CONFIG_SECTION		"remote_subnet"		"$rightsubnet"
+	uci_set "ipsec" $CONFIG_SECTION		"remote_firewall"	"$rightfirewall"
+	uci_set "ipsec" $CONFIG_SECTION		"keyexchange"		"$keyexchange"
+	uci_set "ipsec" $CONFIG_SECTION		"aggressive"		"$aggressive"
+	uci_set "ipsec" $CONFIG_SECTION		"ikelifetime"		"$ikelifetime"
+	uci_set "ipsec" $CONFIG_SECTION		"lifetime"			"$lifetime"
+	[ -n "$dpdaction" ] && {
+		uci_set "ipsec" $CONFIG_SECTION		"_dpd"			"1"
+		uci_set "ipsec" $CONFIG_SECTION		"dpdaction"		"$dpdaction"
+		uci_set "ipsec" $CONFIG_SECTION		"dpddelay"		"$dpddelay"
+	}
+	uci_set "ipsec" $CONFIG_SECTION		"crypto_proposal"	"${name}_ph2"
+	uci_set "ipsec" $CONFIG_SECTION		"leftprotoport"		"$leftprotoport"
+	uci_set "ipsec" $CONFIG_SECTION		"rightprotoport"	"$rightprotoport"
+	uci_set "ipsec" $CONFIG_SECTION		"lifetime"			"$keylife"
+	uci_set "ipsec" $CONFIG_SECTION		"forceencaps"		"$forceencaps"
+
+	uci_add "ipsec" "remote"			"${name}"
+	uci_set "ipsec" $CONFIG_SECTION		"enabled"				"$enabled"
+	uci_set "ipsec" $CONFIG_SECTION		"gateway"				"$right"
+	uci_set "ipsec" $CONFIG_SECTION		"remote_identifier"			"%any"
+	uci_set "ipsec" $CONFIG_SECTION		"authentication_method"	"psk"
+	uci_set "ipsec" $CONFIG_SECTION		"pre_shared_key"		"$psk_key"
+	uci_set "ipsec" $CONFIG_SECTION		"local_identifier"		"$my_identifier"
+	uci_set "ipsec" $CONFIG_SECTION		"crypto_proposal"		"${name}_ph1"
+
+	[ "$ipsec_type" = "tunnel" ] &&		uci -q add_list "ipsec"."${CONFIG_SECTION}"."tunnel"="${name}_c"
+	[ "$ipsec_type" = "transport" ] &&	uci -q add_list "ipsec"."${CONFIG_SECTION}"."transport"="${name}_c"
+
+	uci_commit "ipsec"
+}
+
+config_load 'strongswan'
+config_foreach move_config 'conn'
+
+[ "$ENABLED" = 1 ] && {
+	uci_add firewall rule
+	uci_set firewall "$CONFIG_SECTION" src 'wan'
+	uci_set firewall "$CONFIG_SECTION" name 'Allow-IPsec-ESP'
+	uci_set firewall "$CONFIG_SECTION" target 'ACCEPT'
+	uci_set firewall "$CONFIG_SECTION" vpn_type 'IPsec'
+	uci_set firewall "$CONFIG_SECTION" proto 'esp'
+
+	uci_add firewall rule
+	uci_set firewall "$CONFIG_SECTION" dest_port '4500'
+	uci_set firewall "$CONFIG_SECTION" src 'wan'
+	uci_set firewall "$CONFIG_SECTION" name 'Allow-IPsec-NAT-T'
+	uci_set firewall "$CONFIG_SECTION" target 'ACCEPT'
+	uci_set firewall "$CONFIG_SECTION" vpn_type 'IPsec'
+	uci_set firewall "$CONFIG_SECTION" proto 'udp'
+
+	uci_add firewall rule
+	uci_set firewall "$CONFIG_SECTION" dest_port '500'
+	uci_set firewall "$CONFIG_SECTION" src 'wan'
+	uci_set firewall "$CONFIG_SECTION" name 'Allow-IPsec-IKE'
+	uci_set firewall "$CONFIG_SECTION" target 'ACCEPT'
+	uci_set firewall "$CONFIG_SECTION" vpn_type 'IPsec'
+	uci_set firewall "$CONFIG_SECTION" proto 'udp'
+
+	uci_add firewall rule
+	uci_set firewall "$CONFIG_SECTION" src 'wan'
+	uci_set firewall "$CONFIG_SECTION" name 'Allow-IPsec-Forward'
+	uci_set firewall "$CONFIG_SECTION" extra '-m policy --dir in --pol ipsec'
+	uci_set firewall "$CONFIG_SECTION" target 'ACCEPT'
+	uci_set firewall "$CONFIG_SECTION" vpn_type 'IPsec'
+	uci_set firewall "$CONFIG_SECTION" dest '*'
+	uci_set firewall "$CONFIG_SECTION" proto 'all'
+
+	uci_add firewall redirect
+	uci_set firewall "$CONFIG_SECTION" proto any
+	uci_set firewall "$CONFIG_SECTION" name Exclude-IPsec-from-NAT
+	uci_set firewall "$CONFIG_SECTION" extra '-m policy --dir out --pol ipsec'
+	uci_set firewall "$CONFIG_SECTION" vpn_type IPsec
+	uci_set firewall "$CONFIG_SECTION" target ACCEPT
+	uci_set firewall "$CONFIG_SECTION" dest wan
+	uci_set firewall "$CONFIG_SECTION" enabled 1
+
+	uci_commit firewall
+}
+
+rm -f /etc/config/strongswan
+
+exit 0

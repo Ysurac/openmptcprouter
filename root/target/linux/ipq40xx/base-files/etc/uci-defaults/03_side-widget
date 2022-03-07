@@ -1,0 +1,119 @@
+#!/bin/sh
+. /lib/functions.sh
+
+CONFIG="widget"
+MOBILE_CONFIG="/etc/config/simcard"
+RMS_CONFIG="/etc/config/rms_connect_mqtt"
+WIFI_CONFIG="/etc/config/wireless"
+ETHERNET=$(uci -q get network.@switch[0].name)
+ethernet_widget_exists=0
+mobile_widget_exists=0
+system_widget_exists=0
+wifi_widget_exists=0
+rms_widget_exists=0
+position=1
+radio0_network=1
+radio1_network=1
+
+check_for_widgets() {
+	local widget="$1"
+	local type
+	config_get type "$widget" type
+
+	if [ "$type" = "ethernet" ]; then
+		ethernet_widget_exists=1
+	elif [ "$type" = "mobile" ]; then
+		mobile_widget_exists=1
+	elif [ "$type" = "system" ]; then
+		system_widget_exists=1
+	elif [ "$type" = "wifi" ]; then
+		wifi_widget_exists=1
+	elif [ "$type" = "rms" ]; then
+		rms_widget_exists=1
+	fi
+}
+
+setup_wifi_fields() {
+	local iface_section="$1"
+	local device
+	config_get device "$iface_section" device
+
+	section=$(uci -q add widget widget)
+	
+    if [ "$device" == "radio0" ]; then
+        uci -q set $CONFIG."${section}.id"=$device."network${radio0_network}"
+        let "radio0_network=radio0_network + 1"
+    elif [ "$device" == "radio1" ]; then
+        uci -q set $CONFIG."${section}.id"=$device."network${radio1_network}"
+        let "radio1_network=radio1_network + 1"
+    fi
+	uci -q set $CONFIG."${section}.type=wifi"
+    uci -q set $CONFIG."${section}.position=${position}"
+	uci -q set $CONFIG."${section}.enabled=1"
+    let "position=position + 1"
+}
+
+check_if_config_exists() {
+	if [ ! -f "/etc/config/${CONFIG}" ]; then
+		touch "/etc/config/${CONFIG}"
+	fi
+}
+
+setup_side_widget() {
+	config_load widget
+	config_foreach check_for_widgets widget
+
+	if [ $ethernet_widget_exists -eq 0 -a -n "$ETHERNET" ]; then
+		check_if_config_exists
+		section=$(uci -q add widget widget)
+		uci -q set $CONFIG."${section}.id=widget1"
+		uci -q set $CONFIG."${section}.type=ethernet"
+		uci -q set $CONFIG."${section}.position=${position}"
+		uci -q set $CONFIG."${section}.enabled=1"
+		let "position=position + 1"
+	fi
+
+	if [ $mobile_widget_exists -eq 0 -a -s "$MOBILE_CONFIG" -a -f "$MOBILE_CONFIG" ]; then
+		check_if_config_exists
+		modem_count=$(jsonfilter -q -i /etc/board.json  -e '@["modems"][*]' | wc -l)
+		for i in $(seq $modem_count)
+		do
+			section=$(uci -q add widget widget)
+			uci -q set $CONFIG."${section}.id=mobile-widget$i"
+			uci -q set $CONFIG."${section}.type=mobile"
+			uci -q set $CONFIG."${section}.position=${position}"
+			uci -q set $CONFIG."${section}.enabled=1"
+			let "position=position + 1"
+		done
+	fi
+
+	if [ $system_widget_exists -eq 0 ]; then
+		check_if_config_exists
+		section=$(uci -q add widget widget)
+		uci -q set $CONFIG."${section}.id=widget3"
+		uci -q set $CONFIG."${section}.type=system"
+		uci -q set $CONFIG."${section}.position=${position}"
+		uci -q set $CONFIG."${section}.enabled=1"
+		let "position=position + 1"
+	fi
+
+	if [ $wifi_widget_exists -eq 0 -a -f "$WIFI_CONFIG" ]; then
+		check_if_config_exists
+		config_load wireless
+		config_foreach setup_wifi_fields wifi-iface
+	fi
+
+	if [ $rms_widget_exists -eq 0 -a -f "$RMS_CONFIG" ]; then
+		check_if_config_exists
+		section=$(uci -q add widget widget)
+		uci -q set $CONFIG."${section}.id=widget5"
+		uci -q set $CONFIG."${section}.type=rms"
+		uci -q set $CONFIG."${section}.position=${position}"
+		uci -q set $CONFIG."${section}.enabled=1"
+		let "position=position + 1"
+	fi
+
+	uci -q commit $CONFIG
+}
+setup_side_widget
+exit 0

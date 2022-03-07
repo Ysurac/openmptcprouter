@@ -1,0 +1,97 @@
+--- a/drivers/net/phy/ar40xx.h
++++ b/drivers/net/phy/ar40xx.h
+@@ -282,6 +282,13 @@
+ #define   AR40XX_PHY_SPEC_STATUS_DUPLEX		BIT(13)
+ #define   AR40XX_PHY_SPEC_STATUS_SPEED		BITS(14, 2)
+ 
++#define	COMBO_PHY_ID	4
++#define QCA807X_CHIP_CONFIGURATION		0x1f	/* Chip Configuration Register  */
++
++#define QCA8075_PHY4_PREFER_FIBER	0x400
++#define PHY4_PREFER_COPPER		0x0
++#define PHY4_PREFER_FIBER		0x1
++
+ /* port forwarding state */
+ enum {
+ 	AR40XX_PORT_STATE_DISABLED = 0,
+--- a/drivers/net/phy/ar40xx.c
++++ b/drivers/net/phy/ar40xx.c
+@@ -612,6 +612,62 @@
+ 		ar40xx_port_phy_linkdown(priv);
+ 	else
+ 		ar40xx_phy_init(priv);
++
++	return 0;
++}
++
++static int phy_prefer_medium_set(struct ar40xx_priv *priv, u16 medium)
++{
++	struct mii_bus *bus;
++	u16 phy_medium;
++
++	bus = priv->mii_bus;
++	phy_medium =
++			mdiobus_read(bus, COMBO_PHY_ID , QCA807X_CHIP_CONFIGURATION);
++
++	if (medium == PHY4_PREFER_FIBER) {
++		phy_medium |= QCA8075_PHY4_PREFER_FIBER;
++	} else {
++		phy_medium &= ~QCA8075_PHY4_PREFER_FIBER;
++	}
++
++	mdiobus_write(bus, COMBO_PHY_ID, QCA807X_CHIP_CONFIGURATION, phy_medium );
++
++	return 0;
++}
++
++static int
++ar40xx_sw_set_preference(struct switch_dev *dev,
++		       const struct switch_attr *attr,
++		       struct switch_val *val)
++{
++	struct ar40xx_priv *priv = swdev_to_ar40xx(dev);
++	u16 pref;
++	if (val->value.i == 0)
++		pref = PHY4_PREFER_COPPER;
++	else
++		pref = PHY4_PREFER_FIBER;
++
++	phy_prefer_medium_set(priv, pref);
++
++	return 0;
++}
++
++static int
++ar40xx_sw_get_preference(struct switch_dev *dev,
++		       const struct switch_attr *attr,
++		       struct switch_val *val)
++{
++	struct ar40xx_priv *priv = swdev_to_ar40xx(dev);
++
++	struct mii_bus *bus;
++	u16 phy_medium;
++
++	bus = priv->mii_bus;
++	phy_medium =
++			mdiobus_read(bus, COMBO_PHY_ID , QCA807X_CHIP_CONFIGURATION);
++
++	val->value.i = phy_medium;
+ 
+ 	return 0;
+ }
+@@ -922,6 +978,14 @@
+ 		.set = ar40xx_sw_set_linkdown,
+ 		.max = 1
+ 	},
++	{
++		.type = SWITCH_TYPE_INT,
++		.name = "preference",
++		.description = "Set fiber/copper combo preference",
++		.set = ar40xx_sw_set_preference,
++		.get = ar40xx_sw_get_preference,
++		.max = 1
++	},
+ };
+ 
+ static const struct switch_attr ar40xx_sw_attr_port[] = {
+

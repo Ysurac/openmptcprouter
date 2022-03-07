@@ -1,0 +1,28 @@
+#!/bin/sh
+. /lib/functions.sh
+. /lib/functions/board.sh
+
+
+set_pin() {
+    local sim="$1"
+    local modem position num builtin
+
+	config_get modem "$sim" modem
+	builtin=$(is_builtin_modem "$modem")
+	[ "$builtin" = "0" ] && return
+
+	config_get position "$sim" position
+	#If modem builtin and primary then position num 3 or 4 else 1 or 2
+	[ "$builtin" = "2" ] && num=$((position + 2)) || num=$position
+
+	pin=`/sbin/mnf_info --simpin $num`
+	[ -z "$pin" ] && return
+
+	uci -q set "simcard"."$sim"."pincode"="$pin"
+}
+
+config_load simcard
+config_foreach set_pin sim
+uci commit simcard
+
+exit 0

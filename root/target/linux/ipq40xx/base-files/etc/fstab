@@ -1,0 +1,2 @@
+# <file system> <mount point> <type> <options> <dump> <pass>
+/dev/mtdblock15	/log		jffs2	defaults 0 0

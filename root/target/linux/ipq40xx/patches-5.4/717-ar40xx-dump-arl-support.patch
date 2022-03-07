@@ -1,0 +1,151 @@
+--- a/drivers/net/phy/ar40xx.c
++++ b/drivers/net/phy/ar40xx.c
+@@ -82,6 +82,13 @@
+ 	MIB_DESC(1, AR40XX_STATS_TXLATECOL, "TxLateCol"),
+ };
+ 
++static int
++ar40xx_atu_flush(struct ar40xx_priv *);
++
++static int
++ar40xx_atu_dump(struct ar40xx_priv *);
++
++
+ static u32
+ ar40xx_read(struct ar40xx_priv *priv, int reg)
+ {
+@@ -810,6 +817,35 @@
+ 	}
+ 
+ 	ar40xx_phy_poll_reset(priv);
++
++	return 0;
++}
++
++static int
++ar40xx_sw_atu_flush(struct switch_dev *dev,
++		    const struct switch_attr *attr,
++		    struct switch_val *val)
++{
++	struct ar40xx_priv *priv = swdev_to_ar40xx(dev);
++
++	return ar40xx_atu_flush(priv);
++}
++
++static int
++ar40xx_sw_atu_dump(struct switch_dev *dev,
++		    const struct switch_attr *attr,
++		    struct switch_val *val)
++{
++	struct ar40xx_priv *priv = swdev_to_ar40xx(dev);
++	int len=0;
++
++	len = ar40xx_atu_dump(priv);
++	if(len >= 0){
++		val->value.s = priv->buf;
++		val->len = len;
++	} else {
++		val->len = -1;
++	}
+ 
+ 	return 0;
+ }
+@@ -868,6 +904,18 @@
+ 		.max = AR40XX_NUM_PORTS - 1
+ 	},
+ 	{
++		.type = SWITCH_TYPE_NOVAL,
++		.name = "flush_arl",
++		.description = "Flush ARL table",
++		.set = ar40xx_sw_atu_flush,
++	},
++	{
++		.type = SWITCH_TYPE_STRING,
++		.name = "dump_arl",
++		.description = "Dump ARL table with mac and port map",
++		.get = ar40xx_sw_atu_dump,
++	},
++	{
+ 		.type = SWITCH_TYPE_INT,
+ 		.name = "linkdown",
+ 		.description = "Link down all the PHYs",
+@@ -925,6 +973,65 @@
+ 	pr_err("ar40xx: timeout for reg %08x: %08x & %08x != %08x\n",
+ 	       (unsigned int)reg, t, mask, val);
+ 	return -ETIMEDOUT;
++}
++
++static int
++ar40xx_atu_dump(struct ar40xx_priv *priv)
++{
++	u32 ret;
++	u32 i = 0, len = 0, entry_len = 0;
++	volatile u32 reg[4] = {0,0,0,0};
++	u8 addr[ETH_ALEN] = { 0 };
++	char *buf;
++
++	buf = priv->buf;
++	memset(priv->buf, 0, sizeof(priv->buf));
++	do {
++		ret = ar40xx_wait_bit(priv, AR40XX_REG_ATU_FUNC,
++			AR40XX_ATU_FUNC_BUSY, 0);
++		if(ret != 0)
++			return -ETIMEDOUT;
++
++		reg[3] = AR40XX_ATU_FUNC_BUSY | AR40XX_ATU_FUNC_OP_GET_NEXT;
++		ar40xx_write(priv, AR40XX_REG_ATU_DATA0, reg[0]);
++		ar40xx_write(priv, AR40XX_REG_ATU_DATA1, reg[1]);
++		ar40xx_write(priv, AR40XX_REG_ATU_DATA2, reg[2]);
++		ar40xx_write(priv, AR40XX_REG_ATU_FUNC, reg[3]);
++
++		ret = ar40xx_wait_bit(priv, AR40XX_REG_ATU_FUNC,
++			AR40XX_ATU_FUNC_BUSY, 0);
++		if(ret != 0)
++			return -ETIMEDOUT;
++
++		reg[0] = ar40xx_read(priv, AR40XX_REG_ATU_DATA0);
++		reg[1] = ar40xx_read(priv, AR40XX_REG_ATU_DATA1);
++		reg[2] = ar40xx_read(priv, AR40XX_REG_ATU_DATA2);
++		reg[3] = ar40xx_read(priv, AR40XX_REG_ATU_FUNC);
++
++		if((reg[2] & 0xf) == 0)
++			break;
++
++		for(i=2; i<6; i++)
++			addr[i] = (reg[0] >> ((5 - i) << 3)) & 0xff;
++		for(i=0; i<2; i++)
++			addr[i] = (reg[1] >> ((1 - i) << 3)) & 0xff;
++
++		len += snprintf(buf + len, sizeof(priv->buf) - len, "MAC: %02x:%02x:%02x:%02x:%02x:%02x ",
++			addr[0],addr[1],addr[2],addr[3],addr[4],addr[5]);
++		len += snprintf(buf + len, sizeof(priv->buf) - len, "PORTMAP: 0x%02x ", ((reg[1] >> 16) & 0x7f));
++
++		len += snprintf(buf + len, sizeof(priv->buf) - len, "VID: 0x%x ", ((reg[2] >> 8) & 0xfff));
++
++		len += snprintf(buf + len, sizeof(priv->buf) - len, "STATUS: 0x%x\n", ((reg[2] & 0xf) == 0xf ? 1 : 0));
++
++		if (!entry_len)
++			entry_len = len;
++
++		if (sizeof(priv->buf) - len <= entry_len)
++			break;
++	} while(1);
++
++	return len;
+ }
+ 
+ static int
+--- a/drivers/net/phy/ar40xx.h
++++ b/drivers/net/phy/ar40xx.h
+@@ -243,6 +243,10 @@
+ #define   AR40XX_PORT_LOOKUP_LOOPBACK		BIT(21)
+ #define   AR40XX_PORT_LOOKUP_ING_MIRROR_EN	BIT(25)
+ 
++#define AR40XX_REG_ATU_DATA0			0x600
++#define AR40XX_REG_ATU_DATA1			0x604
++#define AR40XX_REG_ATU_DATA2			0x608
++
+ #define AR40XX_REG_ATU_FUNC			0x60c
+ #define   AR40XX_ATU_FUNC_OP			BITS(0, 4)
+ #define   AR40XX_ATU_FUNC_OP_NOOP		0x0
+

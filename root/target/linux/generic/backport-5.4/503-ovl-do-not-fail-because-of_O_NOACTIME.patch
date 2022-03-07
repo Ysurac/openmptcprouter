@@ -1,0 +1,46 @@
+From b6650dab404c701d7fe08a108b746542a934da84 Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <mszeredi@redhat.com>
+Date: Mon, 14 Dec 2020 15:26:14 +0100
+Subject: ovl: do not fail because of O_NOATIME
+
+In case the file cannot be opened with O_NOATIME because of lack of
+capabilities, then clear O_NOATIME instead of failing.
+
+Remove WARN_ON(), since it would now trigger if O_NOATIME was cleared.
+Noticed by Amir Goldstein.
+
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+---
+ fs/overlayfs/file.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+Index: linux-5.4.147/fs/overlayfs/file.c
+===================================================================
+--- linux-5.4.147.orig/fs/overlayfs/file.c
++++ linux-5.4.147/fs/overlayfs/file.c
+@@ -44,9 +44,10 @@ static struct file *ovl_open_realfile(co
+ 	err = inode_permission(realinode, MAY_OPEN | acc_mode);
+ 	if (err) {
+ 		realfile = ERR_PTR(err);
+-	} else if (!inode_owner_or_capable(realinode)) {
+-		realfile = ERR_PTR(-EPERM);
+ 	} else {
++		if (!inode_owner_or_capable(realinode))
++			flags &= ~O_NOATIME;
++
+ 		realfile = open_with_fake_path(&file->f_path, flags, realinode,
+ 					       current_cred());
+ 	}
+@@ -66,12 +67,6 @@ static int ovl_change_flags(struct file
+ 	struct inode *inode = file_inode(file);
+ 	int err;
+ 
+-	flags |= OVL_OPEN_FLAGS;
+-
+-	/* If some flag changed that cannot be changed then something's amiss */
+-	if (WARN_ON((file->f_flags ^ flags) & ~OVL_SETFL_MASK))
+-		return -EIO;
+-
+ 	flags &= OVL_SETFL_MASK;
+ 
+ 	if (((flags ^ file->f_flags) & O_APPEND) && IS_APPEND(inode))

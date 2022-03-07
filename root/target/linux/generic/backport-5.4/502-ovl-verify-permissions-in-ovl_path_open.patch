@@ -1,0 +1,61 @@
+From 56230d956739b9cb1cbde439d76227d77979a04d Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <mszeredi@redhat.com>
+Date: Tue, 2 Jun 2020 22:20:26 +0200
+Subject: ovl: verify permissions in ovl_path_open()
+
+Check permission before opening a real file.
+
+ovl_path_open() is used by readdir and copy-up routines.
+
+ovl_permission() theoretically already checked copy up permissions, but it
+doesn't hurt to re-do these checks during the actual copy-up.
+
+For directory reading ovl_permission() only checks access to topmost
+underlying layer.  Readdir on a merged directory accesses layers below the
+topmost one as well.  Permission wasn't checked for these layers.
+
+Note: modifying ovl_permission() to perform this check would be far more
+complex and hence more bug prone.  The result is less precise permissions
+returned in access(2).  If this turns out to be an issue, we can revisit
+this bug.
+
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+---
+ fs/overlayfs/util.c | 27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
+
+Index: linux-5.4.147/fs/overlayfs/util.c
+===================================================================
+--- linux-5.4.147.orig/fs/overlayfs/util.c
++++ linux-5.4.147/fs/overlayfs/util.c
+@@ -475,7 +475,29 @@ bool ovl_is_whiteout(struct dentry *dent
+ 
+ struct file *ovl_path_open(struct path *path, int flags)
+ {
+-	return dentry_open(path, flags | O_NOATIME, current_cred());
++	struct inode *inode = d_inode(path->dentry);
++	int err, acc_mode;
++
++	switch (flags & O_ACCMODE) {
++	case O_RDONLY:
++		acc_mode = MAY_READ;
++		break;
++	case O_WRONLY:
++		acc_mode = MAY_WRITE;
++		break;
++	default:
++		BUG();
++	}
++
++	err = inode_permission(inode, acc_mode | MAY_OPEN);
++	if (err)
++		return ERR_PTR(err);
++
++	/* O_NOATIME is an optimization, don't fail if not permitted */
++	if (inode_owner_or_capable(inode))
++		flags |= O_NOATIME;
++
++	return dentry_open(path, flags, current_cred());
+ }
+ 
+ /* Caller should hold ovl_inode->lock */

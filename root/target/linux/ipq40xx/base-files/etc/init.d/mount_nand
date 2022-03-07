@@ -1,0 +1,29 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2011 OpenWrt.org
+
+START=10
+STOP=90
+
+NAND_PART="nand_ubi"
+
+boot() {
+	# check if spi-nand is present
+	local mtd=$(grep -i -m 1 "$NAND_PART" /proc/mtd | cut -c 4- | cut -d ':' -f1)
+	[ -z "$mtd" ] && {
+		return 0
+	}
+
+	[ ! -e /nand_storage ] && {
+		mkdir /nand_storage
+	}
+
+	# attach mtd device, automatically format if empty
+	ubiattach /dev/ubi_ctrl -m "$mtd"
+
+	# create default volume, if volume not present
+	[ ! -e /dev/ubi0_0 ] && {
+		ubimkvol /dev/ubi0 -m -N nand_storage
+	}
+
+	mount -t ubifs -o sync,noatime,rw ubi0:nand_storage /nand_storage/
+}
