@@ -113,7 +113,7 @@ generate_network() {
 			local ipad
 			case "$1" in
 				lan)
-					ipad=${ipaddr:-"192.168.1.1"}
+					ipad=${ipaddr:-"192.168.100.1"}
 					;;
 				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
 			esac
@@ -365,10 +365,9 @@ generate_static_system() {
 	if json_is_a system object; then
 		json_select system
 			local hostname
-			if json_get_var hostname hostname; then
-				#uci -q set "system.@system[-1].hostname=$hostname"
-				uci -q set "system.@system[-1].hostname=OpenMPTCProuter"
-			fi
+			#if json_get_var hostname hostname; then
+			#	uci -q set "system.@system[-1].hostname=$hostname"
+			#fi
 
 			if json_is_a ntpserver array; then
 				local keys key
