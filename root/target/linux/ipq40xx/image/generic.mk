@@ -831,8 +831,6 @@ define Device/teltonika_rutx
 	BOARD_NAME := rutx
 	SOC := qcom-ipq4018
 	DEVICE_DTS_DIR := ../dts
-#	DEVICE_DTS := qcom-ipq4018-rutx-12 qcom-ipq4018-rutx-08_10 qcom-ipq4018-rutx-09_11 qcom-ipq4018-rutx-R1 qcom-ipq4018-rutx-STM32
-#	DEVICE_DTS := qcom-ipq4018-rutx-12
 	DEVICE_DTS := $(foreach dts,$(notdir $(wildcard $(PLATFORM_DIR)/dts/*.dts)),$(patsubst %.dts,%,$(dts)))
 	DEVICE_DTS_CONFIG := config@5
 	KERNEL = kernel-bin | gzip | fit-rutx gzip "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
@@ -841,10 +839,10 @@ define Device/teltonika_rutx
 	PAGESIZE := 2048
 	FILESYSTEMS := squashfs
 	KERNEL_IN_UBI := 1
-	IMAGES := sysupgrade.bin
-	IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
-#	IMAGE/sysupgrade.bin := append-ubi | UbootFw | append-rutx-metadata
-#	DEVICE_PACKAGES := uboot-ipq4xx ipq-wifi-teltonika_rutx kmod-bluetooth kmod-r2ec
+	IMAGES := factory.bin
+	IMAGE/factory.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
+	IMAGES += sysupgrade.bin
+	IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-metadata
 	DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth kmod-r2ec
 	HW_SUPPORT := io_expander%stm32:shiftreg_1
 endef
