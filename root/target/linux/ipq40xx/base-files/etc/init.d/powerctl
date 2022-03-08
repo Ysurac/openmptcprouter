@@ -1,0 +1,32 @@
+#!/bin/sh /etc/rc.common
+
+START=98
+
+ipq40xx_power_auto() {
+	# change scaling governor as ondemand to enable clock scaling based on system load
+	echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+
+	# set scaling min freq as 200 MHz
+	echo "716000" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+
+	# Change sampling rate for frequency scaling decisions to 1s, from 10 ms
+	#echo "1000000" > /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate
+
+	# Change sampling rate for frequency down scaling decision to 10s
+	#echo 10 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor
+
+	# Change the CPU load threshold above which frequency is up-scaled to
+	# turbo frequency,to 50%
+	#echo 50 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold
+}
+
+start() {
+	. /lib/functions.sh
+
+	local board=$(board_name)
+	case "$board" in
+	teltonika,rutx | ap-dk01.1-c1 | ap-dk01.1-c2 | ap-dk04.1-c1 | ap-dk04.1-c2 | ap-dk04.1-c3 | \
+	ap-dk04.1-c4   | ap-dk04.1-c5 | ap-dk05.1-c1 | ap-dk06.1-c1 | ap-dk07.1-c1 | ap-dk07.1-c2 | ap-dk07.1-c3)
+		ipq40xx_power_auto ;;
+	esac
+}

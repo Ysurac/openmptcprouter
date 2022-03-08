@@ -1,0 +1,80 @@
+#!/bin/sh
+
+main() {
+    if [ $1 == "check_backup" ]; then
+        check_backup
+    elif [ $1 == "apply_backup" ]; then
+        apply_backup
+    fi
+}
+
+reverse_string() {
+    local input="$1"
+    local reverse=""
+
+    local len=${#input}
+    local i=$(($len-1))
+    while [ $i -ge 0 ]; do
+        reverse="$reverse${input:$i:1}"
+        i=$((i-1))
+    done
+
+    echo "$reverse"
+}
+
+check_backup() {
+    local size
+    local write_new_config_ok='1'
+
+    local this_device_code=$(uci -q get system.system.device_code)
+    local this_device_code_len=${#this_device_code}
+
+    local device_code_in_the_new_config=$(cat /tmp/new_config_dir/etc/config/system | grep device_code | cut -d ' ' -f3)
+    device_code_in_the_new_config=${device_code_in_the_new_config:1}
+    device_code_in_the_new_config=${device_code_in_the_new_config%?}
+    local device_code_in_new_config_len=${#device_code_in_the_new_config}
+
+    local this_device_name=${this_device_code:0:4}
+    [ "$this_device_name" = "RUT2" ] && size=8 || size=7
+
+    this_device_code=${this_device_code:0:$size}
+    device_code_in_the_new_config=${device_code_in_the_new_config:0:$size}
+
+    local this_device_fw_version=$(cat /etc/version)
+
+    local fw_version_in_new_config=$(cat /tmp/new_config_dir/etc/config/system | grep device_fw_version | cut -d ' ' -f3)
+    fw_version_in_new_config=${fw_version_in_new_config:1}
+    fw_version_in_new_config=${fw_version_in_new_config%?}
+    local fw_version_in_new_config_len=${#fw_version_in_new_config}
+
+    this_device_fw_version=$(reverse_string $this_device_fw_version)
+    this_device_fw_version=$(echo $this_device_fw_version | awk -F _ '{print $1}')
+    this_device_fw_version=$(reverse_string $this_device_fw_version)
+
+    fw_version_in_new_config=$(reverse_string $fw_version_in_new_config)
+    fw_version_in_new_config=$(echo $fw_version_in_new_config | awk -F _ '{print $1}')
+    fw_version_in_new_config=$(reverse_string $fw_version_in_new_config)
+
+    if [ $this_device_code_len -ne 12 ] || [ $device_code_in_new_config_len -ne 12 ] || [ "$this_device_code" != "$device_code_in_the_new_config" ]; then
+        write_new_config_ok='0'
+    fi
+
+    if [ $fw_version_in_new_config_len -lt 12 ] || [ $(expr ${this_device_fw_version} \< ${fw_version_in_new_config}) -eq 1 ]; then
+        write_new_config_ok='0'
+    fi
+
+    echo "$write_new_config_ok"
+}
+
+apply_backup() {
+    /etc/init.d/simcard reload >/dev/null 2>/dev/null
+    rm /tmp/new_config_dir/etc/config/hwinfo /tmp/new_config_dir/etc/inittab 2>/dev/null
+    sed -i "s/\/home\/root/\/root/" /tmp/new_config_dir/etc/passwd
+    sed -i "s/\/bin\/sh/\/bin\/ash/" /tmp/new_config_dir/etc/passwd
+    cp -rf /tmp/new_config_dir/etc/ / 2>/dev/null
+    cp -r /rom/etc/uci-defaults/* /etc/uci-defaults/ 2>/dev/null
+}
+
+main $1
+
+exit 0

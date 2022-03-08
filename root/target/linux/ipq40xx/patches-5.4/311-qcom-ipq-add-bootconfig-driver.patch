@@ -1,0 +1,506 @@
+Index: linux-5.4.124/drivers/platform/Kconfig
+===================================================================
+--- linux-5.4.124.orig/drivers/platform/Kconfig
++++ linux-5.4.124/drivers/platform/Kconfig
+@@ -13,5 +13,9 @@ source "drivers/platform/chrome/Kconfig"
+ source "drivers/platform/mellanox/Kconfig"
+ 
+ source "drivers/platform/olpc/Kconfig"
+ 
+ source "drivers/platform/mikrotik/Kconfig"
++
++if ARCH_QCOM
++source "drivers/platform/ipq/Kconfig"
++endif
+Index: linux-5.4.124/drivers/platform/Makefile
+===================================================================
+--- linux-5.4.124.orig/drivers/platform/Makefile
++++ linux-5.4.124/drivers/platform/Makefile
+@@ -9,4 +9,5 @@ obj-$(CONFIG_MIPS)		+= mips/
+ obj-$(CONFIG_OLPC_EC)		+= olpc/
+ obj-$(CONFIG_GOLDFISH)		+= goldfish/
+ obj-$(CONFIG_CHROME_PLATFORMS)	+= chrome/
+ obj-$(CONFIG_MIKROTIK)		+= mikrotik/
++obj-$(CONFIG_ARCH_QCOM)		+= ipq/
+Index: linux-5.4.124/drivers/platform/ipq/bootconfig.c
+===================================================================
+--- /dev/null
++++ linux-5.4.124/drivers/platform/ipq/bootconfig.c
+@@ -0,0 +1,403 @@
++/*
++ * Copyright (c) 2015-2016 The Linux Foundation. All rights reserved.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
++#include <linux/seq_file.h>
++#include <asm/setup.h>
++#include <linux/mtd/partitions.h>
++#include <linux/proc_fs.h>
++#include <linux/slab.h>
++#include <linux/uaccess.h>
++#include <linux/module.h>
++#include <linux/version.h>
++#include <linux/genhd.h>
++#include <linux/major.h>
++#include <linux/mtd/blktrans.h>
++#include <linux/mtd/mtd.h>
++#include <linux/types.h>
++#include <linux/blkdev.h>
++#include "bootconfig.h"
++
++static struct proc_dir_entry *boot_info_dir;
++static struct proc_dir_entry *partname_dir[NUM_ALT_PARTITION];
++
++static unsigned int num_parts;
++static unsigned int flash_type_emmc;
++
++struct sbl_if_dualboot_info_type_v2 *bootconfig1;
++struct sbl_if_dualboot_info_type_v2 *bootconfig2;
++
++static int getbinary_show(struct seq_file *m, void *v)
++{
++	struct sbl_if_dualboot_info_type_v2 *sbl_info_v2;
++
++	sbl_info_v2 = m->private;
++	memcpy(m->buf + m->count, sbl_info_v2,
++		sizeof(struct sbl_if_dualboot_info_type_v2));
++	m->count += sizeof(struct sbl_if_dualboot_info_type_v2);
++
++	return 0;
++}
++
++static int getbinary_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, getbinary_show, PDE_DATA(inode));
++}
++
++static const struct file_operations getbinary_ops = {
++	.open		= getbinary_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int part_upgradepartition_show(struct seq_file *m, void *v)
++{
++	struct per_part_info *part_info_t = m->private;
++
++	/*
++	 * In case of NOR\NAND, SBLs change the names of paritions in
++	 * such a way that the partition to upgrade is always suffixed
++	 * by _1. This is not the case in eMMC as paritions are read
++	 * from GPT and we have no control on it. So for eMMC we need
++	 * to check and generate the name wheres for NOR\NAND it is
++	 * always _1 SBLs should be modified not to change partition
++	 * names so that it is consistent with GPT. Till that is done
++	 * we will take care of it here.
++	 */
++
++	if (flash_type_emmc && (part_info_t->primaryboot))
++		seq_printf(m, "%s\n", part_info_t->name);
++	else
++		seq_printf(m, "%s_1\n", part_info_t->name);
++
++	return 0;
++
++}
++
++static int part_upgradepartition_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, part_upgradepartition_show, PDE_DATA(inode));
++}
++
++static const struct file_operations upgradepartition_ops = {
++	.open		= part_upgradepartition_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++
++static ssize_t part_primaryboot_write(struct file *file,
++				       const char __user *user,
++				       size_t count, loff_t *data)
++{
++	int ret;
++	char optstr[64];
++	struct per_part_info *part_entry;
++	unsigned long val;
++
++	part_entry = PDE_DATA(file_inode(file));
++
++	if (count == 0 || count > sizeof(optstr))
++		return -EINVAL;
++
++	ret = copy_from_user(optstr, user, count);
++	if (ret)
++		return ret;
++
++	optstr[count - 1] = '\0';
++
++	ret = kstrtoul(optstr, 0, &val);
++	if (ret)
++		return ret;
++
++	part_entry->primaryboot = val;
++
++	return count;
++
++}
++
++static int part_primaryboot_show(struct seq_file *m, void *v)
++{
++	struct per_part_info *part_entry;
++
++	part_entry = m->private;
++	seq_printf(m, "%x\n", part_entry->primaryboot);
++	return 0;
++}
++
++static int part_primaryboot_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, part_primaryboot_show, PDE_DATA(inode));
++}
++
++static const struct file_operations primaryboot_ops = {
++	.open		= part_primaryboot_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++	.write		= part_primaryboot_write,
++};
++
++
++struct sbl_if_dualboot_info_type_v2 *read_bootconfig_mtd(
++						struct mtd_info *master,
++						uint64_t offset)
++{
++
++	size_t retlen = 0;
++	struct sbl_if_dualboot_info_type_v2 *bootconfig_mtd;
++	int ret;
++
++	while (mtd_block_isbad(master, offset)) {
++		offset += master->erasesize;
++		if (offset >= master->size) {
++			pr_alert("Bad blocks occurred while reading from \"%s\"\n",
++					master->name);
++			return NULL;
++		}
++	}
++	bootconfig_mtd = kmalloc(sizeof(struct sbl_if_dualboot_info_type_v2),
++				   GFP_ATOMIC);
++
++	if (!bootconfig_mtd)
++		return NULL;
++
++	ret = mtd_read(master, offset,
++			sizeof(struct sbl_if_dualboot_info_type_v2),
++			&retlen, (void *)bootconfig_mtd);
++	if (ret < 0) {
++		pr_alert("error occured while reading from \"%s\"\n",
++				master->name);
++		bootconfig_mtd = NULL;
++		kfree(bootconfig_mtd);
++		return NULL;
++	}
++
++	if (bootconfig_mtd->magic_start != SMEM_DUAL_BOOTINFO_MAGIC_START) {
++		pr_alert("Magic not found in \"%s\"\n", master->name);
++		kfree(bootconfig_mtd);
++		return NULL;
++	}
++
++	return bootconfig_mtd;
++}
++
++struct sbl_if_dualboot_info_type_v2 *read_bootconfig_emmc(struct gendisk *disk,
++						struct hd_struct *part)
++{
++	sector_t n;
++	Sector sect;
++	int ret;
++	unsigned char *data;
++	struct sbl_if_dualboot_info_type_v2 *bootconfig_emmc;
++	unsigned ssz;
++	struct block_device *bdev = NULL;
++
++	bdev = bdget_disk(disk, 0);
++	if (!bdev)
++		return NULL;
++
++	bdev->bd_invalidated = 1;
++	ret = blkdev_get(bdev, FMODE_READ , NULL);
++	if (ret)
++		return NULL;
++
++	ssz = bdev_logical_block_size(bdev);
++	bootconfig_emmc = kmalloc(ssz, GFP_ATOMIC);
++	if (!bootconfig_emmc)
++		return NULL;
++
++	n =  part->start_sect * (bdev_logical_block_size(bdev) / 512);
++	data = read_dev_sector(bdev, n, &sect);
++	put_dev_sector(sect);
++	blkdev_put(bdev, FMODE_READ);
++	if (!data) {
++		kfree(bootconfig_emmc);
++		return NULL;
++	}
++
++	memcpy(bootconfig_emmc, data, 512);
++
++	if (bootconfig_emmc->magic_start != SMEM_DUAL_BOOTINFO_MAGIC_START) {
++		pr_alert("Magic not found\n");
++		kfree(bootconfig_emmc);
++		return NULL;
++	}
++
++	return bootconfig_emmc;
++}
++
++#define BOOTCONFIG_PARTITION	"0:BOOTCONFIG"
++#define BOOTCONFIG_PARTITION1	"0:BOOTCONFIG1"
++#define ROOTFS_PARTITION	"rootfs"
++
++static int __init bootconfig_partition_init(void)
++{
++	struct per_part_info *part_info;
++	int i;
++	struct gendisk *disk = NULL;
++	struct disk_part_iter piter;
++	struct hd_struct *part;
++	struct mtd_info *mtd;
++	int partno;
++
++	/*
++	 * In case of NOR\NAND boot, there is a chance that emmc
++	 * might have bootconfig paritions. This will try to read
++	 * the bootconfig partitions and create a proc entry which
++	 * is not correct since it is not booting from emmc.
++	 */
++
++	mtd = get_mtd_device_nm(ROOTFS_PARTITION);
++	if (IS_ERR(mtd))
++		flash_type_emmc = 1;
++	mtd = get_mtd_device_nm(BOOTCONFIG_PARTITION);
++	if (!IS_ERR(mtd)) {
++
++		bootconfig1 = read_bootconfig_mtd(mtd, 0);
++		mtd = get_mtd_device_nm(BOOTCONFIG_PARTITION1);
++		if (IS_ERR(mtd)) {
++			pr_alert("%s: " BOOTCONFIG_PARTITION1 " not found\n",
++				__func__);
++			return 0;
++		}
++
++		bootconfig2 = read_bootconfig_mtd(mtd, 0);
++	} else if (flash_type_emmc == 1) {
++		flash_type_emmc = 0;
++		disk = get_gendisk(MKDEV(MMC_BLOCK_MAJOR, 0), &partno);
++		if (!disk)
++			return 0;
++
++		disk_part_iter_init(&piter, disk, DISK_PITER_INCL_PART0);
++		while ((part = disk_part_iter_next(&piter))) {
++
++			if (part->info) {
++				if (!strcmp((char *)part->info->volname,
++						BOOTCONFIG_PARTITION)) {
++					bootconfig1 = read_bootconfig_emmc(disk,
++									part);
++				}
++
++				if (!strcmp((char *)part->info->volname,
++						BOOTCONFIG_PARTITION1)) {
++					bootconfig2 = read_bootconfig_emmc(disk,
++									 part);
++					flash_type_emmc = 1;
++				}
++			}
++		}
++		disk_part_iter_exit(&piter);
++
++	}
++
++	if (!bootconfig1) {
++		if (bootconfig2)
++			bootconfig1 = bootconfig2;
++		else
++			return 0;
++	}
++
++	if (!bootconfig2) {
++		if (bootconfig1)
++			bootconfig2 = bootconfig1;
++		else
++			return 0;
++	}
++/*
++ * The following check is to handle the case when an image without
++ * apps upgrade support is upgraded to the image that supports APPS
++ * upgrade. Earlier, the bootconfig file will be chosen based on age,
++ * but now bootconfig1 only is considered and bootconfig2 is a backup.
++ * When bootconfig2 is active in the older image and sysupgrade
++ * is done to it, we copy the bootconfig2 to bootconfig1 so that the
++ * failsafe parameters can be retained.
++ */
++	if (bootconfig2->age > bootconfig1->age)
++		bootconfig1 = bootconfig2;
++
++	num_parts = bootconfig1->numaltpart;
++	bootconfig1->age++;
++	part_info = (struct per_part_info *)bootconfig1->per_part_entry;
++	boot_info_dir = proc_mkdir("boot_info", NULL);
++	if (!boot_info_dir)
++		return 0;
++
++	for (i = 0; i < num_parts; i++) {
++		if (!flash_type_emmc &&
++				(strncmp(part_info[i].name, "kernel",
++					ALT_PART_NAME_LENGTH) == 0))
++			continue;
++
++		partname_dir[i] = proc_mkdir(part_info[i].name, boot_info_dir);
++		if (partname_dir != NULL) {
++			proc_create_data("primaryboot", S_IRUGO,
++					   partname_dir[i],
++					   &primaryboot_ops,
++					   part_info + i);
++			proc_create_data("upgradepartition", S_IRUGO,
++					   partname_dir[i],
++					   &upgradepartition_ops,
++					   part_info + i);
++		}
++	}
++
++	proc_create_data("getbinary_bootconfig", S_IRUGO, boot_info_dir,
++			&getbinary_ops, bootconfig1);
++	proc_create_data("getbinary_bootconfig1", S_IRUGO, boot_info_dir,
++			&getbinary_ops, bootconfig1);
++
++	return 0;
++}
++module_init(bootconfig_partition_init);
++
++static void __exit bootconfig_partition_exit(void)
++{
++	struct per_part_info *part_info;
++	int i;
++
++	if (!bootconfig1)
++		return;
++
++	if (!bootconfig2)
++		return;
++
++	part_info = (struct per_part_info *)bootconfig1->per_part_entry;
++	for (i = 0; i < num_parts; i++) {
++		if (!flash_type_emmc &&
++				(strncmp(part_info[i].name, "kernel",
++					ALT_PART_NAME_LENGTH) == 0))
++			continue;
++
++		remove_proc_entry("primaryboot", partname_dir[i]);
++		remove_proc_entry("upgradepartition", partname_dir[i]);
++		remove_proc_entry(part_info[i].name, boot_info_dir);
++	}
++	remove_proc_entry("getbinary_bootconfig", boot_info_dir);
++	remove_proc_entry("getbinary_bootconfig1", boot_info_dir);
++	remove_proc_entry("boot_info", NULL);
++	kfree(bootconfig1);
++	kfree(bootconfig2);
++}
++
++module_exit(bootconfig_partition_exit);
++
++MODULE_LICENSE("Dual BSD/GPL");
+Index: linux-5.4.124/drivers/platform/ipq/bootconfig.h
+===================================================================
+--- /dev/null
++++ linux-5.4.124/drivers/platform/ipq/bootconfig.h
+@@ -0,0 +1,43 @@
++/*
++ * Copyright (c) 2015-2016 The Linux Foundation. All rights reserved.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++#ifndef _BOOTCONFIG_H_
++#define _BOOTCONFIG_H_
++
++#define BOOTCONFIG_PART_IDX_MAX 21
++
++#define ALT_PART_NAME_LENGTH 16
++struct per_part_info {
++	char name[ALT_PART_NAME_LENGTH];
++	uint32_t primaryboot;
++};
++
++#define NUM_ALT_PARTITION 8
++
++/* version 2 */
++#define SMEM_DUAL_BOOTINFO_MAGIC_START 0xA3A2A1A0
++#define SMEM_DUAL_BOOTINFO_MAGIC_END 0xB3B2B1B0
++
++struct sbl_if_dualboot_info_type_v2 {
++	uint32_t magic_start;
++	uint32_t age;
++	uint32_t numaltpart;
++	struct per_part_info per_part_entry[NUM_ALT_PARTITION];
++	uint32_t magic_end;
++} __packed;
++
++#endif /* _BOOTCONFIG_H_ */
++
+Index: linux-5.4.124/drivers/platform/ipq/Kconfig
+===================================================================
+--- /dev/null
++++ linux-5.4.124/drivers/platform/ipq/Kconfig
+@@ -0,0 +1,11 @@
++menu "IPQ specific device drivers"
++	depends on ARCH_QCOM
++
++config BOOTCONFIG_PARTITION
++	tristate "BOOTCONFIG Partition support"
++	help
++	  Say Y here if you would like to use hard disks under Linux which
++	  were partitioned using MTD/EFI.
++
++endmenu
++
+Index: linux-5.4.124/drivers/platform/ipq/Makefile
+===================================================================
+--- /dev/null
++++ linux-5.4.124/drivers/platform/ipq/Makefile
+@@ -0,0 +1,5 @@
++#
++# Makefile for the IPQ specific device drivers.
++#
++
++obj-$(CONFIG_BOOTCONFIG_PARTITION) += bootconfig.o

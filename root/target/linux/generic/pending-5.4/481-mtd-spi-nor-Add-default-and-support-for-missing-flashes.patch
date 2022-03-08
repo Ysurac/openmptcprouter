@@ -1,0 +1,50 @@
+Index: linux-5.4.124/drivers/mtd/spi-nor/spi-nor.c
+===================================================================
+--- linux-5.4.124.orig/drivers/mtd/spi-nor/spi-nor.c
++++ linux-5.4.124/drivers/mtd/spi-nor/spi-nor.c
+@@ -2241,6 +2241,9 @@ static const struct flash_info spi_nor_i
+ 			.fixups = &gd25q256_fixups,
+ 	},
+ 
++	/* Zbit */
++	{ "zb25vq128", INFO(0xC84018, 0, 64 * 1024,  64, SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
++
+ 	/* Intel/Numonyx -- xxxs33b */
+ 	{ "160s33b",  INFO(0x898911, 0, 64 * 1024,  32, 0) },
+ 	{ "320s33b",  INFO(0x898912, 0, 64 * 1024,  64, 0) },
+@@ -2405,6 +2408,7 @@ static const struct flash_info spi_nor_i
+ 	{ "m25p32",  INFO(0x202016,  0,  64 * 1024,  64, 0) },
+ 	{ "m25p64",  INFO(0x202017,  0,  64 * 1024, 128, 0) },
+ 	{ "m25p128", INFO(0x202018,  0, 256 * 1024,  64, 0) },
++	{ "n25q032", INFO(0x20ba16,  0,  64 * 1024,  64, 0) },
+ 
+ 	{ "m25p05-nonjedec",  INFO(0, 0,  32 * 1024,   2, 0) },
+ 	{ "m25p10-nonjedec",  INFO(0, 0,  32 * 1024,   4, 0) },
+@@ -2508,10 +2512,14 @@ static const struct flash_info spi_nor_i
+ 	{ "XM25QH128A", INFO(0x207018, 0, 64 * 1024, 256, SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
+ 
+ 	/* XTX Technology (Shenzhen) Limited */
++	{ "XT25F128A", INFO(0x207018, 0, 64 * 1024, 256, SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },	
+ 	{ "xt25f128b", INFO(0x0B4018, 0, 64 * 1024, 256, SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ) },
+ 	{ },
+ };
+ 
++static const struct flash_info spi_nor_unknown_id = 
++	{ "undefined",  INFO(0x0, 0, 64 * 1024, 256, SECT_4K) };
++
+ static const struct flash_info *spi_nor_read_id(struct spi_nor *nor)
+ {
+ 	int			tmp;
+@@ -2542,9 +2550,12 @@ static const struct flash_info *spi_nor_
+ 				return &spi_nor_ids[tmp];
+ 		}
+ 	}
++	return &spi_nor_unknown_id; // for Teltonikia RUT devices
++	/*
+ 	dev_err(nor->dev, "unrecognized JEDEC id bytes: %*ph\n",
+ 		SPI_NOR_MAX_ID_LEN, id);
+ 	return ERR_PTR(-ENODEV);
++	*/
+ }
+ 
+ static int spi_nor_read(struct mtd_info *mtd, loff_t from, size_t len,

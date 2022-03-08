@@ -1,0 +1,53 @@
+From: Bui Quang Minh @ 2021-01-26  8:26 UTC (permalink / raw)
+  To: ast, daniel, davem, kuba, hawk, john.fastabend, andrii, kafai,
+	songliubraving, yhs, kpsingh, jakub, lmb
+  Cc: netdev, bpf, linux-kernel, minhquangbui99
+
+In 32-bit architecture, the result of sizeof() is a 32-bit integer so
+the expression becomes the multiplication between 2 32-bit integer which
+can potentially leads to integer overflow. As a result,
+bpf_map_area_alloc() allocates less memory than needed.
+
+Fix this by casting 1 operand to u64.
+
+Signed-off-by: Bui Quang Minh <minhquangbui99@gmail.com>
+---
+ kernel/bpf/devmap.c | 4 ++--
+ net/core/sock_map.c | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+Index: linux-5.4.147/kernel/bpf/devmap.c
+===================================================================
+--- linux-5.4.147.orig/kernel/bpf/devmap.c
++++ linux-5.4.147/kernel/bpf/devmap.c
+@@ -94,7 +94,7 @@ static struct hlist_head *dev_map_create
+ 	int i;
+ 	struct hlist_head *hash;
+ 
+-	hash = bpf_map_area_alloc(entries * sizeof(*hash), numa_node);
++	hash = bpf_map_area_alloc((u64) entries * sizeof(*hash), numa_node);
+ 	if (hash != NULL)
+ 		for (i = 0; i < entries; i++)
+ 			INIT_HLIST_HEAD(&hash[i]);
+@@ -159,7 +159,7 @@ static int dev_map_init_map(struct bpf_d
+ 
+ 		spin_lock_init(&dtab->index_lock);
+ 	} else {
+-		dtab->netdev_map = bpf_map_area_alloc(dtab->map.max_entries *
++		dtab->netdev_map = bpf_map_area_alloc((u64) dtab->map.max_entries *
+ 						      sizeof(struct bpf_dtab_netdev *),
+ 						      dtab->map.numa_node);
+ 		if (!dtab->netdev_map)
+Index: linux-5.4.147/net/core/sock_map.c
+===================================================================
+--- linux-5.4.147.orig/net/core/sock_map.c
++++ linux-5.4.147/net/core/sock_map.c
+@@ -48,7 +48,7 @@ static struct bpf_map *sock_map_alloc(un
+ 	if (err)
+ 		goto free_stab;
+ 
+-	stab->sks = bpf_map_area_alloc(stab->map.max_entries *
++	stab->sks = bpf_map_area_alloc((u64) stab->map.max_entries *
+ 				       sizeof(struct sock *),
+ 				       stab->map.numa_node);
+ 	if (stab->sks)

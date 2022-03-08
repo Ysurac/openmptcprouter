@@ -1,0 +1,33 @@
+Index: linux-5.4.137/drivers/usb/serial/option.c
+===================================================================
+--- linux-5.4.137.orig/drivers/usb/serial/option.c
++++ linux-5.4.137/drivers/usb/serial/option.c
+@@ -241,6 +241,8 @@ static void option_instat_callback(struc
+ #define UBLOX_PRODUCT_R6XX			0x90fa
+ /* These Yuga products use Qualcomm's vendor ID */
+ #define YUGA_PRODUCT_CLM920_NC5			0x9625
++/* These Meiglink products use Qualcomm's vendor ID */
++#define MEIGLINK_PRODUCT_SLM750			0xf601
+ 
+ #define QUECTEL_VENDOR_ID			0x2c7c
+ /* These Quectel products use Quectel's vendor ID */
+@@ -1102,4 +1104,7 @@ static const struct usb_device_id option
+ 	/* u-blox products using Qualcomm vendor ID */
+ 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, UBLOX_PRODUCT_R410M),
+ 	  .driver_info = RSVD(1) | RSVD(3) },
++	/* Meiglink products using Qualcomm vendor ID */
++	// Works OK in case of some issues check macros that are used by Quectel Products
++	{ USB_DEVICE(QUALCOMM_VENDOR_ID, MEIGLINK_PRODUCT_SLM750)},
+ 	/* Quectel products using Quectel vendor ID */
+Index: linux-5.4.137/drivers/net/usb/qmi_wwan.c
+===================================================================
+--- linux-5.4.137.orig/drivers/net/usb/qmi_wwan.c
++++ linux-5.4.137/drivers/net/usb/qmi_wwan.c
+@@ -1171,6 +1171,7 @@ static const struct usb_device_id produc
+ 	{QMI_FIXED_INTF(0x05c6, 0x9079, 6)},
+ 	{QMI_FIXED_INTF(0x05c6, 0x9079, 7)},
+ 	{QMI_FIXED_INTF(0x05c6, 0x9079, 8)},
++	{QMI_MATCH_FF_FF_FF(0x05c6, 0xf601)}, 	/* Meiglink SLM750 (in case of issues check if DTR flag setting is enough) */
+ 	{QMI_FIXED_INTF(0x05c6, 0x9080, 5)},
+ 	{QMI_FIXED_INTF(0x05c6, 0x9080, 6)},
+ 	{QMI_FIXED_INTF(0x05c6, 0x9080, 7)},

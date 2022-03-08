@@ -1,0 +1,21 @@
+Index: linux-5.4.147/drivers/mtd/nand/spi/micron.c
+===================================================================
+--- linux-5.4.147.orig/drivers/mtd/nand/spi/micron.c
++++ linux-5.4.147/drivers/mtd/nand/spi/micron.c
+@@ -91,7 +91,7 @@ static int mt29f2g01abagd_ecc_get_status
+ }
+ 
+ static const struct spinand_info micron_spinand_table[] = {
+-	SPINAND_INFO("MT29F2G01ABAGD", 0x24,
++	SPINAND_INFO("MT29F2G01ABAGD", 0x24, // Note: XTX nand flash XT26G02E have same MAN_ID and DEV_ID
+ 		     NAND_MEMORG(1, 2048, 128, 64, 2048, 40, 2, 1, 1),
+ 		     NAND_ECCREQ(8, 512),
+ 		     SPINAND_INFO_OP_VARIANTS(&read_cache_variants,
+@@ -128,6 +128,6 @@ static const struct spinand_manufacturer
+ 
+ const struct spinand_manufacturer micron_spinand_manufacturer = {
+ 	.id = SPINAND_MFR_MICRON,
+-	.name = "Micron",
++	.name = "Micron / XTX",
+ 	.ops = &micron_spinand_manuf_ops,
+ };

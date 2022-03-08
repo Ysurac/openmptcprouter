@@ -1,0 +1,23 @@
+#!/bin/ash
+
+[ "$ACTION" == "add" ] || exit 0
+
+PHYNBR=${DEVPATH##*/phy}
+
+[ -n $PHYNBR ] || exit 0
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+
+board=$(board_name)
+
+case "$board" in
+	teltonika,rutx)
+		mac_addr=$(mtd_get_mac_binary 0:CONFIG 0)
+		if [ "$mac_addr" != "ff:ff:ff:ff:ff:ff" ]; then
+			echo $(macaddr_add $mac_addr $(($PHYNBR + 2)) ) > /sys${DEVPATH}/macaddress
+		fi
+		;;
+	*)
+		;;
+esac

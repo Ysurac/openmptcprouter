@@ -1,0 +1,21 @@
+#!/bin/sh
+# Copyright (C) 2006 OpenWrt.org
+# Copyright (C) 2010 Vertical Communications
+
+do_check_version() {
+	version="$(uci -q get system.@system[0].device_fw_version)"
+	[ -z "$version" ] && {
+		return 0
+	}
+
+	numeric_version="${version##*_}"
+	client_removed="${numeric_version#*.}"
+	major="${client_removed%%.*}"
+
+	[ -f /sysupgrade.tgz ] && [ -n "$major" ] && [ "$major" -lt 2 ] && {
+		echo "- migration work -"
+		cp /rom/etc/inittab /etc/inittab
+	}
+}
+
+[ "$INITRAMFS" = "1" ] || boot_hook_add preinit_main do_check_version
