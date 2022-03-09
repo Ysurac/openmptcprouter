@@ -113,7 +113,7 @@ generate_network() {
 			local ipad
 			case "$1" in
 				lan)
-					ipad=${ipaddr:-"192.168.1.1"}
+					ipad=${ipaddr:-"192.168.100.1"}
 					;;
 				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
 			esac
@@ -342,7 +342,7 @@ generate_static_system() {
 	uci -q batch <<-EOF
 		delete system.@system[0]
 		set system.system='system'
-		set system.@system[-1].hostname='Teltonika-$hostname.com'
+		set system.@system[-1].hostname='OpenMPTCProuter'
 		set system.@system[-1].timezone='UTC'
 		set system.@system[-1].ttylogin='0'
 		set system.@system[-1].log_size='128'
@@ -365,9 +365,9 @@ generate_static_system() {
 	if json_is_a system object; then
 		json_select system
 			local hostname
-			if json_get_var hostname hostname; then
-				uci -q set "system.@system[-1].hostname=$hostname"
-			fi
+			#if json_get_var hostname hostname; then
+			#	uci -q set "system.@system[-1].hostname=$hostname"
+			#fi
 
 			if json_is_a ntpserver array; then
 				local keys key
