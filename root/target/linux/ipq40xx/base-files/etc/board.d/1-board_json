@@ -193,9 +193,7 @@ setup_json() {
 }
 
 #~ Get model name for RUTX products
-if ! model="$(mnf_info --name)" 2>/dev/null; then
-	model="$(mnf_info --prod-code)" 2>/dev/null
-fi
+model="$(mnf_info --name)" 2>/dev/null
 
 platform="$(cat /proc/device-tree/platform)" 2>/dev/null
 

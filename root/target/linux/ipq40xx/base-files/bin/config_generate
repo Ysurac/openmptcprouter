@@ -135,15 +135,15 @@ generate_network() {
 			uci set network.$1.proto='dhcp'
 			uci set network.$1.metric='1'
 
-			[ -e /proc/sys/net/ipv6 ] && {
-				uci -q batch <<-EOF
-					delete network.${1}6
-					set network.${1}6='interface'
-					set network.${1}6.ifname='$ifname'
-					set network.${1}6.proto='dhcpv6'
-					set network.${1}6.metric='1'
-				EOF
-			}
+			#[ -e /proc/sys/net/ipv6 ] && {
+			#	uci -q batch <<-EOF
+			#		delete network.${1}6
+			#		set network.${1}6='interface'
+			#		set network.${1}6.device='$ifname'
+			#		set network.${1}6.proto='dhcpv6'
+			#		set network.${1}6.metric='1'
+			#	EOF
+			#}
 		;;
 
 		pppoe)
