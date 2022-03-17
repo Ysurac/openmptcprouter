@@ -94,9 +94,9 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "f441be3921c769b732f0148f005d4f1bbace0508"
-		_get_repo feeds/packages https://github.com/openwrt/packages "ab94e0709a9c796d34d723ddba44380f7b3d8698"
-		_get_repo feeds/luci https://github.com/openwrt/luci "0818d835cacd9fa75b8685aabe6378ac09b95145"
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "864bba55d8714a64abdf94cfb835450b8cd7789e"
+		_get_repo feeds/packages https://github.com/openwrt/packages "793e7ee484ae4ec37b1cd920b4032dde3cae69cc"
+		_get_repo feeds/luci https://github.com/openwrt/luci "701ea947fc920e63d14d8efb8287097fd63442ca"
 	else
 		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "02de391b086dd2b7a72c2394cfb66cec666a51c1"
 		_get_repo feeds/packages https://github.com/openwrt/packages "7b2dd3e9efbc20ef4e7f47f60c3db9aaef37c0a5"
