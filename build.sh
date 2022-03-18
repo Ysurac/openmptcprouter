@@ -98,9 +98,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/packages https://github.com/openwrt/packages "793e7ee484ae4ec37b1cd920b4032dde3cae69cc"
 		_get_repo feeds/luci https://github.com/openwrt/luci "701ea947fc920e63d14d8efb8287097fd63442ca"
 	else
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "02de391b086dd2b7a72c2394cfb66cec666a51c1"
-		_get_repo feeds/packages https://github.com/openwrt/packages "7b2dd3e9efbc20ef4e7f47f60c3db9aaef37c0a5"
-		_get_repo feeds/luci https://github.com/openwrt/luci "73e21c3b5791ac97aa7b437c8e683cdbea407395"
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "83ca16fc4350c65110caeb7143afc9e9cd300d23"
+		_get_repo feeds/packages https://github.com/openwrt/packages "9aba2936e29ace28411e82e1ce1fb4432bcfda2c"
+		_get_repo feeds/luci https://github.com/openwrt/luci "f27fe280aa7a1d39de7144298541bfac8bb59f7f"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
@@ -558,8 +558,11 @@ if [ "$OMR_KERNEL" = "5.14" ]; then
 	echo "Set to kernel 5.14 for ramips"
 	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
-	echo "Set to kernel 5.14 for ramips"
+	echo "Set to kernel 5.14 for ipq806x"
 	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.14 for ipq40xx"
+	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
 	echo "Done"
 	#rm -rf target/linux/generic/files/drivers/net/phy/b53
 	rm -f target/linux/bcm27xx/modules/sound.mk
@@ -597,8 +600,11 @@ if [ "$OMR_KERNEL" = "5.15" ]; then
 	echo "Set to kernel 5.15 for ramips"
 	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.15%g' {} \;
 	echo "Done"
-	echo "Set to kernel 5.15 for ramips"
+	echo "Set to kernel 5.15 for ipq806x"
 	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.15%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.15 for ipq40xx"
+	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.15%g' {} \;
 	echo "Done"
 	#rm -rf target/linux/generic/files/drivers/net/phy/b53
 	rm -f target/linux/bcm27xx/modules/sound.mk
