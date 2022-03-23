@@ -1,0 +1,210 @@
+--- a/drivers/net/phy/qca807x.c
++++ b/drivers/net/phy/qca807x.c
+@@ -122,9 +122,24 @@
+ #define PSGMII_MODE_CTRL_AZ_WORKAROUND_MASK		GENMASK(3, 0)
+ #define PSGMII_MMD3_SERDES_CONTROL			0x805a
+ 
++#define QCA8075_PHY4_PREFER_FIBER	0x400
++
+ struct qca807x_gpio_priv {
+ 	struct phy_device *phy;
+ };
++
++/* Phy medium type */
++typedef enum {
++	QCA8075_PHY_MEDIUM_COPPER = 0,
++	QCA8075_PHY_MEDIUM_FIBER = 1, /**< Fiber */
++	QCA8075_PHY_MEDIUM_NULL = 2 /**< NULL */
++} qca8075_phy_medium_t;
++
++static qca8075_phy_medium_t last_phy_medium = QCA8075_PHY_MEDIUM_NULL;
++static int last_phydev_link_state = -1;
++static int copper_link = 0;
++static int fiber_link = 0;
++static int report_last_status = 0;
+ 
+ static int qca807x_get_downshift(struct phy_device *phydev, u8 *data)
+ {
+@@ -400,6 +415,142 @@
+ }
+ #endif
+ 
++static qca8075_phy_medium_t phy_prefer_medium_get(struct phy_device *phydev)
++{
++	int val;
++	val = phy_read(phydev, QCA807X_CHIP_CONFIGURATION);
++
++	return ((val & QCA8075_PHY4_PREFER_FIBER) ?
++		QCA8075_PHY_MEDIUM_FIBER : QCA8075_PHY_MEDIUM_COPPER);
++}
++
++static qca8075_phy_medium_t phy_active_medium_get(struct phy_device *phydev) {
++	int val;
++	val = phy_read(phydev, QCA807X_MEDIA_SELECT_STATUS);
++
++	if (val & QCA807X_MEDIA_DETECTED_COPPER) {
++		return QCA8075_PHY_MEDIUM_COPPER;
++	} else if ((val & QCA807X_MEDIA_DETECTED_1000_BASE_X) ||
++			   (val & QCA807X_MEDIA_DETECTED_100_BASE_FX)) {
++		return QCA8075_PHY_MEDIUM_FIBER;
++	} else {
++		return phy_prefer_medium_get(phydev);
++	}
++}
++
++static int ar40xx_update_link(struct phy_device *phydev)
++{
++	int status = 0, bmcr;
++	qca8075_phy_medium_t phy_medium;
++
++	phy_medium = phy_active_medium_get(phydev);
++
++	/* Do a fake read */
++	bmcr = phy_read(phydev, MII_BMSR);
++	if (bmcr < 0)
++		return bmcr;
++
++	/* Autoneg is being started, therefore disregard BMSR value and
++	 * report link as down.
++	 */
++	if (bmcr & BMCR_ANRESTART)
++		goto done;
++
++	/* The link state is latched low so that momentary link
++	 * drops can be detected. Do not double-read the status
++	 * in polling mode to detect such short link drops except
++	 * the link was already down.
++	 */
++	if (!phy_polling_mode(phydev) || !phydev->link) {
++		status = phy_read(phydev, MII_BMSR);
++		if (status < 0)
++			return status;
++		else if (status & BMSR_LSTATUS)
++			goto done;
++	}
++
++	/* Read link and autonegotiation status */
++	status = phy_read(phydev, MII_BMSR);
++	if (status < 0)
++		return status;
++done:
++	if ( report_last_status > 0 ) {
++		report_last_status = 0;
++		phydev->link = last_phydev_link_state;
++		return 0;
++	}
++	/* reporting copper/fiber link state to netdev */
++	if ((status & BMSR_LSTATUS) == 0) {
++		phydev->link = 0;
++		if (last_phy_medium == phy_medium) { /* medium not changed */
++			if(phydev->link != last_phydev_link_state)
++				report_last_status++;
++			if (phy_medium == QCA8075_PHY_MEDIUM_FIBER)
++				fiber_link = 0;
++			else
++				copper_link = 0;
++		} else { /* medium changed, check current medium*/
++			if (phy_medium == QCA8075_PHY_MEDIUM_FIBER) { /* fiber active*/
++				if (copper_link == 1) { /* copper active, but not preferred*/
++					if(phydev->link == last_phydev_link_state) {
++						phydev->link = !phydev->link; /* toggle link state */
++						report_last_status++;
++					}
++				}
++				fiber_link = 0;
++			} else { /* copper active*/
++				if (fiber_link == 1) { /* fiber active, preferred*/
++					if(phydev->link == last_phydev_link_state) {
++						phydev->link = !phydev->link; /* toggle link state */
++						report_last_status++;
++					}
++				}
++				copper_link = 0;
++			}
++		}
++	} else {
++		phydev->link = 1;
++		if (last_phy_medium == phy_medium){
++			if (phy_medium == QCA8075_PHY_MEDIUM_FIBER)
++				fiber_link = 1;
++			else
++				copper_link = 1;
++		}
++		else {
++			if (phy_medium == QCA8075_PHY_MEDIUM_FIBER) { /* fiber active*/
++				if (copper_link == 1) { /* copper active, but not preferred*/
++					if(phydev->link == last_phydev_link_state) {
++						phydev->link = !phydev->link;
++						report_last_status++;
++					}
++				}
++				fiber_link = 1;
++			} else { /* copper active*/
++				if (fiber_link == 1) { /* fiber active, preferred*/
++					if(phydev->link == last_phydev_link_state) {
++						phydev->link = !phydev->link;
++						report_last_status++;
++					}
++				}
++				copper_link = 1;
++			}
++		}
++	}
++
++	phydev->autoneg_complete = status & BMSR_ANEGCOMPLETE ? 1 : 0;
++
++	/* Consider the case that autoneg was started and "aneg complete"
++	 * bit has been reset, but "link up" bit not yet.
++	 */
++	if (phydev->autoneg == AUTONEG_ENABLE && !phydev->autoneg_complete)
++		phydev->link = 0;
++
++	last_phy_medium = phy_medium;
++	last_phydev_link_state = phydev->link;
++
++	return 0;
++}
++
+ static int qca807x_read_copper_status(struct phy_device *phydev, bool combo_port)
+ {
+ 	int ss, err, page, old_link = phydev->link;
+@@ -415,7 +566,7 @@
+ 	}
+ 
+ 	/* Update the link, but return if there was an error */
+-	err = genphy_update_link(phydev);
++	err = ar40xx_update_link(phydev);
+ 	if (err)
+ 		return err;
+ 
+@@ -499,7 +650,7 @@
+ 	}
+ 
+ 	/* Update the link, but return if there was an error */
+-	err = genphy_update_link(phydev);
++	err = ar40xx_update_link(phydev);
+ 	if (err)
+ 		return err;
+ 
+@@ -559,7 +710,7 @@
+ 
+ static int qca807x_read_status(struct phy_device *phydev)
+ {
+-	int val;
++	int val, err;
+ 
+ 	/* Check for Combo port */
+ 	if (phy_read(phydev, QCA807X_CHIP_CONFIGURATION)) {
+@@ -572,6 +723,11 @@
+ 			} else if ((val & QCA807X_MEDIA_DETECTED_1000_BASE_X) ||
+ 				   (val & QCA807X_MEDIA_DETECTED_100_BASE_FX)) {
+ 				qca807x_read_fiber_status(phydev, true);
++			} else {
++				/* Update the link, but return if there was an error */
++				err = ar40xx_update_link(phydev);
++				if (err)
++					return err;
+ 			}
+ 		} else {
+ 			qca807x_read_copper_status(phydev, true);
+
