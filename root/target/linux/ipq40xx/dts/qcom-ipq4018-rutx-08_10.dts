@@ -2,7 +2,7 @@
 #include "qcom-ipq4018-rutx-shiftreg.dtsi"
 
 / {
-	model = "RUTX08/10";
+	model = "Teltonika RUTX08/10";
 
 	soc {
 		gpio-export {

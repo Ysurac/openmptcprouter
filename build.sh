@@ -243,6 +243,10 @@ if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/source/.config"
 fi
 
+if [ "$OMR_TARGET" = "rutx" -a "$OMR_KERNEL" = "5.4" ]; then
+	echo "CONFIG_PACKAGE_kmod-r2ec=y" >> "$OMR_TARGET/source/.config"
+fi
+
 if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
 	# We disable mc in master, because it leads to unknown compilation errors on bpi-r1 target
 	# No time to check this, now, cause i am focused on make this target work

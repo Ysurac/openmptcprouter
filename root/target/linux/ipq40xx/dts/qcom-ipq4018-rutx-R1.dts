@@ -3,7 +3,7 @@
 #include "qcom-ipq4018-rutx-i2c.dtsi" // SFP
 
 / {
-	model = "RUTXR1";
+	model = "Teltonika RUTXR1";
 
 	soc {
 		gpio-export {
