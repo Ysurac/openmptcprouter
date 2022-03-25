@@ -2,7 +2,7 @@
 #include "qcom-ipq4018-rutx-i2c.dtsi"
 
 / {
-	model = "RUTX STM32";
+	model = "Teltonika RUTX STM32";
 	io_expander = "stm32";
 
 	soc {

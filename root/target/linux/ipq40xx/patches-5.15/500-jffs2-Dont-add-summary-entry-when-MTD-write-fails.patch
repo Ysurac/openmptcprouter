@@ -1,0 +1,53 @@
+--- a/fs/jffs2/writev.c
++++ b/fs/jffs2/writev.c
+@@ -16,9 +16,18 @@
+ int jffs2_flash_direct_writev(struct jffs2_sb_info *c, const struct kvec *vecs,
+ 			      unsigned long count, loff_t to, size_t *retlen)
+ {
++	int ret;
++
++	ret = mtd_writev(c->mtd, vecs, count, to, retlen);
++
+ 	if (!jffs2_is_writebuffered(c)) {
+ 		if (jffs2_sum_active()) {
+ 			int res;
++
++			if (ret ||
++			    *retlen != iov_length((struct iovec *) vecs, count))
++				return ret;
++
+ 			res = jffs2_sum_add_kvec(c, vecs, count, (uint32_t) to);
+ 			if (res) {
+ 				return res;
+@@ -26,18 +35,22 @@
+ 		}
+ 	}
+ 
+-	return mtd_writev(c->mtd, vecs, count, to, retlen);
++	return ret;
+ }
+ 
+ int jffs2_flash_direct_write(struct jffs2_sb_info *c, loff_t ofs, size_t len,
+ 			size_t *retlen, const u_char *buf)
+ {
+ 	int ret;
++
+ 	ret = mtd_write(c->mtd, ofs, len, retlen, buf);
+ 
+ 	if (jffs2_sum_active()) {
+ 		struct kvec vecs[1];
+ 		int res;
++
++		if (ret || *retlen != len)
++			return ret;
+ 
+ 		vecs[0].iov_base = (unsigned char *) buf;
+ 		vecs[0].iov_len = len;
+@@ -47,5 +60,6 @@
+ 			return res;
+ 		}
+ 	}
++
+ 	return ret;
+ }
+

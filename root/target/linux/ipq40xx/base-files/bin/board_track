@@ -24,6 +24,8 @@ check_modem() {
 			mctl -s -m ${label}
 			sleep 1
 			mctl -p -m ${label}
+			ip link set up dev wwan0 2>&1 >/dev/null
+			ip link set up dev wwan1 2>&1 >/dev/null
 		done
 		json_select ..
 		return 1
