@@ -10,6 +10,9 @@ NAME=board_track
 PIDCOUNT=1
 
 start_service() {
+	. /lib/functions
+	
+	[ "$(board_name)" != "teltonika,rutx" ] && return 0
 	local pid_file="/var/run/${NAME}.${PIDCOUNT}.pid"
 
 	procd_open_instance

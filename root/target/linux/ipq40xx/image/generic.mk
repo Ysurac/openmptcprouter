@@ -843,8 +843,8 @@ define Device/teltonika_rutx
 	IMAGE/factory.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
 	IMAGES += sysupgrade.bin
 	IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-metadata
-	#DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth kmod-r2ec
-	DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth
+	#DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth kmod-r2ec sysupgrade-helper
+	DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth sysupgrade-helper
 	HW_SUPPORT := io_expander%stm32:shiftreg_1
 endef
 TARGET_DEVICES += teltonika_rutx
