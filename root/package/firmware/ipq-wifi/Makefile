@@ -47,9 +47,10 @@ ALLWIFIBOARDS:= \
 	mikrotik_sxtsq-5-ac \
 	mobipromo_cm520-79f \
 	nec_wg2600hp3 \
+	p2w_r619ac \
 	plasmacloud_pa1200 \
 	plasmacloud_pa2200 \
-  pangu_l1000 \
+    pangu_l1000 \
 	qxwlan_e2600ac
 	qxwlan_e2600ac \
 	teltonika_rutx
