@@ -14,7 +14,7 @@ check_modem() {
 		return 0
 	}
 
-	logger -t "board-track" "ls -d /sys/bus/usb/devices/$id/${id}*/tty?*"
+	#logger -t "board-track" "ls -d /sys/bus/usb/devices/$id/${id}*/tty?*"
 	ttys=$(ls -d /sys/bus/usb/devices/$id/${id}*/tty?*)
 
 	[ -n "$ttys" ] || { #FAILED TO FIND MODEM
@@ -24,12 +24,16 @@ check_modem() {
 			mctl -s -m ${label}
 			sleep 1
 			mctl -p -m ${label}
-			ip link set up dev wwan0 2>&1 >/dev/null
-			ip link set up dev wwan1 2>&1 >/dev/null
 		done
+		sleep 5
+		ip link set up dev wwan0 2>&1 >/dev/null
+		ip link set up dev wwan1 2>&1 >/dev/null
 		json_select ..
 		return 1
 	}
+
+	[ -n "$(ip link show dev wwan0 | grep DOWN)" ] && ip link set up dev wwan0 2>&1 >/dev/null
+	[ -n "$(ip link show dev wwan1 | grep DOWN)" ] && ip link set up dev wwan1 2>&1 >/dev/null
 
 	#MODEM UP
 	json_select ..
