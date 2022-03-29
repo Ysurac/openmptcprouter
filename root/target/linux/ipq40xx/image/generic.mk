@@ -839,10 +839,8 @@ define Device/teltonika_rutx
 	PAGESIZE := 2048
 	FILESYSTEMS := squashfs
 	KERNEL_IN_UBI := 1
-	IMAGES := factory.bin
-	IMAGE/factory.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
-	IMAGES += sysupgrade.bin
-	IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-metadata
+	IMAGES := sysupgrade.bin
+	IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
 	#DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth kmod-r2ec sysupgrade-helper
 	DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth sysupgrade-helper
 	HW_SUPPORT := io_expander%stm32:shiftreg_1
