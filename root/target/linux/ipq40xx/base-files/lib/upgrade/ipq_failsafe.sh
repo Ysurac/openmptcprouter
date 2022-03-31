@@ -356,7 +356,7 @@ platform_do_upgrade_ipq() {
 	return 1;
 }
 
-platform_copy_config() {
+platform_copy_config_ipq() {
 	local emmcblock="$(find_mmc_part "rootfs_data")"
 	mkdir -p /tmp/overlay
 
