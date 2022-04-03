@@ -24,13 +24,13 @@
 			#size-cells = <0>;
 
 			gpio_modem_reset {
-				gpio-export,name = "modem_reset";
+				gpio-export,name = "modem1_reset";
 				gpio-export,output = <0>;
 				gpios = <&stm32_io 21 GPIO_ACTIVE_HIGH>;
 			};
 
 			gpio_modem_power {
-				gpio-export,name = "modem_power";
+				gpio-export,name = "modem1_power";
 				gpio-export,output = <0>;
 				gpios = <&stm32_io 20 GPIO_ACTIVE_HIGH>;
 			};

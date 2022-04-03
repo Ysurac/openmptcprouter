@@ -208,6 +208,9 @@ platform_copy_config() {
 	glinet,gl-b2200)
 		emmc_copy_config
 		;;
+	teltonika,rutx)
+		platform_copy_config_ipq
+		;;
 	esac
 	return 0;
 }
