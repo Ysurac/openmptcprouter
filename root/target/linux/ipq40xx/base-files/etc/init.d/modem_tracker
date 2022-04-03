@@ -1,7 +1,8 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2021 Teltonika Networks
+# Copyright (C) 2022 Ycarus (Yannick Chabanois) <ycarus@zugaina.org>
 
-START=96
+START=2
 
 USE_PROCD=1
 
