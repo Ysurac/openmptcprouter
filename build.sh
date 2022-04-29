@@ -76,6 +76,8 @@ elif [ "$OMR_TARGET" = "rutx" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r64" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
+elif [ "$OMR_TARGET" = "x8" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "espressobin" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "x86" ]; then
@@ -383,7 +385,7 @@ echo "Done"
 #echo "Done"
 
 # Add BBR2 patch, only working on 64bits images for now
-if [ "$OMR_KERNEL" = "5.4" ] && ([ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]); then
+if [ "$OMR_KERNEL" = "5.4" ] && ([ "$OMR_TARGET" = "x86_64" ] |[ "$OMR_TARGET" = "x8" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]); then
 	echo "Checking if BBRv2 patch is set or not"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/bbr2.patch; then
 		echo "apply..."
@@ -631,6 +633,7 @@ fi
 
 #rm -rf feeds/packages/libs/libwebp
 cd "../.."
+
 rm -rf feeds/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/luci/modules/luci-mod-status
 [ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/luci/applications/luci-app-statistics
@@ -647,6 +650,21 @@ fi
 echo "Done"
 
 cd "$OMR_TARGET/source"
+
+if [ "$OMR_TARGET" = "x8" ]; then
+	# 如果是ipq60xx就下载内核
+echo "开始下载dl文件"
+#如果文件不存在，则创建文件
+tempFile="dl.zip"
+if [ ! -f "$tempFile" ]; then
+wget http://55860.com/bak/dl.zip
+unzip -q -o dl.zip
+fi
+echo "开始编译qsdk 5.4 ipq6x咯"
+rm -rf package/kernel/mac80211
+tar zxvf package/kernel/mac80211.ipq60xx.tar.gz -C package/kernel/
+make package/base-files/clean V=s
+fi
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
