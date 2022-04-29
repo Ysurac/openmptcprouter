@@ -1,0 +1,14 @@
+Index: QMIDevice.c
+===================================================================
+--- a/QMIDevice.c
++++ b/QMIDevice.c
+@@ -3382,7 +3382,8 @@ void DeregisterQMIDevice( sGobiUSBNet *
+    // but exists to prevent an infinate loop just in case.
+    for (tries = 0; tries < 30 * 100; tries++)
+    {
+-      int ref = atomic_read( &pDev->mQMIDev.mCdev.kobj.kref.refcount );
++      //int ref = atomic_read( &pDev->mQMIDev.mCdev.kobj.kref.refcount );
++      int ref = refcount_read( &pDev->mQMIDev.mCdev.kobj.kref.refcount );
+       if (ref > 1)
+       {
+          DBG( "cdev in use by %d tasks\n", ref - 1 ); 

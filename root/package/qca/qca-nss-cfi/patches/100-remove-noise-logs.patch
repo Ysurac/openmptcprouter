@@ -1,0 +1,30 @@
+--- a/cryptoapi/v2.0/nss_cryptoapi_ahash.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_ahash.c
+@@ -449,9 +449,12 @@ int nss_cryptoapi_ahash_digest(struct ahash_request *req)
+ int nss_cryptoapi_ahash_export(struct ahash_request *req, void *out)
+ {
+ 	struct nss_cryptoapi_ctx *ctx __attribute__((unused)) = crypto_tfm_ctx(req->base.tfm);
++	struct nss_cryptoapi_req_ctx *rctx = ahash_request_ctx(req);
++	struct nss_cryptoapi_req_ctx *state = out;
++
++	*state = *rctx;
+ 
+-	nss_cfi_warn("%px: ahash .export is not supported", ctx);
+-	return -ENOSYS;
++	return 0;
+ };
+ 
+ /*
+@@ -464,7 +467,10 @@ int nss_cryptoapi_ahash_export(struct ahash_request *req, void *out)
+ int nss_cryptoapi_ahash_import(struct ahash_request *req, const void *in)
+ {
+ 	struct nss_cryptoapi_ctx *ctx __attribute__((unused)) = crypto_tfm_ctx(req->base.tfm);
++	struct nss_cryptoapi_req_ctx *rctx = ahash_request_ctx(req);
++	const struct nss_cryptoapi_req_ctx *state = in;
++
++	*rctx = *state;
+ 
+-	nss_cfi_warn("%px: ahash .import is not supported", ctx);
+-	return -ENOSYS;
++	return 0;
+ }

@@ -1,0 +1,1657 @@
+Index: linux-5.4.164/drivers/mfd/Kconfig
+===================================================================
+--- linux-5.4.164.orig/drivers/mfd/Kconfig
++++ linux-5.4.164/drivers/mfd/Kconfig
+@@ -211,6 +211,15 @@ config MFD_AXP20X_RSB
+ 	  components like regulators or the PEK (Power Enable Key) under the
+ 	  corresponding menus.
+ 
++config MFD_AXP2402
++	bool "X-Power AXP2402"
++	select MFD_CORE
++	select REGMAP_I2C
++	select REGMAP_IRQ
++	depends on I2C=y
++	help
++		If you say Y here you get support for the X-Power AXP2402 power mananger IC.
++
+ config MFD_CROS_EC_DEV
+ 	tristate "ChromeOS Embedded Controller multifunction device"
+ 	select MFD_CORE
+Index: linux-5.4.164/drivers/mfd/Makefile
+===================================================================
+--- linux-5.4.164.orig/drivers/mfd/Makefile
++++ linux-5.4.164/drivers/mfd/Makefile
+@@ -145,6 +145,8 @@ obj-$(CONFIG_MFD_AXP20X)	+= axp20x.o
+ obj-$(CONFIG_MFD_AXP20X_I2C)	+= axp20x-i2c.o
+ obj-$(CONFIG_MFD_AXP20X_RSB)	+= axp20x-rsb.o
+ 
++obj-$(CONFIG_MFD_AXP2402)   += axp2402.o
++
+ obj-$(CONFIG_MFD_LP3943)	+= lp3943.o
+ obj-$(CONFIG_MFD_LP8788)	+= lp8788.o lp8788-irq.o
+ 
+Index: linux-5.4.164/drivers/mfd/axp2402.c
+===================================================================
+--- /dev/null
++++ linux-5.4.164/drivers/mfd/axp2402.c
+@@ -0,0 +1,335 @@
++/*
++ * Core driver for X-Powers AXP2402 BMU
++ *
++ * Copyright (c) 2018, X-Powers CORPORATION.  All rights reserved.
++
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/mfd/core.h>
++#include <linux/mfd/axp2402.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/err.h>
++
++static struct resource charger_resources[] = {
++	{
++		.start  = AXP2402_IRQ_IC_TEMOV,
++		.end    = AXP2402_IRQ_IC_TEMOV,
++		.flags  = IORESOURCE_IRQ,
++	}
++};
++
++enum AXP2402_cells {
++	CHARGER = 0,
++};
++
++static struct mfd_cell AXP2402s[] = {
++	[CHARGER] = {
++		.name = "axp2402-charger",
++		.num_resources = ARRAY_SIZE(charger_resources),
++		.resources = &charger_resources[0],
++		.of_compatible = "X-Powers, axp2402-charger",
++	}, 
++};
++	
++struct regmap_irq AXP2402_irqs[] = {
++	/* INT1 IRQs*/
++	[AXP2402_IRQ_IC_TEMOV] = {
++		.mask = AXP2402_INT1_MASK_IC_TEMOV,
++	},
++	[AXP2402_IRQ_EVENT_TIMEOUT] = {
++		.mask = AXP2402_INT1_MASK_EVENT_TIMEOUT,
++	},
++	[AXP2402_IRQ_OVER_DISCHG] = {
++		.mask = AXP2402_INT1_MASK_OVER_DISCHG,
++	},
++	[AXP2402_IRQ_ACOK_HIGHGOLOW] = {
++		.mask = AXP2402_INT1_MASK_ACOK_HIGHGOLOW,
++	},
++	[AXP2402_IRQ_ACOK_HIGHGOLOW] = {
++		.mask = AXP2402_INT1_MASK_ACOK_HIGHGOLOW,
++	},
++	[AXP2402_IRQ_VAC_OCP] = {
++		.mask = AXP2402_INT1_MASK_VAC_OCP,
++	},
++	[AXP2402_IRQ_VAC_OVP] = {
++		.mask = AXP2402_INT1_MASK_VAC_OVP,
++	},
++	/* INT2 IRQs*/
++	[AXP2402_IRQ_TEMP_WL2] = {
++		.reg_offset = 1,
++		.mask = AXP2402_INT2_MASK_TEMP_WL2,
++	},
++	[AXP2402_IRQ_TEMP_WL1] = {
++		.reg_offset = 1,
++		.mask = AXP2402_INT2_MASK_TEMP_WL1,
++	},
++	[AXP2402_IRQ_BAT_CHARGERDONE] = {
++		.reg_offset = 1,
++		.mask = AXP2402_INT2_MASK_BAT_CHARGERDONE,
++	},
++	[AXP2402_IRQ_BAT_CHARGING] = {
++		.reg_offset = 1,
++		.mask = AXP2402_INT2_MASK_BAT_CHARGING,
++	},
++	[AXP2402_IRQ_BAT_TIMEOUT] = {
++		.reg_offset = 1,
++		.mask = AXP2402_INT2_MASK_BAT_TIMEOUT,
++	},
++	[AXP2402_IRQ_BAT_REMOVAL] = {
++		.reg_offset = 1,
++		.mask = AXP2402_INT2_MASK_BAT_REMOVAL,
++	},
++	[AXP2402_IRQ_BAT_APPEND] = {
++		.reg_offset = 1,
++		.mask = AXP2402_INT2_MASK_BAT_APPEND,
++	},
++
++	/* INT3 IRQs*/
++	[AXP2402_IRQ_BAT_QBWUT] = {
++		.reg_offset = 2,
++		.mask = AXP2402_INT3_MASK_BAT_QBWUT,
++	},
++	[AXP2402_IRQ_BAT_BWUT] = {
++		.reg_offset = 2,
++		.mask = AXP2402_INT3_MASK_BAT_BWUT,
++	},
++	
++	[AXP2402_IRQ_BAT_QBWOT] = {
++		.reg_offset = 2,
++		.mask = AXP2402_INT3_MASK_BAT_QBWOT,
++	},
++	[AXP2402_IRQ_BAT_BWOT] = {
++		.reg_offset = 2,
++		.mask = AXP2402_INT3_MASK_BAT_BWOT,
++	},
++	[AXP2402_IRQ_BAT_QBCUT] = {
++		.reg_offset = 2,
++		.mask = AXP2402_INT3_MASK_BAT_QBCUT,
++	},
++	[AXP2402_IRQ_BAT_BCUT] = {
++		.reg_offset = 2,
++		.mask = AXP2402_INT3_MASK_BAT_BCUT,
++	},
++	[AXP2402_IRQ_BAT_QBCOT] = {
++		.reg_offset = 2,
++		.mask = AXP2402_INT3_MASK_BAT_QBCOT,
++	},
++	[AXP2402_IRQ_BAT_BC0T] = {
++		.reg_offset = 2,
++		.mask = AXP2402_INT3_MASK_BAT_BC0T,
++	},
++	/* INT4 IRQs*/
++	[AXP2402_IRQ_BAT_QBCR] = {
++		.reg_offset = 3,
++		.mask = AXP2402_INT4_MASK_BAT_QBCR,
++	},
++	[AXP2402_IRQ_BAT_BCR] = {
++		.reg_offset = 3,
++		.mask = AXP2402_INT4_MASK_BAT_BCR,
++	},
++	[AXP2402_IRQ_BAT_QBWR] = {
++		.reg_offset = 3,
++		.mask = AXP2402_INT4_MASK_BAT_QBWR,
++	},
++	[AXP2402_IRQ_BAT_BWR] = {
++		.reg_offset = 3,
++		.mask = AXP2402_INT4_MASK_BAT_BWR,
++	},
++	/* INT5 IRQs*/
++	[AXP2402_IRQ_BAT_PERCENTAGE_CHANGE] = {
++		.reg_offset = 4,
++		.mask = AXP2402_INT4_MASK_BAT_PERCENTAGE_CHANGE,
++	},
++
++};
++
++static struct regmap_irq_chip AXP2402_irq_chip = {
++	.name = "axp2402",
++	.irqs = AXP2402_irqs,
++	.num_irqs = ARRAY_SIZE(AXP2402_irqs),
++	.num_regs = NUM_INT_REG,
++	.status_base = AXP2402_REG_IRQ_STS1,
++	.mask_base = AXP2402_REG_IRQ_MASK1,
++	.mask_invert = true,
++};
++
++static bool is_volatile_reg(struct device *dev, unsigned int reg)
++{
++	/* Nearly all registers have status bits mixed in, except a few */
++	switch (reg) {
++		case AXP2402_REG_BMU_CTRL:
++		case AXP2402_REG_SYS_CTRL:
++		case AXP2402_REG_INDPM_CTRL:
++		case AXP2402_REG_JIETA_COOLTEMP:
++		case AXP2402_REG_JIETA_WARMTEMP:
++		case AXP2402_REG_JIETA_SET:
++		case AXP2402_REG_CHG_CTRL0:
++		case AXP2402_REG_CHG_CTRL1:
++		case AXP2402_REG_CHG_CTRL2:
++		case AXP2402_REG_CHG_CTRL3:
++		case AXP2402_REG_CHG_CTRL4:
++		case AXP2402_REG_CHG_CTRL5:
++		case AXP2402_REG_CHG_CTRL6:
++		case AXP2402_REG_ADC_CTRL:
++		case AXP2402_REG_TS_CTRL:
++		case AXP2402_REG_IRQ_MASK1:
++		case AXP2402_REG_IRQ_MASK2:
++		case AXP2402_REG_IRQ_MASK3:
++		case AXP2402_REG_IRQ_MASK4:
++		case AXP2402_REG_IRQ_MASK5:
++		case AXP2402_REG_CAP_CAP0:
++		case AXP2402_REG_CAP_CAP1:
++		case AXP2402_REG_CAP_WARNING:
++		case AXP2402_REG_CAP_CTRL:
++		case AXP2402_REG_CAP_PERCENT:
++		case AXP2402_REG_CAP_RDC1:
++		case AXP2402_REG_CAP_RDC2:	
++		case AXP2402_REG_VLTF_CHARGE:
++		case AXP2402_REG_VHTF_CHARGE:
++		case AXP2402_REG_VLTF_WORK:
++		case AXP2402_REG_VHTF_WORK:
++		return true;
++	}
++	return true;
++}
++
++static const struct regmap_config AXP2402_regmap_config = {
++	.reg_bits = 8,
++	.val_bits = 8,
++	.max_register = AXP2402_MAX_REG,
++	.num_reg_defaults_raw = AXP2402_NUM_REGS,
++	.cache_type = REGCACHE_RBTREE,
++	.volatile_reg = is_volatile_reg,
++};
++
++#ifdef CONFIG_OF
++static const struct of_device_id AXP2402_of_match[] = {
++	{ .compatible = "X-Powers, axp2402",},
++	{},
++};
++MODULE_DEVICE_TABLE(of, AXP2402_of_match);
++#endif
++
++static int AXP2402_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct AXP2402_platform_data *pdata = dev_get_platdata(&client->dev);
++	int irq_base = 0;
++	struct AXP2402 *AXP2402;
++	int ret;
++
++	if (!pdata && !client->dev.of_node)
++	{
++		dev_err(&client->dev,
++			"AXP2402 requires platform data or of_node\n");
++		return -EINVAL;
++	}
++    
++	if (pdata)
++		irq_base = pdata->irq_base;
++
++	AXP2402 = devm_kzalloc(&client->dev, sizeof(*AXP2402), GFP_KERNEL);
++	
++	if (!AXP2402)
++		return -ENOMEM;
++
++	AXP2402->dev = &client->dev;
++	i2c_set_clientdata(client, AXP2402);
++	AXP2402->rmap = devm_regmap_init_i2c(client, &AXP2402_regmap_config);
++	if (IS_ERR(AXP2402->rmap))
++	{
++		ret = PTR_ERR(AXP2402->rmap);
++		dev_err(&client->dev, "regmap_init failed with err: %d\n", ret);
++		return ret;
++	}
++    
++	if (client->irq) 
++	{
++		ret = regmap_add_irq_chip(AXP2402->rmap, client->irq, IRQF_ONESHOT | IRQF_TRIGGER_LOW, irq_base, &AXP2402_irq_chip, &AXP2402->irq_data);
++		if (ret)
++		{
++			dev_err(&client->dev,
++				"IRQ init failed with err: %d\n", ret);
++			return ret;
++		}
++	} 
++	else 
++	{
++		AXP2402s[CHARGER].num_resources = 0;
++		printk("axp2402 irq init \n");
++	}
++
++	ret = mfd_add_devices(AXP2402->dev, -1, AXP2402s, ARRAY_SIZE(AXP2402s), NULL, 0, regmap_irq_get_domain(AXP2402->irq_data));
++	if (ret)
++	{
++		dev_err(&client->dev, "add mfd devices failed with err: %d\n",ret);
++		goto err_irq_exit;
++	}    
++	return 0;
++
++err_irq_exit:
++	if (client->irq)
++		regmap_del_irq_chip(client->irq, AXP2402->irq_data);
++	return ret;
++}
++
++static int AXP2402_i2c_remove(struct i2c_client *client)
++{
++	struct AXP2402 *AXP2402 = i2c_get_clientdata(client);
++
++	mfd_remove_devices(AXP2402->dev);
++	if (client->irq)
++		regmap_del_irq_chip(client->irq, AXP2402->irq_data);
++
++	return 0;
++}
++
++static const struct i2c_device_id AXP2402_id_table[] = {
++	{ "axp2402", 0 },
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, AXP2402_id_table);
++
++static struct i2c_driver AXP2402_driver = {
++	.driver	= {
++		.name	= "axp2402",
++		.of_match_table = of_match_ptr(AXP2402_of_match),
++	},
++	.probe		= AXP2402_i2c_probe,
++	.remove		= AXP2402_i2c_remove,
++	.id_table	= AXP2402_id_table,
++};
++
++static int __init AXP2402_init(void)
++{
++	return i2c_add_driver(&AXP2402_driver);
++}
++subsys_initcall(AXP2402_init);
++
++static void __exit AXP2402_exit(void)
++{
++	i2c_del_driver(&AXP2402_driver);
++}
++module_exit(AXP2402_exit);
++
++MODULE_DESCRIPTION("AXP2402 Core Driver");
++MODULE_AUTHOR("X-Powers");
++MODULE_LICENSE("GPL v2");
+\ No newline at end of file
+Index: linux-5.4.164/drivers/power/supply/Kconfig
+===================================================================
+--- linux-5.4.164.orig/drivers/power/supply/Kconfig
++++ linux-5.4.164/drivers/power/supply/Kconfig
+@@ -337,6 +337,14 @@ config AXP20X_POWER
+ 	  This driver provides support for the power supply features of
+ 	  AXP20x PMIC.
+ 
++config AXP2402_POWER
++	tristate "X-Power AXP2402 charger support"
++	depends on MFD_AXP2402
++	help
++		Say Y here to enable support for the battery charger in the 
++		AXP2402 PMIC
++
++
+ config AXP288_CHARGER
+ 	tristate "X-Powers AXP288 Charger"
+ 	depends on MFD_AXP20X && EXTCON_AXP288
+Index: linux-5.4.164/drivers/power/supply/Makefile
+===================================================================
+--- linux-5.4.164.orig/drivers/power/supply/Makefile
++++ linux-5.4.164/drivers/power/supply/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_CHARGER_ADP5061)	+= adp5061
+ obj-$(CONFIG_BATTERY_ACT8945A)	+= act8945a_charger.o
+ obj-$(CONFIG_BATTERY_AXP20X)	+= axp20x_battery.o
+ obj-$(CONFIG_CHARGER_AXP20X)	+= axp20x_ac_power.o
++obj-$(CONFIG_AXP2402_POWER) += axp2402_charger.o
+ obj-$(CONFIG_BATTERY_CPCAP)	+= cpcap-battery.o
+ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_battery.o
+ obj-$(CONFIG_BATTERY_DS2780)	+= ds2780_battery.o
+Index: linux-5.4.164/drivers/power/supply/axp2402_charger.c
+===================================================================
+--- /dev/null
++++ linux-5.4.164/drivers/power/supply/axp2402_charger.c
+@@ -0,0 +1,1009 @@
++/*
++ * Battery charger driver for X-Powers AXP2402 BMU
++ *
++ * Copyright (c) 2018, X-Powers CORPORATION.  All rights reserved.
++
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/freezer.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/kthread.h>
++#include <linux/module.h>
++#include <linux/of_device.h>
++#include <linux/platform_device.h>
++#include <linux/power_supply.h>
++#include <linux/pm_runtime.h>
++#include <linux/slab.h>
++#include <linux/gpio/consumer.h>
++#include <linux/mfd/axp2402.h>
++
++#define POLL_INTERVAL		(HZ * 2)	/* Used when no irq */
++
++struct AXP2402_charger {
++	struct	device	*dev;
++	int	ac_online;
++	int	prev_ac_online;
++	int battery_online;
++	int prev_battery_online;
++	int	irq;
++	int	idpm;					//输入限流值
++	int vsys_min;					//最小电压
++	u16 ichg_cc;					//充电电压
++	int chg_target_voltage;			//电池电压
++	int battery_max_capacity;		//电池最大容量
++	struct task_struct	*poll_task;
++	struct power_supply	*ac;
++	struct power_supply *battery;
++	struct AXP2402_platform_data *pdata;
++	struct gpio_desc *gpiod;
++};
++
++static enum power_supply_property AXP2402_ac_props[] = 
++{
++	POWER_SUPPLY_PROP_ONLINE,
++	POWER_SUPPLY_PROP_CHARGE_TYPE,
++	POWER_SUPPLY_PROP_HEALTH,
++	POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT,
++	POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE,
++	POWER_SUPPLY_PROP_SCOPE,
++};
++
++static enum power_supply_property AXP2402_battery_props[]={
++	POWER_SUPPLY_PROP_ONLINE,
++	POWER_SUPPLY_PROP_STATUS,
++	POWER_SUPPLY_PROP_HEALTH,	
++	POWER_SUPPLY_PROP_TECHNOLOGY,
++	POWER_SUPPLY_PROP_TEMP,
++	POWER_SUPPLY_PROP_CAPACITY,	
++	POWER_SUPPLY_PROP_SCOPE,
++	POWER_SUPPLY_PROP_CAPACITY_LEVEL,
++	POWER_SUPPLY_PROP_CURRENT_NOW,
++	POWER_SUPPLY_PROP_VOLTAGE_NOW,
++};
++static int AXP2402_get_battery_status(struct AXP2402_charger *charger , union power_supply_propval *val)
++{
++	uint8_t battery_status;	
++	int ret,status;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_BMU_STATUS3, &battery_status);
++
++	switch(battery_status&0x1c)
++	{
++		case 0x0:
++		status = POWER_SUPPLY_STATUS_NOT_CHARGING;
++		break;
++		case 0x04:
++		case 0x08:
++		case 0x0C:
++		status = POWER_SUPPLY_STATUS_CHARGING;
++		break;
++	    case 0x10:
++		status = POWER_SUPPLY_STATUS_FULL;
++		break;
++		default:
++		ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_STATUS, &battery_status);
++		if(battery_status & AXP2402_BAT_IS_CHARGING)
++		{
++			status = POWER_SUPPLY_STATUS_DISCHARGING;
++
++		}else{
++
++			status = POWER_SUPPLY_STATUS_UNKNOWN;
++
++		}
++		  ret = 0;
++	}
++	
++		val->intval=status;
++    return ret;
++}
++
++static int AXP2402_get_battery_health(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	uint8_t battery_health;
++	int health,ret;	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_BMU_STATUS1, &battery_health);
++
++	switch(battery_health & 0x03)
++	{
++		case 0x0:
++		health = POWER_SUPPLY_HEALTH_GOOD;
++		break;
++		case 0x01:
++		health = POWER_SUPPLY_HEALTH_COLD;
++		break;
++		case 0x02:
++		health = POWER_SUPPLY_HEALTH_OVERHEAT;
++		break;
++		default:
++		health = POWER_SUPPLY_HEALTH_UNKNOWN;
++	}
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_STATUS,&battery_health);
++
++	if((battery_health & AXP2402_BAT_IS_NOT_CONNECTED) == 0)
++	{
++		health = POWER_SUPPLY_HEALTH_UNKNOWN;
++	}
++
++	val->intval = health;
++
++   return 0;
++}
++static int AXP2402_get_battery_online(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	uint8_t battery_indication;
++	int ret;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_STATUS, &battery_indication);
++	if((battery_indication & 0x10) != 0)
++		val->intval = 1;
++	else
++		val->intval = 0;
++	return 0;
++}
++
++static int AXP2402_get_battery_current_now(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++
++	uint8_t bat_current;
++	int ret;
++	int current_temp;
++	uint8_t status;
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_STATUS, &status);
++
++	if(status & AXP2402_BAT_IS_CHARGING){
++
++		val->intval = 0;
++		return 0;
++	}
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_DISIBATL, &bat_current);
++
++	current_temp = (int)bat_current;
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_DISIBATH, &bat_current);
++
++	current_temp = (current_temp + bat_current * 16)*2;
++
++	val->intval = current_temp;	
++
++	return 0;
++}
++
++static int AXP2402_get_battery_capacity(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	/*
++	uint8_t cap_max;
++	int temp;
++	int ret;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_CAP_CAP1, &cap_max);
++	temp = cap_max;
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_CAP_CAP0, &cap_max);
++	temp = (temp + cap_max*256)*1456/1000;
++    val->intval=temp;
++	*/
++	
++	uint8_t oc_percentage;
++	int ret;
++	int battery_temp;
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_BAT_CAP,&oc_percentage);
++	if(oc_percentage & AXP2402_BAT_IS_VALID){
++		battery_temp = oc_percentage & 0x07f;
++		val->intval = battery_temp;
++	}else{
++		//dev_info(charger->dev,"oc_percentage = 0x%x",oc_percentage);	
++		ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_STATUS,&oc_percentage);
++		if((oc_percentage & (1<<2))){
++			if((oc_percentage & AXP2402_BAT_IS_NOT_CONNECTED) ==0){
++				dev_info(charger->dev,"battery is not connected\n");
++			}
++		}else{
++			dev_info(charger->dev,"battery doesn't have detected!\n");
++		}
++	}
++
++    return 0 ;
++}
++
++static int AXP2402_get_battery_capacity_alert_min(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	uint8_t cap_alert;
++	int ret;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_CAP_WARNING, &cap_alert);
++    val->intval=cap_alert >> 4;
++    return 0 ;
++}
++
++static int AXP2402_get_battery_voltage_now(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	uint8_t voltage;
++	int temp;
++	int ret;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_VBATL, &voltage);
++
++	temp = voltage;
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_VBATH, &voltage);
++
++	temp = (temp + voltage*16)*12/10;
++
++    val->intval= temp*2;
++
++	return ret;
++
++}
++
++static int AXP2402_get_battery_temp(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	uint8_t battery_temp;
++	int temp;
++	int ret;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_TSL, &battery_temp);
++	temp = battery_temp;
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_TSH, &battery_temp);
++	temp = (temp + battery_temp*16)*8/10;
++    val->intval= temp;
++	return 0;
++}
++	
++static int AXP2402_get_battery_soc(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	uint8_t oc_percentage;
++	int ret;
++   	int battery_temp;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_BAT_CAP, &oc_percentage);
++	if(oc_percentage & AXP2402_BAT_IS_VALID){
++
++	   	battery_temp = oc_percentage&0x7f;
++		if (battery_temp == 100)
++			val->intval = POWER_SUPPLY_CAPACITY_LEVEL_FULL;
++		else if (battery_temp >= 80)	
++			val->intval = POWER_SUPPLY_CAPACITY_LEVEL_HIGH;
++		else if (battery_temp >= 50)
++			val->intval = POWER_SUPPLY_CAPACITY_LEVEL_NORMAL;
++		else if (battery_temp <= 1)
++			val->intval = POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL;
++		else if (battery_temp < 15)
++			val->intval = POWER_SUPPLY_CAPACITY_LEVEL_LOW;
++		else 
++			val->intval = POWER_SUPPLY_CAPACITY_LEVEL_UNKNOWN;
++	}else{
++		dev_info(charger->dev,"battery capacity not valid");
++		return -1;
++	}
++
++	return 0;
++}
++
++static int AXP2402_battery_get_property(struct power_supply *psy,enum power_supply_property psp,union power_supply_propval *val)
++{
++	//struct AXP2402_charger *cdata = container_of(psy,struct AXP2402_charger,battery);
++	int ret;
++	struct AXP2402_charger *cdata = power_supply_get_drvdata(psy);
++	
++	switch(psp){
++	case POWER_SUPPLY_PROP_STATUS:
++	     ret = AXP2402_get_battery_status(cdata,val);
++	     break;
++	case POWER_SUPPLY_PROP_HEALTH:
++	     ret = AXP2402_get_battery_health(cdata,val);
++	     break;
++	case POWER_SUPPLY_PROP_ONLINE:
++	     ret = AXP2402_get_battery_online(cdata,val);
++	     break;
++	case POWER_SUPPLY_PROP_TECHNOLOGY:
++	     val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
++		 ret=0;
++	     break;
++	case POWER_SUPPLY_PROP_CAPACITY:
++	     ret = AXP2402_get_battery_capacity(cdata,val);
++	     break;
++	case POWER_SUPPLY_PROP_CAPACITY_ALERT_MIN:
++	     ret = AXP2402_get_battery_capacity_alert_min(cdata,val);
++	     break;	
++	case POWER_SUPPLY_PROP_TEMP:
++	     ret = AXP2402_get_battery_temp(cdata,val);
++	     break;
++	case POWER_SUPPLY_PROP_CAPACITY_LEVEL:
++	     ret = AXP2402_get_battery_soc(cdata,val);
++	     break;	
++	case POWER_SUPPLY_PROP_SCOPE:
++	     val->intval = POWER_SUPPLY_SCOPE_SYSTEM;
++		 ret=0;
++	     break;		 
++	case POWER_SUPPLY_PROP_CURRENT_NOW:
++		 ret = AXP2402_get_battery_current_now(cdata,val);
++		 break;
++	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
++		 ret = AXP2402_get_battery_voltage_now(cdata,val); 
++		 break;
++	default:
++		return -ENODATA;
++	}
++	
++	return  ret ;
++     
++}
++
++static int AXP2402_get_ac_online(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	int ret;
++	uint8_t charger_present;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_STATUS, &charger_present);
++   	charger_present &= 0x01;
++   	if (charger_present)
++   		val->intval = 1;
++   	else
++   		val->intval = 0;
++
++	return 0;
++	
++}
++static int AXP2402_get_charger_type(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++    uint8_t charger_status;	
++	int ret,type;
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_BMU_STATUS3, &charger_status);
++
++	switch(charger_status&0x1c)
++	{
++		case 0x0:
++		type = POWER_SUPPLY_CHARGE_TYPE_NONE;
++		break;
++		case 0x04:		
++		type = POWER_SUPPLY_CHARGE_TYPE_TRICKLE;
++		break;
++	    case 0x08:
++	    case 0x0c:
++		type = POWER_SUPPLY_CHARGE_TYPE_FAST;
++		break;
++		default:
++		ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_STATUS, &charger_status);
++		if (!(charger_status & AXP2402_BAT_IS_CHARGING))
++		{
++			type = POWER_SUPPLY_STATUS_DISCHARGING;
++		}
++		else
++		{
++			type = POWER_SUPPLY_CHARGE_TYPE_UNKNOWN;
++		}
++		  ret = 0;
++	}
++	
++		val->intval=type;
++    return ret;
++}
++static int AXP2402_get_charger_health(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	uint8_t charger_health;
++	int health,ret;	
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_STATUS, &charger_health);
++	if(charger_health&0x08)
++		health= POWER_SUPPLY_HEALTH_OVERVOLTAGE;
++	else
++	{
++		ret = AXP2402_read(charger->dev->parent, AXP2402_REG_BMU_STATUS1, &charger_health);
++
++		switch(charger_health&0x0c)
++		{
++            case 0x0: /* Normal */
++			health = POWER_SUPPLY_HEALTH_GOOD;
++			break;		
++		case 0x08: /* Thermal Shutdown */
++			health = POWER_SUPPLY_HEALTH_OVERHEAT;
++			break;
++		case 0x02: /* Charge Safety Timer Expiration */
++			health = POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE;
++			break;
++		default:
++			health = POWER_SUPPLY_HEALTH_UNKNOWN;			
++		}
++	}
++	val->intval = health;
++
++   return 0;
++	
++}
++
++static int AXP2402_get_charger_current(struct AXP2402_charger *charger, union power_supply_propval *val)
++{	
++	uint8_t cur;	
++	int ret, temp;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_IBATL, &cur);
++	temp = (int)cur;
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_IBATH, &cur);
++	temp = (temp + cur*16)*2;
++    val->intval= temp;
++    return 0;
++}
++
++static int AXP2402_get_charger_voltage(struct AXP2402_charger *charger, union power_supply_propval *val)
++{
++	uint8_t voltage;	
++	int ret, temp;
++	
++   	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_VBATL, &voltage);
++	temp = voltage;
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_ADC_VBATH, &voltage);
++	temp = (temp + voltage*16)*12/10;
++    val->intval= temp*2;
++    return 0;
++}
++
++static int AXP2402_ac_get_property(struct power_supply *psy,enum power_supply_property psp,union power_supply_propval *val)
++{
++	//struct AXP2402_charger *cdata = container_of(psy,struct AXP2402_charger,battery);
++	int ret;
++	struct AXP2402_charger *cdata = power_supply_get_drvdata(psy);
++	
++	switch(psp){
++	case POWER_SUPPLY_PROP_CHARGE_TYPE:
++	     ret = AXP2402_get_charger_type(cdata,val);
++	     break;
++	case POWER_SUPPLY_PROP_HEALTH:
++	     ret = AXP2402_get_charger_health(cdata,val);
++	     break;
++	case POWER_SUPPLY_PROP_ONLINE:
++	     ret = AXP2402_get_ac_online(cdata,val);
++	     break;
++	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT:
++	     ret = AXP2402_get_charger_current(cdata,val);
++	     break;		 
++	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
++	     ret = AXP2402_get_charger_voltage(cdata,val);
++	     break;		
++	case POWER_SUPPLY_PROP_SCOPE:
++		val->intval = POWER_SUPPLY_SCOPE_SYSTEM;
++		ret = 0;
++		break;		 
++	default:
++		return -ENODATA;
++	}
++	return  ret=0 ;
++}
++
++static int AXP2402_set_charger_current(struct AXP2402_charger *charger, const union power_supply_propval *val)
++{	
++    uint8_t temp;
++    int ret,cur;
++	
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_CHG_CTRL2, &temp);
++	temp=temp&0x80;
++	cur=((val->intval)/64)|temp;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_CHG_CTRL2,cur);
++	dev_info(charger->dev,"set_charger_current\n");
++	return ret;
++}
++
++static int AXP2402_set_charger_voltage(struct AXP2402_charger *charger, const union power_supply_propval *val)
++{
++	uint8_t temp;
++	int ret,voltage;
++	
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_CHG_CTRL5, &temp);
++	temp= temp && 0x80;
++	voltage=(((val->intval)-8192)/8)||temp;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_CHG_CTRL5,voltage);
++	dev_info(charger->dev,"set_charger_voltage\n");
++	return ret;
++}
++
++
++static int AXP2402_ac_set_property(struct power_supply *psy,enum power_supply_property psp, const union power_supply_propval *val)
++{
++	int ret;
++	struct AXP2402_charger *cdata = power_supply_get_drvdata(psy);
++	
++	switch(psp){ 
++	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT:
++	     ret = AXP2402_set_charger_current(cdata,val);
++	     break;	
++    case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
++	     ret = AXP2402_set_charger_voltage(cdata,val);
++	     break;	
++	default:
++		return -ENODATA;		 
++	}
++    return ret;	
++		 
++}
++
++static int AXP2402_charger_property_is_writeable(struct power_supply *psy,enum power_supply_property psp)
++{
++	int ret;
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT:
++	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE:
++		ret = 1;
++		break;
++	default:
++		ret = 0;
++	}
++
++	return ret;
++}
++
++static int AXP2402_config_charger(struct AXP2402_charger *charger)
++{
++	uint8_t reg=0;
++	int i;
++	uint8_t val=0,cap1;	
++	int cap;
++	int ocv_addr;
++	int ret;
++	int idpm               = charger->idpm; 		    
++	int vsys_min           = charger->vsys_min; 		    
++	int ichg_terminate     = ICHG_TERMINATE;	    
++	int ichg_cc     	   = charger->ichg_cc;	    
++	int chg_target_voltage = charger->chg_target_voltage;
++	int prechg_timeout     = PRECHG_TIMEOUT; 
++    int fastchg_timeout    = FASTCHG_TIMEOUT;    
++	int chg_led_type 	   = CHG_LED_TYPE;
++	int cap_max      	   = charger->battery_max_capacity;
++	uint8_t ocv_table[32]={0,0,1,2,4,6,8,10,12,15,18,23,29,35,41,47,52,56,63,70,76,79,82,85,87,89,91,93,100,100,100,100}; 
++
++	//config Irq_Mask
++	AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_MASK1, 0xFF);
++	AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_MASK2, 0xFF);
++	AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_MASK3, 0xFF);
++	AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_MASK4, 0xFF);
++	AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_MASK5, 0xFF);
++
++	val = 0xC0;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_ADC_MODE_CTRL,val);
++	val = 0x03;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_POWER_SAVE_MODE,val);
++
++	reg =reg &80;  //config INDPM 4096ma and bit7 set 1
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_INDPM_CTRL,(val|reg));
++
++	
++
++	//config ichg_terminate
++	val=ichg_terminate/64-1;	
++	val <<= 3;	
++	ret = AXP2402_read(charger->dev->parent,AXP2402_REG_CHG_CTRL1,&reg);
++	reg = reg&0x87;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_CHG_CTRL1,(val|reg));
++
++	//config idpm
++	val=idpm/64;
++	ret = AXP2402_read(charger->dev->parent,AXP2402_REG_INDPM_CTRL,&reg);
++	reg =reg &0x80;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_INDPM_CTRL,(val|reg));
++
++	//config vsys_min
++	val=vsys_min/256;
++	ret = AXP2402_read(charger->dev->parent,AXP2402_REG_SYS_CTRL,&reg);
++	reg = reg&0Xc0;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_SYS_CTRL,(val|reg));
++
++	//config ichg_cc
++	val=ichg_cc/64;
++	ret = AXP2402_read(charger->dev->parent,AXP2402_REG_CHG_CTRL2,&reg);
++	reg= reg&80;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_CHG_CTRL2,(val|reg));
++
++    //config chg_target_voltage
++	val=(chg_target_voltage-8192)/8;
++	ret = AXP2402_read(charger->dev->parent,AXP2402_REG_CHG_CTRL5,&reg);
++	reg=reg&0x80;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_CHG_CTRL5,val);
++
++	//config fastchg_timeout
++	if(fastchg_timeout==6)
++		val=0;
++	else if (fastchg_timeout==8)
++		val=1;
++	else if (fastchg_timeout==10)
++		val=2;
++	else if (fastchg_timeout==12)
++		val=3;
++	val<<=6;
++	ret = AXP2402_read(charger->dev->parent,AXP2402_REG_CHG_CTRL3,&reg);
++	reg= reg&0x3f;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_CHG_CTRL3,(val|reg));
++	
++	//config prechg_timeout
++	if(prechg_timeout==40)
++		val=0;
++	else if (prechg_timeout==50)
++		val=1;
++	else if (prechg_timeout==60)
++		val=2;
++	else if (prechg_timeout==70)
++		val=3;		
++	ret = AXP2402_read(charger->dev->parent,AXP2402_REG_CHG_CTRL1,&reg);
++	reg=reg&0xfc;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_CHG_CTRL1,(val|reg));
++
++    //config chg_led_type
++	if(chg_led_type==0)
++		val=0;
++	else if (chg_led_type==1)
++		val=1;			
++	ret = AXP2402_read(charger->dev->parent,AXP2402_REG_CHG_LED,&reg);
++	reg=reg&0xfe;
++	ret = AXP2402_write(charger->dev->parent,AXP2402_REG_CHG_LED,(val|reg));
++
++    //config cap_max
++	cap=cap_max*1000/1456;
++	cap1=cap>>8&0x007f;
++	cap1 |= AXP2402_BAT_MAX_CAP_IS_VALID; //max cap is valid
++
++	ret = AXP2402_write(charger->dev->parent, AXP2402_REG_CAP_CAP0,cap1);
++	cap1=cap&0x00FF;
++	ret = AXP2402_write(charger->dev->parent, AXP2402_REG_CAP_CAP1,cap1);
++	
++	//config ocv_table
++	ocv_addr = OCV_TABLE_BASE;
++	for(i = 0; i < 32; i++) 
++	{
++	    ret = AXP2402_write(charger->dev->parent, ocv_addr, ocv_table[i]);
++	    printk("OCV table %d: %d\n", i, ocv_table[i]);
++		if (ret < 0) 
++		{
++			dev_err(charger->dev, "%s(): error writing in register 0x%x\n",	__func__, ocv_addr);
++		    return ret;
++		}
++		ocv_addr++;
++	}
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_CAP_CAP0,&reg);
++
++	dev_info(charger->dev,"CAP0 = 0x%x\n",reg);
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_CAP_CAP1,&reg);
++
++	dev_info(charger->dev,"CAP1 = 0x%x\n",reg);
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_ADC_MODE_CTRL,&reg);
++	
++	dev_info(charger->dev,"ADC_MODE = 0x%x\n",reg);
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_POWER_SAVE_MODE, &reg);
++
++	dev_info(charger->dev,"POWER_SAVE_MODE = 0x%x\n",reg);
++
++	return 0;
++}
++
++static irqreturn_t AXP2402_charger_isr(int irq, void *dev_id)
++{
++	struct AXP2402_charger *charger = dev_id;
++	int ret;
++	uint8_t interrupt_pending = 0;
++	uint8_t interrupt_pos;
++
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_IRQ_STS1, &interrupt_pending);
++	interrupt_pos = 1<< AXP2402_INT1_MASK_ACOK_HIGHGOLOW;
++	ret = AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS1, interrupt_pending & interrupt_pos);
++	if ((interrupt_pending & interrupt_pos) !=0)
++	{
++		/* place corresponding handle code*/
++		dev_info(charger->dev,"ACOK_HIGHGOLOW interrupt happens!\n");
++	}		
++	interrupt_pos = 1<< AXP2402_INT1_MASK_ACOK_LOWGOHIGH;	
++	ret = AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS1, interrupt_pending & interrupt_pos);
++	
++	if ((interrupt_pending & interrupt_pos) !=0)
++	{
++		/* place corresponding handle code*/
++		dev_info(charger->dev,"ACOK_LOWGOHIGH interrupt happens!\n");
++	}
++	
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_IRQ_STS2, &interrupt_pending);
++	interrupt_pos = 1<< AXP2402_INT2_MASK_BAT_CHARGING;
++	ret = AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS2, interrupt_pending & interrupt_pos);		
++	if ((interrupt_pending & interrupt_pos) !=0)
++	{
++		/* place corresponding handle code*/
++		dev_info(charger->dev,"BAT_CHARGING interrupt happens!\n");
++	}		
++	interrupt_pos = 1<< AXP2402_INT2_MASK_BAT_APPEND;
++	ret = AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS2, interrupt_pending & interrupt_pos);	
++	
++	if ((interrupt_pending & interrupt_pos) !=0)
++	{
++		/* place corresponding handle code*/
++		dev_info(charger->dev,"BAT_APPEND interrupt happens!\n");
++	}
++	
++	ret = AXP2402_read(charger->dev->parent, AXP2402_REG_IRQ_STS4, &interrupt_pending);	
++	interrupt_pos = 1<< AXP2402_INT4_MASK_BAT_PERCENTAGE_CHANGE;
++	ret = AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS4, interrupt_pending & interrupt_pos);		
++	if ((interrupt_pending & interrupt_pos) !=0)
++	{
++		/* place corresponding handle code*/
++		dev_info(charger->dev,"BAT_PERCENTAGE_CHANGE interrupt happens!\n");
++	}
++
++    AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS1, 0xFF);
++    AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS2, 0xFF);
++    AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS3, 0xFF);
++    AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS4, 0xFF);
++    AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS5, 0xFF);
++    AXP2402_write(charger->dev->parent, AXP2402_REG_IRQ_STS6, 0xFF);
++
++    return IRQ_HANDLED;
++
++}
++
++static struct AXP2402_platform_data *AXP2402_parse_dt_charger_data(struct platform_device *pdev)
++{
++	struct AXP2402_platform_data *pdata;
++
++	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata) 
++	{
++		dev_err(&pdev->dev, "Memory alloc for AXP2402_pdata failed\n");
++		return NULL;
++	}
++	pdata->irq_base = -1;
++
++	return pdata;
++
++}
++
++static int AXP2402_charger_poll_task(void *data)
++{
++	set_freezable();
++
++	while (!kthread_should_stop()) 
++	{
++		schedule_timeout_interruptible(POLL_INTERVAL);
++		try_to_freeze();
++		AXP2402_charger_isr(-1, data);
++	}
++	return 0;
++}
++
++static const struct power_supply_desc AXP2402_charger_desc = {
++	.name			= "axp2402-ac",
++	.type			= POWER_SUPPLY_TYPE_MAINS,
++	.get_property	= AXP2402_ac_get_property,
++	.set_property   = AXP2402_ac_set_property,
++	.properties		= AXP2402_ac_props,
++	.num_properties	= ARRAY_SIZE(AXP2402_ac_props),
++	.property_is_writeable = AXP2402_charger_property_is_writeable,
++};
++
++static const struct power_supply_desc AXP2402_battery_desc = {
++	.name			= "axp2402-battery",
++	.type			= POWER_SUPPLY_TYPE_BATTERY,
++	.get_property	= AXP2402_battery_get_property,
++	.properties		= AXP2402_battery_props,
++	.num_properties	=ARRAY_SIZE(AXP2402_battery_props),
++};
++
++
++static int AXP2402_charger_probe(struct platform_device *pdev)
++{
++	struct AXP2402_charger *cdata;
++	struct AXP2402_platform_data *pdata;
++	struct power_supply_config charger_cfg = {},battery_cfg ={};
++	struct device_node *node;
++	uint8_t status1 = 0;
++	int val;
++	int ret;
++	int irq;
++
++	pdata = dev_get_platdata(pdev->dev.parent);
++	if (IS_ENABLED(CONFIG_OF) && !pdata && pdev->dev.of_node)
++		pdata = AXP2402_parse_dt_charger_data(pdev);
++	if (!pdata) 
++	{
++		dev_err(&pdev->dev, "%s():no platform data available\n",
++				__func__);
++		return -ENODEV;
++	}
++	
++	node = of_find_node_by_name(NULL, "axp2402-charger");
++
++	if(!node){
++		dev_err(&pdev->dev, "%s():device node not found\n",__func__);
++		return -ENODEV;
++	}
++
++	
++	cdata = devm_kzalloc(&pdev->dev, sizeof(*cdata), GFP_KERNEL);	
++	if (!cdata) 
++	{
++		dev_err(&pdev->dev, "failed to allocate memory status\n");
++		return -ENOMEM;
++	}
++	
++	platform_set_drvdata(pdev, cdata);
++	
++	cdata->dev	            = &pdev->dev;
++	cdata->pdata			= pdata;
++	
++	charger_cfg.supplied_to		= pdata->supplied_to;
++	charger_cfg.num_supplicants	= pdata->num_supplicants;
++	charger_cfg.of_node			= pdev->dev.of_node;
++	charger_cfg.drv_data		= cdata;
++	
++	cdata->ac = power_supply_register(&pdev->dev, &AXP2402_charger_desc,&charger_cfg);
++	if (IS_ERR(cdata->ac)) 
++	{
++		dev_err(&pdev->dev, "failed: power supply register\n");
++		return PTR_ERR(cdata->ac);
++	}
++	
++	battery_cfg.drv_data  = cdata;
++    cdata->battery = power_supply_register(&pdev->dev,&AXP2402_battery_desc,&battery_cfg);
++    if (IS_ERR(cdata->battery))
++	{
++		dev_err(&pdev->dev,"failed: battery supply register\n");
++		return  PTR_ERR(cdata->battery);
++	}
++    
++	cdata->gpiod = devm_gpiod_get(&pdev->dev,"irqpin",GPIOD_IN);
++	if(IS_ERR(cdata->gpiod))
++	{
++		printk(KERN_ALERT "request pinctrl handle for device %s failed\n", dev_name(&pdev->dev));
++	}
++	else printk(KERN_ALERT "request pinctrl handle for device %s ok\n", dev_name(&pdev->dev));
++
++	cdata->irq = gpiod_to_irq(cdata->gpiod);
++	printk("charger irq = %d\n",irq);
++
++	if (IS_ERR_VALUE(cdata->irq))
++	{
++		printk(KERN_ALERT "map gpio %d to virq failed, err =%d\n",desc_to_gpio(cdata->gpiod), cdata->irq);
++	}
++	else
++	{
++		dev_info(&pdev->dev,"map gpio %d to virq %d\n",desc_to_gpio(cdata->gpiod), cdata->irq);		
++	}
++
++	ret = of_property_read_u32(node,"idpm",&val);
++	if(ret == 0)
++	{
++		dev_info(&pdev->dev,"idpm = %d\n",val);
++		cdata->idpm = val;
++	}
++
++	ret = of_property_read_u32(node, "ichg_cc",&val);
++	if(ret == 0)
++	{
++		dev_info(&pdev->dev,"ichg_cc = %d\n",val);
++		cdata->ichg_cc = val;
++	}
++
++	ret = of_property_read_u32(node,"chg_target_voltage", &val);
++	if(ret == 0)
++	{
++		dev_info(&pdev->dev,"chg_target_voltage = %d\n",val);
++		cdata->chg_target_voltage = val;
++	}
++
++	ret = of_property_read_u32(node, "battery_max_capacity", &val);
++	if(ret == 0)
++	{
++		dev_info(&pdev->dev,"battery_max_capacity = %d\n",val);
++		cdata->battery_max_capacity = val;
++	}
++
++	ret = of_property_read_u32(node, "vsys_min",&val);
++	if(ret == 0)
++	{
++		dev_info(&pdev->dev,"vsys_min = %d\n", val);
++		cdata->vsys_min = val;
++	}
++	
++	ret = AXP2402_config_charger(cdata);
++	if (ret < 0) 
++	{
++		dev_err(&pdev->dev, "charger config failed, err %d\n", ret);
++		goto fail_unregister_supply;
++	}
++  	//Check for IC type_no.  presence 
++	ret = AXP2402_read(cdata->dev->parent, AXP2402_REG_IC_TypeNo,
++			&status1);
++	if (ret < 0) 
++	{
++		dev_err(cdata->dev, "%s(): Error in reading reg 0x%x", __func__,AXP2402_REG_IC_TypeNo);
++		goto fail_unregister_supply;
++	}
++	
++	cdata ->ac_online=1;
++	power_supply_changed(cdata->ac);
++	if (cdata->irq != -ENXIO) 
++	{
++		ret = devm_request_threaded_irq(&pdev->dev, cdata->irq, NULL,AXP2402_charger_isr, IRQF_ONESHOT | IRQF_TRIGGER_LOW, "axp2402-charger", cdata);
++		if (ret) {
++			dev_err(cdata->dev,
++				"Unable to register irq %d err %d\n", cdata->irq,
++				ret);
++			goto fail_unregister_supply;
++		}
++	} 
++	else 
++	{
++		cdata->poll_task = kthread_run(AXP2402_charger_poll_task,cdata, "axp2402-charger");
++		if (IS_ERR(cdata->poll_task))
++		{
++			ret = PTR_ERR(cdata->poll_task);
++			dev_err(cdata->dev,
++			"Unable to run kthread err %d\n", ret);
++			goto fail_unregister_supply;
++		}
++	}
++
++	return 0;
++
++fail_unregister_supply:
++	power_supply_unregister(cdata->ac);
++	power_supply_unregister(cdata->battery);
++	return ret;
++}
++
++static int AXP2402_charger_remove(struct platform_device *pdev)
++{
++	struct AXP2402_charger *cdata = platform_get_drvdata(pdev);
++
++	if (cdata->irq == -ENXIO)
++	    kthread_stop(cdata->poll_task);
++	
++	power_supply_unregister(cdata->ac);
++	power_supply_unregister(cdata->battery);
++
++	return 0;
++}
++
++static const struct of_device_id of_AXP2402_charger_match[] = {
++	{ .compatible = "X-Powers, axp2402-charger", },
++	{ /* end */ }
++};
++MODULE_DEVICE_TABLE(of, of_AXP2402_charger_match);
++
++static struct platform_driver AXP2402_charger_driver = {
++	.driver	= {
++		.name	= "axp2402-charger",
++		.of_match_table = of_AXP2402_charger_match,
++	},
++	.probe	= AXP2402_charger_probe,
++	.remove = AXP2402_charger_remove,
++};
++
++static int __init AXP2402_charger_init(void)
++{
++	return platform_driver_register(&AXP2402_charger_driver);
++}
++
++subsys_initcall(AXP2402_charger_init);
++
++static void __exit AXP2402_charger_exit(void)
++{
++	platform_driver_unregister(&AXP2402_charger_driver);
++}
++module_exit(AXP2402_charger_exit);
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("X-Powers");
++MODULE_DESCRIPTION("AXP2402 Battery Charger Driver");
+\ No newline at end of file
+Index: linux-5.4.164/include/linux/mfd/axp2402.h
+===================================================================
+--- /dev/null
++++ linux-5.4.164/include/linux/mfd/axp2402.h
+@@ -0,0 +1,217 @@
++/*
++ * Core driver interface for X-Powers AXP2402 BMU
++ *
++ * Copyright (C) 2012 NVIDIA Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
++ *
++ */
++
++#ifndef __LINUX_MFD_AXP2402_H
++#define __LINUX_MFD_AXP2402_H
++
++#include <linux/irq.h>
++#include <linux/regmap.h>
++
++/* Register addresses */
++#define AXP2402_REG_POWER_STATUS              (0x00)
++#define AXP2402_REG_BMU_STATUS1               (0x01)
++#define AXP2402_REG_BMU_STATUS2               (0x02)
++#define AXP2402_REG_IC_TypeNo                 (0x03)
++#define AXP2402_REG_BMU_STATUS3               (0x04)
++#define AXP2402_REG_BMU_CTRL                  (0x10)	
++#define AXP2402_REG_SYS_CTRL                  (0x11)
++#define AXP2402_REG_INDPM_CTRL                (0x13)
++#define AXP2402_REG_JIETA_COOLTEMP            (0x19)
++#define AXP2402_REG_JIETA_WARMTEMP            (0x1A)
++#define AXP2402_REG_JIETA_SET                 (0x1B)
++#define AXP2402_REG_CHG_CTRL0                 (0x1F)
++#define AXP2402_REG_CHG_CTRL1                 (0x20)
++#define AXP2402_REG_CHG_CTRL2                 (0x21)
++#define AXP2402_REG_CHG_CTRL3                 (0x22)
++#define AXP2402_REG_CHG_CTRL4                 (0x23)
++#define AXP2402_REG_CHG_CTRL5                 (0x24)
++#define AXP2402_REG_CHG_CTRL6                 (0x25)
++#define AXP2402_REG_ADC_CTRL                  (0x26)
++#define AXP2402_REG_TS_CTRL                   (0x28)
++#define AXP2402_REG_CHG_LED                   (0x90)
++#define AXP2402_BAT_IS_CHARGING			  	  (1<<5) 
++#define AXP2402_BAT_IS_NOT_CONNECTED		  (1<<4)
++//irq control
++#define AXP2402_REG_IRQ_MASK1                 (0x40)
++#define AXP2402_REG_IRQ_MASK2                 (0x41)
++#define AXP2402_REG_IRQ_MASK3                 (0x42)
++#define AXP2402_REG_IRQ_MASK4                 (0x43)
++#define AXP2402_REG_IRQ_MASK5                 (0x44)
++#define AXP2402_REG_IRQ_STS1                  (0x48)
++#define AXP2402_REG_IRQ_STS2                  (0x49)
++#define AXP2402_REG_IRQ_STS3                  (0x4A)
++#define AXP2402_REG_IRQ_STS4                  (0x4B)
++#define AXP2402_REG_IRQ_STS5                  (0x4C)
++#define AXP2402_REG_IRQ_STS6                  (0x4D)
++
++//Fule gauge
++#define AXP2402_REG_CAP_CAP0                  (0xE0)
++#define AXP2402_REG_CAP_CAP1                  (0xE1)
++#define AXP2402_REG_OCV_PERCENTAGE            (0xE4)
++#define AXP2402_REG_CAP_WARNING               (0xE6)
++#define AXP2402_REG_CAP_CTRL                  (0xE8)
++#define AXP2402_REG_CAP_PERCENT               (0xE9)
++#define AXP2402_REG_BAT_CAP					  (0xB9)
++#define AXP2402_REG_CAP_RDC1                  (0xBA)
++#define AXP2402_REG_CAP_RDC2                  (0xBB)
++
++//TS protect
++#define AXP2402_REG_VLTF_CHARGE               (0x30)
++#define AXP2402_REG_VHTF_CHARGE               (0x31)
++#define AXP2402_REG_VLTF_WORK                 (0x32)
++#define AXP2402_REG_VHTF_WORK                 (0x33)
++#define AXP2402_REG_POWER_SAVE_MODE			  (0x8f)
++#define AXP2402_ADC_MODE_CTRL				  (0x8a)
++#define AXP2402_BAT_MAX_CAP_IS_VALID		  (1<<7)
++#define AXP2402_BAT_MAX_CAP_NOT_VALID		  ~(1<<7)
++#define AXP2402_BAT_IS_VALID				  (0x80)
++
++//ADC
++#define AXP2402_REG_ADC_INTTEMP               (0xAA)
++#define AXP2402_REG_ADC_TSH                   (0xAC)
++#define AXP2402_REG_ADC_TSL		              (0xAD)
++#define AXP2402_REG_ADC_VBATH                 (0x78)
++#define AXP2402_REG_ADC_VBATL                 (0x79)
++#define AXP2402_REG_ADC_IBATH                 (0x7A)
++#define AXP2402_REG_ADC_IBATL                 (0x7B)
++#define AXP2402_REG_ADC_DISIBATH              (0x7C)
++#define AXP2402_REG_ADC_DISIBATL			  (0x7D)
++
++#define AXP2402_REG_ADDR_EXTENSION            (0xFF)
++#define AXP2402_MAX_REG						  AXP2402_REG_ADDR_EXTENSION
++#define AXP2402_NUM_REGS					  (AXP2402_MAX_REG + 1)
++
++
++//ADC Control Bits
++#define AXP2402_ADC_BATVOL_ENABLE             BIT(7)
++#define AXP2402_ADC_BATCUR_ENABLE             BIT(6)
++#define AXP2402_ADC_ACINCUR_ENABLE            BIT(4)
++#define AXP2402_ADC_DIETMP_ENABLE             BIT(3)
++#define AXP2402_ADC_TSVOL_ENABLE              BIT(0)
++
++
++//AXP2402 config
++#define IDPM 	 		     				  1024                                                                                             //������������ֵ
++#define VSYS_MIN 		     				6400                                                                                             //����Vsysmin��ѹֵ
++#define ICHG_TERMINATE	     		128                                                                                              //���ó���ֹ����
++#define ICHG_CC			     				1024                                                                                             //���ó�����
++#define CHG_TARGET_VOLTAGE   		8440                                                                                             //���õ��Ŀ���ѹ
++#define PRECHG_TIMEOUT       		50                                                                                               //����Ԥ��糬ʱʱ��
++#define FASTCHG_TIMEOUT	     		4                                                                                                //���ú�����糬ʱʱ��
++#define CHG_LED_TYPE	     			0                                                                                                //���ó��ָʾ��(type A Ϊ0; type B Ϊ1)
++#define BATTERY_MAX_CAPACITY 		7000  
++
++#define OCV_TABLE_BASE					0xC0
++
++/* AXP2402 IRQs */
++enum {
++	AXP2402_IRQ_IC_TEMOV,
++	AXP2402_IRQ_EVENT_TIMEOUT,
++	AXP2402_IRQ_OVER_DISCHG,
++	AXP2402_IRQ_ACOK_HIGHGOLOW,
++	AXP2402_IRQ_ACOK_LOWGOHIGH,
++	AXP2402_IRQ_VAC_OCP,
++	AXP2402_IRQ_VAC_OVP,
++	AXP2402_IRQ_TEMP_WL2,
++	AXP2402_IRQ_TEMP_WL1,
++	AXP2402_IRQ_BAT_CHARGERDONE,
++	AXP2402_IRQ_BAT_CHARGING,
++	AXP2402_IRQ_BAT_TIMEOUT,
++	AXP2402_IRQ_BAT_REMOVAL,
++	AXP2402_IRQ_BAT_APPEND,
++	AXP2402_IRQ_BAT_QBWUT,
++	AXP2402_IRQ_BAT_BWUT,
++	AXP2402_IRQ_BAT_QBWOT,
++	AXP2402_IRQ_BAT_BWOT,
++	AXP2402_IRQ_BAT_QBCUT,
++	AXP2402_IRQ_BAT_BCUT,
++	AXP2402_IRQ_BAT_QBCOT,
++	AXP2402_IRQ_BAT_BC0T,
++	AXP2402_IRQ_BAT_QBCR,
++	AXP2402_IRQ_BAT_BCR,
++	AXP2402_IRQ_BAT_QBWR,
++	AXP2402_IRQ_BAT_BWR,
++	AXP2402_IRQ_BAT_PERCENTAGE_CHANGE,
++};
++
++#define NUM_INT_REG                             5
++
++#define AXP2402_INT1_MASK_IC_TEMOV		        0
++#define AXP2402_INT1_MASK_EVENT_TIMEOUT		    1
++#define AXP2402_INT1_MASK_OVER_DISCHG		    3
++#define AXP2402_INT1_MASK_ACOK_HIGHGOLOW	    4
++#define AXP2402_INT1_MASK_ACOK_LOWGOHIGH		5
++#define AXP2402_INT1_MASK_VAC_OCP		        6
++#define AXP2402_INT1_MASK_VAC_OVP		        7
++#define AXP2402_INT2_MASK_TEMP_WL2		        0
++#define AXP2402_INT2_MASK_TEMP_WL1		        1
++#define AXP2402_INT2_MASK_BAT_CHARGERDONE		2
++#define AXP2402_INT2_MASK_BAT_CHARGING	        3
++#define AXP2402_INT2_MASK_BAT_TIMEOUT		    5
++#define AXP2402_INT2_MASK_BAT_REMOVAL		    6
++#define AXP2402_INT2_MASK_BAT_APPEND		    7
++#define AXP2402_INT3_MASK_BAT_QBWUT          	0
++#define AXP2402_INT3_MASK_BAT_BWUT	            1
++#define AXP2402_INT3_MASK_BAT_QBWOT		        2
++#define AXP2402_INT3_MASK_BAT_BWOT		        3
++#define AXP2402_INT3_MASK_BAT_QBCUT	            4
++#define AXP2402_INT3_MASK_BAT_BCUT		        5
++#define AXP2402_INT3_MASK_BAT_QBCOT	        	6
++#define AXP2402_INT3_MASK_BAT_BC0T		        7
++#define AXP2402_INT4_MASK_BAT_QBCR		        4
++#define AXP2402_INT4_MASK_BAT_BCR		        5
++#define AXP2402_INT4_MASK_BAT_QBWR	            6
++#define AXP2402_INT4_MASK_BAT_BWR		        7
++#define AXP2402_INT4_MASK_BAT_PERCENTAGE_CHANGE 0
++
++struct AXP2402 {
++	struct device *dev;
++    struct regmap *rmap;
++	struct regmap_irq_chip_data *irq_data;
++};
++
++struct AXP2402_platform_data {
++	int irq_base;
++	char **supplied_to;
++	size_t num_supplicants;
++};
++
++static inline int AXP2402_write(struct device *dev, int reg, uint8_t val)
++{
++	struct AXP2402 *axp = dev_get_drvdata(dev);
++	
++	return regmap_write(axp->rmap, reg, val);
++}
++
++static inline int AXP2402_read(struct device *dev, int reg, uint8_t *val)
++{
++	struct AXP2402 *axp = dev_get_drvdata(dev);
++	unsigned int temp_val;
++	int ret;
++
++	ret = regmap_read(axp->rmap, reg, &temp_val);
++	
++	if (!ret)
++		*val = temp_val;
++	return ret;
++}
++
++#endif /*__LINUX_MFD_AXP2402_H*/
+\ No newline at end of file
+Index: linux-5.4.164/include/linux/err.h
+===================================================================
+--- linux-5.4.164.orig/include/linux/err.h
++++ linux-5.4.164/include/linux/err.h
+@@ -19,7 +19,8 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#define IS_ERR_VALUE(x) unlikely((unsigned long)(void *)(x) >= (unsigned long)-MAX_ERRNO)
++// #define IS_ERR_VALUE(x) unlikely((unsigned long)(void *)(x) >= (unsigned long)-MAX_ERRNO)
++#define IS_ERR_VALUE(x) ((unsigned long)(long)x >= (unsigned long)-MAX_ERRNO)
+ 
+ static inline void * __must_check ERR_PTR(long error)
+ {

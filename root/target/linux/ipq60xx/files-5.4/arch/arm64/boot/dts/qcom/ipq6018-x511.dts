@@ -1,0 +1,469 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/* Copyright (c) 2020 The Linux Foundation. All rights reserved.
+ */
+
+/dts-v1/;
+
+#include "ipq6018.dtsi"
+#include <dt-bindings/input/input.h>
+
+/ {
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	model = "YLX X511";
+	compatible = "ylx,x511", "qcom,ipq6018";
+	interrupt-parent = <&intc>;
+	qcom,msm-id = <0x1A5 0x0>;
+
+	aliases {
+		led-boot = &led_sys;
+		led-failsafe = &led_sys;
+		led-running = &led_sys;
+		led-upgrade = &led_sys;
+		serial0 = &blsp1_uart3;
+		serial1 = &blsp1_uart2;
+		serial2 = &blsp1_uart5;
+
+		ethernet0 = "/soc/dp1";
+		ethernet1 = "/soc/dp2";
+		ethernet2 = "/soc/dp3";
+		ethernet3 = "/soc/dp4";
+		ethernet4 = "/soc/dp5";
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+		bootargs-append = " root=/dev/ubiblock0_1 swiotlb=1 coherent_pool=2M";
+	};
+
+	soc {
+		mdio:mdio@90000 {
+			pinctrl-0 = <&mdio_pins>;
+			pinctrl-names = "default";
+			phy-reset-gpio = <&tlmm 75 0>;
+			status = "ok";
+
+			phy0: ethernet-phy@0 {
+				reg = <24>;
+			};
+			phy1: ethernet-phy@1 {
+				reg = <25>;
+			};
+			phy2: ethernet-phy@2 {
+				reg = <26>;
+			};
+			phy3: ethernet-phy@3 {
+				reg = <27>;
+			};
+			phy4: ethernet-phy@4 {
+				reg = <28>;
+			};
+		};
+
+		ess-switch@3a000000 {
+			switch_cpu_bmp = <0x1>;  /* cpu port bitmap */
+			switch_lan_bmp = <0x1e>; /* lan port bitmap */
+			switch_wan_bmp = <0x20>; /* wan port bitmap */
+			switch_inner_bmp = <0xc0>; /*inner port bitmap*/
+			switch_mac_mode = <0x0>; /* mac mode for uniphy 0*/
+			switch_mac_mode1 = <0xff>; /* mac mode for uniphy 1*/
+			switch_mac_mode2 = <0xff>; /* mac mode for uniphy 2*/
+
+			qcom,port_phyinfo {
+				port@0 {
+					port_id = <1>;
+					phy_address = <24>;
+				};
+				port@1 {
+					port_id = <2>;
+					phy_address = <25>;
+				};
+				port@2 {
+					port_id = <3>;
+					phy_address = <26>;
+				};
+				port@3 {
+					port_id = <4>;
+					phy_address = <27>;
+				};
+				port@4 {
+					port_id = <5>;
+					phy_address = <28>;
+				};
+			};
+		};
+
+		dp1 {
+			device_type = "network";
+			compatible = "qcom,nss-dp";
+			qcom,id = <1>;
+			reg = <0x3a001000 0x200>;
+			qcom,mactype = <0>;
+			local-mac-address = [000000000000];
+			qcom,link-poll = <1>;
+			qcom,phy-mdio-addr = <24>;
+			phy-mode = "sgmii";
+		};
+
+		dp2 {
+			device_type = "network";
+			compatible = "qcom,nss-dp";
+			qcom,id = <2>;
+			reg = <0x3a001200 0x200>;
+			qcom,mactype = <0>;
+			local-mac-address = [000000000000];
+			qcom,link-poll = <1>;
+			qcom,phy-mdio-addr = <25>;
+			phy-mode = "sgmii";
+		};
+
+		dp3 {
+			device_type = "network";
+			compatible = "qcom,nss-dp";
+			qcom,id = <3>;
+			reg = <0x3a001400 0x200>;
+			qcom,mactype = <0>;
+			local-mac-address = [000000000000];
+			qcom,link-poll = <1>;
+			qcom,phy-mdio-addr = <26>;
+			phy-mode = "sgmii";
+		};
+
+		dp4 {
+			device_type = "network";
+			compatible = "qcom,nss-dp";
+			qcom,id = <4>;
+			reg = <0x3a001600 0x200>;
+			qcom,mactype = <0>;
+			local-mac-address = [000000000000];
+			qcom,link-poll = <1>;
+			qcom,phy-mdio-addr = <27>;
+			phy-mode = "sgmii";
+		};
+
+		dp5 {
+			device_type = "network";
+			compatible = "qcom,nss-dp";
+			qcom,id = <5>;
+			reg = <0x3a001800 0x200>;
+			qcom,mactype = <0>;
+			local-mac-address = [000000000000];
+			qcom,link-poll = <1>;
+			qcom,phy-mdio-addr = <28>;
+			phy-mode = "sgmii";
+		};
+
+		gpio_keys {
+			compatible = "gpio-keys";
+			pinctrl-0 = <&button_pins>;
+			pinctrl-names = "default";
+
+			reset {
+				label = "reset";
+				linux,code = <KEY_RESTART>;
+				gpios = <&tlmm 0 GPIO_ACTIVE_LOW>;
+				linux,input-type = <1>;
+				debounce-interval = <60>;
+			};
+		};
+
+		i2c {
+			compatible = "i2c-gpio";
+			pinctrl-0 = <&i2c_gpio_pins>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			sda-gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
+			scl-gpios = <&tlmm 46 GPIO_ACTIVE_HIGH>;
+
+			pcf8563: pcf8563@51 {
+                compatible = "nxp,pcf8563";
+                reg = <0x51>;
+                #clock-cells = <0>;
+        	};
+		};
+
+		leds {
+			compatible = "gpio-leds";
+			pinctrl-0 = <&leds_pins>;
+			pinctrl-names = "default";
+
+			wlan2g {
+				label = "wlan2g";
+				gpios = <&tlmm 37 GPIO_ACTIVE_HIGH>;
+			};
+
+			wlan5g {
+				label = "wlan5g";
+				gpios = <&tlmm 35 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_sys: sys {
+				label = "sys";
+				gpios = <&tlmm 66 GPIO_ACTIVE_HIGH>;
+			};
+
+			modem {
+				label = "modem";
+				gpios = <&tlmm 67 GPIO_ACTIVE_HIGH>;
+			};
+		};
+
+		watchdog {
+			compatible = "linux,wdt-gpio";
+			gpios = <&tlmm 53 GPIO_ACTIVE_LOW>;
+			pinctrl-0 = <&wdt_pins>;
+			pinctrl-names = "default";
+			hw_algo = "toggle";
+			hw_margin_ms = <1600>;
+			always-running;
+		};
+
+		sd-pwrseq {
+			/delete-property/ reset-gpios;
+			status = "disabled";
+		};
+	};
+};
+
+&tlmm {
+	i2c_gpio_pins:i2c_gpio_pins {
+		scl {
+			pins = "gpio46";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+		sda {
+			pins = "gpio47";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	button_pins: button_pins {
+		reset_button {
+			pins = "gpio0";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	mdio_pins: mdio_pinmux {
+		mux_0 {
+			pins = "gpio64";
+			function = "mdc";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+		mux_1 {
+			pins = "gpio65";
+			function = "mdio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+		mux_2 {
+			pins = "gpio75";
+			function = "gpio";
+			bias-pull-up;
+		};
+	};
+
+	uart2_pins: uart2_pins {
+		mux {
+			pins = "gpio71", "gpio72";
+			function = "blsp1_uart";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+
+	hsuart_pins: hsuart_pins {
+		mux {
+			pins = "gpio57", "gpio58";
+			function = "blsp4_uart";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+
+	wdt_pins: wdt_pins {
+		mux {
+			pins = "gpio53";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-disable;
+			output-high;
+		};
+	};
+
+	leds_pins: leds_pins {
+		wlan2g {
+			pins = "gpio37";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		wlan5g {
+			pins = "gpio35";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		sys {
+			pins = "gpio66";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		modem {
+			pins = "gpio67";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+	};
+};
+
+&blsp1_uart2 {
+	pinctrl-0 = <&uart2_pins>;
+	pinctrl-names = "default";
+	dmas = <&blsp_dma 2>,
+		<&blsp_dma 3>;
+	dma-names = "tx", "rx";
+	status = "ok";
+};
+
+&blsp1_uart3 {
+	pinctrl-0 = <&serial_3_pins>;
+	pinctrl-names = "default";
+	status = "ok";
+};
+
+&blsp1_uart5 {
+	pinctrl-0 = <&hsuart_pins>;
+	pinctrl-names = "default";
+	dmas = <&blsp_dma 8>,
+		<&blsp_dma 9>;
+	dma-names = "tx", "rx";
+	status = "ok";
+};
+
+&nss_crypto {
+	status = "ok";
+};
+
+&qpic_bam {
+	status = "ok";
+};
+
+&qpic_nand {
+	status = "ok";
+
+	nand@0 {
+		reg = <0>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		nand-ecc-strength = <4>;
+		nand-ecc-step-size = <512>;
+		nand-bus-width = <8>;
+	};
+};
+
+
+&spi_0 {
+	cs-select = <0>;
+	status = "ok";
+
+	m25p80@0 {
+		compatible = "jedec,spi-nor", "n25q128a11";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0>;
+		spi-max-frequency = <50000000>;
+	};
+};
+
+&ssphy_0 {
+	status = "ok";
+};
+
+&qusb_phy_1{
+	status = "ok";
+};
+
+&qusb_phy_0 {
+	status = "ok";
+};
+
+&usb2 {
+	status = "ok";
+};
+
+&usb3 {
+	status = "ok";
+};
+
+
+&CPU0 {
+	operating-points = <
+		/* kHz   uV (fixed) */
+		864000   1100000
+		1056000  1100000
+		1320000  1100000
+		1440000  1100000
+		1608000  1100000
+		1800000  1100000
+	>;
+	clock-latency = <200000>;
+};
+
+&CPU1 {
+	operating-points = <
+		/* kHz   uV (fixed) */
+		864000   1100000
+		1056000  1100000
+		1320000  1100000
+		1440000  1100000
+		1608000  1100000
+		1800000  1100000
+	>;
+	clock-latency = <200000>;
+};
+
+&CPU2 {
+	operating-points = <
+		/* kHz   uV (fixed) */
+		864000   1100000
+		1056000  1100000
+		1320000  1100000
+		1440000  1100000
+		1608000  1100000
+		1800000  1100000
+	>;
+	clock-latency = <200000>;
+};
+
+&CPU3 {
+	operating-points = <
+		/* kHz   uV (fixed) */
+		864000   1100000
+		1056000  1100000
+		1320000  1100000
+		1440000  1100000
+		1608000  1100000
+		1800000  1100000
+	>;
+	clock-latency = <200000>;
+};
+
+&rpm_glink {
+	status = "disabled";
+};
+

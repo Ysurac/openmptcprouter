@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Copyright (C) 2015 OpenWrt.org
+#
+
+. /lib/functions/uci-defaults.sh
+
+board_config_update
+
+board=$(board_name)
+
+case "$board" in
+ylx,q60|ylx,x5|ylx,x511|ylx,x8)
+	ucidef_set_led_netdev "wlan2g" "WLAN2G" "wlan2g" "wlan1"
+	ucidef_set_led_netdev "wlan5g" "WLAN5G" "wlan5g" "wlan0"
+	;;
+*)
+	;;
+esac
+
+board_config_flush
+
+exit 0

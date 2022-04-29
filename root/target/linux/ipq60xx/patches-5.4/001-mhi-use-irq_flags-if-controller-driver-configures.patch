@@ -1,0 +1,83 @@
+From 6ffcc18d9c0b4522c95aab71ff3ff5a56e699945 Mon Sep 17 00:00:00 2001
+From: Carl Huang <cjhuang@codeaurora.org>
+Date: Mon, 4 Jan 2021 18:11:28 +0800
+Subject: [PATCH] mhi: use irq_flags if controller driver configures it
+
+If controller driver has specified the irq_flags, mhi uses this specified
+irq_flags. Otherwise, mhi uses default irq_flags.
+
+The purpose of this change is to support one MSI vector for QCA6390.
+MHI will use one same MSI vector too in this scenario.
+
+In case of one MSI vector, IRQ_NO_BALANCING is needed when irq handler
+is requested. The reason is if irq migration happens, the msi_data may
+change too. However, the msi_data is already programmed to QCA6390
+hardware during initialization phase. This msi_data inconsistence will
+result in crash in kernel.
+
+Another issue is in case of one MSI vector, IRQF_NO_SUSPEND will trigger
+WARNINGS because QCA6390 wants to disable the IRQ during the suspend.
+
+To avoid above two issues, QCA6390 driver specifies the irq_flags in case
+of one MSI vector when mhi_register_controller is called.
+
+Signed-off-by: Carl Huang <cjhuang@codeaurora.org>
+Reviewed-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+---
+ drivers/bus/mhi/core/init.c | 9 +++++++--
+ include/linux/mhi.h         | 2 ++
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/bus/mhi/core/init.c b/drivers/bus/mhi/core/init.c
+index f0697f433c2f1b..aa575d3fb3aeaa 100644
+--- a/drivers/bus/mhi/core/init.c
++++ b/drivers/bus/mhi/core/init.c
+@@ -154,12 +154,17 @@ int mhi_init_irq_setup(struct mhi_controller *mhi_cntrl)
+ {
+ 	struct mhi_event *mhi_event = mhi_cntrl->mhi_event;
+ 	struct device *dev = &mhi_cntrl->mhi_dev->dev;
++	unsigned long irq_flags = IRQF_SHARED | IRQF_NO_SUSPEND;
+ 	int i, ret;
+ 
++	/* if controller driver has set irq_flags, use it */
++	if (mhi_cntrl->irq_flags)
++		irq_flags = mhi_cntrl->irq_flags;
++
+ 	/* Setup BHI_INTVEC IRQ */
+ 	ret = request_threaded_irq(mhi_cntrl->irq[0], mhi_intvec_handler,
+ 				   mhi_intvec_threaded_handler,
+-				   IRQF_SHARED | IRQF_NO_SUSPEND,
++				   irq_flags,
+ 				   "bhi", mhi_cntrl);
+ 	if (ret)
+ 		return ret;
+@@ -177,7 +182,7 @@ int mhi_init_irq_setup(struct mhi_controller *mhi_cntrl)
+ 
+ 		ret = request_irq(mhi_cntrl->irq[mhi_event->irq],
+ 				  mhi_irq_handler,
+-				  IRQF_SHARED | IRQF_NO_SUSPEND,
++				  irq_flags,
+ 				  "mhi", mhi_event);
+ 		if (ret) {
+ 			dev_err(dev, "Error requesting irq:%d for ev:%d\n",
+diff --git a/include/linux/mhi.h b/include/linux/mhi.h
+index 562862ff819c43..b7138127664f1f 100644
+--- a/include/linux/mhi.h
++++ b/include/linux/mhi.h
+@@ -360,6 +360,7 @@ struct mhi_controller_config {
+  * @fbc_download: MHI host needs to do complete image transfer (optional)
+  * @pre_init: MHI host needs to do pre-initialization before power up
+  * @wake_set: Device wakeup set flag
++ * @irq_flags: irq flags passed to request_irq (optional)
+  *
+  * Fields marked as (required) need to be populated by the controller driver
+  * before calling mhi_register_controller(). For the fields marked as (optional)
+@@ -456,6 +457,7 @@ struct mhi_controller {
+ 	bool pre_init;
+ 	bool wake_set;
+ 	void *priv_data;
++	unsigned long irq_flags;
+ 	int disable_rddm_prealloc;
+ 	u32 rddm_seg_len;
+ };

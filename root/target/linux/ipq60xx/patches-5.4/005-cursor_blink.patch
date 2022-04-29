@@ -1,0 +1,73 @@
+Index: linux-5.4.164/drivers/video/fbdev/core/Makefile
+===================================================================
+--- linux-5.4.164.orig/drivers/video/fbdev/core/Makefile
++++ linux-5.4.164/drivers/video/fbdev/core/Makefile
+@@ -7,7 +7,7 @@ fb-y                              := fbm
+ fb-$(CONFIG_FB_DEFERRED_IO)       += fb_defio.o
+ 
+ ifeq ($(CONFIG_FRAMEBUFFER_CONSOLE),y)
+-fb-y				  += fbcon.o bitblit.o softcursor.o
++fb-y				  += fbcon.o bitblit.o 
+ ifeq ($(CONFIG_FB_TILEBLITTING),y)
+ fb-y				  += tileblit.o
+ endif
+Index: linux-5.4.164/drivers/video/fbdev/core/bitblit.c
+===================================================================
+--- linux-5.4.164.orig/drivers/video/fbdev/core/bitblit.c
++++ linux-5.4.164/drivers/video/fbdev/core/bitblit.c
+@@ -373,8 +373,8 @@ static void bit_cursor(struct vc_data *v
+ 	if (info->fbops->fb_cursor)
+ 		err = info->fbops->fb_cursor(info, &cursor);
+ 
+-	if (err)
+-		soft_cursor(info, &cursor);
++	// if (err)
++	// 	soft_cursor(info, &cursor);
+ 
+ 	ops->cursor_reset = 0;
+ }
+Index: linux-5.4.164/drivers/video/fbdev/core/fbcon_ccw.c
+===================================================================
+--- linux-5.4.164.orig/drivers/video/fbdev/core/fbcon_ccw.c
++++ linux-5.4.164/drivers/video/fbdev/core/fbcon_ccw.c
+@@ -377,8 +377,8 @@ static void ccw_cursor(struct vc_data *v
+ 	if (info->fbops->fb_cursor)
+ 		err = info->fbops->fb_cursor(info, &cursor);
+ 
+-	if (err)
+-		soft_cursor(info, &cursor);
++	// if (err)
++	// 	soft_cursor(info, &cursor);
+ 
+ 	ops->cursor_reset = 0;
+ }
+Index: linux-5.4.164/drivers/video/fbdev/core/fbcon_cw.c
+===================================================================
+--- linux-5.4.164.orig/drivers/video/fbdev/core/fbcon_cw.c
++++ linux-5.4.164/drivers/video/fbdev/core/fbcon_cw.c
+@@ -360,8 +360,8 @@ static void cw_cursor(struct vc_data *vc
+ 	if (info->fbops->fb_cursor)
+ 		err = info->fbops->fb_cursor(info, &cursor);
+ 
+-	if (err)
+-		soft_cursor(info, &cursor);
++	// if (err)
++	// 	soft_cursor(info, &cursor);
+ 
+ 	ops->cursor_reset = 0;
+ }
+Index: linux-5.4.164/drivers/video/fbdev/core/fbcon_ud.c
+===================================================================
+--- linux-5.4.164.orig/drivers/video/fbdev/core/fbcon_ud.c
++++ linux-5.4.164/drivers/video/fbdev/core/fbcon_ud.c
+@@ -400,8 +400,8 @@ static void ud_cursor(struct vc_data *vc
+ 	if (info->fbops->fb_cursor)
+ 		err = info->fbops->fb_cursor(info, &cursor);
+ 
+-	if (err)
+-		soft_cursor(info, &cursor);
++	// if (err)
++	// 	soft_cursor(info, &cursor);
+ 
+ 	ops->cursor_reset = 0;
+ }

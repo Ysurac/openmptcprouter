@@ -1,0 +1,20 @@
+#!/bin/sh
+
+[ -e /lib/firmware/$FIRMWARE ] && exit 0
+
+. /lib/functions/caldata.sh
+
+board=$(board_name)
+
+case "$FIRMWARE" in
+"ath11k/IPQ6018/hw1.0/caldata.bin")
+	case "$board" in
+	ylx,q60|ylx,x5|ylx,x511|ylx,x8)
+		caldata_extract "0:ART" 0x1000 0x20000
+		;;
+	esac
+	;;
+*)
+	exit 1
+	;;
+esac

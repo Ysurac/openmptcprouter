@@ -1,0 +1,31 @@
+Index: linux-5.4.164/drivers/usb/serial/option.c
+===================================================================
+--- linux-5.4.164.orig/drivers/usb/serial/option.c
++++ linux-5.4.164/drivers/usb/serial/option.c
+@@ -585,6 +585,18 @@ static void option_instat_callback(struc
+ 
+ 
+ static const struct usb_device_id option_ids[] = {
++//david add modems:
++	{ USB_DEVICE(0x2C7C, 0x0900) }, /* Quectel RG500U/RM500U */
++	{ USB_DEVICE(0x05C6, 0x90DB), .driver_info = RSVD(2) | RSVD(3) | RSVD(4) | RSVD(5)}, /* Yisean sim8200 */
++	{ USB_DEVICE(0x2dee, 0x4d22), .driver_info = RSVD(4) | RSVD(5) }, /* Meige srm815 */
++	{ USB_DEVICE(0x05c6, 0xf601), .driver_info = RSVD(4) | RSVD(5) }, /* Meige slm750 */
++	{ USB_DEVICE(0x05C6, 0x90D5), .driver_info = RSVD(2) | RSVD(3) }, /* Foxcomm T99W240  */
++	{ USB_DEVICE(0x2cb7 , 0x0a05), .driver_info = RSVD(0) | RSVD(1) | RSVD(6)  }, /* Fibcom fm650  */
++	{ USB_DEVICE(0x2cb7, 0x0104), .driver_info = RSVD(4) }, /* Fibcom fm150  */
++	{ USB_DEVICE(0x2949 , 0x8800), .driver_info = RSVD(0) | RSVD(1) }, /* YouFang N510M  */
++	{ USB_DEVICE(0x2949 , 0x8801), .driver_info = RSVD(0) | RSVD(1) }, /* YouFang N510M  */
++	{ USB_DEVICE(0x2949 , 0x8802), .driver_info = RSVD(0) | RSVD(1) }, /* YouFang N510M  */
++//add end
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
+@@ -1113,6 +1125,7 @@ static const struct usb_device_id option
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EC25, 0xff, 0xff, 0xff),
+ 	  .driver_info = NUMEP2 },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EC25, 0xff, 0, 0) },
++	{ USB_DEVICE(0x2c7c, 0x030a),.driver_info = RSVD(0) | RSVD(1) | RSVD(6) | RSVD(7) | RSVD(8) },/* EM05-GL */
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EG91, 0xff, 0xff, 0xff),
+ 	  .driver_info = NUMEP2 },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EG91, 0xff, 0, 0) },
