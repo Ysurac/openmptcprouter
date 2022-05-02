@@ -51,7 +51,6 @@ ALLWIFIBOARDS:= \
 	plasmacloud_pa1200 \
 	plasmacloud_pa2200 \
     pangu_l1000 \
-	qxwlan_e2600ac
 	qxwlan_e2600ac \
 	teltonika_rutx
 
