@@ -96,9 +96,11 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "864bba55d8714a64abdf94cfb835450b8cd7789e"
-		_get_repo feeds/packages https://github.com/openwrt/packages "793e7ee484ae4ec37b1cd920b4032dde3cae69cc"
-		_get_repo feeds/luci https://github.com/openwrt/luci "701ea947fc920e63d14d8efb8287097fd63442ca"
+		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "openwrt-21.02"
+		_get_repo feeds/packages https://github.com/openwrt/packages "openwrt-21.02"
+		_get_repo feeds/luci https://github.com/openwrt/luci "openwrt-21.02"
+		_get_repo feeds/routing https://github.com/openwrt/routing "openwrt-21.02"
+		_get_repo feeds/telephony https://github.com/openwrt/telephony "openwrt-21.02"
 	else
 		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "83ca16fc4350c65110caeb7143afc9e9cd300d23"
 		_get_repo feeds/packages https://github.com/openwrt/packages "9aba2936e29ace28411e82e1ce1fb4432bcfda2c"
@@ -151,6 +153,8 @@ EOF
 cat > "$OMR_TARGET/source/feeds.conf" <<EOF
 src-link packages $(readlink -f feeds/packages)
 src-link luci $(readlink -f feeds/luci)
+src-link routing $(readlink -f feeds/routing)
+src-link telephony $(readlink -f feeds/telephony)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
