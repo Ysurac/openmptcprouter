@@ -6167,7 +6167,6 @@ CONFIG_PACKAGE_uboot-envtools=y
 CONFIG_PACKAGE_picocom=y
 # CONFIG_PACKAGE_rtty-mbedtls is not set
 # CONFIG_PACKAGE_rtty-nossl is not set
-CONFIG_PACKAGE_rtty-openssl=y
 # CONFIG_PACKAGE_rtty-wolfssl is not set
 # CONFIG_PACKAGE_screen is not set
 # CONFIG_PACKAGE_script-utils is not set
