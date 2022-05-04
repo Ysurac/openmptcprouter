@@ -132,6 +132,7 @@ if [ "$OMR_KEEPBIN" = "no" ]; then
 fi
 rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp"
 #rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-4.14"
+rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-5.4"
 cp -rf root/* "$OMR_TARGET/source"
 
 cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
