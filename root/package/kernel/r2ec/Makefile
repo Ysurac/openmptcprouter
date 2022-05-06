@@ -19,6 +19,7 @@ define KernelPackage/r2ec
 	TITLE:=STM32 R2EC (Router to Embedded board Communication) Driver
 	FILES:=$(PKG_BUILD_DIR)/r2ec.ko
 	AUTOLOAD:=$(call AutoLoad,30,r2ec,1)
+	DEPENDS:=@TARGET_ipq40xx @LINUX_5.4
 	KCONFIG:=
 endef
 
