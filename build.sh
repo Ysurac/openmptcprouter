@@ -138,6 +138,9 @@ fi
 rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp"
 #rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-4.14"
 rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-5.4"
+rm -rf "$OMR_TARGET/source/package/boot/uboot-mediatek"
+rm -rf "$OMR_TARGET/source/package/boot/arm-trusted-firmware-mediatek"
+rm -rf "$OMR_TARGET/source/tools/firmware-utils"
 cp -rf root/* "$OMR_TARGET/source"
 
 cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
