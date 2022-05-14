@@ -12,6 +12,23 @@ define Image/Prepare
 	echo -ne '\xde\xad\xc0\xde' > $(KDIR)/ubi_mark
 endef
 
+define Build/append-image
+	cp "$(BIN_DIR)/$(IMG_PREFIX)-$(DEVICE_NAME)-$(1)" "$@.stripmeta"
+	fwtool -s /dev/null -t "$@.stripmeta" || :
+	fwtool -i /dev/null -t "$@.stripmeta" || :
+	dd if="$@.stripmeta" >> "$@"
+	rm "$@.stripmeta"
+endef
+
+define Build/append-image-stage
+	cp "$(BIN_DIR)/$(IMG_PREFIX)-$(DEVICE_NAME)-$(1)" "$@.stripmeta"
+	fwtool -s /dev/null -t "$@.stripmeta" || :
+	fwtool -i /dev/null -t "$@.stripmeta" || :
+	dd if="$@.stripmeta" of="$(STAGING_DIR_IMAGE)/$(BOARD)$(if $(SUBTARGET),-$(SUBTARGET))-$(DEVICE_NAME)-$(1)"
+	dd if="$@.stripmeta" >> "$@"
+	rm "$@.stripmeta"
+endef
+
 define Build/buffalo-kernel-trx
 	$(eval magic=$(word 1,$(1)))
 	$(eval dummy=$(word 2,$(1)))
@@ -55,6 +72,8 @@ define Build/mt7622-gpt
 		)
 	cat $@.tmp >> $@
 	rm $@.tmp
+#	208
+#	976
 endef
 
 define Build/trx-nand
