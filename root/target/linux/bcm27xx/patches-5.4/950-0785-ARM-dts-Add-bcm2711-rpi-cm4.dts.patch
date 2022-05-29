@@ -424,47 +424,47 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	
 +		wlan2g {
 +				label = "wlan2g";
-+				gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 27 GPIO_ACTIVE_HIGH>;
 +			};
 +	
 +		wlan5g {
 +				label = "wlan5g";
-+				gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
 +			};
 +	
 +		wan {
 +				label = "wan";
-+				gpios = <&gpio 27 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
 +			};  
 +	   
 +		5g1 {
 +				label = "5g1";
-+				gpios = <&gpio 21 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 16 GPIO_ACTIVE_HIGH>;
 +			};  
 +	   
 +		5g2 {
 +				label = "5g2";
-+				gpios = <&gpio 20 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 12 GPIO_ACTIVE_HIGH>;
 +			};  
 +	   
 +		5g3 {
 +				label = "5g3";
-+				gpios = <&gpio 16 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 21 GPIO_ACTIVE_HIGH>;
 +			};  
 +	
 +		5g4 {
 +				label = "5g4";
-+				gpios = <&gpio 12 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 20 GPIO_ACTIVE_HIGH>;
 +			};   
 +	  
 +		5g5 {
 +				label = "5g5";
-+				gpios = <&gpio 10 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
 +			}; 
 +	    
 +		5g6 {
 +				label = "5g6";
-+				gpios = <&gpio 22 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 10 GPIO_ACTIVE_HIGH>;
 +			};
 +	  
 +		5gpwr1 {
@@ -484,17 +484,17 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	
 +		5gpwr4 {
 +				label = "5gpwr4";
-+				gpios = <&gpio 24 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 11 GPIO_ACTIVE_HIGH>;
 +			};    
 +	 
 +		5gpwr5 {
 +				label = "5gpwr5";
-+				gpios = <&gpio 23 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 9 GPIO_ACTIVE_HIGH>;
 +			};  
 +	   
 +		5gpwr6 {
 +				label = "5gpwr6";
-+				gpios = <&gpio 18 GPIO_ACTIVE_HIGH>;
++				gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
 +			};  
 +};
 +
