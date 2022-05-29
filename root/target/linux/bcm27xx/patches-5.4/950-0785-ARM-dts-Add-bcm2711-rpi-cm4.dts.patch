@@ -300,12 +300,12 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	};
 +
 +	spi3_pins: spi3_pins {
-+		brcm,pins = <1 2 3>;
++		brcm,pins = <1 2>;
 +		brcm,function = <BCM2835_FSEL_ALT3>;
 +	};
 +
 +	spi4_pins: spi4_pins {
-+		brcm,pins = <5 6 7>;
++		brcm,pins = <5 7>;
 +		brcm,function = <BCM2835_FSEL_ALT3>;
 +	};
 +
@@ -321,7 +321,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	};
 +
 +	i2c4_pins: i2c4 {
-+		brcm,pins = <8 9>;
++		brcm,pins = <8>;
 +		brcm,function = <BCM2835_FSEL_ALT5>;
 +		brcm,pull = <BCM2835_PUD_UP>;
 +	};
@@ -364,7 +364,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +	};
 +
 +	uart4_pins: uart4_pins {
-+		brcm,pins = <8 9>;
++		brcm,pins = <8>;
 +		brcm,function = <BCM2835_FSEL_ALT4>;
 +		brcm,pull = <0 2>;
 +	};
@@ -385,7 +385,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		regulator-max-microvolt = <3300000>;
 +		regulator-boot-on;
 +		enable-active-high;
-+		gpio = <&expgpio 6 GPIO_ACTIVE_HIGH>;
++		gpio = <&expgpio 600 GPIO_ACTIVE_HIGH>;
 +	};
 +};
 +
