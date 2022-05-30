@@ -385,7 +385,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		regulator-max-microvolt = <3300000>;
 +		regulator-boot-on;
 +		enable-active-high;
-+		gpio = <&expgpio 600 GPIO_ACTIVE_HIGH>;
++		
 +	};
 +};
 +
