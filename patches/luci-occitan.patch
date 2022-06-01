@@ -1,5 +1,5 @@
---- a/feeds/luci/luci.mk	2020-10-13 09:58:19.887513368 +0200
-+++ b/feeds/luci/luci.mk	2020-10-13 09:04:51.724277184 +0200
+--- a/luci/luci.mk	2020-10-13 09:58:19.887513368 +0200
++++ b/luci/luci.mk	2020-10-13 09:04:51.724277184 +0200
 @@ -34,6 +34,7 @@
  LUCI_LANG.ms=Bahasa Melayu (Malay)
  LUCI_LANG.nb_NO=Norsk (Norwegian)
