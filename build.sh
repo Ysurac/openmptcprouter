@@ -94,22 +94,22 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "b4ea8e1089b6db4367d9bd40654d7b16590ae19f"
-		_get_repo feeds/packages https://github.com/openwrt/packages "93aca6dfbe894217435e4623bc48489ab9695cd1"
-		_get_repo feeds/luci https://github.com/openwrt/luci "9139ad468599b586dbd7ca48fe5a149c95f28800"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "ce92de8c8c90aa2a6281cbfb046fcf6498b78786"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "93aca6dfbe894217435e4623bc48489ab9695cd1"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "9139ad468599b586dbd7ca48fe5a149c95f28800"
 	else
-		_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "cb1dc49c18e54fde6f8892d728c043b93dc995c3"
-		_get_repo feeds/packages https://github.com/openwrt/packages "b4043d92257505526a5b8ceac94f9f28f887abbd"
-		_get_repo feeds/luci https://github.com/openwrt/luci "111c551cdb8d14e8e5ef7c7a66ffdceb6d3cbb55"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "cb1dc49c18e54fde6f8892d728c043b93dc995c3"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "b4043d92257505526a5b8ceac94f9f28f887abbd"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "111c551cdb8d14e8e5ef7c7a66ffdceb6d3cbb55"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "master"
-	_get_repo feeds/packages https://github.com/openwrt/packages "master"
-	_get_repo feeds/luci https://github.com/openwrt/luci "master"
+	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "master"
+	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
+	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
 else
-	_get_repo "$OMR_TARGET/source" https://github.com/openwrt/openwrt "${OMR_OPENWRT}"
-	_get_repo feeds/packages https://github.com/openwrt/packages "${OMR_OPENWRT}"
-	_get_repo feeds/luci https://github.com/openwrt/luci "${OMR_OPENWRT}"
+	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "${OMR_OPENWRT}"
+	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "${OMR_OPENWRT}"
+	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "${OMR_OPENWRT}"
 fi
 
 if [ -z "$OMR_FEED" ]; then
@@ -118,7 +118,7 @@ if [ -z "$OMR_FEED" ]; then
 fi
 
 if [ -n "$CUSTOM_FEED_URL" ] && [ -z "$CUSTOM_FEED" ]; then
-	CUSTOM_FEED=feeds/${OMR_DIST}
+	CUSTOM_FEED=feeds/${OMR_KERNEL}/${OMR_DIST}
 	_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "master"
 fi
 
@@ -128,17 +128,17 @@ if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
 fi
 
 if [ "$OMR_KEEPBIN" = "no" ]; then 
-	rm -rf "$OMR_TARGET/source/bin"
+	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/bin"
 fi
-rm -rf "$OMR_TARGET/source/files" "$OMR_TARGET/source/tmp"
-#rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-4.14"
-rm -rf "$OMR_TARGET/source/target/linux/mediatek/patches-5.4"
-rm -rf "$OMR_TARGET/source/package/boot/uboot-mediatek"
-rm -rf "$OMR_TARGET/source/package/boot/arm-trusted-firmware-mediatek"
-rm -rf "$OMR_TARGET/source/tools/firmware-utils"
-cp -rf root/* "$OMR_TARGET/source"
+rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/source/tmp"
+#rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/mediatek/patches-4.14"
+rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/mediatek/patches-5.4"
+rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
+rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
+rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
+cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
 
-cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
+cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
  VERSION:     $(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)
@@ -150,18 +150,18 @@ cat >> "$OMR_TARGET/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
 EOF
 
-cat > "$OMR_TARGET/source/feeds.conf" <<EOF
-src-link packages $(readlink -f feeds/packages)
-src-link luci $(readlink -f feeds/luci)
+cat > "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf" <<EOF
+src-link packages $(readlink -f feeds/${OMR_KERNEL}/packages)
+src-link luci $(readlink -f feeds/${OMR_KERNEL}/luci)
 src-link openmptcprouter $(readlink -f "$OMR_FEED")
 EOF
 
 if [ -n "$CUSTOM_FEED" ]; then
-	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/source/feeds.conf"
+	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf"
 fi
 
 if [ "$OMR_DIST" = "openmptcprouter" ]; then
-	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<-EOF
 	src/gz openwrt_luci http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
 	src/gz openwrt_packages http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
 	src/gz openwrt_base http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
@@ -169,7 +169,7 @@ if [ "$OMR_DIST" = "openmptcprouter" ]; then
 	src/gz openwrt_telephony http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
 	EOF
 elif [ -n "$OMR_PACKAGES_URL" ]; then
-	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<-EOF
 	src/gz openwrt_luci ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
 	src/gz openwrt_packages ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/packages
 	src/gz openwrt_base ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/base
@@ -177,7 +177,7 @@ elif [ -n "$OMR_PACKAGES_URL" ]; then
 	src/gz openwrt_telephony ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
 	EOF
 else
-	cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+	cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<-EOF
 	src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
 	src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
 	src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
@@ -185,7 +185,7 @@ else
 	src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
 	EOF
 fi
-#cat > "$OMR_TARGET/source/package/system/opkg/files/customfeeds.conf" <<EOF
+#cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<EOF
 #src/gz openwrt_luci http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/luci
 #src/gz openwrt_packages http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/packages
 #src/gz openwrt_base http://downloads.openwrt.org/releases/18.06.0/packages/${OMR_REAL_TARGET}/base
@@ -194,7 +194,7 @@ fi
 #EOF
 
 if [ -f $OMR_TARGET_CONFIG ]; then
-	cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/source/.config" <<-EOF
+	cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
@@ -202,7 +202,7 @@ if [ -f $OMR_TARGET_CONFIG ]; then
 	CONFIG_VERSION_NUMBER="${OMR_RELEASE}-${OMR_KERNEL}"
 	EOF
 else
-	cat config -> "$OMR_TARGET/source/.config" <<-EOF
+	cat config -> "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
@@ -210,45 +210,45 @@ else
 	CONFIG_VERSION_NUMBER="${OMR_RELEASE}-${OMR_FEED_SRC}-$(git -C "$OMR_FEED" rev-parse --short HEAD)"
 	EOF
 fi
-#if [ "$OMR_KERNEL" = "5.14" ]; then
-#	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> "$OMR_TARGET/source/.config"
-#	echo 'CONFIG_KERNEL_GIT_REF="78828adaef8fe9b69f9a8c4b60f74b01c5a31c7a"' >> "$OMR_TARGET/source/.config"
+#if [ "${OMR_KERNEL}" = "5.14" ]; then
+#	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+#	echo 'CONFIG_KERNEL_GIT_REF="78828adaef8fe9b69f9a8c4b60f74b01c5a31c7a"' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 #fi
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
-	echo 'CONFIG_ALL=y' >> "$OMR_TARGET/source/.config"
-	echo 'CONFIG_ALL_NONSHARED=y' >> "$OMR_TARGET/source/.config"
+	echo 'CONFIG_ALL=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo 'CONFIG_ALL_NONSHARED=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
-	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/source/.config"
-	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/source/.config"
-	echo 'CONFIG_VHDX_IMAGES=y' >> "$OMR_TARGET/source/.config"
+	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo 'CONFIG_VHDX_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$OMR_PACKAGES" = "full" ]; then
-	echo "CONFIG_PACKAGE_${OMR_DIST}-full=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_${OMR_DIST}-full=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
-	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
-if [ "$SHORTCUT_FE" = "yes" ] && [ "$OMR_KERNEL" = "5.4" ]; then
-	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
-	echo "CONFIG_PACKAGE_kmod-fast-classifier-noload=y" >> "$OMR_TARGET/source/.config"
-	echo "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y" >> "$OMR_TARGET/source/.config"
-	echo "CONFIG_PACKAGE_kmod-shortcut-fe=y" >> "$OMR_TARGET/source/.config"
+if [ "$SHORTCUT_FE" = "yes" ] && [ "${OMR_KERNEL}" = "5.4" ]; then
+	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_kmod-fast-classifier-noload=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut-fe=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 else
-	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-fast-classifier-noload is not set" >> "$OMR_TARGET/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set" >> "$OMR_TARGET/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-shortcut-fe is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-fast-classifier-noload is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-shortcut-fe is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "x86" ]; then
-	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> "$OMR_TARGET/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$OMR_TARGET" = "rutx" -a "$OMR_KERNEL" = "5.4" ]; then
-	echo "CONFIG_PACKAGE_kmod-r2ec=y" >> "$OMR_TARGET/source/.config"
+	echo "CONFIG_PACKAGE_kmod-r2ec=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
@@ -256,11 +256,11 @@ if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
 	# No time to check this, now, cause i am focused on make this target work
 	# Maybe someone can do this later	
 	echo -n "Disabling error causing midnight commander (mc) package..."
-	sed -i "s/CONFIG_PACKAGE_mc=y/# CONFIG_PACKAGE_mc is not set/" "$OMR_TARGET/source/.config"
-	sed -i "s/CONFIG_MC_EDITOR=y/# CONFIG_MC_EDITOR is not set/" "$OMR_TARGET/source/.config"
-	sed -i "s/CONFIG_MC_SUBSHELL=y/# CONFIG_MC_SUBSHELL is not set/" "$OMR_TARGET/source/.config"
-	sed -i "s/CONFIG_MC_CHARSET=y/# CONFIG_MC_CHARSET is not set/" "$OMR_TARGET/source/.config"
-	sed -i "s/CONFIG_MC_VFS=y/# CONFIG_MC_VFS is not set/" "$OMR_TARGET/source/.config"	
+	sed -i "s/CONFIG_PACKAGE_mc=y/# CONFIG_PACKAGE_mc is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	sed -i "s/CONFIG_MC_EDITOR=y/# CONFIG_MC_EDITOR is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	sed -i "s/CONFIG_MC_SUBSHELL=y/# CONFIG_MC_SUBSHELL is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	sed -i "s/CONFIG_MC_CHARSET=y/# CONFIG_MC_CHARSET is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	sed -i "s/CONFIG_MC_VFS=y/# CONFIG_MC_VFS is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"	
 	echo "done"
 
 	# 2021-03-05 Oliver Welter <oliver@welter.rocks>
@@ -275,164 +275,164 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	
 	# Remove the 310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th patch
 	echo -n "Removing unwanted patches from kernel $OMR_KERNEL..."
-	rm -f "$OMR_TARGET/source/target/linux/sunxi/patches-$OMR_KERNEL/310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th.patch" >/dev/null 2>&1
+	rm -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/patches-$OMR_KERNEL/310-Revert-ARM-dts-sun7i-Add-BCM53125-switch-nodes-to-th.patch" >/dev/null 2>&1
 	echo "done"
 	
 	if [ "$OMR_FORCE_DSA" = "1" ]; then 
 		# Remove support for swconfig
 		echo -n "Removing swconfig support from openwrt config..."
 		for i in DEFAULT_swconfig PACKAGE_swconfig PACKAGE_kmod-swconfig; do
-			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/.config"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 		done
 		echo "done"
 		echo -n "Removing B53 swconfig support from kernel $OMR_KERNEL..."
 		for i in SWCONFIG_B53 SWCONFIG_B53_PHY_DRIVER SWCONFIG_LEDS LED_TRIGGER_PHY SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER; do
-			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL"
-			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
 		done
 		echo "done"
 
 		# Add support for distributed switch architecture
-		echo -n "Adding B53 DSA support to kernel $OMR_KERNEL..."		
+		echo -n "Adding B53 DSA support to kernel ${OMR_KERNEL}..."		
 		for i in B53 B53_MDIO_DRIVER BRIDGE_VLAN_FILTERING MDIO_BUS_MUX_MULTIPLEXER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
-			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
-			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
+			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true`
+			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true`
 			
-			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
 		done
 		echo "done"
 
 		# Create DSA port map file (will be filled on first boot, by uci-defaults and tells the system, that it is in DSA mode)
-		touch "$OMR_TARGET/source/target/linux/sunxi/base-files/etc/dsa.map"
+		touch "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/base-files/etc/dsa.map"
 		
 		# Remove the b53 hack in preinit
-		rm -f "$OMR_TARGET/source/target/linux/sunxi/base-files/lib/preinit/03_b53_hack.sh"
+		rm -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/base-files/lib/preinit/03_b53_hack.sh"
 	else
 		# Remove ip-bridge
 		echo -n "Removing ip-bridge support from openwrt config..."
 		for i in PACKAGE_ip-bridge; do
-			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/.config"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 		done
 		echo "done"
 
 		# Remove swconfig parts
-		echo -n "Removing unneeded B53 swconfig parts from kernel $OMR_KERNEL..."
+		echo -n "Removing unneeded B53 swconfig parts from kernel ${OMR_KERNEL}..."
 		for i in SWCONFIG_B53_PHY_FIXUP SWCONFIG_B53_SPI_DRIVER SWCONFIG_B53_MMAP_DRIVER SWCONFIG_B53_SRAB_DRIVER; do
-			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL"
-			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}"
+			sed -i "s/CONFIG_${i}/# CONFIG_${i} is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
 		done
 		echo "done"
 	fi
 		
 	# Add led support
-	echo -n "Adding LED TRIGGER support to kernel $OMR_KERNEL..."
+	echo -n "Adding LED TRIGGER support to kernel ${OMR_KERNEL}..."
 	if [ "$OMR_FORCE_DSA" != "1" ]; then
 		for i in SWCONFIG_LEDS LED_TRIGGER_PHY; do
-			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
-			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
+			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true`
+			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true`
 
-			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
 		done
 	fi
 	for i in TIMER ONESHOT DISK MTD HEARTBEAT BACKLIGHT CPU ACTIVITY GPIO DEFAULT_ON TRANSIENT CAMERA PANIC NETDEV PATTERN AUDIO; do
-		check_sunxi_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/config-$OMR_KERNEL" || true`
-		check_cortexa7_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL" || true`
+		check_sunxi_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true`
+		check_cortexa7_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true`
 
-		[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_LEDS_TRIGGER_${i}=y" >> "$OMR_TARGET/source/target/linux/sunxi/cortexa7/config-$OMR_KERNEL"
+		[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_LEDS_TRIGGER_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
 	done
-	echo "done"	
+	echo "done"
 fi
 
-cd "$OMR_TARGET/source"
+cd "$OMR_TARGET/${OMR_KERNEL}/source"
 
 #if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
 #	echo "Checking if UEFI patch is set or not"
 #	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" = "" ]; then
-#		patch -N -p1 -s < ../../patches/uefi.patch
+#		patch -N -p1 -s < ../../../patches/uefi.patch
 #	fi
 #	echo "Done"
 #else
 #	if [ "$(grep 'EFI_IMAGES' target/linux/x86/image/Makefile)" != "" ]; then
-#		patch -N -R -p1 -s < ../../patches/uefi.patch
+#		patch -N -R -p1 -s < ../../../patches/uefi.patch
 #	fi
 #fi
 
 #if [ "$OMR_TARGET" = "x86_64" ]; then 
 #	echo "Checking if Hyper-V patch is set or not"
-#	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/images.patch; then
-#		patch -N -p1 -s < ../../patches/images.patch
+#	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/images.patch; then
+#		patch -N -p1 -s < ../../../patches/images.patch
 #	fi
 #	echo "Done"
 #fi
 
 echo "Checking if No check patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nocheck.patch; then
+if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.patch; then
 	echo "apply..."
-	patch -N -p1 -s < ../../patches/nocheck.patch
+	patch -N -p1 -s < ../../../patches/nocheck.patch
 fi
 echo "Done"
 
 echo "Checking if Nanqinlang patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/nanqinlang.patch; then
+if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nanqinlang.patch; then
 	echo "apply..."
-	patch -N -p1 -s < ../../patches/nanqinlang.patch
+	patch -N -p1 -s < ../../../patches/nanqinlang.patch
 fi
 echo "Done"
 
 #echo "Checking if remove_abi patch is set or not"
-#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/remove_abi.patch; then
+#if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/remove_abi.patch; then
 #	echo "apply..."
-#	patch -N -p1 -s < ../../patches/remove_abi.patch
+#	patch -N -p1 -s < ../../../patches/remove_abi.patch
 #fi
 #echo "Done"
 
 # Add BBR2 patch, only working on 64bits images for now
 if [ "$OMR_KERNEL" = "5.4" ] && ([ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "rpi3" ]); then
 	echo "Checking if BBRv2 patch is set or not"
-	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/bbr2.patch; then
+	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/bbr2.patch; then
 		echo "apply..."
-		patch -N -p1 -s < ../../patches/bbr2.patch
+		patch -N -p1 -s < ../../../patches/bbr2.patch
 	fi
 	echo "Done"
 fi
 
 echo "Checking if smsc75xx patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/smsc75xx.patch; then
+if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/smsc75xx.patch; then
 	echo "apply..."
-	patch -N -p1 -s < ../../patches/smsc75xx.patch
+	patch -N -p1 -s < ../../../patches/smsc75xx.patch
 fi
 echo "Done"
 
 #echo "Checking if ipt-nat patch is set or not"
-#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/ipt-nat6.patch; then
+#if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/ipt-nat6.patch; then
 #	echo "apply..."
-#	patch -N -p1 -s < ../../patches/ipt-nat6.patch
+#	patch -N -p1 -s < ../../../patches/ipt-nat6.patch
 #fi
 #echo "Done"
 
 #echo "Checking if mvebu patch is set or not"
 #if [ ! -d target/linux/mvebu/patches-5.4 ]; then
 #	echo "apply..."
-#	patch -N -p1 -s < ../../patches/mvebu-5.14.patch
+#	patch -N -p1 -s < ../../../patches/mvebu-5.14.patch
 #fi
 #echo "Done"
 
 #echo "Checking if opkg install arguement too long patch is set or not"
-#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/package-too-long.patch; then
+#if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/package-too-long.patch; then
 #	echo "apply..."
-#	patch -N -p1 -s < ../../patches/package-too-long.patch
+#	patch -N -p1 -s < ../../../patches/package-too-long.patch
 #fi
 #echo "Done"
 
 echo "Download via IPv4"
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/download-ipv4.patch; then
-	patch -N -p1 -s < ../../patches/download-ipv4.patch
+if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/download-ipv4.patch; then
+	patch -N -p1 -s < ../../../patches/download-ipv4.patch
 fi
 echo "Done"
 
 #echo "Remove check rsync"
 #if [ "$(grep rsync include/prereq-build.mk)" != "" ]; then
-#	patch -N -p1 -s < ../../patches/check-rsync.patch
+#	patch -N -p1 -s < ../../../patches/check-rsync.patch
 #fi
 #echo "Done"
 
@@ -449,12 +449,12 @@ if [ -f package/boot/uboot-rockchip/patches/100-rockchip-rk3328-Add-support-for-
 fi
 
 #echo "Patch protobuf wrong hash"
-#patch -N -R -p1 -s < ../../patches/protobuf_hash.patch
+#patch -N -R -p1 -s < ../../../patches/protobuf_hash.patch
 #echo "Done"
 
 #echo "Remove gtime dependency"
-#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/gtime.patch; then
-#	patch -N -p1 -s < ../../patches/gtime.patch
+#if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/gtime.patch; then
+#	patch -N -p1 -s < ../../../patches/gtime.patch
 #fi
 #echo "Done"
 
@@ -634,23 +634,26 @@ if [ "$OMR_KERNEL" = "5.15" ]; then
 fi
 
 #rm -rf feeds/packages/libs/libwebp
-cd "../.."
-rm -rf feeds/luci/modules/luci-mod-network
-[ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/luci/modules/luci-mod-status
-[ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/luci/applications/luci-app-statistics
-[ -d feeds/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/luci/protocols/luci-proto-modemmanager
-[ -d feeds/${OMR_DIST}/netifd ] && rm -rf package/network/config/netifd
-[ -d feeds/${OMR_DIST}/iperf3 ] && rm -rf feeds/packages/net/iperf3
+cd "../../.."
+rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
+[ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
+[ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
+#[ -d feeds/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/${OMR_KERNEL}/luci/protocols/luci-proto-modemmanager
+[ -d ${OMR_FEED}/netifd ] && rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/config/netifd
+[ -d ${OMR_FEED}/iperf3 ] && rm -rf feeds/${OMR_KERNEL}/packages/net/iperf3
+[ -d ${OMR_FEED}/golang ] && rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
 
 echo "Add Occitan translation support"
-if ! patch -Rf -N -p1 -s --dry-run < patches/luci-occitan.patch; then
-	patch -N -p1 -s < patches/luci-occitan.patch
+cd feeds/${OMR_KERNEL}
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
+	patch -N -p1 -s < ../../patches/luci-occitan.patch
 	#sh feeds/luci/build/i18n-add-language.sh oc
 fi
-[ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/luci/modules/luci-base/po/
+cd ../..
+[ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/${OMR_KERNEL}/luci/modules/luci-base/po/
 echo "Done"
 
-cd "$OMR_TARGET/source"
+cd "$OMR_TARGET/${OMR_KERNEL}/source"
 echo "Update feeds index"
 cp .config .config.keep
 scripts/feeds clean
@@ -663,7 +666,7 @@ scripts/feeds update -a
 #	patch -N -p1 -s < patches/fullconenat-luci.patch
 #fi
 #echo "Done"
-#cd "$OMR_TARGET/source"
+#cd "$OMR_TARGET/${OMR_KERNEL}/source"
 
 if [ "$OMR_ALL_PACKAGES" = "yes" ]; then
 	scripts/feeds install -a -d m -p packages
@@ -680,12 +683,12 @@ cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
 
-if [ ! -f "../../$OMR_TARGET_CONFIG" ]; then
+if [ ! -f "../../../$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found ! You have to configure and compile your kernel manually."
 	exit 1
 fi
 
-echo "Building $OMR_DIST for the target $OMR_TARGET with kernel $OMR_KERNEL"
+echo "Building $OMR_DIST for the target $OMR_TARGET with kernel ${OMR_KERNEL}"
 make defconfig
 make IGNORE_ERRORS=m "$@"
 echo "Done"
