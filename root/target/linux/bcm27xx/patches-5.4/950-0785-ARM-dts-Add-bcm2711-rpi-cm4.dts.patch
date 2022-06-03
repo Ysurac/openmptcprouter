@@ -299,9 +299,30 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
 +	};
 +
++	spi3_pins: spi3_pins {
++		brcm,pins = <1 2>;
++		brcm,function = <BCM2835_FSEL_ALT3>;
++	};
++
++	spi4_pins: spi4_pins {
++		brcm,pins = <5 7>;
++		brcm,function = <BCM2835_FSEL_ALT3>;
++	};
++
++	spi4_cs_pins: spi4_cs_pins {
++		brcm,pins = <4 25>;
++		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
++	};
++
 +	i2c0_pins: i2c0 {
 +		brcm,pins = <0 1>;
 +		brcm,function = <BCM2835_FSEL_ALT0>;
++		brcm,pull = <BCM2835_PUD_UP>;
++	};
++
++	i2c4_pins: i2c4 {
++		brcm,pins = <8>;
++		brcm,function = <BCM2835_FSEL_ALT5>;
 +		brcm,pull = <BCM2835_PUD_UP>;
 +	};
 +
@@ -342,6 +363,11 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		brcm,pull = <0 2>;
 +	};
 +
++	uart4_pins: uart4_pins {
++		brcm,pins = <8>;
++		brcm,function = <BCM2835_FSEL_ALT4>;
++		brcm,pull = <0 2>;
++	};
 +};
 +
 +&i2c0if {
@@ -350,6 +376,18 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +
 +// =============================================
 +// Board specific stuff here
++
++/ {
++	sd_vcc_reg: sd_vcc_reg {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc-sd";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++		enable-active-high;
++		
++	};
++};
 +
 +&sdhost {
 +	status = "disabled";
