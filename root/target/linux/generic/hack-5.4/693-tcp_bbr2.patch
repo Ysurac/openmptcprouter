@@ -3310,10 +3310,11 @@ index 0de693565963..796fa6e5310c 100644
  }
  
  /* When an skb is sacked or acked, we fill in the rate sample with the (prior)
-@@ -86,16 +107,20 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
- 
+@@ -86,18 +107,22 @@ void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
+ 	tx_tstamp = tcp_skb_timestamp_us(skb);
  	if (!rs->prior_delivered ||
- 	    after(scb->tx.delivered, rs->prior_delivered)) {
+ 	    tcp_skb_sent_after(tx_tstamp, tp->first_tx_mstamp,
+ 			       scb->end_seq, rs->last_end_seq)) {
 +		rs->prior_lost	     = scb->tx.lost;
 +		rs->prior_delivered_ce  = scb->tx.delivered_ce;
  		rs->prior_delivered  = scb->tx.delivered;
@@ -3321,9 +3322,10 @@ index 0de693565963..796fa6e5310c 100644
  		rs->is_app_limited   = scb->tx.is_app_limited;
  		rs->is_retrans	     = scb->sacked & TCPCB_RETRANS;
 +		rs->tx_in_flight     = scb->tx.in_flight;
+ 		rs->last_end_seq     = scb->end_seq;
  
  		/* Record send time of most recently ACKed packet: */
- 		tp->first_tx_mstamp  = tcp_skb_timestamp_us(skb);
+ 		tp->first_tx_mstamp  = tx_tstamp;
  		/* Find the duration of the "send phase" of this window: */
 -		rs->interval_us = tcp_stamp_us_delta(tp->first_tx_mstamp,
 -						     scb->tx.first_tx_mstamp);
