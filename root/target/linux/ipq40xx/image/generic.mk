@@ -46,42 +46,6 @@ define Build/append-rootfshdr
 	dd if=$@.new bs=64 count=1 >> $(IMAGE_KERNEL)
 endef
 
-define Build/append-rutx-metadata
-	echo \
-	    '{ \
-		"device_code": [".*"], \
-		"hwver": [".*"], \
-		"batch": [".*"], \
-		"serial": [".*"], \
-		"supported_devices":["teltonika,rutx"] \
-	    }' | fwtool -I - $@
-endef
-
-define Build/fit-rutx
-        $(TOPDIR)/scripts/mkits-rutx.sh \
-                -D $(DEVICE_NAME) -o $@.its -k $@ \
-                $(if $(word 2,$(1)),-d $(word 2,$(1))) -C $(word 1,$(1)) \
-                -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
-                $(if $(DEVICE_FDT_NUM),-n $(DEVICE_FDT_NUM)) \
-                -c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config@1") \
-                -A $(LINUX_KARCH) -v $(LINUX_VERSION)
-        PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
-        @mv $@.new $@
-endef
-
-define Build/UbootFw
-        $(CP) ./uboot_fw/ $(STAGING_DIR_HOST)/
-        if [ -e $(STAGING_DIR_HOST)/uboot_fw/tz.mbn ]; then \
-                $(SED) 's~file\.ubi~$@~g' $(STAGING_DIR_HOST)/uboot_fw/norplusnand-flash.conf; \
-                $(SED) 's~file\.elf~$(BIN_DIR)/openwrt-ipq40xx-u-boot-stripped.elf~g'  $(STAGING_DIR_HOST)/uboot_fw/norplusnand-flash.conf; \
-                python $(KDIR)/uboot-1.0/tools/pack.py -t norplusnand -B -F boardconfig_premium_tlt -o $@ $(STAGING_DIR_HOST)/uboot_fw; \
-        else \
-                $(SED) 's~file\.ubi~$@~g' $(STAGING_DIR_HOST)/uboot_fw/norplusnand-apps-flash.conf; \
-                $(SED) 's~file\.elf~$(BIN_DIR)/openwrt-ipq40xx-u-boot-stripped.elf~g'  $(STAGING_DIR_HOST)/uboot_fw/norplusnand-apps-flash.conf; \
-                python $(KDIR)/uboot-1.0/tools/pack.py -t norplusnand -B -F appsboardconfig_premium_tlt -o $@ $(STAGING_DIR_HOST)/uboot_fw; \
-        fi
-endef
-
 define Build/mkmylofw_32m
 	$(eval device_id=$(word 1,$(1)))
 	$(eval revision=$(word 2,$(1)))
@@ -821,30 +785,6 @@ define Device/qxwlan_e2600ac-c2
 	DEVICE_PACKAGES := ipq-wifi-qxwlan_e2600ac
 endef
 TARGET_DEVICES += qxwlan_e2600ac-c2
-
-define Device/teltonika_rutx
-	$(call Device/FitImage)
-	$(call Device/UbiFit)
-	DEVICE_VENDOR := Teltonika
-	DEVICE_MODEL := RUTX
-	BOARD_NAME := rutx
-	SOC := qcom-ipq4018
-	DEVICE_DTS_DIR := ../dts
-	DEVICE_DTS := $(foreach dts,$(notdir $(wildcard $(PLATFORM_DIR)/dts/*.dts)),$(patsubst %.dts,%,$(dts)))
-	DEVICE_DTS_CONFIG := config@5
-	KERNEL = kernel-bin | gzip | fit-rutx gzip "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
-	KERNEL_INSTALL := 1
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	FILESYSTEMS := squashfs
-	KERNEL_IN_UBI := 1
-	IMAGES := sysupgrade.bin
-	IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
-	#DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth kmod-r2ec sysupgrade-helper
-	DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth sysupgrade-helper
-	HW_SUPPORT := io_expander%stm32:shiftreg_1
-endef
-TARGET_DEVICES += teltonika_rutx
 
 define Device/unielec_u4019-32m
 	$(call Device/FitImage)

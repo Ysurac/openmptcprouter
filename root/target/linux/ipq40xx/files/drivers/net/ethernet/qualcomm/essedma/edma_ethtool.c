@@ -16,7 +16,6 @@
 #include <linux/ethtool.h>
 #include <linux/netdevice.h>
 #include <linux/string.h>
-#include <linux/version.h>
 #include "edma.h"
 
 struct edma_ethtool_stats {
@@ -244,14 +243,8 @@ static int edma_set_settings(struct net_device *netdev,
 /* edma_get_coalesce
  *	get interrupt mitigation
  */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
-static int edma_get_coalesce(struct net_device *dev, struct ethtool_coalesce *ec,
-			     struct kernel_ethtool_coalesce *kernel_coal,
-			     struct netlink_ext_ack *extack)
-#else
 static int edma_get_coalesce(struct net_device *netdev,
 			     struct ethtool_coalesce *ec)
-#endif
 {
 	u32 reg_val;
 
@@ -272,14 +265,8 @@ static int edma_get_coalesce(struct net_device *netdev,
 /* edma_set_coalesce
  *	set interrupt mitigation
  */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
-static int edma_set_coalesce(struct net_device *dev, struct ethtool_coalesce *ec,
-			     struct kernel_ethtool_coalesce *kernel_coal,
-			     struct netlink_ext_ack *extack)
-#else
 static int edma_set_coalesce(struct net_device *netdev,
 			     struct ethtool_coalesce *ec)
-#endif
 {
 	if (ec->tx_coalesce_usecs)
 		edma_change_tx_coalesce(ec->tx_coalesce_usecs);
@@ -321,9 +308,6 @@ static void edma_get_ringparam(struct net_device *netdev,
 /* Ethtool operations
  */
 static const struct ethtool_ops edma_ethtool_ops = {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,7,0)
-	.supported_coalesce_params = ETHTOOL_COALESCE_USECS,
-#endif
 	.get_drvinfo = &edma_get_drvinfo,
 	.get_link = &ethtool_op_get_link,
 	.get_msglevel = &edma_get_msglevel,
