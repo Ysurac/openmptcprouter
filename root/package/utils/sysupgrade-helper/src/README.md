@@ -1,2 +1,0 @@
-# uboot-ipq86xx
-
