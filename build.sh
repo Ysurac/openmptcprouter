@@ -152,8 +152,6 @@ cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<
  VERSION:     $(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)
  TARGET:      $OMR_TARGET
  ARCH:        $OMR_REAL_TARGET
-
- BUILD REPO:  $(git config --get remote.origin.url)
  BUILD DATE:  $(date -u)
 -----------------------------------------------------
 EOF
