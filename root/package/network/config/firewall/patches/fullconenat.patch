@@ -11,7 +11,7 @@
  	struct list_head cthelpers;
 --- a/zones.c
 +++ b/zones.c
-@@ -77,6 +77,8 @@ const struct fw3_option fw3_zone_opts[] = {
+@@ -77,6 +77,8 @@ const struct fw3_option fw3_zone_opts[]
  	FW3_LIST("masq_src",           network,  zone,     masq_src),
  	FW3_LIST("masq_dest",          network,  zone,     masq_dest),
  
@@ -20,29 +20,21 @@
  	FW3_OPT("extra",               string,   zone,     extra_src),
  	FW3_OPT("extra_src",           string,   zone,     extra_src),
  	FW3_OPT("extra_dest",          string,   zone,     extra_dest),
-@@ -753,10 +755,21 @@ print_zone_rule(struct fw3_ipt_handle *handle, struct fw3_state *state,
+@@ -709,7 +711,16 @@ print_zone_rule(struct fw3_ipt_handle *h
+ 				     (mdest = next_addr(mdest, &zone->masq_dest,
  					                    handle->family, false)) || first_dest;
  				     first_dest = false)
- 				{
--					r = fw3_ipt_rule_new(handle);
--					fw3_ipt_rule_src_dest(r, msrc, mdest);
--					fw3_ipt_rule_target(r, "MASQUERADE");
--					fw3_ipt_rule_append(r, "zone_%s_postrouting", zone->name);
-+				    if (zone->fullcone && (access("/usr/lib/iptables/libipt_FULLCONENAT.so", 0) == 0)) {
-+						r = fw3_ipt_rule_new(handle);
-+						fw3_ipt_rule_src_dest(r, msrc, mdest);
-+						fw3_ipt_rule_target(r, "FULLCONENAT");
-+						fw3_ipt_rule_append(r, "zone_%s_postrouting", zone->name);
-+						r = fw3_ipt_rule_new(handle);
-+						fw3_ipt_rule_src_dest(r, msrc, mdest);
-+						fw3_ipt_rule_target(r, "FULLCONENAT");
-+						fw3_ipt_rule_append(r, "zone_%s_prerouting", zone->name);
-+					} else {
-+						r = fw3_ipt_rule_new(handle);
-+						fw3_ipt_rule_src_dest(r, msrc, mdest);
-+						fw3_ipt_rule_target(r, "MASQUERADE");
-+						fw3_ipt_rule_append(r, "zone_%s_postrouting", zone->name);
-+					}
- 				}
- 			}
- 		}
+-				{
++				if (zone->fullcone && (access("/usr/lib/iptables/libipt_FULLCONENAT.so", 0) == 0)) {
++					r = fw3_ipt_rule_new(handle);
++					fw3_ipt_rule_src_dest(r, msrc, mdest);
++					fw3_ipt_rule_target(r, "FULLCONENAT");
++					fw3_ipt_rule_append(r, "zone_%s_postrouting", zone->name);
++					r = fw3_ipt_rule_new(handle);
++					fw3_ipt_rule_src_dest(r, msrc, mdest);
++					fw3_ipt_rule_target(r, "FULLCONENAT");
++					fw3_ipt_rule_append(r, "zone_%s_prerouting", zone->name);
++				} else {
+ 					r = fw3_ipt_rule_new(handle);
+ 					fw3_ipt_rule_src_dest(r, msrc, mdest);
+ 					fw3_ipt_rule_target(r, "MASQUERADE");
