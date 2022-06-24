@@ -47,13 +47,11 @@ ALLWIFIBOARDS:= \
 	mikrotik_sxtsq-5-ac \
 	mobipromo_cm520-79f \
 	nec_wg2600hp3 \
-	p2w_r619ac \
 	plasmacloud_pa1200 \
 	plasmacloud_pa2200 \
-    pangu_l1000 \
+	pangu_l1000 \
+	teltonika_rutx\
 	qxwlan_e2600ac
-	qxwlan_e2600ac \
-	teltonika_rutx
 
 ALLWIFIPACKAGES:=$(foreach BOARD,$(ALLWIFIBOARDS),ipq-wifi-$(BOARD))
 
@@ -139,7 +137,6 @@ $(eval $(call generate-ipq-wifi-package,nec_wg2600hp3,NEC Platforms WG2600HP3))
 $(eval $(call generate-ipq-wifi-package,plasmacloud_pa1200,Plasma Cloud PA1200))
 $(eval $(call generate-ipq-wifi-package,plasmacloud_pa2200,Plasma Cloud PA2200))
 $(eval $(call generate-ipq-wifi-package,pangu_l1000,PANGU L1000))
-$(eval $(call generate-ipq-wifi-package,p2w_r619ac,P&W R619AC))
 $(eval $(call generate-ipq-wifi-package,teltonika_rutx,Teltonika RUTX))
-
+$(eval $(call generate-ipq-wifi-package,qxwlan_e2600ac,Qxwlan E2600AC))
 $(foreach PACKAGE,$(ALLWIFIPACKAGES),$(eval $(call BuildPackage,$(PACKAGE))))
