@@ -62,7 +62,7 @@ platform_do_upgrade() {
 	aruba,ap-303h |\
 	pangu,l1000 |\
 	zbt,z4019 |\
-	nhx,nhx4019|\
+	nhx,nhx4019 |\
 	aruba,ap-365 |\
 	avm,fritzbox-7530 |\
 	avm,fritzrepeater-1200 |\

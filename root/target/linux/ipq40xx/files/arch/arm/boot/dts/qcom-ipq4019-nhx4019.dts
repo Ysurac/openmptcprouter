@@ -4,7 +4,6 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/soc/qcom,tcsr.h>
-#include <dt-bindings/leds/common.h>
 
 / {
 	model = "openmptcprouter5GX3";
@@ -253,31 +252,10 @@
 			partition@f0000 {
 				label = "0:APPSBL";
 				reg = <0xf0000 0x80000>;
-				read-only;
 			};
-			partition@170000 {
+			art: partition@170000 {
 				label = "0:ART";
 				reg = <0x170000 0x10000>;
-				read-only;
-				compatible = "nvmem-cells";
-				#address-cells = <1>;
-				#size-cells = <1>;
-
-				macaddr_art_12: macaddr@12 {
-					reg = <0x12 0x6>;
-				};
-
-				macaddr_art_18: macaddr@18 {
-					reg = <0x18 0x6>;
-				};
-
-				precal_art_1000: precal@1000 {
-					reg = <0x1000 0x2f20>;
-				};
-
-				precal_art_5000: precal@5000 {
-					reg = <0x5000 0x2f20>;
-				};
 			};
 		};
 	};
@@ -467,6 +445,14 @@
 	};
 };
 
+&gmac0 {
+	mtd-mac-address = <&art 0x0>;
+};
+
+&gmac1 {
+	mtd-mac-address = <&art 0x6>;
+};
+
 &ethphy0 {
 	qcom,single-led-1000;
 	qcom,single-led-100;
@@ -515,12 +501,8 @@
 
 &wifi0 {
 	status = "okay";
-	nvmem-cell-names = "pre-calibration", "mac-address";
-	nvmem-cells = <&precal_art_1000>, <&macaddr_art_12>;
 };
 
 &wifi1 {
 	status = "okay";
-	nvmem-cell-names = "pre-calibration", "mac-address";
-	nvmem-cells = <&precal_art_5000>, <&macaddr_art_18>;
 };

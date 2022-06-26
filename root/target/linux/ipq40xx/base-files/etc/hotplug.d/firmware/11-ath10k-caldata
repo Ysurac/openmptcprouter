@@ -110,6 +110,10 @@ case "$FIRMWARE" in
 	unielec,u4019-32m)
 		caldata_extract "0:ART" 0x1000 0x2f20
 		;;
+	nhx,nhx4019)
+		caldata_extract "0:ART" 0x1000 0x2f20
+		ath10k_patch_mac $(mtd_get_mac_binary "0:ART" 0x12)
+		;;
 	devolo,magic-2-wifi-next)
 		caldata_extract "ART" 0x1000 0x2f20
 		ath10k_patch_mac $(mtd_get_mac_ascii APPSBLENV WiFiMacAddress0)
@@ -224,8 +228,13 @@ case "$FIRMWARE" in
 	plasmacloud,pa2200 |\
 	qxwlan,e2600ac-c1 |\
 	qxwlan,e2600ac-c2 |\
+	nhx,nhx4019 |\
 	unielec,u4019-32m)
 		caldata_extract "0:ART" 0x5000 0x2f20
+		;;
+	nhx,nhx4019)
+		caldata_extract "0:ART" 0x5000 0x2f20
+		ath10k_patch_mac $(mtd_get_mac_binary "0:ART" 0x18)
 		;;
 	devolo,magic-2-wifi-next)
 		caldata_extract "ART" 0x5000 0x2f20
