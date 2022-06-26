@@ -2725,7 +2725,6 @@ CONFIG_PACKAGE_libiwinfo-data=y
 # CONFIG_PACKAGE_ipq-wifi-mobipromo_cm520-79f is not set
 # CONFIG_PACKAGE_ipq-wifi-nec_wg2600hp3 is not set
 # CONFIG_PACKAGE_ipq-wifi-p2w_r619ac is not set
-CONFIG_PACKAGE_ipq-wifi-pangu_l1000=y
 # CONFIG_PACKAGE_ipq-wifi-plasmacloud_pa1200 is not set
 # CONFIG_PACKAGE_ipq-wifi-plasmacloud_pa2200 is not set
 # CONFIG_PACKAGE_ipq-wifi-qxwlan_e2600ac is not set
