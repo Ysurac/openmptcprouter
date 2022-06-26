@@ -41,6 +41,11 @@ engenius,eap2200)
 	ucidef_set_led_netdev "lan2" "LAN2" "blue:lan2" "eth1"
 	;;
 engenius,ens620ext)
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "nhx:wifi2" "phy0tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "nhx:wifi5g" "phy1tpt"
+	ucidef_set_led_netdev "wan" "WAN" "nhx:net" "eth1"
+	;;
+nhx,nhx4019)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "green:wlan2g" "phy0tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "green:wlan5g" "phy1tpt"
 	ucidef_set_led_netdev "lan1" "LAN1" "green:lan1" "eth0"
