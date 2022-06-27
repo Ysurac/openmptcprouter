@@ -98,63 +98,47 @@
 		led_sys: status {
 			label = "nhx:system";
 			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "none";
-			default-state = "off";
 		};
 
 		lte1 {
 			label = "nhx:5g1";
 			gpio = <&tlmm 1 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "none";
-			default-state = "off";
 		};
 
 		lterssi1 {
 			label = "nhx:5g2";
 			gpio = <&tlmm 2 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "none";
-			default-state = "off";
 		};
 
 		lterssi2 {
 			label = "nhx:5g3";
 			gpio = <&tlmm 3 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "none";
-			default-state = "off";
 		};
 
 		lterssi3 {
 			label = "nhx:wifi2";
 			gpio = <&tlmm 4 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "none";
-			default-state = "off";
 		};
 
 		wifi {
 			label = "nhx:wifi5";
 			gpio = <&tlmm 36 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "none";
-			default-state = "off";
 		};
 
 		err {
 			label = "nhx:net";
 			gpio = <&tlmm 37 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "none";
-			default-state = "off";
 		};
 
 		net {
 			label = "nhx:xnet";
 			gpio = <&tlmm 44 GPIO_ACTIVE_HIGH>;
-			linux,default-trigger = "none";
-			default-state = "off";
 		};
 	};
 
 	gpio-export {
 		compatible = "gpio-export";
-		pinctrl-0 = <&m2_pins>;
+		pinctrl-0 = <&power_pins>;
 		pinctrl-names = "default";
 
 		m2power {
@@ -169,16 +153,33 @@
 			gpio = <&tlmm 49 GPIO_ACTIVE_HIGH>;
 		};
 
-		wdpower {
-			gpio-export,name = "wdpower";
+		m2dcpower {
+			gpio-export,name = "m2dcpower";
 			gpio-export,output = <1>;
-			gpio = <&tlmm 51 GPIO_ACTIVE_LOW>; // high enbale
+			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
 		};
 
-		wdsig {
-			gpio-export,name = "wdsig";
+		pcie1dcpower {
+			gpio-export,name = "pcie1dcpower";
 			gpio-export,output = <1>;
 			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
+		};
+
+		pcie1rst {
+			gpio-export,name = "pcie1rst";
+			gpio-export,output = <1>;
+			gpio = <&tlmm 42 GPIO_ACTIVE_HIGH>;
+		};
+
+		pcie2dcpower {
+			gpio-export,name = "pcie2dcpower";
+			gpio-export,output = <1>;
+			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
+		};
+		pcie2rst {
+			gpio-export,name = "pcie2rst";
+			gpio-export,output = <1>;
+			gpio = <&tlmm 43 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -426,21 +427,62 @@
 		};
 	};
 
-	m2_pins: m2_pinmux {
-		mux_1 {
-			pins = "gpio48", "gpio49";
+	power_pins: m2_pinmux {
+		m2_pwr_en {
+			pins = "gpio48";
 			function = "gpio";
 			drive-strength = <2>;
 			bias-none;
 			output-high;
 		};
 
-		mux_2 {
-			pins = "gpio50", "gpio51";
+		m2_reset {
+			pins = "gpio49";
 			function = "gpio";
 			drive-strength = <2>;
 			bias-none;
 			output-high;
+		};
+
+		m2_dc_en {
+			pins = "gpio51";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
+
+		pcie1_dc_en {
+			pins = "gpio50";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
+
+		pcie1_reset {
+			pins = "gpio42";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
+
+		pcie2_dc_en {
+			pins = "gpio46";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
+
+		pcie2_reset {
+			pins = "gpio43";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+			};
 		};
 	};
 };
@@ -451,36 +493,6 @@
 
 &gmac1 {
 	mtd-mac-address = <&art 0x6>;
-};
-
-&ethphy0 {
-	qcom,single-led-1000;
-	qcom,single-led-100;
-	qcom,single-led-10;
-};
-
-&ethphy1 {
-	qcom,single-led-1000;
-	qcom,single-led-100;
-	qcom,single-led-10;
-};
-
-&ethphy2 {
-	qcom,single-led-1000;
-	qcom,single-led-100;
-	qcom,single-led-10;
-};
-
-&ethphy3 {
-	qcom,single-led-1000;
-	qcom,single-led-100;
-	qcom,single-led-10;
-};
-
-&ethphy4 {
-	qcom,single-led-1000;
-	qcom,single-led-100;
-	qcom,single-led-10;
 };
 
 &usb3_ss_phy {

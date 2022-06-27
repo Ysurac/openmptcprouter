@@ -61,6 +61,7 @@ Signed-off-by: John Crispin <john@phrozen.org>
 +	qcom-ipq4019-u4019-32m.dtb \
 +	qcom-ipq4019-wpj419.dtb \
 +	qcom-ipq4019-wtr-m2133hp.dtb \
++	qcom-ipq4019-nhx4019.dtb \
 +	qcom-ipq4028-wpj428.dtb \
 +	qcom-ipq4029-ap-303.dtb \
 +	qcom-ipq4029-ap-303h.dtb \
@@ -70,7 +71,6 @@ Signed-off-by: John Crispin <john@phrozen.org>
 +	qcom-ipq4029-mr33.dtb \
 +	qcom-ipq4019-l1000.dtb \
 +	qcom-ipq4019-z4019.dtb \
-+	qcom-ipq4019-nhx4019.dtb \
  	qcom-ipq8064-ap148.dtb \
  	qcom-msm8660-surf.dtb \
  	qcom-msm8960-cdp.dtb \
