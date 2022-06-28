@@ -427,7 +427,7 @@
 		};
 	};
 
-	power_pins: m2_pin {
+	power_pins: m2_pins {
 		m2_pwr_en {
 			pins = "gpio48";
 			function = "gpio";
