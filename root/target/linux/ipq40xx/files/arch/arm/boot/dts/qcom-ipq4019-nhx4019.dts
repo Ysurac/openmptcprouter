@@ -1,4 +1,7 @@
-// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+// SPDX-License-Identifier: ISC
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017-2018, Sven Eckelmann <sven.eckelmann@openmesh.com>
+ */
 
 #include "qcom-ipq4019.dtsi"
 #include <dt-bindings/gpio/gpio.h>
@@ -331,15 +334,6 @@
 };
 
 &tlmm {
-	pcie_pins: pcie_pinmux {
-		mux {
-			pins = "gpio2";
-			function = "gpio";
-			output-low;
-			bias-pull-down;
-		};
-	};
-
 	mdio_pins: mdio_pinmux {
 		mux_1 {
 			pins = "gpio6";
@@ -351,20 +345,6 @@
 			pins = "gpio7";
 			function = "mdc";
 			bias-pull-up;
-		};
-	};
-
-	sd_0_pins: sd_0_pinmux {
-		mux_1 {
-			pins = "gpio23", "gpio24", "gpio25", "gpio26", "gpio28";
-			function = "sdio";
-			drive-strength = <10>;
-		};
-
-		mux_2 {
-			pins = "gpio27";
-			function = "sdio";
-			drive-strength = <16>;
 		};
 	};
 
@@ -385,21 +365,41 @@
 	};
 
 	nand_pins: nand_pins {
-
 		pullups {
-			pins = "gpio53", "gpio58", "gpio59";
+			pins =  "gpio52", "gpio53", "gpio58", "gpio59";
 			function = "qpic";
 			bias-pull-up;
 		};
 
 		pulldowns {
-			pins = "gpio54", "gpio55", "gpio56",
-				"gpio57", "gpio60", "gpio61",
-				"gpio62", "gpio63", "gpio64",
-				"gpio65", "gpio66", "gpio67",
-				"gpio68", "gpio69";
+			pins = "gpio54", "gpio55", "gpio56", "gpio57",
+				"gpio60", "gpio62", "gpio63", "gpio64",
+				"gpio65", "gpio66", "gpio67", "gpio68",
+				"gpio69";
 			function = "qpic";
 			bias-pull-down;
+		};
+	};
+
+	sd_0_pins: sd_pins {
+		pinmux {
+			function = "sdio";
+			pins = "gpio23", "gpio24", "gpio25", "gpio26",
+				"gpio28", "gpio29", "gpio30", "gpio31";
+			drive-strength = <10>;
+		};
+
+		pinmux_sd_clk {
+			function = "sdio";
+			pins = "gpio27";
+			drive-strength = <16>;
+		};
+
+		pinmux_sd7 {
+			function = "sdio";
+			pins = "gpio32";
+			drive-strength = <10>;
+			bias-disable;
 		};
 	};
 
@@ -427,53 +427,63 @@
 		};
 	};
 
-	m2_pwr_en {
-		line-name = "m2_pwr_en";
-		gpios = <48 GPIO_ACTIVE_HIGH>;
-		gpio-hog;
-		output-high;
-	};
+	power_pins: power_pins {
+		m2_pwr_en {
+			pins = "gpio48";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
 
-	m2_reset {
-		line-name = "m2_reset";
-		gpios = <49 GPIO_ACTIVE_HIGH>;
-		gpio-hog;
-		output-high;
-	};
+		m2_reset {
+			pins = "gpio49";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
 
-	m2_dc_en {
-		line-name = "m2_dc_en";
-		gpios = <51 GPIO_ACTIVE_HIGH>;
-		gpio-hog;
-		output-high;
-	};
+		m2_dc_en {
+			pins = "gpio51";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
 
-	pcie1_dc_en {
-		line-name = "pcie1_dc_en";
-		gpios = <50 GPIO_ACTIVE_HIGH>;
-		gpio-hog;
-		output-high;
-	};
+		pcie1_dc_en {
+			pins = "gpio50";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
 
-	pcie1_reset {
-		line-name = "pcie1_reset";
-		gpios = <42 GPIO_ACTIVE_HIGH>;
-		gpio-hog;
-		output-high;
-	};
+		pcie1_reset {
+			pins = "gpio42";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
 
-	pcie2_dc_en {
-		line-name = "pcie2_dc_en";
-		gpios = <46 GPIO_ACTIVE_HIGH>;
-		gpio-hog;
-		output-high;
-	};
+		pcie2_dc_en {
+			pins = "gpio46";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+		};
 
-	pcie2_reset {
-		line-name = "pcie2_reset";
-		gpios = <43 GPIO_ACTIVE_HIGH>;
-		gpio-hog;
-		output-high;
+		pcie2_reset {
+			pins = "gpio43";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-none;
+			output-high;
+			};
+		};
 	};
 };
 
