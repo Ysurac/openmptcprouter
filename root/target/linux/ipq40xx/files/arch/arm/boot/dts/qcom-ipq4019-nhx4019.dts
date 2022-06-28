@@ -427,63 +427,53 @@
 		};
 	};
 
-	power_pins: m2_pins {
-		m2_pwr_en {
-			pins = "gpio48";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-none;
-			output-high;
-		};
+	m2_pwr_en {
+		line-name = "m2_pwr_en";
+		gpios = <48 GPIO_ACTIVE_HIGH>;
+		gpio-hog;
+		output-high;
+	};
 
-		m2_reset {
-			pins = "gpio49";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-none;
-			output-high;
-		};
+	m2_reset {
+		line-name = "m2_reset";
+		gpios = <49 GPIO_ACTIVE_HIGH>;
+		gpio-hog;
+		output-high;
+	};
 
-		m2_dc_en {
-			pins = "gpio51";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-none;
-			output-high;
-		};
+	m2_dc_en {
+		line-name = "m2_dc_en";
+		gpios = <51 GPIO_ACTIVE_HIGH>;
+		gpio-hog;
+		output-high;
+	};
 
-		pcie1_dc_en {
-			pins = "gpio50";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-none;
-			output-high;
-		};
+	pcie1_dc_en {
+		line-name = "pcie1_dc_en";
+		gpios = <50 GPIO_ACTIVE_HIGH>;
+		gpio-hog;
+		output-high;
+	};
 
-		pcie1_reset {
-			pins = "gpio42";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-none;
-			output-high;
-		};
+	pcie1_reset {
+		line-name = "pcie1_reset";
+		gpios = <42 GPIO_ACTIVE_HIGH>;
+		gpio-hog;
+		output-high;
+	};
 
-		pcie2_dc_en {
-			pins = "gpio46";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-none;
-			output-high;
-		};
+	pcie2_dc_en {
+		line-name = "pcie2_dc_en";
+		gpios = <46 GPIO_ACTIVE_HIGH>;
+		gpio-hog;
+		output-high;
+	};
 
-		pcie2_reset {
-			pins = "gpio43";
-			function = "gpio";
-			drive-strength = <2>;
-			bias-none;
-			output-high;
-			};
-		};
+	pcie2_reset {
+		line-name = "pcie2_reset";
+		gpios = <43 GPIO_ACTIVE_HIGH>;
+		gpio-hog;
+		output-high;
 	};
 };
 
