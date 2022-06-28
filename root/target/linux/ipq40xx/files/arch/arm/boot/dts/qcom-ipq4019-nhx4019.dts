@@ -419,7 +419,7 @@
 		};
 	};
 
-	i2c_0_pins: i2c-0-pinmux {
+	i2c_0_pins: i2c_0_pinmux {
 		mux {
 			pins = "gpio20", "gpio21";
 			function = "blsp_i2c0";
