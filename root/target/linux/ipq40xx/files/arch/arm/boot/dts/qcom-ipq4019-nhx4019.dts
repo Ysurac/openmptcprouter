@@ -384,7 +384,7 @@
 		};
 	};
 
-	nand_pins: nand-pins {
+	nand_pins: nand_pins {
 
 		pullups {
 			pins = "gpio53", "gpio58", "gpio59";
@@ -403,7 +403,7 @@
 		};
 	};
 
-	serial_0_pins: serial0-pinmux {
+	serial_0_pins: serial0_pinmux {
 		mux {
 			pins = "gpio16", "gpio17";
 			function = "blsp_uart0";
