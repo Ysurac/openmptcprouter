@@ -308,8 +308,6 @@
 
 &pcie0 {
 	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&pcie_pins>;
 	perst-gpio = <&tlmm 38 GPIO_ACTIVE_LOW>;
 	wake-gpio = <&tlmm 50 GPIO_ACTIVE_LOW>;
 
@@ -482,7 +480,6 @@
 			drive-strength = <2>;
 			bias-none;
 			output-high;
-			};
 		};
 	};
 };
