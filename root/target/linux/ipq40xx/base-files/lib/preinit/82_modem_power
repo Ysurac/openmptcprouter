@@ -11,7 +11,7 @@ set_state() {
 }
 
 do_power_modem() {
-	[ -z "$(uci -q get system.modem.disable)" ] && /sbin/mctl -p || {
+	/sbin/mctl -p || {
 		config_load system
 		config_foreach set_state mctl
 	}
