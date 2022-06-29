@@ -98,7 +98,7 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "93aca6dfbe894217435e4623bc48489ab9695cd1"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "9139ad468599b586dbd7ca48fe5a149c95f28800"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "cb1dc49c18e54fde6f8892d728c043b93dc995c3"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "9d06e5a7735508d793c3a125f9f7d623671e29e4"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "b4043d92257505526a5b8ceac94f9f28f887abbd"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "111c551cdb8d14e8e5ef7c7a66ffdceb6d3cbb55"
 	fi
@@ -135,6 +135,16 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/mediatek/patches-5.4"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
+rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
+if [ "$OMR_TARGET" != "rutx" ]; then
+	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
+	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
+	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
+	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
+else
+	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+fi
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
@@ -142,6 +152,8 @@ cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<
  VERSION:     $(git -C "$OMR_FEED" tag --sort=committerdate | tail -1)
  TARGET:      $OMR_TARGET
  ARCH:        $OMR_REAL_TARGET
+
+
  BUILD DATE:  $(date -u)
 -----------------------------------------------------
 EOF
