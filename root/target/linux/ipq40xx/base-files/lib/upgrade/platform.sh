@@ -59,8 +59,8 @@ platform_do_upgrade() {
 	case "$(board_name)" in
 	8dev,jalapeno |\
 	aruba,ap-303 |\
-	aruba,ap-303h |\
 	pangu,l1000 |\
+	aruba,ap-303h |\
 	zbt,z4019 |\
 	nhx,nhx4019 |\
 	aruba,ap-365 |\
