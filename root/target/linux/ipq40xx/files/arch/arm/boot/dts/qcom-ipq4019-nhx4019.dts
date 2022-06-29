@@ -139,53 +139,6 @@
 		};
 	};
 
-	gpio-export {
-		compatible = "gpio-export";
-		pinctrl-0 = <&power_pins>;
-		pinctrl-names = "default";
-
-		m2power {
-			gpio-export,name = "m2power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 48 GPIO_ACTIVE_HIGH>;
-		};
-
-		m2reset {
-			gpio-export,name = "m2reset";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 49 GPIO_ACTIVE_HIGH>;
-		};
-
-		m2dcpower {
-			gpio-export,name = "m2dcpower";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie1dcpower {
-			gpio-export,name = "pcie1dcpower";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie1rst {
-			gpio-export,name = "pcie1rst";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 42 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie2dcpower {
-			gpio-export,name = "pcie2dcpower";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
-		};
-		pcie2rst {
-			gpio-export,name = "pcie2rst";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 43 GPIO_ACTIVE_HIGH>;
-		};
-	};
-
 	keys {
 		compatible = "gpio-keys";
 
