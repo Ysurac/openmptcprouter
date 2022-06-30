@@ -287,10 +287,10 @@ index 34c4436fd18f..828f79528b32 100644
  	union {
 diff --git a/include/net/mptcp.h b/include/net/mptcp.h
 new file mode 100644
-index 000000000000..630977f67614
+index 000000000000..bb18dacc310f
 --- /dev/null
 +++ b/include/net/mptcp.h
-@@ -0,0 +1,1548 @@
+@@ -0,0 +1,1549 @@
 +/*
 + *	MPTCP implementation
 + *
@@ -1207,6 +1207,7 @@ index 000000000000..630977f67614
 +int mptcp_conn_request(struct sock *sk, struct sk_buff *skb);
 +void mptcp_enable_sock(struct sock *sk);
 +void mptcp_disable_sock(struct sock *sk);
++void mptcp_disable_static_key(void);
 +void mptcp_cookies_reqsk_init(struct request_sock *req,
 +			      struct mptcp_options_received *mopt,
 +			      struct sk_buff *skb);
@@ -2117,7 +2118,7 @@ index 7f213cfcb3cc..c1be2daccb54 100644
  	/* Keeping track of sockets in use */
  #ifdef CONFIG_PROC_FS
 diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 65be8bd1f0f4..cf89f928640e 100644
+index 65be8bd1f0f4..b31fc84741a0 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
 @@ -182,6 +182,7 @@
@@ -2424,10 +2425,10 @@ index 65be8bd1f0f4..cf89f928640e 100644
  }
  
 +#ifdef CONFIG_MPTCP
-+DECLARE_STATIC_KEY_FALSE(mptcp_static_key);
++extern struct static_key mptcp_static_key;
 +static inline bool mptcp(const struct tcp_sock *tp)
 +{
-+	return static_branch_unlikely(&mptcp_static_key) && tp->mpc;
++	return static_key_false(&mptcp_static_key) && tp->mpc;
 +}
 +#else
 +static inline bool mptcp(const struct tcp_sock *tp)
@@ -2916,7 +2917,7 @@ index a03036456221..aebb337662c3 100644
  				    IFF_ALLMULTI));
  
 diff --git a/net/core/filter.c b/net/core/filter.c
-index b0df4ddbe30c..ea4deefb0a70 100644
+index e16b2b5cda98..d038517091c6 100644
 --- a/net/core/filter.c
 +++ b/net/core/filter.c
 @@ -73,6 +73,7 @@
@@ -3186,7 +3187,7 @@ index a926de2e42b5..6d73dc6e2586 100644
  	default "dctcp" if DEFAULT_DCTCP
  	default "cdg" if DEFAULT_CDG
 diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
-index a7a6b1adb698..e1ccbe866a90 100644
+index a7a6b1adb698..8ebca975f8c8 100644
 --- a/net/ipv4/af_inet.c
 +++ b/net/ipv4/af_inet.c
 @@ -100,6 +100,7 @@
@@ -3197,7 +3198,17 @@ index a7a6b1adb698..e1ccbe866a90 100644
  #include <net/udp.h>
  #include <net/udplite.h>
  #include <net/ping.h>
-@@ -227,6 +228,8 @@ int inet_listen(struct socket *sock, int backlog)
+@@ -150,6 +151,9 @@ void inet_sock_destruct(struct sock *sk)
+ 		return;
+ 	}
+ 
++	if (sock_flag(sk, SOCK_MPTCP))
++		mptcp_disable_static_key();
++
+ 	WARN_ON(atomic_read(&sk->sk_rmem_alloc));
+ 	WARN_ON(refcount_read(&sk->sk_wmem_alloc));
+ 	WARN_ON(sk->sk_wmem_queued);
+@@ -227,6 +231,8 @@ int inet_listen(struct socket *sock, int backlog)
  			tcp_fastopen_init_key_once(sock_net(sk));
  		}
  
@@ -3206,7 +3217,7 @@ index a7a6b1adb698..e1ccbe866a90 100644
  		err = inet_csk_listen_start(sk, backlog);
  		if (err)
  			goto out;
-@@ -244,8 +247,7 @@ int inet_listen(struct socket *sock, int backlog)
+@@ -244,8 +250,7 @@ int inet_listen(struct socket *sock, int backlog)
   *	Create an inet socket.
   */
  
@@ -3216,7 +3227,7 @@ index a7a6b1adb698..e1ccbe866a90 100644
  {
  	struct sock *sk;
  	struct inet_protosw *answer;
-@@ -739,6 +741,24 @@ int inet_accept(struct socket *sock, struct socket *newsock, int flags,
+@@ -739,6 +744,24 @@ int inet_accept(struct socket *sock, struct socket *newsock, int flags,
  	lock_sock(sk2);
  
  	sock_rps_record_flow(sk2);
@@ -3241,7 +3252,7 @@ index a7a6b1adb698..e1ccbe866a90 100644
  	WARN_ON(!((1 << sk2->sk_state) &
  		  (TCPF_ESTABLISHED | TCPF_SYN_RECV |
  		  TCPF_CLOSE_WAIT | TCPF_CLOSE)));
-@@ -1981,6 +2001,9 @@ static int __init inet_init(void)
+@@ -1981,6 +2004,9 @@ static int __init inet_init(void)
  	if (init_ipv4_mibs())
  		panic("%s: Cannot init ipv4 mibs\n", __func__);
  
@@ -7670,10 +7681,10 @@ index 063898cae3e5..78d91dfc3f06 100644
  /* thinking of making this const? Don't.
 diff --git a/net/mptcp/Kconfig b/net/mptcp/Kconfig
 new file mode 100644
-index 000000000000..1a7e9bbc766d
+index 000000000000..6e05dab4c632
 --- /dev/null
 +++ b/net/mptcp/Kconfig
-@@ -0,0 +1,155 @@
+@@ -0,0 +1,154 @@
 +#
 +# MPTCP configuration
 +#
@@ -7756,7 +7767,6 @@ index 000000000000..1a7e9bbc766d
 +	default "fullmesh" if DEFAULT_FULLMESH
 +	default "ndiffports" if DEFAULT_NDIFFPORTS
 +	default "binder" if DEFAULT_BINDER
-+	default "netlink" if DEFAULT_NETLINK
 +	default "default"
 +
 +menuconfig MPTCP_SCHED_ADVANCED
@@ -9386,10 +9396,10 @@ index 000000000000..9eb7628053f6
 +MODULE_VERSION("0.1");
 diff --git a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
 new file mode 100644
-index 000000000000..9a1b5a048b70
+index 000000000000..38c97eaa0ddc
 --- /dev/null
 +++ b/net/mptcp/mptcp_ctrl.c
-@@ -0,0 +1,3302 @@
+@@ -0,0 +1,3346 @@
 +/*
 + *	MPTCP implementation - MPTCP-control
 + *
@@ -9469,7 +9479,7 @@ index 000000000000..9a1b5a048b70
 +
 +bool mptcp_init_failed __read_mostly;
 +
-+DEFINE_STATIC_KEY_FALSE(mptcp_static_key);
++struct static_key mptcp_static_key = STATIC_KEY_INIT_FALSE;
 +EXPORT_SYMBOL(mptcp_static_key);
 +
 +static void mptcp_key_hash(u8 version, u64 key, u32 *token, u64 *idsn);
@@ -9783,14 +9793,71 @@ index 000000000000..9a1b5a048b70
 +	mptcp_key_hash(tp->mptcp_ver, tp->mptcp_loc_key, &tp->mptcp_loc_token, NULL);
 +}
 +
++#ifdef CONFIG_JUMP_LABEL
++static atomic_t mptcp_needed_deferred;
++static atomic_t mptcp_wanted;
++
++static void mptcp_clear(struct work_struct *work)
++{
++	int deferred = atomic_xchg(&mptcp_needed_deferred, 0);
++	int wanted;
++
++	wanted = atomic_add_return(deferred, &mptcp_wanted);
++	if (wanted > 0)
++		static_key_enable(&mptcp_static_key);
++	else
++		static_key_disable(&mptcp_static_key);
++}
++
++static DECLARE_WORK(mptcp_work, mptcp_clear);
++#endif
++
++static void mptcp_enable_static_key_bh(void)
++{
++#ifdef CONFIG_JUMP_LABEL
++	int wanted;
++
++	while (1) {
++		wanted = atomic_read(&mptcp_wanted);
++		if (wanted <= 0)
++			break;
++		if (atomic_cmpxchg(&mptcp_wanted, wanted, wanted + 1) == wanted)
++			return;
++	}
++	atomic_inc(&mptcp_needed_deferred);
++	schedule_work(&mptcp_work);
++#else
++	static_key_slow_inc(&mptcp_static_key);
++#endif
++}
++
 +static void mptcp_enable_static_key(void)
 +{
-+	if (!static_branch_unlikely(&mptcp_static_key)) {
-+		static int __mptcp_static_key = 0;
++#ifdef CONFIG_JUMP_LABEL
++	atomic_inc(&mptcp_wanted);
++	static_key_enable(&mptcp_static_key);
++#else
++	static_key_slow_inc(&mptcp_static_key);
++#endif
++}
 +
-+		if (cmpxchg(&__mptcp_static_key, 0, 1) == 0)
-+			static_branch_enable(&mptcp_static_key);
++void mptcp_disable_static_key(void)
++{
++#ifdef CONFIG_JUMP_LABEL
++	int wanted;
++
++	while (1) {
++		wanted = atomic_read(&mptcp_wanted);
++		if (wanted <= 1)
++			break;
++		if (atomic_cmpxchg(&mptcp_wanted, wanted, wanted - 1) == wanted)
++			return;
 +	}
++	atomic_dec(&mptcp_needed_deferred);
++	schedule_work(&mptcp_work);
++#else
++	static_key_slow_dec(&mptcp_static_key);
++#endif
 +}
 +
 +void mptcp_enable_sock(struct sock *sk)
@@ -9831,6 +9898,8 @@ index 000000000000..9a1b5a048b70
 +		else
 +			inet_csk(sk)->icsk_af_ops = &ipv6_specific;
 +#endif
++
++		mptcp_disable_static_key();
 +	}
 +}
 +
@@ -10050,6 +10119,8 @@ index 000000000000..9a1b5a048b70
 +
 +		mptcp_mpcb_cleanup(tp->mpcb);
 +	}
++
++	WARN_ON(!static_key_false(&mptcp_static_key));
 +
 +	/* Must be called here, because this will decrement the jump-label. */
 +	inet_sock_destruct(sk);
@@ -10611,28 +10682,6 @@ index 000000000000..9a1b5a048b70
 +	meta_tp->snd_wl1 = meta_tp->rcv_nxt - 1;
 +}
 +
-+/* Inspired by inet_csk_prepare_forced_close */
-+static void mptcp_icsk_forced_close(struct sock *sk)
-+{
-+	/* The problem with inet_csk_prepare_forced_close is that it unlocks
-+	 * before calling tcp_done. That is fine for sockets that are not
-+	 * yet in the ehash table. But for us we already are there. Thus,
-+	 * if we unlock we run the risk of processing packets while inside
-+	 * tcp_done() and friends. That can cause all kind of problems...
-+	 */
-+
-+	/* The below has to be done to allow calling inet_csk_destroy_sock */
-+	sock_set_flag(sk, SOCK_DEAD);
-+	percpu_counter_inc(sk->sk_prot->orphan_count);
-+	inet_sk(sk)->inet_num = 0;
-+
-+	tcp_done(sk);
-+
-+	/* sk_clone_lock locked the socket and set refcnt to 2 */
-+	bh_unlock_sock(sk);
-+	sock_put(sk);
-+}
-+
 +static int mptcp_alloc_mpcb(struct sock *meta_sk, __u64 remote_key,
 +			    int rem_key_set, __u8 mptcp_ver, u32 window)
 +{
@@ -10848,8 +10897,10 @@ index 000000000000..9a1b5a048b70
 +	meta_sk->sk_max_ack_backlog = 32;
 +	meta_sk->sk_ack_backlog = 0;
 +
-+	if (!sock_flag(meta_sk, SOCK_MPTCP))
++	if (!sock_flag(meta_sk, SOCK_MPTCP)) {
++		mptcp_enable_static_key_bh();
 +		sock_set_flag(meta_sk, SOCK_MPTCP);
++	}
 +
 +	/* Redefine function-pointers as the meta-sk is now fully ready */
 +	meta_tp->mpc = 1;
@@ -10886,7 +10937,8 @@ index 000000000000..9a1b5a048b70
 +	kmem_cache_free(mptcp_sock_cache, master_tp->mptcp);
 +	master_tp->mptcp = NULL;
 +
-+	mptcp_icsk_forced_close(master_sk);
++	inet_csk_prepare_forced_close(master_sk);
++	tcp_done(master_sk);
 +	return -EINVAL;
 +
 +err_inherit_port:
@@ -10941,8 +10993,9 @@ index 000000000000..9a1b5a048b70
 +	tp->mptcp->path_index = mptcp_set_new_pathindex(mpcb);
 +	/* No more space for more subflows? */
 +	if (!tp->mptcp->path_index) {
++		WARN_ON(is_master_tp(tp));
++
 +		kmem_cache_free(mptcp_sock_cache, tp->mptcp);
-+		tp->mptcp = NULL;
 +		return -EPERM;
 +	}
 +
@@ -10952,8 +11005,10 @@ index 000000000000..9a1b5a048b70
 +	tp->mpcb = mpcb;
 +	tp->meta_sk = meta_sk;
 +
-+	if (!sock_flag(sk, SOCK_MPTCP))
++	if (!sock_flag(sk, SOCK_MPTCP)) {
++		mptcp_enable_static_key_bh();
 +		sock_set_flag(sk, SOCK_MPTCP);
++	}
 +
 +	tp->mpc = 1;
 +	tp->ops = &mptcp_sub_specific;
@@ -11641,7 +11696,8 @@ index 000000000000..9a1b5a048b70
 +	if (mptcp_create_master_sk(meta_sk, mtreq->mptcp_rem_key,
 +				   mtreq->rem_key_set, mtreq->mptcp_ver,
 +				   child_tp->snd_wnd)) {
-+		mptcp_icsk_forced_close(meta_sk);
++		inet_csk_prepare_forced_close(meta_sk);
++		tcp_done(meta_sk);
 +
 +		return -ENOBUFS;
 +	}
@@ -11862,11 +11918,9 @@ index 000000000000..9a1b5a048b70
 +	/* Drop this request - sock creation failed. */
 +	inet_csk_reqsk_queue_drop(meta_sk, req);
 +	reqsk_queue_removed(&inet_csk(meta_sk)->icsk_accept_queue, req);
-+
-+	mptcp_icsk_forced_close(child);
-+
++	inet_csk_prepare_forced_close(child);
++	tcp_done(child);
 +	bh_unlock_sock(meta_sk);
-+
 +	return meta_sk;
 +}
 +
@@ -17473,10 +17527,10 @@ index 000000000000..7ce97409e1e2
 +}
 diff --git a/net/mptcp/mptcp_ipv4.c b/net/mptcp/mptcp_ipv4.c
 new file mode 100644
-index 000000000000..c908e02c72e1
+index 000000000000..7594c8bafb81
 --- /dev/null
 +++ b/net/mptcp/mptcp_ipv4.c
-@@ -0,0 +1,433 @@
+@@ -0,0 +1,432 @@
 +/*
 + *	MPTCP implementation - IPv4-specific functions
 + *
@@ -17744,7 +17798,7 @@ index 000000000000..c908e02c72e1
 +{
 +	struct tcp_sock *tp;
 +	struct sock *sk;
-+	struct sockaddr_in sockaddr;
++	struct sockaddr_in loc_in, rem_in;
 +	struct socket_alloc sock_full;
 +	struct socket *sock = (struct socket *)&sock_full;
 +	int ret;
@@ -17782,39 +17836,38 @@ index 000000000000..c908e02c72e1
 +	timer_setup(&tp->mptcp->mptcp_ack_timer, mptcp_ack_handler, 0);
 +
 +	/** Then, connect the socket to the peer */
-+	sockaddr.sin_family = AF_INET;
-+	sockaddr.sin_port = sport;
-+	sockaddr.sin_addr = loc->addr;
++	loc_in.sin_family = AF_INET;
++	rem_in.sin_family = AF_INET;
++	loc_in.sin_port = sport;
++	if (rem->port)
++		rem_in.sin_port = rem->port;
++	else
++		rem_in.sin_port = inet_sk(meta_sk)->inet_dport;
++	loc_in.sin_addr = loc->addr;
++	rem_in.sin_addr = rem->addr;
 +
 +	if (loc->if_idx)
 +		sk->sk_bound_dev_if = loc->if_idx;
 +
-+	ret = kernel_bind(sock, (struct sockaddr *)&sockaddr,
++	ret = kernel_bind(sock, (struct sockaddr *)&loc_in,
 +			  sizeof(struct sockaddr_in));
 +	if (ret < 0) {
 +		net_err_ratelimited("%s: token %#x bind() to %pI4 index %d failed, error %d\n",
 +				    __func__, tcp_sk(meta_sk)->mpcb->mptcp_loc_token,
-+				    &sockaddr.sin_addr, loc->if_idx, ret);
++				    &loc_in.sin_addr, loc->if_idx, ret);
 +		goto error;
 +	}
++
++	mptcp_debug("%s: token %#x pi %d src_addr:%pI4:%d dst_addr:%pI4:%d ifidx: %d\n",
++		    __func__, tcp_sk(meta_sk)->mpcb->mptcp_loc_token,
++		    tp->mptcp->path_index, &loc_in.sin_addr,
++		    ntohs(loc_in.sin_port), &rem_in.sin_addr,
++		    ntohs(rem_in.sin_port), loc->if_idx);
 +
 +	if (tcp_sk(meta_sk)->mpcb->pm_ops->init_subsocket_v4)
 +		tcp_sk(meta_sk)->mpcb->pm_ops->init_subsocket_v4(sk, rem->addr);
 +
-+	sockaddr.sin_family = AF_INET;
-+	if (rem->port)
-+		sockaddr.sin_port = rem->port;
-+	else
-+		sockaddr.sin_port = inet_sk(meta_sk)->inet_dport;
-+	sockaddr.sin_addr = rem->addr;
-+
-+	mptcp_debug("%s: token %#x pi %d src_addr:%pI4:%d dst_addr:%pI4:%d ifidx: %d\n",
-+		    __func__, tcp_sk(meta_sk)->mpcb->mptcp_loc_token,
-+		    tp->mptcp->path_index, &loc->addr,
-+		    ntohs(sport), &sockaddr.sin_addr,
-+		    ntohs(sockaddr.sin_port), loc->if_idx);
-+
-+	ret = kernel_connect(sock, (struct sockaddr *)&sockaddr,
++	ret = kernel_connect(sock, (struct sockaddr *)&rem_in,
 +			     sizeof(struct sockaddr_in), O_NONBLOCK);
 +	if (ret < 0 && ret != -EINPROGRESS) {
 +		net_err_ratelimited("%s: MPTCP subsocket connect() failed, error %d\n",
@@ -17912,10 +17965,10 @@ index 000000000000..c908e02c72e1
 +}
 diff --git a/net/mptcp/mptcp_ipv6.c b/net/mptcp/mptcp_ipv6.c
 new file mode 100644
-index 000000000000..ebe3f5f97460
+index 000000000000..fa13a99b735e
 --- /dev/null
 +++ b/net/mptcp/mptcp_ipv6.c
-@@ -0,0 +1,482 @@
+@@ -0,0 +1,481 @@
 +/*
 + *	MPTCP implementation - IPv6-specific functions
 + *
@@ -18212,7 +18265,7 @@ index 000000000000..ebe3f5f97460
 +{
 +	struct tcp_sock *tp;
 +	struct sock *sk;
-+	struct sockaddr_in6 sockaddr;
++	struct sockaddr_in6 loc_in, rem_in;
 +	struct socket_alloc sock_full;
 +	struct socket *sock = (struct socket *)&sock_full;
 +	int ret;
@@ -18250,39 +18303,38 @@ index 000000000000..ebe3f5f97460
 +	timer_setup(&tp->mptcp->mptcp_ack_timer, mptcp_ack_handler, 0);
 +
 +	/** Then, connect the socket to the peer */
-+	sockaddr.sin6_family = AF_INET6;
-+	sockaddr.sin6_port = sport;
-+	sockaddr.sin6_addr = loc->addr;
++	loc_in.sin6_family = AF_INET6;
++	rem_in.sin6_family = AF_INET6;
++	loc_in.sin6_port = sport;
++	if (rem->port)
++		rem_in.sin6_port = rem->port;
++	else
++		rem_in.sin6_port = inet_sk(meta_sk)->inet_dport;
++	loc_in.sin6_addr = loc->addr;
++	rem_in.sin6_addr = rem->addr;
 +
 +	if (loc->if_idx)
 +		sk->sk_bound_dev_if = loc->if_idx;
 +
-+	ret = kernel_bind(sock, (struct sockaddr *)&sockaddr,
++	ret = kernel_bind(sock, (struct sockaddr *)&loc_in,
 +			  sizeof(struct sockaddr_in6));
 +	if (ret < 0) {
 +		net_err_ratelimited("%s: token %#x bind() to %pI6 index %d failed, error %d\n",
 +				    __func__, tcp_sk(meta_sk)->mpcb->mptcp_loc_token,
-+				    &sockaddr.sin6_addr, loc->if_idx, ret);
++				    &loc_in.sin6_addr, loc->if_idx, ret);
 +		goto error;
 +	}
++
++	mptcp_debug("%s: token %#x pi %d src_addr:%pI6:%d dst_addr:%pI6:%d ifidx: %u\n",
++		    __func__, tcp_sk(meta_sk)->mpcb->mptcp_loc_token,
++		    tp->mptcp->path_index, &loc_in.sin6_addr,
++		    ntohs(loc_in.sin6_port), &rem_in.sin6_addr,
++		    ntohs(rem_in.sin6_port), loc->if_idx);
 +
 +	if (tcp_sk(meta_sk)->mpcb->pm_ops->init_subsocket_v6)
 +		tcp_sk(meta_sk)->mpcb->pm_ops->init_subsocket_v6(sk, rem->addr);
 +
-+	sockaddr.sin6_family = AF_INET6;
-+	if (rem->port)
-+		sockaddr.sin6_port = rem->port;
-+	else
-+		sockaddr.sin6_port = inet_sk(meta_sk)->inet_dport;
-+	sockaddr.sin6_addr = rem->addr;
-+
-+	mptcp_debug("%s: token %#x pi %d src_addr:%pI6:%d dst_addr:%pI6:%d ifidx: %u\n",
-+		    __func__, tcp_sk(meta_sk)->mpcb->mptcp_loc_token,
-+		    tp->mptcp->path_index, &loc->addr,
-+		    ntohs(sport), &sockaddr.sin6_addr,
-+		    ntohs(sockaddr.sin6_port), loc->if_idx);
-+
-+	ret = kernel_connect(sock, (struct sockaddr *)&sockaddr,
++	ret = kernel_connect(sock, (struct sockaddr *)&rem_in,
 +			     sizeof(struct sockaddr_in6), O_NONBLOCK);
 +	if (ret < 0 && ret != -EINPROGRESS) {
 +		net_err_ratelimited("%s: MPTCP subsocket connect() failed, error %d\n",
@@ -20180,10 +20232,10 @@ index 000000000000..161a63f336d7
 +MODULE_VERSION("0.1");
 diff --git a/net/mptcp/mptcp_output.c b/net/mptcp/mptcp_output.c
 new file mode 100644
-index 000000000000..a8a5787adbf1
+index 000000000000..8bf9eb4724fb
 --- /dev/null
 +++ b/net/mptcp/mptcp_output.c
-@@ -0,0 +1,2015 @@
+@@ -0,0 +1,2008 @@
 +/*
 + *	MPTCP implementation - Sending side
 + *
@@ -20816,13 +20868,6 @@ index 000000000000..a8a5787adbf1
 +	if (!tp->mptcp->fully_established) {
 +		tp->mptcp->second_packet = 1;
 +		tp->mptcp->last_end_data_seq = TCP_SKB_CB(skb)->end_seq;
-+		if (mptcp_is_data_fin(skb)) {
-+			/* If this is a data-fin, do not account for it. Because,
-+			 * a data-fin does not consume space in the subflow
-+			 * sequence number space.
-+			 */
-+			tp->mptcp->last_end_data_seq--;
-+		}
 +	}
 +
 +	return true;
