@@ -1,0 +1,20 @@
+set_state() {
+	local label="$1"
+	local disable
+
+	[ -e "/sys/class/gpio/${label}_power/value" ] || return
+
+	config_get disable ${label} disable
+	[ "${disable}" -eq 1 ] && \
+		/sbin/mctl -s -m "${label}" || \
+		/sbin/mctl -p -m "${label}"
+}
+
+do_power_modem() {
+	/sbin/mctl -p || {
+		config_load system
+		config_foreach set_state mctl
+	}
+}
+
+boot_hook_add preinit_main do_power_modem
