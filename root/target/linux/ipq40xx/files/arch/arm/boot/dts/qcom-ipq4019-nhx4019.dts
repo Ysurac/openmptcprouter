@@ -137,6 +137,27 @@
 			label = "nhx:xnet";
 			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
 		};
+
+	    m2power {
+			label = "m2power";
+			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
+		};
+
+
+		m2dcpower {
+		    label = "m2dcpower";
+			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
+		};
+
+		pcie1dcpower {
+			 label = "pcie1dcpower";
+			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
+		};
+
+		pcie2dcpower {
+			label = "pcie2dcpower";
+			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	keys {
@@ -342,61 +363,6 @@
 			bias-disable;
 		};
 	};
-
-		3vpower {
-			line-name = "3vpower";
-			gpio = <&tlmm 19 GPIO_ACTIVE_HIGH>;
-			gpio-hog;
-		    output-high;
-		};
-
-		m2power {
-			line-name = "m2power";
-			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
-			gpio-hog;
-		    output-low;
-		};
-
-		m2reset {
-			line-name = "m2reset";
-			gpio = <&tlmm 49 GPIO_ACTIVE_LOW>;
-			gpio-hog;
-		    output-low;
-		};
-
-		m2dcpower {
-		    line-name = "m2dcpower";
-			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
-			gpio-hog;
-		    output-high;
-		};
-
-		pcie1dcpower {
-			line-name = "pcie1dcpower";
-			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
-			gpio-hog;
-		    output-high;
-		};
-
-		pcie1rst {
-			line-name = "pcie1rst";
-			gpio = <&tlmm 42 GPIO_ACTIVE_LOW>;
-			gpio-hog;
-		    output-low;
-		};
-
-		pcie2dcpower {
-			line-name = "pcie2dcpower";
-			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
-			gpio-hog;
-		    output-high;
-		};
-		pcie2rst {
-			line-name = "pcie2rst";
-			gpio = <&tlmm 43 GPIO_ACTIVE_LOW>;
-			gpio-hog;
-		    output-low;
-		};
 };
 
 &gmac0 {
