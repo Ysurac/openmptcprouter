@@ -345,7 +345,7 @@
 
 		3vpower {
 		line-name = "3vpower";
-		gpio = <&tlmm GPIO_ACTIVE_HIGH>;
+		gpio = <&tlmm 19 GPIO_ACTIVE_HIGH>;
 		gpio-hog;
 		output-high;
 		
