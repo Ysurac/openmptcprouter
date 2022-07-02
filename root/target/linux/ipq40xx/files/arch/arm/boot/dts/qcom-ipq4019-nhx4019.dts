@@ -100,42 +100,42 @@
 
 		led_sys: status {
 			label = "nhx:system";
-			gpio = <&gpio 4 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 4 GPIO_ACTIVE_HIGH>;
 		};
 
 		lte1 {
 			label = "nhx:5g1";
-			gpio = <&gpio 3 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
 		};
 
 		lterssi1 {
 			label = "nhx:5g2";
-			gpio = <&gpio 2 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 2 GPIO_ACTIVE_HIGH>;
 		};
 
 		lterssi2 {
 			label = "nhx:5g3";
-			gpio = <&gpio 1 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
 		};
 
 		lterssi3 {
 			label = "nhx:wifi2";
-			gpio = <&gpio 36 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 36 GPIO_ACTIVE_HIGH>;
 		};
 
 		wifi {
 			label = "nhx:wifi5";
-			gpio = <&gpio 37 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 37 GPIO_ACTIVE_HIGH>;
 		};
 
 		err {
 			label = "nhx:net";
-			gpio = <&gpio 44 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 44 GPIO_ACTIVE_HIGH>;
 		};
 
 		net {
 			label = "nhx:xnet";
-			gpio = <&gpio 0 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 0 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -156,48 +156,48 @@
 		3vpower {
 			gpio-export,name = "3vpower";
 			gpio-export,output = <1>;
-			gpio = <&gpio 19 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 19 GPIO_ACTIVE_HIGH>;
 		};
 
 		m2power {
 			gpio-export,name = "m2power";
 			gpio-export,output = <1>;
-			gpio = <&gpio 48 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 48 GPIO_ACTIVE_LOW>;
 		};
 
 		m2reset {
 			gpio-export,name = "m2reset";
 			gpio-export,output = <1>;
-			gpio = <&gpio 49 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 49 GPIO_ACTIVE_LOW>;
 		};
 
 		m2dcpower {
 			gpio-export,name = "m2dcpower";
 			gpio-export,output = <1>;
-			gpio = <&gpio 51 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 51 GPIO_ACTIVE_HIGH>;
 		};
 
 		pcie1dcpower {
 			gpio-export,name = "pcie1dcpower";
 			gpio-export,output = <1>;
-			gpio = <&gpio 50 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 50 GPIO_ACTIVE_HIGH>;
 		};
 
 		pcie1rst {
 			gpio-export,name = "pcie1rst";
 			gpio-export,output = <1>;
-			gpio = <&gpio 42 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 42 GPIO_ACTIVE_LOW>;
 		};
 
 		pcie2dcpower {
 			gpio-export,name = "pcie2dcpower";
 			gpio-export,output = <1>;
-			gpio = <&gpio 46 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio 46 GPIO_ACTIVE_HIGH>;
 		};
 		pcie2rst {
 			gpio-export,name = "pcie2rst";
 			gpio-export,output = <1>;
-			gpio = <&gpio 43 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio 43 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
@@ -307,8 +307,8 @@
 
 &pcie0 {
 	status = "okay";
-	perst-gpio = <&gpio 38 GPIO_ACTIVE_LOW>;
-	wake-gpio = <&gpio 40 GPIO_ACTIVE_LOW>;
+	perst-gpio = <&tlmm 38 GPIO_ACTIVE_LOW>;
+	wake-gpio = <&tlmm 40 GPIO_ACTIVE_LOW>;
 
 	/* Free slot for use */
 	bridge@0,0 {
