@@ -148,58 +148,6 @@
 			linux,code = <KEY_RESTART>;
 		};
 	};
-
-	gpio_export {
-		compatible = "gpio-export";
-		#size-cells = <0>;
-
-		3vpower {
-			gpio-export,name = "3vpower";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 19 GPIO_ACTIVE_HIGH>;
-		};
-
-		m2power {
-			gpio-export,name = "m2power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
-		};
-
-		m2reset {
-			gpio-export,name = "m2reset";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 49 GPIO_ACTIVE_LOW>;
-		};
-
-		m2dcpower {
-			gpio-export,name = "m2dcpower";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie1dcpower {
-			gpio-export,name = "pcie1dcpower";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie1rst {
-			gpio-export,name = "pcie1rst";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 42 GPIO_ACTIVE_LOW>;
-		};
-
-		pcie2dcpower {
-			gpio-export,name = "pcie2dcpower";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
-		};
-		pcie2rst {
-			gpio-export,name = "pcie2rst";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 43 GPIO_ACTIVE_LOW>;
-		};
-	};
 };
 
 &blsp_dma {
@@ -392,6 +340,63 @@
 			pins = "gpio20", "gpio21";
 			function = "blsp_i2c0";
 			bias-disable;
+		};
+	};
+
+		3vpower {
+		line-name = "3vpower";
+		gpio = <&tlmm GPIO_ACTIVE_HIGH>;
+		gpio-hog;
+		output-high;
+		
+		};
+
+		m2power {
+			line-name = "m2power";
+			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
+			gpio-hog;
+		    output-low;
+		};
+
+		m2reset {
+			line-name = "m2reset";
+			gpio = <&tlmm 49 GPIO_ACTIVE_LOW>;
+			gpio-hog;
+		    output-low;
+		};
+
+		m2dcpower {
+		    line-name = "m2dcpower";
+			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
+			gpio-hog;
+		    output-high;
+		};
+
+		pcie1dcpower {
+			line-name = "pcie1dcpower";
+			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
+			gpio-hog;
+		    output-high;
+		};
+
+		pcie1rst {
+			line-name = "pcie1rst";
+			gpio = <&tlmm 42 GPIO_ACTIVE_LOW>;
+			gpio-hog;
+		    output-low;
+		};
+
+		pcie2dcpower {
+			line-name = "pcie2dcpower";
+			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
+			gpio-hog;
+		    output-high;
+		};
+		pcie2rst {
+			line-name = "pcie2rst";
+			gpio = <&tlmm 43 GPIO_ACTIVE_LOW>;
+			gpio-hog;
+		    output-low;
 		};
 	};
 };
