@@ -96,15 +96,15 @@
 
 		m2_pins: m2_pinmux {
 				mux_1 {
-					pins = "gpio48", "gpio49", "gpio50";
+					pins = "gpio49", "gpio42", "gpio43", "gpio48";
 					function = "gpio";
 					drive-strength = <2>;
 					bias-none;
-					output-high;
+					output-down;
 				};
 
 				mux_2 {
-					pins = "gpio51", "gpio42", "gpio44", "gpio46";
+					pins = "gpio50", "gpio51", "gpio46";
 					function = "gpio";
 					drive-strength = <2>;
 					bias-none;
@@ -411,7 +411,7 @@
 			m2reset {
 				gpio-export,name = "m2reset";
 				gpio-export,output = <1>;
-				gpio = <&tlmm 49 GPIO_ACTIVE_HIGH>;
+				gpio = <&tlmm 49 GPIO_ACTIVE_LOW>;
 			};
 
 			m2_dc_en {
@@ -429,7 +429,7 @@
 			pcie1_reset {
 				gpio-export,name = "pcie1_reset";
 				gpio-export,output = <1>;
-				gpio = <&tlmm 42 GPIO_ACTIVE_HIGH>;
+				gpio = <&tlmm 42 GPIO_ACTIVE_LOW>;
 			};
 
 			pcie2_dc_en {
@@ -441,7 +441,7 @@
 			pcie2_reset {
 				gpio-export,name = "pcie2_reset";
 				gpio-export,output = <1>;
-				gpio = <&tlmm 44 GPIO_ACTIVE_HIGH>;
+				gpio = <&tlmm 43 GPIO_ACTIVE_LOW>;
 			};
 		};
 };
