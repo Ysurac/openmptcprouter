@@ -93,7 +93,7 @@
 		edma@c080000 {
 			status = "okay";
 		};
-
+		
 		m2_pins: m2_pinmux {
 				mux_1 {
 					pins = "gpio49", "gpio42", "gpio43", "gpio48";
@@ -102,9 +102,9 @@
 					bias-none;
 					output-down;
 				};
-
+				
 				mux_2 {
-					pins = "gpio50", "gpio51", "gpio46";
+					pins = "gpio19", "gpio50", "gpio51", "gpio46";
 					function = "gpio";
 					drive-strength = <2>;
 					bias-none;
@@ -165,13 +165,7 @@
 			gpios = <&tlmm 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
-
-		wps {
-			label = "wps";
-			gpios = <&tlmm 5 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_WPS_BUTTON>;
-		};
-	};
+	};	
 };
 
 &blsp_dma {
@@ -280,7 +274,7 @@
 &pcie0 {
 	status = "okay";
 	perst-gpio = <&tlmm 38 GPIO_ACTIVE_LOW>;
-	wake-gpio = <&tlmm 50 GPIO_ACTIVE_LOW>;
+	wake-gpio = <&tlmm 40 GPIO_ACTIVE_LOW>;
 
 	/* Free slot for use */
 	bridge@0,0 {
@@ -292,13 +286,6 @@
 };
 
 &qpic_bam {
-	status = "okay";
-};
-
-&sdhci {
-	pinctrl-0 = <&sd_0_pins>;
-	pinctrl-names = "default";
-	vqmmc-supply = <&vqmmc>;
 	status = "okay";
 };
 
@@ -350,28 +337,6 @@
 		};
 	};
 
-	sd_0_pins: sd_pins {
-		pinmux {
-			function = "sdio";
-			pins = "gpio23", "gpio24", "gpio25", "gpio26",
-				"gpio28", "gpio29", "gpio30", "gpio31";
-			drive-strength = <10>;
-		};
-
-		pinmux_sd_clk {
-			function = "sdio";
-			pins = "gpio27";
-			drive-strength = <16>;
-		};
-
-		pinmux_sd7 {
-			function = "sdio";
-			pins = "gpio32";
-			drive-strength = <10>;
-			bias-disable;
-		};
-	};
-
 	serial_0_pins: serial0_pinmux {
 		mux {
 			pins = "gpio16", "gpio17";
@@ -396,11 +361,17 @@
 		};
 	};
 
-	
-		gpio-export {
+
+	gpio-export {
 			compatible = "gpio-export";
 			pinctrl-0 = <&m2_pins>;
 			pinctrl-names = "default";
+
+            3vpower {
+				gpio-export,name = "3vpower";
+				gpio-export,output = <1>;
+				gpio = <&tlmm 19 GPIO_ACTIVE_LOW>;
+			};
 
 			m2power {
 				gpio-export,name = "m2power";
@@ -408,7 +379,7 @@
 				gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
 			};
 
-			m2reset {
+            m2reset {
 				gpio-export,name = "m2reset";
 				gpio-export,output = <1>;
 				gpio = <&tlmm 49 GPIO_ACTIVE_LOW>;
@@ -443,7 +414,7 @@
 				gpio-export,output = <1>;
 				gpio = <&tlmm 43 GPIO_ACTIVE_LOW>;
 			};
-		};
+	};
 };
 
 &gmac0 {
@@ -463,10 +434,6 @@
 };
 
 &usb2_hs_phy {
-	status = "okay";
-};
-
-&vqmmc {
 	status = "okay";
 };
 
