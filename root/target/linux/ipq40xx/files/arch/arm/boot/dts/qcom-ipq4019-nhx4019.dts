@@ -118,12 +118,12 @@
 
 		led_sys: status {
 			label = "nhx:system";
-			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 4 GPIO_ACTIVE_HIGH>;
 		};
 
 		lte1 {
 			label = "nhx:5g1";
-			gpio = <&tlmm 1 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 3 GPIO_ACTIVE_HIGH>;
 		};
 
 		lterssi1 {
@@ -133,27 +133,27 @@
 
 		lterssi2 {
 			label = "nhx:5g3";
-			gpio = <&tlmm 3 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 1 GPIO_ACTIVE_HIGH>;
 		};
 
 		lterssi3 {
 			label = "nhx:wifi2";
-			gpio = <&tlmm 4 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 36 GPIO_ACTIVE_HIGH>;
 		};
 
 		wifi {
 			label = "nhx:wifi5";
-			gpio = <&tlmm 36 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 37 GPIO_ACTIVE_HIGH>;
 		};
 
 		err {
 			label = "nhx:net";
-			gpio = <&tlmm 37 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 44 GPIO_ACTIVE_HIGH>;
 		};
 
 		net {
 			label = "nhx:xnet";
-			gpio = <&tlmm 44 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
