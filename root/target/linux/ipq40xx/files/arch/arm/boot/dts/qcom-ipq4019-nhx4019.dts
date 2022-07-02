@@ -38,7 +38,7 @@
 			status = "okay";
 			pinctrl-0 = <&mdio_pins>;
 			pinctrl-names = "default";
-			reset-gpios = <&gpio 47 GPIO_ACTIVE_LOW>;
+			reset-gpios = <&tlmm 47 GPIO_ACTIVE_LOW>;
 			reset-delay-us = <2000>;
 		};
 
@@ -100,42 +100,42 @@
 
 		led_sys: status {
 			label = "nhx:system";
-			gpios = <&gpio 4 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 4 GPIO_ACTIVE_HIGH>;
 		};
 
 		lte1 {
 			label = "nhx:5g1";
-			gpios = <&gpio 3 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 3 GPIO_ACTIVE_HIGH>;
 		};
 
 		lterssi1 {
 			label = "nhx:5g2";
-			gpios = <&gpio 2 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 2 GPIO_ACTIVE_HIGH>;
 		};
 
 		lterssi2 {
 			label = "nhx:5g3";
-			gpios = <&gpio 1 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 1 GPIO_ACTIVE_HIGH>;
 		};
 
 		lterssi3 {
 			label = "nhx:wifi2";
-			gpios = <&gpio 36 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 36 GPIO_ACTIVE_HIGH>;
 		};
 
 		wifi {
 			label = "nhx:wifi5";
-			gpios = <&gpio 37 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 37 GPIO_ACTIVE_HIGH>;
 		};
 
 		err {
 			label = "nhx:net";
-			gpios = <&gpio 44 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 44 GPIO_ACTIVE_HIGH>;
 		};
 
 		net {
 			label = "nhx:xnet";
-			gpios = <&gpio 0 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -144,7 +144,7 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
+			gpios = <&tlmm 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
 	};
@@ -156,48 +156,48 @@
 		3vpower {
 			gpio-export,name = "3vpower";
 			gpio-export,output = <1>;
-			gpios = <&gpio 19 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 19 GPIO_ACTIVE_HIGH>;
 		};
 
 		m2power {
 			gpio-export,name = "m2power";
 			gpio-export,output = <1>;
-			gpios = <&gpio 48 GPIO_ACTIVE_LOW>;
+			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
 		};
 
 		m2reset {
 			gpio-export,name = "m2reset";
 			gpio-export,output = <1>;
-			gpios = <&gpio 49 GPIO_ACTIVE_LOW>;
+			gpio = <&tlmm 49 GPIO_ACTIVE_LOW>;
 		};
 
 		m2dcpower {
 			gpio-export,name = "m2dcpower";
 			gpio-export,output = <1>;
-			gpios = <&gpio 51 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
 		};
 
 		pcie1dcpower {
 			gpio-export,name = "pcie1dcpower";
 			gpio-export,output = <1>;
-			gpios = <&gpio 50 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
 		};
 
 		pcie1rst {
 			gpio-export,name = "pcie1rst";
 			gpio-export,output = <1>;
-			gpios = <&gpio 42 GPIO_ACTIVE_LOW>;
+			gpio = <&tlmm 42 GPIO_ACTIVE_LOW>;
 		};
 
 		pcie2dcpower {
 			gpio-export,name = "pcie2dcpower";
 			gpio-export,output = <1>;
-			gpios = <&gpio 46 GPIO_ACTIVE_HIGH>;
+			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
 		};
 		pcie2rst {
 			gpio-export,name = "pcie2rst";
 			gpio-export,output = <1>;
-			gpios = <&gpio 43 GPIO_ACTIVE_LOW>;
+			gpio = <&tlmm 43 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
