@@ -344,11 +344,10 @@
 	};
 
 		3vpower {
-		line-name = "3vpower";
-		gpio = <&tlmm 19 GPIO_ACTIVE_HIGH>;
-		gpio-hog;
-		output-high;
-		
+			line-name = "3vpower";
+			gpio = <&tlmm 19 GPIO_ACTIVE_HIGH>;
+			gpio-hog;
+		    output-high;
 		};
 
 		m2power {
@@ -398,7 +397,6 @@
 			gpio-hog;
 		    output-low;
 		};
-	};
 };
 
 &gmac0 {
