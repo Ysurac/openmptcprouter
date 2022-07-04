@@ -98,7 +98,7 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_sys: status {
+        led_sys: status {
 			label = "nhx:system";
 			gpio = <&tlmm 4 GPIO_ACTIVE_HIGH>;
 		};
@@ -137,26 +137,6 @@
 			label = "nhx:xnet";
 			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
 		};
-
-		m2power {
-			label = "nhx:m2power";
-			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
-		};
-
-		m2dcpower {
-			label = "nhx:m2dcpower";
-			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie1dcpower {
-			label = "nhx:pcie1dcpower";
-			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie2dcpower {
-			label = "nhx:pcie2dcpower";
-			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
-		};
 	};
 
 	keys {
@@ -166,35 +146,6 @@
 			label = "reset";
 			gpios = <&tlmm 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
-		};
-	};
-
-	gpio_export {
-		compatible = "gpio-export";
-		#size-cells = <0>;
-
-		m2power {
-			gpio-export,name = "m2-power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
-		};
-
-		m2dcpower {
-			gpio-export,name = "m2dc-power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie1dcpower {
-			gpio-export,name = "pcie1dc-power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie2dcpower {
-			gpio-export,name = "pcie2dc-power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
 		};
 	};
 };
@@ -306,14 +257,6 @@
 	status = "okay";
 	perst-gpio = <&tlmm 38 GPIO_ACTIVE_LOW>;
 	wake-gpio = <&tlmm 40 GPIO_ACTIVE_LOW>;
-
-	/* Free slot for use */
-	bridge@0,0 {
-		reg = <0x00000000 0 0 0 0>;
-		#address-cells = <3>;
-		#size-cells = <2>;
-		ranges;
-	};
 };
 
 &qpic_bam {
@@ -321,6 +264,9 @@
 };
 
 &tlmm {
+	pinctrl-0 = <&power_pins>;
+	pinctrl-names = "default";
+
 	mdio_pins: mdio_pinmux {
 		mux_1 {
 			pins = "gpio6";
@@ -389,6 +335,72 @@
 			pins = "gpio20", "gpio21";
 			function = "blsp_i2c0";
 			bias-disable;
+		};
+	};
+
+	power_pins: power_pinmux {
+		3v_pwr_en {
+			pins = "gpio19";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-up;
+			output-high;
+		};
+
+		m2_pwr_en {
+			pins = "gpio48";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+
+		m2_reset {
+			pins = "gpio49";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+
+		m2_dc_en {
+			pins = "gpio51";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-up;
+			output-high;
+		};
+
+		pcie1_dc_en {
+			pins = "gpio50";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-up;
+			output-high;
+		};
+
+		pcie1_reset {
+			pins = "gpio42";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
+		};
+
+		pcie2_dc_en {
+			pins = "gpio46";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-up;
+			output-high;
+		};
+
+		pcie2_reset {
+			pins = "gpio43";
+			function = "gpio";
+			drive-strength = <2>;
+			bias-pull-down;
+			output-low;
 		};
 	};
 };
