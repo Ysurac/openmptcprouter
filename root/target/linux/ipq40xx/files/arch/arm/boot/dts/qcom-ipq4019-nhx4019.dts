@@ -137,6 +137,27 @@
 			label = "nhx:xnet";
 			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
 		};
+
+	    m2power {
+			label = "m2power";
+			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
+		};
+
+
+		m2dcpower {
+		    label = "m2dcpower";
+			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
+		};
+
+		pcie1dcpower {
+			 label = "pcie1dcpower";
+			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
+		};
+
+		pcie2dcpower {
+			label = "pcie2dcpower";
+			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
 	keys {
@@ -342,7 +363,6 @@
 			bias-disable;
 		};
 	};
-
 };
 
 &gmac0 {
