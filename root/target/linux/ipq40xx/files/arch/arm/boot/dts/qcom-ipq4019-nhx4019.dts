@@ -137,27 +137,6 @@
 			label = "nhx:xnet";
 			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
 		};
-
-	    m2power {
-			label = "m2power";
-			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
-		};
-
-
-		m2dcpower {
-		    label = "m2dcpower";
-			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie1dcpower {
-			 label = "pcie1dcpower";
-			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie2dcpower {
-			label = "pcie2dcpower";
-			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
-		};
 	};
 
 	keys {
@@ -167,6 +146,59 @@
 			label = "reset";
 			gpios = <&tlmm 18 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
+		};
+	};
+	
+	
+	gpio_export {
+		compatible = "gpio-export";
+		#size-cells = <0>;
+
+		3vpower {
+			gpio-export,name = "3v-power";
+			gpio-export,output = <1>;
+			gpio = <&tlmm 19 GPIO_ACTIVE_HIGH>;
+		};
+
+		m2power {
+			gpio-export,name = "m2-power";
+			gpio-export,output = <0>;
+			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
+		};
+
+		m2reset {
+			gpio-export,name = "m2-reset";
+			gpio-export,output = <0>;
+			gpio = <&tlmm 49 GPIO_ACTIVE_LOW>;
+		};
+
+		m2dcpower {
+			gpio-export,name = "m2dc-power";
+			gpio-export,output = <1>;
+			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
+		};
+
+		pcie1dcpower {
+			gpio-export,name = "pcie1dc-power";
+			gpio-export,output = <1>;
+			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
+		};
+
+		pcie1rst {
+			gpio-export,name = "pcie1-rst";
+			gpio-export,output = <0>;
+			gpio = <&tlmm 42 GPIO_ACTIVE_LOW>;
+		};
+
+		pcie2dcpower {
+			gpio-export,name = "pcie2dc-power";
+			gpio-export,output = <1>;
+			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
+		};
+		pcie2rst {
+			gpio-export,name = "pcie2-rst";
+			gpio-export,output = <0>;
+			gpio = <&tlmm 43 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
