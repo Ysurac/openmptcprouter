@@ -137,6 +137,7 @@
 			label = "nhx:xnet";
 			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
 		};
+
 	};
 
 	keys {
@@ -148,62 +149,6 @@
 			linux,code = <KEY_RESTART>;
 		};
 	};
-	
-	
-	gpio_export {
-		compatible = "gpio-export";
-		#size-cells = <0>;
-
-		3vpower {
-			gpio-export,name = "3v-power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 19 GPIO_ACTIVE_HIGH>;
-		};
-
-		m2power {
-			gpio-export,name = "m2-power";
-			gpio-export,output = <0>;
-			gpio = <&tlmm 48 GPIO_ACTIVE_LOW>;
-		};
-
-        m2_reset: gpio-reset {
-           compatible = "gpio-reset";
-           reset-gpios = <&gpio 49 GPIO_ACTIVE_HIGH>;
-           reset-delay-us = <50000>;
-           initially-in-reset;
-	    };
-
-		m2dcpower {
-			gpio-export,name = "m2dc-power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 51 GPIO_ACTIVE_HIGH>;
-		};
-
-		pcie1dcpower {
-			gpio-export,name = "pcie1dc-power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 50 GPIO_ACTIVE_HIGH>;
-		};
-
-        pcie1_reset: gpio-reset {
-            compatible = "gpio-reset";
-            reset-gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
-            reset-delay-us = <50000>;
-            initially-in-reset;
-	    };
-
-		pcie2_reset: gpio-reset {
-            compatible = "gpio-reset";
-            reset-gpios = <&gpio 43 GPIO_ACTIVE_HIGH>;
-            reset-delay-us = <50000>;
-            initially-in-reset;
-	    };
-
-		pcie2dcpower {
-			gpio-export,name = "pcie2dc-power";
-			gpio-export,output = <1>;
-			gpio = <&tlmm 46 GPIO_ACTIVE_HIGH>;
-		};
 };
 
 &blsp_dma {
