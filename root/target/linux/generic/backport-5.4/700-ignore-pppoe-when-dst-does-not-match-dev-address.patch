@@ -1,0 +1,17 @@
+Index: linux-5.4.124/drivers/net/ppp/pppoe.c
+===================================================================
+--- linux-5.4.124.orig/drivers/net/ppp/pppoe.c
++++ linux-5.4.124/drivers/net/ppp/pppoe.c
+@@ -502,6 +502,12 @@ static int pppoe_disc_rcv(struct sk_buff
+ 	if (ph->code != PADT_CODE)
+ 		goto abort;
+ 
++	// compare the dst addr to the current net device addr and ignore packet if not matching
++	// otherwise it will terminate the connection
++	if(!ether_addr_equal(eth_hdr(skb)->h_dest, dev->dev_addr)) {
++		goto abort;
++	}
++
+ 	pn = pppoe_pernet(dev_net(dev));
+ 	po = get_item(pn, ph->sid, eth_hdr(skb)->h_source, dev->ifindex);
+ 	if (po)

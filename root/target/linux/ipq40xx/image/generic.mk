@@ -832,3 +832,15 @@ define Device/zyxel_wre6606
 	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
 endef
 TARGET_DEVICES += zyxel_wre6606
+
+define Device/nhx_nhx4019
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := NHX
+	DEVICE_MODEL := NHX4019
+	SOC := qcom-ipq4019
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_PACKAGES := uboot-envtools
+endef
+TARGET_DEVICES += nhx_nhx4019

@@ -61,6 +61,8 @@ platform_do_upgrade() {
 	aruba,ap-303 |\
 	pangu,l1000 |\
 	aruba,ap-303h |\
+	zbt,z4019 |\
+	nhx,nhx4019 |\
 	aruba,ap-365 |\
 	avm,fritzbox-7530 |\
 	avm,fritzrepeater-1200 |\
@@ -73,7 +75,6 @@ platform_do_upgrade() {
 	glinet,gl-ap1300 |\
 	luma,wrtq-329acn |\
 	mobipromo,cm520-79f |\
-	zbt,z4019 |\
 	qxwlan,e2600ac-c2)
 		nand_do_upgrade "$1"
 		;;

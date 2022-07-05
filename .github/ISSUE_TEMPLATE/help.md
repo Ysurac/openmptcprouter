@@ -21,4 +21,4 @@ labels: help wanted
   - OpenMPTCProuter VPS provider:
   - OpenMPTCProuter platform: <!--- (RPI2/RPI3/x86/x86_64) -->
 
-<!--- (please do not attach text files) -->
+<!--- (please do not attach text files, use pastebin or paste in issue) -->

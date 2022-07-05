@@ -1,0 +1,73 @@
+From 48bd024b8a40d73ad6b086de2615738da0c7004f Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <mszeredi@redhat.com>
+Date: Tue, 2 Jun 2020 22:20:25 +0200
+Subject: ovl: switch to mounter creds in readdir
+
+In preparation for more permission checking, override credentials for
+directory operations on the underlying filesystems.
+
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+---
+ fs/overlayfs/readdir.c | 27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
+
+Index: linux-5.4.147/fs/overlayfs/readdir.c
+===================================================================
+--- linux-5.4.147.orig/fs/overlayfs/readdir.c
++++ linux-5.4.147/fs/overlayfs/readdir.c
+@@ -732,8 +732,10 @@ static int ovl_iterate(struct file *file
+ 	struct ovl_dir_file *od = file->private_data;
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct ovl_cache_entry *p;
++	const struct cred *old_cred;
+ 	int err;
+ 
++	old_cred = ovl_override_creds(dentry->d_sb);
+ 	if (!ctx->pos)
+ 		ovl_dir_reset(file);
+ 
+@@ -747,17 +749,20 @@ static int ovl_iterate(struct file *file
+ 		    (ovl_same_sb(dentry->d_sb) &&
+ 		     (ovl_is_impure_dir(file) ||
+ 		      OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent))))) {
+-			return ovl_iterate_real(file, ctx);
++			err = ovl_iterate_real(file, ctx);
++		} else {
++			err = iterate_dir(od->realfile, ctx);
+ 		}
+-		return iterate_dir(od->realfile, ctx);
++		goto out;
+ 	}
+ 
+ 	if (!od->cache) {
+ 		struct ovl_dir_cache *cache;
+ 
+ 		cache = ovl_cache_get(dentry);
++		err = PTR_ERR(cache);
+ 		if (IS_ERR(cache))
+-			return PTR_ERR(cache);
++			goto out;
+ 
+ 		od->cache = cache;
+ 		ovl_seek_cursor(od, ctx->pos);
+@@ -769,7 +774,7 @@ static int ovl_iterate(struct file *file
+ 			if (!p->ino) {
+ 				err = ovl_cache_update_ino(&file->f_path, p);
+ 				if (err)
+-					return err;
++					goto out;
+ 			}
+ 			if (!dir_emit(ctx, p->name, p->len, p->ino, p->type))
+ 				break;
+@@ -777,7 +782,10 @@ static int ovl_iterate(struct file *file
+ 		od->cursor = p->l_node.next;
+ 		ctx->pos++;
+ 	}
+-	return 0;
++	err = 0;
++out:
++	revert_creds(old_cred);
++	return err;
+ }
+ 
+ static loff_t ovl_dir_llseek(struct file *file, loff_t offset, int origin)

@@ -39,4 +39,4 @@ labels: bug
   - OpenMPTCProuter platform: <!--- (RPI2/RPI3/x86/x86_64) -->
   - Country: <!--- Some ISP have restrictions in many countries -->
 
-<!--- (please do not attach text files) -->
+<!--- (please do not attach text files, use pastebin or paste in issue) -->
