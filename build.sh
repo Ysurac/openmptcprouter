@@ -98,7 +98,7 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "93aca6dfbe894217435e4623bc48489ab9695cd1"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "9139ad468599b586dbd7ca48fe5a149c95f28800"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "9d06e5a7735508d793c3a125f9f7d623671e29e4"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "3c06a344e9c7c03c49c9153342e68a5390651323"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "b4043d92257505526a5b8ceac94f9f28f887abbd"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "111c551cdb8d14e8e5ef7c7a66ffdceb6d3cbb55"
 	fi
