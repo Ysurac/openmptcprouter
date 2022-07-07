@@ -1,0 +1,31 @@
+From 88aa4bffe7e5b38e8596e5f09e7b40e8bc112a24 Mon Sep 17 00:00:00 2001
+From: Frank Wunderlich <frank-w@public-files.de>
+Date: Fri, 16 Nov 2018 16:40:16 +0100
+Subject: [PATCH 47/77] [hdmi] added options to defconfig
+
+---
+ arch/arm/configs/mt7623n_evb_fwu_defconfig | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm/configs/mt7623n_evb_fwu_defconfig b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+index f5e7a0edda0e..5932b552f2ea 100644
+--- a/arch/arm/configs/mt7623n_evb_fwu_defconfig
++++ b/arch/arm/configs/mt7623n_evb_fwu_defconfig
+@@ -652,3 +652,14 @@ CONFIG_POWER_RESET_MT6397_RTC=y
+ 
+ #CONFIG_NET_MEDIATEK_HW_QOS=m
+ 
++#Graphic
++CONFIG_DRM=y
++CONFIG_DRM_MEDIATEK=y
++CONFIG_DRM_MEDIATEK_HDMI=y
++CONFIG_DRM_ARM=y
++CONFIG_DRM_MALI_DISPLAY=y
++CONFIG_COMMON_CLK_MT2701_MMSYS=y
++CONFIG_COMMON_CLK_MT2701_IMGSYS=y
++CONFIG_COMMON_CLK_MT2701_VDECSYS=y
++#CONFIG_FRAMEBUFFER_CONSOLE=y
++#CONFIG_DRM_FBDEV_EMULATION=y
+-- 
+2.19.1
+
