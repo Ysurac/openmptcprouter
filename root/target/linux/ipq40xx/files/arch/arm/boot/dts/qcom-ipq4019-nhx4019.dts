@@ -137,6 +137,30 @@
 			label = "nhx:xnet";
 			gpio = <&tlmm 0 GPIO_ACTIVE_HIGH>;
 		};
+		
+		5g1pwr {
+			pins = "gpio51";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+			output-high;
+		};
+
+		5g2pwr {
+			pins = "gpio50";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+			output-high;
+		};
+
+		5g3pwr {
+			pins = "gpio46";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+			output-high;
+		};
 	};
 
 	keys {
