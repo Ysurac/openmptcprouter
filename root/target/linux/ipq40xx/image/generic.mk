@@ -841,6 +841,5 @@ define Device/nhx_nhx4019
 	SOC := qcom-ipq4019
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	DEVICE_PACKAGES := uboot-envtools
 endef
 TARGET_DEVICES += nhx_nhx4019
