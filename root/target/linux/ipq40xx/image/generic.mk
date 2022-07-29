@@ -839,7 +839,6 @@ define Device/nhx_nhx4019
 	DEVICE_VENDOR := NHX
 	DEVICE_MODEL := NHX4019
 	SOC := qcom-ipq4019
-	KERNEL_INSTALL := 1
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 endef
