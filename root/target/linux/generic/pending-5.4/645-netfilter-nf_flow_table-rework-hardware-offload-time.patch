@@ -24,14 +24,3 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  struct flow_offload {
  	struct flow_offload_tuple_rhash		tuplehash[FLOW_OFFLOAD_DIR_MAX];
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -370,7 +370,7 @@ static void nf_flow_offload_gc_step(stru
- 	if (!teardown)
- 		nf_ct_offload_timeout(flow);
- 
--	if (nf_flow_in_hw(flow) && !teardown)
-+	if ((flow->flags & FLOW_OFFLOAD_KEEP) && !teardown)
- 		return;
- 
- 	if (nf_flow_has_expired(flow) || teardown)
