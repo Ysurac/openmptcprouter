@@ -2237,7 +2237,7 @@ index 65be8bd1f0f4..cf89f928640e 100644
 +u32 tcp_tso_acked(struct sock *sk, struct sk_buff *skb);
 +void tcp_ack_tstamp(struct sock *sk, struct sk_buff *skb, u32 prior_snd_una);
 +
-+void skb_clone_fraglist(struct sk_buff *skb);
++/* void skb_clone_fraglist(struct sk_buff *skb); */
 +
 +void inet_twsk_free(struct inet_timewait_sock *tw);
 +int tcp_v6_conn_request(struct sock *sk, struct sk_buff *skb);
@@ -2990,19 +2990,6 @@ index 283ddb2dbc7d..8f526a0d1912 100644
  EXPORT_TRACEPOINT_SYMBOL_GPL(tcp_send_reset);
 +
 +EXPORT_TRACEPOINT_SYMBOL_GPL(mptcp_retransmit);
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 5bdb3cd20d61..d430e46373f3 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -582,7 +582,7 @@ static inline void skb_drop_fraglist(struct sk_buff *skb)
- 	skb_drop_list(&skb_shinfo(skb)->frag_list);
- }
- 
--static void skb_clone_fraglist(struct sk_buff *skb)
-+void skb_clone_fraglist(struct sk_buff *skb)
- {
- 	struct sk_buff *list;
- 
 diff --git a/net/core/sock.c b/net/core/sock.c
 index c84f68bff7f5..44675ce7e8de 100644
 --- a/net/core/sock.c
@@ -10624,7 +10611,7 @@ index 000000000000..9a1b5a048b70
 +	/* The below has to be done to allow calling inet_csk_destroy_sock */
 +	sock_set_flag(sk, SOCK_DEAD);
 +	percpu_counter_inc(sk->sk_prot->orphan_count);
-+	inet_sk(sk)->inet_num = 0;
++	/* inet_sk(sk)->inet_num = 0; */
 +
 +	tcp_done(sk);
 +
@@ -21783,7 +21770,7 @@ index 000000000000..a8a5787adbf1
 +	icsk->icsk_rto = min(icsk->icsk_rto << 1, TCP_RTO_MAX);
 +	sk_reset_timer(sk, &tp->mptcp->mptcp_ack_timer,
 +		       jiffies + icsk->icsk_rto);
-+	if (retransmits_timed_out(sk, net->ipv4.sysctl_tcp_retries1 + 1, 0))
++	if (retransmits_timed_out(sk, READ_ONCE(net->ipv4.sysctl_tcp_retries1) + 1, 0))
 +		__sk_dst_reset(sk);
 +
 +out:;
@@ -22008,7 +21995,7 @@ index 000000000000..a8a5787adbf1
 +	 * linear-timeout retransmissions into a black hole
 +	 */
 +	if (meta_sk->sk_state == TCP_ESTABLISHED &&
-+	    (meta_tp->thin_lto || sock_net(meta_sk)->ipv4.sysctl_tcp_thin_linear_timeouts) &&
++	    (meta_tp->thin_lto || READ_ONCE(sock_net(meta_sk)->ipv4.sysctl_tcp_thin_linear_timeouts)) &&
 +	    tcp_stream_is_thin(meta_tp) &&
 +	    meta_icsk->icsk_retransmits <= TCP_THIN_LINEAR_RETRIES) {
 +		meta_icsk->icsk_backoff = 0;
