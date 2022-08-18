@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Copyright (C) 2017 OVH OverTheBox
-# Copyright (C) 2017-2020 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter project
+#Copyright (C) 2017-2022 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter project
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
