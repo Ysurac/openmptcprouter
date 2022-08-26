@@ -1,0 +1,100 @@
+Index: linux-5.4.179/drivers/usb/serial/option.c
+===================================================================
+--- linux-5.4.179.orig/drivers/usb/serial/option.c
++++ linux-5.4.179/drivers/usb/serial/option.c
+@@ -566,6 +566,17 @@ static void option_instat_callback(struc
+ #define WETELECOM_PRODUCT_WMD300		0x6803
+ 
+ 
++//david add Fibocom products
++#define FIBOCOM_VENDOR_ID  0x2cb7
++#define FIBOCOM_PRODUCT_L71X  0x0001
++#define FIBOCOM_USB_VENDOR_AND_INTERFACE_INFO(vend, cl, sc, pr) \
++.match_flags = USB_DEVICE_ID_MATCH_INT_INFO \
++| USB_DEVICE_ID_MATCH_VENDOR, \
++.idVendor = (vend), \
++.bInterfaceClass = (cl), \
++.bInterfaceSubClass = (sc), \
++.bInterfaceProtocol = (pr)
++
+ /* Device flags */
+ 
+ /* Highest interface number which can be used with NCTRL() and RSVD() */
+@@ -585,6 +596,77 @@ static void option_instat_callback(struc
+ 
+ 
+ static const struct usb_device_id option_ids[] = {
++ { USB_DEVICE(0x2ecc, 0x3010) },/* td-tech 909s */
++//fibocom L610	
++	{ USB_DEVICE(0x1782, 0x4d11) , .driver_info = RSVD(4) },
++	{ USB_DEVICE(0x1782, 0x4d10) },
++	{USB_DEVICE(0x2949, 0x7401), .driver_info = RSVD(1) },
++	{USB_DEVICE(0x2949, 0x7402), .driver_info = RSVD(0) },
++//add 5g quectel rm500q, foxconn T99W240T00, meige srm815
++	{ USB_DEVICE(0x2C7C, 0x0800) }, /* Quectel RG500Q/RM500Q/RG510Q/RM510Q */
++	{ USB_DEVICE(0x2C7C, 0x0900) }, /* Quectel RG500U RG200U */
++	{ USB_DEVICE(0x05C6, 0x90DB), .driver_info = RSVD(2)|RSVD(3)|RSVD(4)|RSVD(5) },
++	{ USB_DEVICE(0x05C6, 0x90D5), .driver_info = RSVD(2)|RSVD(3) },
++	{ USB_DEVICE(0x2dee, 0x4d22), .driver_info = RSVD(4)|RSVD(5) },
++//add simcom a7600e
++	{ USB_DEVICE(0x1e0e, 0x9011), .driver_info = RSVD(0)|RSVD(1) },
++//add U9300
++	{ USB_DEVICE(0x1c9e, 0x9b3c), .driver_info = RSVD(4)|RSVD(5) },
++//add ucloud m2
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x1782, 0x5d22, 0xff, 0x00, 0x00), .driver_info = RSVD(3) },
++//add yuge clm920
++	{ USB_DEVICE(0x1286, 0x4e3c), .driver_info = RSVD(0)|RSVD(1) },
++//add nodecom nl660
++	{ USB_DEVICE(0x1508, 0x1001), .driver_info = RSVD(4)|RSVD(5) },
++//add quectel product
++	{ USB_DEVICE(0x05C6, 0x9090), .driver_info = RSVD(4)|RSVD(5) },
++	{ USB_DEVICE(0x05C6, 0x9003), .driver_info = RSVD(4)|RSVD(5) },
++	{ USB_DEVICE(0x05C6, 0X9215), .driver_info = RSVD(4)|RSVD(5) },
++	{ USB_DEVICE(0x2c7c, 0x0125), .driver_info = RSVD(4)|RSVD(5) },
++	{ USB_DEVICE(0x2c7c, 0x0121), .driver_info = RSVD(4)|RSVD(5) },
++//add xin feng wei ye
++	{ USB_DEVICE(0x5c6, 0x5012), .driver_info = RSVD(4)|RSVD(5) },
++	{ USB_DEVICE(0x5c6, 0x5013), .driver_info = RSVD(4)|RSVD(5) },//gobinet id
++//add em8000
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x19d2, 0x0532, 0xff, 0xff, 0xff), .driver_info = RSVD(6)|RSVD(7) },
++//add end
++//add fibocom L71x
++	{ FIBOCOM_USB_VENDOR_AND_INTERFACE_INFO(0x2cb7, 0xff, 0xff, 0xff) },
++	{ FIBOCOM_USB_VENDOR_AND_INTERFACE_INFO(0x2cb7, 0x0a, 0x00, 0xff) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x19d2, 0x0256, 0xff, 0xff, 0xff) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(0x19d2, 0x0579, 0xff, 0xff, 0xff), .driver_info = RSVD(0)|RSVD(1)|RSVD(5)|RSVD(6) },
++//add end
++//add mu709s
++	{ USB_DEVICE(0x12d1, 0x1c25) },
++//add forege 630b
++	{ USB_DEVICE(0x05c6, 0x9025) },
++//add kuanyi BM806U
++	//{ USB_DEVICE(0x2020, 0x2033) },
++	{ USB_DEVICE_INTERFACE_CLASS(0x2020, 0x2033, 0xff),	 .driver_info = RSVD(4) },
++//add forege 730
++	{ USB_DEVICE(0x05c6, 0xf601), .driver_info = RSVD(4)|RSVD(5) },
++//add Meig slm790
++	{ USB_DEVICE(0x2dee,0x4d20), .driver_info = RSVD(0) },
++	{ USB_DEVICE(0x2dee,0x4d57), .driver_info = RSVD(0) |RSVD(1)},
++//add end
++//add Quectel EC200T
++	{ USB_DEVICE(0x2c7c, 0x6026) },
++//add end
++//add Luat air720,air724
++	{ USB_DEVICE(0x1286,0x4e3d) },
++	{ USB_DEVICE(0x1782,0x4e00) },
++//add end
++//add N720 and N720V5
++	{ USB_DEVICE(0x2949,0x8247), .driver_info = RSVD(4)|RSVD(5) },
++	{ USB_DEVICE(0x2949,0x8241), .driver_info = RSVD(0)},
++	{ USB_DEVICE(0x2949,0x8242), .driver_info = RSVD(0)},
++	{ USB_DEVICE(0x2949,0x8243), .driver_info = RSVD(0)},
++	{ USB_DEVICE(0x2949,0x8700) },
++//add end
++//david add em7355 em7455(DELL 3P10Y) 
++	{ USB_DEVICE_INTERFACE_CLASS(0x1199, 0x9041, 0xff), .driver_info = RSVD(8)|RSVD(10)|RSVD(11) }, /* MC7305/MC7355 */
++	{ USB_DEVICE_INTERFACE_CLASS(0x413c, 0x81b6, 0xff), .driver_info = RSVD(8)|RSVD(10)|RSVD(11) }, /* EM7455 */
++//add end
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
