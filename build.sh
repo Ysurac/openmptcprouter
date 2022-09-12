@@ -94,13 +94,13 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "ce92de8c8c90aa2a6281cbfb046fcf6498b78786"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "93aca6dfbe894217435e4623bc48489ab9695cd1"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "9139ad468599b586dbd7ca48fe5a149c95f28800"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "cb6501435c3136c296e3477bc7f3b043e2a83a47"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "51077c1094a1e63d333d32b138b381296fd45276"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "bdaec14361fa44529a2da5996745d43fc79fd764"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "3c06a344e9c7c03c49c9153342e68a5390651323"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "b4043d92257505526a5b8ceac94f9f28f887abbd"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "111c551cdb8d14e8e5ef7c7a66ffdceb6d3cbb55"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "bae87942bcfb461d2882dd7e593b6aa2d75f63b1"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "2840abb0c049061618e4e32c5f59c20f7d081c67"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "46181e5ace8c5cf86e257d021b4e3e593f1a7f5e"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "master"
@@ -133,8 +133,8 @@ fi
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/source/tmp"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/mediatek/patches-4.14"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/mediatek/patches-5.4"
-rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
-rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
+#rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
+#rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
 if [ "$OMR_TARGET" != "rutx" ]; then
 	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
