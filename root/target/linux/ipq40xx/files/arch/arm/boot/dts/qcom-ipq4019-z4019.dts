@@ -164,7 +164,6 @@
 			label = "green:4g3pwr";
 			gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
 		};
-	};
 
 	watchdog {
 		compatible = "linux,wdt-gpio";
@@ -332,7 +331,6 @@
 			drive-strength = <8>;
 			bias-pull-up;
 		};
-
 
 		power_4g1 {
 			pins = "gpio20";
