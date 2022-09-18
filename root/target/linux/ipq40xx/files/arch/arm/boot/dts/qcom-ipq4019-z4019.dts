@@ -29,7 +29,7 @@
 		led-running = &power;
 		led-upgrade = &power;
 		serial0 = &blsp1_uart1;
-		serial1 = &blsp1_uart2;
+		
 	};
 
 	chosen {
@@ -280,11 +280,7 @@
 	status = "okay";
 };
 
-&blsp1_uart2 {
-	pinctrl-0 = <&serial_1_pins>;
-	pinctrl-names = "default";
-	status = "okay";
-};
+
 
 &tlmm {
 	mdio_pins: mdio_pinmux {
