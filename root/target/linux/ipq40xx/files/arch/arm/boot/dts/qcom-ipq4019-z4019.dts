@@ -123,6 +123,11 @@
 		compatible = "gpio-leds";
 		pinctrl-0 = <&led_pins>;
 		pinctrl-names = "default";
+		
+		power: power {
+			label = "green:power";
+			gpios = <&tlmm 36 GPIO_ACTIVE_LOW>;
+		};
 
 		wifi0 {
 			label = "green:wlan0";
