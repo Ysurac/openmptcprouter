@@ -2,20 +2,23 @@ diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
 index a5e8374a8d71..e716395268fe 100644
 --- a/drivers/usb/serial/option.c
 +++ b/drivers/usb/serial/option.c
-@@ -256,5 +256,6 @@ static void option_instat_callback(struct urb *urb);
+@@ -256,5 +256,7 @@ static void option_instat_callback(struct urb *urb);
  #define QUECTEL_PRODUCT_EM12			0x0512
  #define QUECTEL_PRODUCT_RM500Q			0x0800
 +#define QUECTEL_PRODUCT_RM520N			0x0801
++#define QUECTEL_PRODUCT_RM500U_CN		0x0900
  #define QUECTEL_PRODUCT_EC200S_CN		0x6002
  #define QUECTEL_PRODUCT_EC200T			0x6026
  #define QUECTEL_PRODUCT_RM500K			0x7001
-@@ -1159,6 +1160,9 @@ static const struct usb_device_id option_ids[] = {
+@@ -1159,6 +1160,11 @@ static const struct usb_device_id option_ids[] = {
  	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500Q, 0xff, 0, 0) },
  	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500Q, 0xff, 0xff, 0x10),
  	  .driver_info = ZLP },
 +	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM520N, 0xff, 0xff, 0x30) },
 +	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM520N, 0xff, 0, 0x40) },
 +	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM520N, 0xff, 0, 0) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500U_CN, 0xff, 0, 0),
++	  .driver_info = ZLP },
  	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EC200S_CN, 0xff, 0, 0) },
  	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EC200T, 0xff, 0, 0) },
  	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500K, 0xff, 0x00, 0x00) },
@@ -23,11 +26,12 @@ diff --git a/drivers/net/usb/qmi_wwan.c b/drivers/net/usb/qmi_wwan.c
 index 709e3c59e340..0cb187def5bc 100644
 --- a/drivers/net/usb/qmi_wwan.c
 +++ b/drivers/net/usb/qmi_wwan.c
-@@ -1087,6 +1087,7 @@ static const struct usb_device_id products[] = {
+@@ -1087,6 +1087,8 @@ static const struct usb_device_id products[] = {
  	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0512)},	/* Quectel EG12/EM12 */
  	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0620)},	/* Quectel EM160R-GL */
  	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0800)},	/* Quectel RM500Q-GL */
 +	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0801)},	/* Quectel RM520N */
++	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0900)},	/* Quectel RM500U_CN */
  
  	/* 3. Combined interface devices matching on interface number */
  	{QMI_FIXED_INTF(0x0408, 0xea42, 4)},	/* Yota / Megafon M100-1 */
