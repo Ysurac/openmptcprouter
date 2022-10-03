@@ -100,13 +100,13 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "cb6501435c3136c296e3477bc7f3b043e2a83a47"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "51077c1094a1e63d333d32b138b381296fd45276"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "bdaec14361fa44529a2da5996745d43fc79fd764"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "fc86176363149493810dc0b424583dd120e7f4c7"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "47d63847e1eda46633eb3d369e221e8845a82f7c"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "e01e38cf822b77ee9735da1d519f7eb1c48cce19"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "bae87942bcfb461d2882dd7e593b6aa2d75f63b1"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "2840abb0c049061618e4e32c5f59c20f7d081c67"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "46181e5ace8c5cf86e257d021b4e3e593f1a7f5e"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "2ad949b11dbaa4c634868d55a4452d5a558776bd"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "891b87747a5100d5e8c489cea0882a0a0ce8f127"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "0c5d7dd8d7b04ab6979fb7b6ef953a9a92e37d7a"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "master"
@@ -434,11 +434,11 @@ echo "Done"
 #fi
 #echo "Done"
 
-echo "Download via IPv4"
-if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/download-ipv4.patch; then
-	patch -N -p1 -s < ../../../patches/download-ipv4.patch
-fi
-echo "Done"
+#echo "Download via IPv4"
+#if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/download-ipv4.patch; then
+#	patch -N -p1 -s < ../../../patches/download-ipv4.patch
+#fi
+#echo "Done"
 
 #echo "Remove check rsync"
 #if [ "$(grep rsync include/prereq-build.mk)" != "" ]; then
