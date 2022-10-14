@@ -457,7 +457,7 @@ if [ -f target/linux/bcm27xx/patches-5.15/950-0019-drm-vc4-select-PM.patch ]; th
 	rm -f target/linux/bcm27xx/patches-5.15/950-0019-drm-vc4-select-PM.patch
 fi
 if [ -f target/linux/ipq806x/patches-5.4/0063-2-tsens-support-configurable-interrupts.patch ]; then
-	rm -f target/linux/ipq806x/patches-5.4/0063-2-tsens-support-configurable-interrupts.patch
+	rm -f target/linux/ipq806x/patches-5.4/0063-*
 fi
 #if [ -f target/linux/ipq40xx/patches-5.4/100-GPIO-add-named-gpio-exports.patch ]; then
 #	rm -f target/linux/ipq40xx/patches-5.4/100-GPIO-add-named-gpio-exports.patch
