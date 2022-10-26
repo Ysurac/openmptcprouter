@@ -24762,3 +24762,160 @@ index cb0631098f91..b9de598828e9 100644
  
  	BPF_TCP_MAX_STATES	/* Leave at the end! */
  };
+diff --git a/net/mptcp/mptcp_output.c b/net/mptcp/mptcp_output.c
+index c26e14a702fd..00d2e18aaf96 100644
+--- a/net/mptcp/mptcp_output.c
++++ b/net/mptcp/mptcp_output.c
+@@ -1194,7 +1194,9 @@ void mptcp_established_options(struct sock *sk, struct sk_buff *skb,
+ 	}
+ 
+ 	if (unlikely(mpcb->addr_signal) && mpcb->pm_ops->addr_signal &&
+-	    mpcb->mptcp_ver >= MPTCP_VERSION_1 && skb && !mptcp_is_data_seq(skb)) {
++	    mpcb->mptcp_ver >= MPTCP_VERSION_1 &&
++	    skb && !mptcp_is_data_seq(skb) &&
++	    tp->mptcp->fully_established) {
+ 		mpcb->pm_ops->addr_signal(sk, size, opts, skb);
+ 
+ 		if (opts->add_addr_v6)
+diff --git a/net/mptcp/mptcp_fullmesh.c b/net/mptcp/mptcp_fullmesh.c
+index ef2c15cbbeaa..4b97986de824 100644
+--- a/net/mptcp/mptcp_fullmesh.c
++++ b/net/mptcp/mptcp_fullmesh.c
+@@ -1603,11 +1603,13 @@ static void full_mesh_addr_signal(struct sock *sk, unsigned *size,
+ 		opts->add_addr_v4 = 1;
+ 		if (mpcb->mptcp_ver >= MPTCP_VERSION_1) {
+ 			u8 mptcp_hash_mac[SHA256_DIGEST_SIZE];
++			u16 port = 0;
+ 
+ 			mptcp_hmac(mpcb->mptcp_ver, (u8 *)&mpcb->mptcp_loc_key,
+-				   (u8 *)&mpcb->mptcp_rem_key, mptcp_hash_mac, 2,
++				   (u8 *)&mpcb->mptcp_rem_key, mptcp_hash_mac, 3,
+ 				   1, (u8 *)&mptcp_local->locaddr4[ind].loc4_id,
+-				   4, (u8 *)&opts->add_addr4.addr.s_addr);
++				   4, (u8 *)&opts->add_addr4.addr.s_addr,
++				   2, (u8 *)&port);
+ 			opts->add_addr4.trunc_mac = *(u64 *)&mptcp_hash_mac[SHA256_DIGEST_SIZE - sizeof(u64)];
+ 		}
+ 
+@@ -1644,11 +1646,13 @@ static void full_mesh_addr_signal(struct sock *sk, unsigned *size,
+ 		opts->add_addr_v6 = 1;
+ 		if (mpcb->mptcp_ver >= MPTCP_VERSION_1) {
+ 			u8 mptcp_hash_mac[SHA256_DIGEST_SIZE];
++			u16 port = 0;
+ 
+ 			mptcp_hmac(mpcb->mptcp_ver, (u8 *)&mpcb->mptcp_loc_key,
+-				   (u8 *)&mpcb->mptcp_rem_key, mptcp_hash_mac, 2,
++				   (u8 *)&mpcb->mptcp_rem_key, mptcp_hash_mac, 3,
+ 				   1, (u8 *)&mptcp_local->locaddr6[ind].loc6_id,
+-				   16, (u8 *)&opts->add_addr6.addr.s6_addr);
++				   16, (u8 *)opts->add_addr6.addr.s6_addr,
++				   2, (u8 *)&port);
+ 			opts->add_addr6.trunc_mac = *(u64 *)&mptcp_hash_mac[SHA256_DIGEST_SIZE - sizeof(u64)];
+ 		}
+ 
+diff --git a/net/ipv4/tcp_minisocks.c b/net/ipv4/tcp_minisocks.c
+index d54127de9c3a..0c4db7d5177f 100644
+--- a/net/ipv4/tcp_minisocks.c
++++ b/net/ipv4/tcp_minisocks.c
+@@ -847,6 +847,9 @@ struct sock *tcp_check_req(struct sock *sk, struct sk_buff *skb,
+ 		return mptcp_check_req_child(sk, child, req, skb, &mopt);
+ 	}
+ 
++	/* Fallback to regular TCP */
++	tcp_sk(child)->mpc = 0;
++
+ 	if (meta_locked)
+ 		bh_unlock_sock(sk);
+ 
+diff --git a/net/mptcp/mptcp_input.c b/net/mptcp/mptcp_input.c
+index 41a511b3ef63..d5c1e8cec703 100644
+--- a/net/mptcp/mptcp_input.c
++++ b/net/mptcp/mptcp_input.c
+@@ -1708,7 +1708,7 @@ bool mptcp_handle_ack_in_infinite(struct sock *sk, const struct sk_buff *skb,
+ 	 * this becomes our data_ack.
+ 	 */
+ 	if (after(meta_tp->snd_una, tp->mptcp->last_end_data_seq - (tp->snd_nxt - tp->snd_una))) {
+-		/* Remmeber that meta snd_una is ahead of the game */
++		/* Remember that meta snd_una is ahead of the game */
+ 		mpcb->infinite_send_una_ahead = 1;
+ 		tp->mptcp->rx_opt.data_ack = meta_tp->snd_una;
+ 	} else {
+diff --git a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
+index dfeff4e15882..f8b17ac89152 100644
+--- a/net/mptcp/mptcp_ctrl.c
++++ b/net/mptcp/mptcp_ctrl.c
+@@ -2533,7 +2533,10 @@ static int __mptcp_check_req_master(struct sock *child,
+ 	}
+ 
+ 	/* mopt can be NULL when coming from FAST-OPEN */
+-	if (mopt && mopt->saw_mpc && mtreq->mptcp_ver == MPTCP_VERSION_1) {
++	if (mopt && mtreq->mptcp_ver == MPTCP_VERSION_1) {
++		if (!mopt->saw_mpc)
++			return 1;
++
+ 		mtreq->mptcp_rem_key = mopt->mptcp_sender_key;
+ 		mtreq->rem_key_set = 1;
+ 	}
+diff --git a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
+index f8b17ac89152..76eae7ec7d5c 100644
+--- a/net/mptcp/mptcp_ctrl.c
++++ b/net/mptcp/mptcp_ctrl.c
+@@ -2528,7 +2528,6 @@ static int __mptcp_check_req_master(struct sock *child,
+ 		 * must still remove it.
+ 		 */
+ 		MPTCP_INC_STATS(sock_net(meta_sk), MPTCP_MIB_MPCAPABLEPASSIVEFALLBACK);
+-		mptcp_reqsk_remove_tk(req);
+ 		return 1;
+ 	}
+ 
+@@ -2565,11 +2564,6 @@ static int __mptcp_check_req_master(struct sock *child,
+ 	mpcb->dss_csum = mtreq->dss_csum;
+ 	mpcb->server_side = 1;
+ 
+-	/* Needs to be done here additionally, because when accepting a
+-	 * new connection we pass by __reqsk_free and not reqsk_free.
+-	 */
+-	mptcp_reqsk_remove_tk(req);
+-
+ 	return 0;
+ }
+ 
+diff --git a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
+index 1ab36a72d93e..181018192f5d 100644
+--- a/net/ipv4/inet_connection_sock.c
++++ b/net/ipv4/inet_connection_sock.c
+@@ -934,13 +934,15 @@ struct sock *inet_csk_reqsk_queue_add(struct sock *sk,
+ 
+ 	spin_lock(&queue->rskq_lock);
+ 	if (unlikely(sk->sk_state != TCP_LISTEN)) {
+-		struct tcp_sock *tp = tcp_sk(sk);
++		if (sk->sk_protocol == IPPROTO_TCP) {
++			struct tcp_sock *child_tp = tcp_sk(child);
+ 
+-		/* in case of mptcp, two locks may been taken, one
+-		 * on the meta, the other on master_sk
+-		 */
+-		if (mptcp(tp) && tp->mpcb && tp->mpcb->master_sk)
+-			bh_unlock_sock(tp->mpcb->master_sk);
++			/* in case of mptcp, two locks may been taken, one
++			 * on the meta, the other on master_sk
++			 */
++			if (mptcp(child_tp) && child_tp->mpcb && child_tp->mpcb->master_sk)
++				bh_unlock_sock(child_tp->mpcb->master_sk);
++		}
+ 
+ 		inet_child_forget(sk, req, child);
+ 		child = NULL;
+diff --git a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
+index 76eae7ec7d5c..8049dea0ded1 100644
+--- a/net/mptcp/mptcp_ctrl.c
++++ b/net/mptcp/mptcp_ctrl.c
+@@ -2417,6 +2417,8 @@ void mptcp_disconnect(struct sock *meta_sk)
+ 	mptcp_for_each_sub_safe(meta_tp->mpcb, mptcp, tmp) {
+ 		struct sock *subsk = mptcp_to_sock(mptcp);
+ 
++		BUG_ON(spin_is_locked(&subsk->sk_lock.slock));
++
+ 		tcp_sk(subsk)->tcp_disconnect = 1;
+ 
+ 		meta_sk->sk_prot->disconnect(subsk, O_NONBLOCK);
