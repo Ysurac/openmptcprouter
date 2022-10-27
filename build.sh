@@ -701,6 +701,7 @@ fi
 scripts/feeds install -a
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
+chmod -R 777 feeds/openmptcprouter
 echo "Done"
 
 if [ ! -f "../../../$OMR_TARGET_CONFIG" ]; then
