@@ -94,13 +94,13 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "fc86176363149493810dc0b424583dd120e7f4c7"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "47d63847e1eda46633eb3d369e221e8845a82f7c"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "e01e38cf822b77ee9735da1d519f7eb1c48cce19"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "ab26cddca2e45911a980a60afaee889bd1353a6e"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "6711badf079986f847da07747c95c0a74960b965"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "04257f6704c1b8707ee7a58ca4ec0f18a2133611"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "2ad949b11dbaa4c634868d55a4452d5a558776bd"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "891b87747a5100d5e8c489cea0882a0a0ce8f127"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "0c5d7dd8d7b04ab6979fb7b6ef953a9a92e37d7a"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "c3322cf04a1b9ee826dcc56944750b6bbcb716ef"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "7960285c3301532e8c464fb06260ce14ae4357a0"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "9ea26a75ed44cde3def5d061a867fa513d365c27"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "master"
