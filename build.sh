@@ -74,12 +74,6 @@ elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "rutx" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "l1000" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "zbt4019" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "5gx3" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r64" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "espressobin" ]; then
@@ -104,9 +98,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "6711badf079986f847da07747c95c0a74960b965"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "04257f6704c1b8707ee7a58ca4ec0f18a2133611"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "c3322cf04a1b9ee826dcc56944750b6bbcb716ef"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "7960285c3301532e8c464fb06260ce14ae4357a0"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "9ea26a75ed44cde3def5d061a867fa513d365c27"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "0d43c22d47b91fd64fea707290f9dce3ba2a273f"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8762261112c8235f7f85a6f57dbf342cf17093b9"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "a1ee78fa696e13ad4e19c0252eb345500d4ab3ee"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "master"
@@ -142,15 +136,23 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
-cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
+if [ "$OMR_TARGET" != "rutx" ]; then
+	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
+	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
+	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
+	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
+else
+	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+fi
+
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
  VERSION:     $OMR_RELEASE
  TARGET:      $OMR_TARGET
  ARCH:        $OMR_REAL_TARGET
-
-
  BUILD DATE:  $(date -u)
 -----------------------------------------------------
 EOF
@@ -450,9 +452,9 @@ if [ -f target/linux/mediatek/patches-5.4/0999-hnat.patch ]; then
 	rm -f target/linux/mediatek/patches-5.4/0999-hnat.patch
 fi
 
-if [ -f target/linux/bcm27xx/patches-5.15/950-0019-drm-vc4-select-PM.patch ]; then
-	rm -f target/linux/bcm27xx/patches-5.15/950-0019-drm-vc4-select-PM.patch
-fi
+#if [ -f target/linux/bcm27xx/patches-5.15/950-0019-drm-vc4-select-PM.patch ]; then
+#	rm -f target/linux/bcm27xx/patches-5.15/950-0019-drm-vc4-select-PM.patch
+#fi
 if [ -f target/linux/ipq806x/patches-5.4/0063-2-tsens-support-configurable-interrupts.patch ]; then
 	rm -f target/linux/ipq806x/patches-5.4/0063-*
 fi
@@ -510,16 +512,35 @@ fi
 #if [ -f target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch ]; then
 #	rm -f target/linux/generic/hack-5.4/953-net-patch-linux-kernel-to-support-shortcut-fe.patch
 #fi
-if [ -f target/linux/bcm27xx/patches-5.4/950-1031-net-lan78xx-Ack-pending-PHY-ints-when-resetting.patch ]; then
-	rm -f target/linux/bcm27xx/patches-5.4/950-1031-net-lan78xx-Ack-pending-PHY-ints-when-resetting.patch
-fi
+#if [ -f target/linux/bcm27xx/patches-5.4/950-1031-net-lan78xx-Ack-pending-PHY-ints-when-resetting.patch ]; then
+#	rm -f target/linux/bcm27xx/patches-5.4/950-1031-net-lan78xx-Ack-pending-PHY-ints-when-resetting.patch
+#fi
 #if [ -f target/linux/generic/pending-5.4/770-16-net-ethernet-mediatek-mtk_eth_soc-add-flow-offloadin.patch ]; then
 #	rm -f target/linux/generic/pending-5.4/770-16-net-ethernet-mediatek-mtk_eth_soc-add-flow-offloadin.patch
 #fi
 #if [ -f target/linux/generic/pending-5.15/850-0023-PCI-aardvark-Make-main-irq_chip-structure-a-static-d.patch ]; then
 #	rm -f target/linux/generic/pending-5.15/850-0023-PCI-aardvark-Make-main-irq_chip-structure-a-static-d.patch
 #fi
-
+#if [ -f target/linux/bcm27xx/patches-5.15/950-0448-drm-vc4-Fix-definition-of-PAL-M-mode.patch ]; then
+#	rm -f target/linux/bcm27xx/patches-5.15/950-0448-drm-vc4-Fix-definition-of-PAL-M-mode.patch
+#fi
+#if [ -f target/linux/ipq40xx/patches-5.15/707-dt-bindings-net-add-QCA807x-PHY.patch ]; then
+#	rm -f target/linux/ipq40xx/patches-5.15/707-dt-bindings-net-add-QCA807x-PHY.patch
+#fi
+#if [ -f target/linux/ipq40xx/patches-5.15/709-arm-dts-ipq4019-QCA807x-properties.patch ]; then
+#	rm -f target/linux/ipq40xx/patches-5.15/709-arm-dts-ipq4019-QCA807x-properties.patch
+#fi
+#if [ -f target/linux/bcm27xx/patches-5.15/950-0556-drm-vc4-Make-VEC-progressive-modes-readily-accessibl.patch ]; then
+#	rm -f target/linux/bcm27xx/patches-5.15/*-drm-*.patch
+#	rm -f target/linux/bcm27xx/patches-5.15/*-vc4*.patch
+#	rm -f target/linux/bcm27xx/patches-5.15/950-0183-v3d_drv-Handle-missing-clock-more-gracefully.patch
+#	rm -f target/linux/bcm27xx/patches-5.15/950-0305-staging-bcm2835-audio-Add-disable-headphones-flag.patch
+#	rm -f target/linux/bcm27xx/patches-5.15/950-0697-dtoverlays-Add-overlays-for-Pimoroni-Hyperpixel-disp.patch
+#	rm -f target/linux/bcm27xx/patches-5.15/950-0785-dtoverlays-Connect-the-backlight-to-the-pitft35-disp.patch
+#fi
+#if [ -f target/linux/bcm27xx/patches-5.15/950-0785-dtoverlays-Connect-the-backlight-to-the-pitft35-disp.patch ]; then
+#	rm -f target/linux/bcm27xx/patches-5.15/950-0785-dtoverlays-Connect-the-backlight-to-the-pitft35-disp.patch
+#fi
 
 if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for rpi arch"
@@ -548,63 +569,6 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 		rm -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch
 	fi
 	echo "CONFIG_VERSION_CODE=5.4" >> ".config"
-fi
-if [ "$OMR_KERNEL" = "5.10" ]; then
-	echo "Set to kernel 5.10 for rpi arch"
-	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
-	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.10 for x86 arch"
-	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.10 for mvebu arch (WRT)"
-	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.10 for mediatek arch (BPI-R2)"
-	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.10%g' {} \;
-	echo "Done"
-fi
-if [ "$OMR_KERNEL" = "5.14" ]; then
-	echo "Set to kernel 5.14 for rpi arch"
-	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
-	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
-	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.14 for x86 arch"
-	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.14 for mvebu arch (WRT)"
-	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.14 for mediatek arch (BPI-R2)"
-	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
-	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.14 for rockchip arch (R2S/R4S)"
-	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.14 for ramips"
-	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.4%KERNEL_PATCHVER:=5.14%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.14 for ipq806x"
-	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
-	echo "Done"
-	echo "Set to kernel 5.14 for ipq40xx"
-	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=5.14%g' {} \;
-	echo "Done"
-	#rm -rf target/linux/generic/files/drivers/net/phy/b53
-	rm -f target/linux/bcm27xx/modules/sound.mk
-	echo "CONFIG_DEVEL=y" >> ".config"
-	echo "CONFIG_NEED_TOOLCHAIN=y" >> ".config"
-	echo "CONFIG_TOOLCHAINOPTS=y" >> ".config"
-	echo 'CONFIG_BINUTILS_VERSION_2_36_1=y' >> ".config"
-	echo 'CONFIG_BINUTILS_VERSION="2.36.1' >> ".config"
-	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
-	echo "CONFIG_VERSION_CODE=5.14" >> ".config"
-	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
-	if [ "$TARGET" = "bpi-r2" ]; then
-		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
-	fi
 fi
 if [ "$OMR_KERNEL" = "5.15" ]; then
 	echo "Set to kernel 5.15 for rpi arch"
@@ -701,7 +665,6 @@ fi
 scripts/feeds install -a
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
-chmod -R 777 feeds/openmptcprouter
 echo "Done"
 
 if [ ! -f "../../../$OMR_TARGET_CONFIG" ]; then
