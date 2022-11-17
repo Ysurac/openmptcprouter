@@ -142,6 +142,7 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
+rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
@@ -662,7 +663,7 @@ fi
 scripts/feeds install -a
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
--chmod -R 777 feeds/openmptcprouter
+chmod -R 777 feeds/openmptcprouter
 echo "Done"
 
 if [ ! -f "../../../$OMR_TARGET_CONFIG" ]; then
