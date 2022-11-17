@@ -74,6 +74,12 @@ elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "rutx" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "l1000" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "zbt4019" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "5gx3" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r64" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "espressobin" ]; then
@@ -136,16 +142,7 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
-rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
-if [ "$OMR_TARGET" != "rutx" ]; then
-	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
-	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
-	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
-	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
-	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
-else
-	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
-fi
+cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
@@ -665,6 +662,7 @@ fi
 scripts/feeds install -a
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
+-chmod -R 777 feeds/openmptcprouter
 echo "Done"
 
 if [ ! -f "../../../$OMR_TARGET_CONFIG" ]; then
