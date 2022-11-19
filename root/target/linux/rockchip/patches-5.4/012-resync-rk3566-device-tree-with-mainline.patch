@@ -1,0 +1,28 @@
+--- a/include/dt-bindings/clock/rk3368-cru.h
++++ b/include/dt-bindings/clock/rk3368-cru.h
+@@ -157,6 +157,8 @@
+ #define PCLK_VIP		367
+ #define PCLK_WDT		368
+ #define PCLK_EFUSE256		369
++#define PCLK_DPHYRX		370
++#define PCLK_DPHYTX0		371
+ 
+ /* hclk gates */
+ #define HCLK_SFC		448
+--- /dev/null
++++ b/include/dt-bindings/soc/rockchip,vop2.h
+@@ -0,0 +1,14 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause */
++
++#ifndef __DT_BINDINGS_ROCKCHIP_VOP2_H
++#define __DT_BINDINGS_ROCKCHIP_VOP2_H
++
++#define RK3568_VOP2_EP_RGB	0
++#define RK3568_VOP2_EP_HDMI	1
++#define RK3568_VOP2_EP_EDP	2
++#define RK3568_VOP2_EP_MIPI0	3
++#define RK3568_VOP2_EP_LVDS0	4
++#define RK3568_VOP2_EP_MIPI1	5
++#define RK3568_VOP2_EP_LVDS1	6
++
++#endif /* __DT_BINDINGS_ROCKCHIP_VOP2_H */
