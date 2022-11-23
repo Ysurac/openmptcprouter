@@ -634,7 +634,7 @@ fi
 cd ../..
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/${OMR_KERNEL}/luci/modules/luci-base/po/
 echo "Done"
-
+chmod -R 777 "$OMR_TARGET/${OMR_KERNEL}/source"
 cd "$OMR_TARGET/${OMR_KERNEL}/source"
 echo "Update feeds index"
 cp .config .config.keep
@@ -663,7 +663,6 @@ fi
 scripts/feeds install -a
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
-chmod -R 777 feeds/openmptcprouter
 echo "Done"
 
 if [ ! -f "../../../$OMR_TARGET_CONFIG" ]; then
