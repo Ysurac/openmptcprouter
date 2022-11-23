@@ -143,16 +143,7 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
-if [ "$OMR_TARGET" != "rutx" ]; then
-	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
-	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
-	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
-	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
-	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
-else
-	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
-fi
-
+cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
@@ -358,7 +349,7 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	done
 	echo "done"
 fi
-
+chmod -R 777 "$OMR_TARGET/${OMR_KERNEL}/source"
 cd "$OMR_TARGET/${OMR_KERNEL}/source"
 
 #if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
