@@ -144,12 +144,15 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
  PACKAGE:     $OMR_DIST
  VERSION:     $OMR_RELEASE
  TARGET:      $OMR_TARGET
  ARCH:        $OMR_REAL_TARGET
+
+ BUILD REPO:  $(git config --get remote.origin.url)
  BUILD DATE:  $(date -u)
 -----------------------------------------------------
 EOF
@@ -233,9 +236,6 @@ if [ "$OMR_PACKAGES" = "full" ]; then
 fi
 if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-fi
-if [ "$OMR_PACKAGES" = "zuixiao" ]; then
-	echo "CONFIG_PACKAGE_${OMR_DIST}-zuixiao=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$SHORTCUT_FE" = "yes" ] && [ "${OMR_KERNEL}" = "5.4" ]; then
@@ -349,7 +349,7 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	done
 	echo "done"
 fi
-chmod -R 777 "$OMR_TARGET/${OMR_KERNEL}/source"
+
 cd "$OMR_TARGET/${OMR_KERNEL}/source"
 
 #if [ "$OMR_UEFI" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then 
