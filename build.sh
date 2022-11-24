@@ -27,7 +27,7 @@ _get_repo() (
 )
 
 OMR_DIST=${OMR_DIST:-openmptcprouter}
-OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
+OMR_HOST=${OMR_HOST:-55860.com}
 OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
