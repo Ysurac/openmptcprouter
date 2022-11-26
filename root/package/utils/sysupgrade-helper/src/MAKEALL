@@ -1,0 +1,790 @@
+#!/bin/bash
+# Tool mainly for U-Boot Quality Assurance: build one or more board
+# configurations with minimal verbosity, showing only warnings and
+# errors.
+
+usage()
+{
+	# if exiting with 0, write to stdout, else write to stderr
+	local ret=${1:-0}
+	[ "${ret}" -eq 1 ] && exec 1>&2
+	cat <<-EOF
+	Usage: MAKEALL [options] [--] [boards-to-build]
+
+	Options:
+	  -a ARCH,   --arch ARCH       Build all boards with arch ARCH
+	  -c CPU,    --cpu CPU         Build all boards with cpu CPU
+	  -v VENDOR, --vendor VENDOR   Build all boards with vendor VENDOR
+	  -s SOC,    --soc SOC         Build all boards with soc SOC
+	  -l,        --list            List all targets to be built
+	  -m,        --maintainers     List all targets and maintainer email
+	  -M,        --mails           List all targets and all affilated emails
+	  -h,        --help            This help output
+
+	Selections by these options are logically ANDed; if the same option
+	is used repeatedly, such selections are ORed.  So "-v FOO -v BAR"
+	will select all configurations where the vendor is either FOO or
+	BAR.  Any additional arguments specified on the command line are
+	always build additionally.  See the boards.cfg file for more info.
+
+	If no boards are specified, then the default is "powerpc".
+
+	Environment variables:
+	  BUILD_NCPUS      number of parallel make jobs (default: auto)
+	  CROSS_COMPILE    cross-compiler toolchain prefix (default: "")
+	  MAKEALL_LOGDIR   output all logs to here (default: ./LOG/)
+	  BUILD_DIR        output build directory (default: ./)
+	  BUILD_NBUILDS	   number of parallel targets (default: 1)
+
+	Examples:
+	  - build all Power Architecture boards:
+	      MAKEALL -a powerpc
+	      MAKEALL --arch powerpc
+	      MAKEALL powerpc
+	  - build all PowerPC boards manufactured by vendor "esd":
+	      MAKEALL -a powerpc -v esd
+	  - build all PowerPC boards manufactured either by "keymile" or "siemens":
+	      MAKEALL -a powerpc -v keymile -v siemens
+	  - build all Freescale boards with MPC83xx CPUs, plus all 4xx boards:
+	      MAKEALL -c mpc83xx -v freescale 4xx
+	EOF
+	exit ${ret}
+}
+
+SHORT_OPTS="ha:c:v:s:lmM"
+LONG_OPTS="help,arch:,cpu:,vendor:,soc:,list,maintainers,mails"
+
+# Option processing based on util-linux-2.13/getopt-parse.bash
+
+# Note that we use `"$@"' to let each command-line parameter expand to a
+# separate word. The quotes around `$@' are essential!
+# We need TEMP as the `eval set --' would nuke the return value of
+# getopt.
+TEMP=`getopt -o ${SHORT_OPTS} --long ${LONG_OPTS} \
+     -n 'MAKEALL' -- "$@"`
+
+[ $? != 0 ] && usage 1
+
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+SELECTED=''
+ONLY_LIST=''
+PRINT_MAINTS=''
+MAINTAINERS_ONLY=''
+
+while true ; do
+	case "$1" in
+	-a|--arch)
+		# echo "Option ARCH: argument \`$2'"
+		if [ "$opt_a" ] ; then
+			opt_a="${opt_a%)} || \$2 == \"$2\")"
+		else
+			opt_a="(\$2 == \"$2\")"
+		fi
+		SELECTED='y'
+		shift 2 ;;
+	-c|--cpu)
+		# echo "Option CPU: argument \`$2'"
+		if [ "$opt_c" ] ; then
+			opt_c="${opt_c%)} || \$3 == \"$2\")"
+		else
+			opt_c="(\$3 == \"$2\")"
+		fi
+		SELECTED='y'
+		shift 2 ;;
+	-s|--soc)
+		# echo "Option SoC: argument \`$2'"
+		if [ "$opt_s" ] ; then
+			opt_s="${opt_s%)} || \$6 == \"$2\")"
+		else
+			opt_s="(\$6 == \"$2\")"
+		fi
+		SELECTED='y'
+		shift 2 ;;
+	-v|--vendor)
+		# echo "Option VENDOR: argument \`$2'"
+		if [ "$opt_v" ] ; then
+			opt_v="${opt_v%)} || \$5 == \"$2\")"
+		else
+			opt_v="(\$5 == \"$2\")"
+		fi
+		SELECTED='y'
+		shift 2 ;;
+	-l|--list)
+		ONLY_LIST='y'
+		shift ;;
+	-m|--maintainers)
+		ONLY_LIST='y'
+		PRINT_MAINTS='y'
+		MAINTAINERS_ONLY='y'
+		shift ;;
+	-M|--mails)
+		ONLY_LIST='y'
+		PRINT_MAINTS='y'
+		shift ;;
+	-h|--help)
+		usage ;;
+	--)
+		shift ; break ;;
+	*)
+		echo "Internal error!" >&2 ; exit 1 ;;
+	esac
+done
+# echo "Remaining arguments:"
+# for arg do echo '--> '"\`$arg'" ; done
+
+FILTER="\$1 !~ /^#/"
+[ "$opt_a" ] && FILTER="${FILTER} && $opt_a"
+[ "$opt_c" ] && FILTER="${FILTER} && $opt_c"
+[ "$opt_s" ] && FILTER="${FILTER} && $opt_s"
+[ "$opt_v" ] && FILTER="${FILTER} && $opt_v"
+
+if [ "$SELECTED" ] ; then
+	SELECTED=$(awk '('"$FILTER"') { print $1 }' boards.cfg)
+
+	# Make sure some boards from boards.cfg are actually found
+	if [ -z "$SELECTED" ] ; then
+		echo "Error: No boards selected, invalid arguments"
+		exit 1
+	fi
+fi
+
+#########################################################################
+
+# Print statistics when we exit
+trap exit 1 2 3 15
+trap print_stats 0
+
+# Determine number of CPU cores if no default was set
+: ${BUILD_NCPUS:="`getconf _NPROCESSORS_ONLN`"}
+
+if [ "$BUILD_NCPUS" -gt 1 ]
+then
+	JOBS="-j $((BUILD_NCPUS + 1))"
+else
+	JOBS=""
+fi
+
+
+if [ "${CROSS_COMPILE}" ] ; then
+	MAKE="make CROSS_COMPILE=${CROSS_COMPILE}"
+else
+	MAKE=make
+fi
+
+if [ "${MAKEALL_LOGDIR}" ] ; then
+	LOG_DIR=${MAKEALL_LOGDIR}
+else
+	LOG_DIR="LOG"
+fi
+
+: ${BUILD_NBUILDS:=1}
+BUILD_MANY=0
+
+if [ "${BUILD_NBUILDS}" -gt 1 ] ; then
+	BUILD_MANY=1
+	: ${BUILD_DIR:=./build}
+	mkdir -p "${BUILD_DIR}/ERR"
+	find "${BUILD_DIR}/ERR/" -type f -exec rm -f {} +
+fi
+
+: ${BUILD_DIR:=.}
+
+OUTPUT_PREFIX="${BUILD_DIR}"
+
+[ -d ${LOG_DIR} ] || mkdir "${LOG_DIR}" || exit 1
+find "${LOG_DIR}/" -type f -exec rm -f {} +
+
+LIST=""
+
+# Keep track of the number of builds and errors
+ERR_CNT=0
+ERR_LIST=""
+WRN_CNT=0
+WRN_LIST=""
+TOTAL_CNT=0
+CURRENT_CNT=0
+OLDEST_IDX=1
+RC=0
+
+# Helper funcs for parsing boards.cfg
+boards_by_field()
+{
+	awk \
+		-v field="$1" \
+		-v select="$2" \
+		'($1 !~ /^#/ && $field == select) { print $1 }' \
+		boards.cfg
+}
+boards_by_arch() { boards_by_field 2 "$@" ; }
+boards_by_cpu()  { boards_by_field 3 "$@" ; }
+boards_by_soc()  { boards_by_field 6 "$@" ; }
+
+#########################################################################
+## MPC5xx Systems
+#########################################################################
+
+LIST_5xx="$(boards_by_cpu mpc5xx)"
+
+#########################################################################
+## MPC5xxx Systems
+#########################################################################
+
+LIST_5xxx="$(boards_by_cpu mpc5xxx)"
+
+#########################################################################
+## MPC512x Systems
+#########################################################################
+
+LIST_512x="$(boards_by_cpu mpc512x)"
+
+#########################################################################
+## MPC8xx Systems
+#########################################################################
+
+LIST_8xx="$(boards_by_cpu mpc8xx)"
+
+#########################################################################
+## PPC4xx Systems
+#########################################################################
+
+LIST_4xx="$(boards_by_cpu ppc4xx)"
+
+#########################################################################
+## MPC8220 Systems
+#########################################################################
+
+LIST_8220="$(boards_by_cpu mpc8220)"
+
+#########################################################################
+## MPC824x Systems
+#########################################################################
+
+LIST_824x="$(boards_by_cpu mpc824x)"
+
+#########################################################################
+## MPC8260 Systems (includes 8250, 8255 etc.)
+#########################################################################
+
+LIST_8260="$(boards_by_cpu mpc8260)"
+
+#########################################################################
+## MPC83xx Systems (includes 8349, etc.)
+#########################################################################
+
+LIST_83xx="$(boards_by_cpu mpc83xx)"
+
+#########################################################################
+## MPC85xx Systems (includes 8540, 8560 etc.)
+#########################################################################
+
+LIST_85xx="$(boards_by_cpu mpc85xx)"
+
+#########################################################################
+## MPC86xx Systems
+#########################################################################
+
+LIST_86xx="$(boards_by_cpu mpc86xx)"
+
+#########################################################################
+## 74xx/7xx Systems
+#########################################################################
+
+LIST_74xx_7xx="$(boards_by_cpu 74xx_7xx)"
+
+#########################################################################
+## PowerPC groups
+#########################################################################
+
+LIST_TSEC="		\
+	${LIST_83xx}	\
+	${LIST_85xx}	\
+	${LIST_86xx}	\
+"
+
+LIST_powerpc="		\
+	${LIST_5xx}	\
+	${LIST_512x}	\
+	${LIST_5xxx}	\
+	${LIST_8xx}	\
+	${LIST_8220}	\
+	${LIST_824x}	\
+	${LIST_8260}	\
+	${LIST_83xx}	\
+	${LIST_85xx}	\
+	${LIST_86xx}	\
+	${LIST_4xx}	\
+	${LIST_74xx_7xx}\
+"
+
+# Alias "ppc" -> "powerpc" to not break compatibility with older scripts
+# still using "ppc" instead of "powerpc"
+LIST_ppc="		\
+	${LIST_powerpc}	\
+"
+
+#########################################################################
+## StrongARM Systems
+#########################################################################
+
+LIST_SA="$(boards_by_cpu sa1100)"
+
+#########################################################################
+## ARM9 Systems
+#########################################################################
+
+LIST_ARM9="$(boards_by_cpu arm920t)	\
+	$(boards_by_cpu arm926ejs)	\
+	$(boards_by_cpu arm925t)	\
+"
+
+#########################################################################
+## ARM11 Systems
+#########################################################################
+LIST_ARM11="$(boards_by_cpu arm1136)"
+
+#########################################################################
+## ARMV7 Systems
+#########################################################################
+
+LIST_ARMV7="$(boards_by_cpu armv7)"
+
+#########################################################################
+## AT91 Systems
+#########################################################################
+
+LIST_at91="$(boards_by_soc at91)"
+
+#########################################################################
+## Xscale Systems
+#########################################################################
+
+LIST_pxa="$(boards_by_cpu pxa)"
+
+LIST_ixp="$(boards_by_cpu ixp)"
+
+#########################################################################
+## ARM groups
+#########################################################################
+
+LIST_arm="			\
+	${LIST_SA}		\
+	${LIST_ARM9}		\
+	${LIST_ARM10}		\
+	${LIST_ARM11}		\
+	${LIST_ARMV7}	\
+	${LIST_at91}		\
+	${LIST_pxa}		\
+	${LIST_ixp}		\
+"
+
+#########################################################################
+## MIPS Systems		(default = big endian)
+#########################################################################
+
+LIST_mips4kc="		\
+	incaip		\
+	qemu_mips	\
+	vct_platinum	\
+	vct_platinum_small	\
+	vct_platinum_onenand	\
+	vct_platinum_onenand_small	\
+	vct_platinumavc	\
+	vct_platinumavc_small	\
+	vct_platinumavc_onenand	\
+	vct_platinumavc_onenand_small	\
+	vct_premium	\
+	vct_premium_small	\
+	vct_premium_onenand	\
+	vct_premium_onenand_small	\
+"
+
+LIST_au1xx0="		\
+	dbau1000	\
+	dbau1100	\
+	dbau1500	\
+	dbau1550	\
+	gth2		\
+"
+
+LIST_mips="		\
+	${LIST_mips4kc}	\
+	${LIST_mips5kc}	\
+	${LIST_au1xx0}	\
+"
+
+#########################################################################
+## MIPS Systems		(little endian)
+#########################################################################
+
+LIST_xburst_el="	\
+	qi_lb60		\
+"
+
+LIST_au1xx0_el="	\
+	dbau1550_el	\
+	pb1000		\
+"
+LIST_mips_el="			\
+	${LIST_xburst_el}	\
+	${LIST_au1xx0_el}	\
+"
+#########################################################################
+## OpenRISC Systems
+#########################################################################
+
+LIST_openrisc="$(boards_by_arch openrisc)"
+
+#########################################################################
+## x86 Systems
+#########################################################################
+
+LIST_x86="$(boards_by_arch x86)"
+
+#########################################################################
+## Nios-II Systems
+#########################################################################
+
+LIST_nios2="$(boards_by_arch nios2)"
+
+#########################################################################
+## MicroBlaze Systems
+#########################################################################
+
+LIST_microblaze="$(boards_by_arch microblaze)"
+
+#########################################################################
+## ColdFire Systems
+#########################################################################
+
+LIST_m68k="$(boards_by_arch m68k)
+	EB+MCF-EV123		\
+	EB+MCF-EV123_internal	\
+	M52277EVB		\
+	M5235EVB		\
+	M54451EVB		\
+	M54455EVB		\
+"
+LIST_coldfire=${LIST_m68k}
+
+#########################################################################
+## AVR32 Systems
+#########################################################################
+
+LIST_avr32="$(boards_by_arch avr32)"
+
+#########################################################################
+## Blackfin Systems
+#########################################################################
+
+LIST_blackfin="$(boards_by_arch blackfin)"
+
+#########################################################################
+## SH Systems
+#########################################################################
+
+LIST_sh2="$(boards_by_cpu sh2)"
+LIST_sh3="$(boards_by_cpu sh3)"
+LIST_sh4="$(boards_by_cpu sh4)"
+
+LIST_sh="$(boards_by_arch sh)"
+
+#########################################################################
+## SPARC Systems
+#########################################################################
+
+LIST_sparc="$(boards_by_arch sparc)"
+
+#########################################################################
+## NDS32 Systems
+#########################################################################
+
+LIST_nds32="$(boards_by_arch nds32)"
+
+#-----------------------------------------------------------------------
+
+get_target_location() {
+	local target=$1
+	local BOARD_NAME=""
+	local CONFIG_NAME=""
+	local board=""
+	local vendor=""
+
+	# Automatic mode
+	local line=`egrep -i "^[[:space:]]*${target}[[:space:]]" boards.cfg`
+
+	if [ -z "${line}" ] ; then echo "" ; return ; fi
+
+	set ${line}
+
+	# add default board name if needed
+	[ $# = 3 ] && set ${line} ${1}
+
+	CONFIG_NAME="${1%_config}"
+
+	[ "${BOARD_NAME}" ] || BOARD_NAME="${1%_config}"
+
+	if [ "$4" = "-" ] ; then
+		board=${BOARD_NAME}
+	else
+		board="$4"
+	fi
+
+	[ $# -gt 4 ] && [ "$5" != "-" ] && vendor="$5"
+	[ $# -gt 6 ] && [ "$7" != "-" ] && {
+		tmp="${7%:*}"
+		if [ "$tmp" ] ; then
+			CONFIG_NAME="$tmp"
+		fi
+	}
+
+	# Assign board directory to BOARDIR variable
+	if [ -z "${vendor}" ] ; then
+	    BOARDDIR=${board}
+	else
+	    BOARDDIR=${vendor}/${board}
+	fi
+
+	echo "${CONFIG_NAME}:${BOARDDIR}"
+}
+
+get_target_maintainers() {
+	local name=`echo $1 | cut -d : -f 1`
+
+	if ! grep -qsi "[[:blank:]]${name}[[:blank:]]" MAINTAINERS ; then
+		echo ""
+		return ;
+	fi
+
+	local line=`tac MAINTAINERS | grep -ni "[[:blank:]]${name}[[:blank:]]" | cut -d : -f 1`
+	local mail=`tac MAINTAINERS | tail -n +${line} | \
+		sed -n ":start /.*@.*/ { b mail } ; n ; b start ; :mail /.*@.*/ { p ; n ; b mail } ; q" | \
+		sed "s/^.*<//;s/>.*$//"`
+	echo "$mail"
+}
+
+list_target() {
+	if [ "$PRINT_MAINTS" != 'y' ] ; then
+		echo "$1"
+		return
+	fi
+
+	echo -n "$1:"
+
+	local loc=`get_target_location $1`
+
+	if [ -z "${loc}" ] ; then echo "ERROR" ; return ; fi
+
+	local maintainers_result=`get_target_maintainers ${loc} | tr " " "\n"`
+
+	if [ "$MAINTAINERS_ONLY" != 'y' ] ; then
+
+		local dir=`echo ${loc} | cut -d ":" -f 2`
+		local cfg=`echo ${loc} | cut -d ":" -f 1`
+		local git_result=`git log --format=%aE board/${dir} \
+				include/configs/${cfg}.h | grep "@"`
+		local git_result_recent=`echo ${git_result} | tr " " "\n" | \
+						head -n 3`
+		local git_result_top=`echo ${git_result} | tr " " "\n" | \
+			sort | uniq -c | sort -nr | head -n 3 | \
+			sed "s/^ \+[0-9]\+ \+//"`
+
+		echo -e "$git_result_recent\n$git_result_top\n$maintainers_result" | \
+			sort -u | tr "\n" " " | sed "s/ $//" ;
+	else
+		echo -e "$maintainers_result" | sort -u | tr "\n" " " | \
+						sed "s/ $//" ;
+	fi
+
+	echo ""
+}
+
+# Each finished build will have a file called ${donep}${n},
+# where n is the index of the build. Each build
+# we've already noted as finished will have ${skipp}${n}.
+# The code managing the build process will use this information
+# to ensure that only BUILD_NBUILDS builds are in flight at once
+donep="${LOG_DIR}/._done_"
+skipp="${LOG_DIR}/._skip_"
+
+build_target() {
+	target=$1
+	build_idx=$2
+
+	if [ "$ONLY_LIST" == 'y' ] ; then
+		list_target ${target}
+		return
+	fi
+
+	if [ $BUILD_MANY == 1 ] ; then
+		output_dir="${OUTPUT_PREFIX}/${target}"
+		mkdir -p "${output_dir}"
+	else
+		output_dir="${OUTPUT_PREFIX}"
+	fi
+
+	export BUILD_DIR="${output_dir}"
+
+	${MAKE} distclean >/dev/null
+	${MAKE} -s ${target}_config
+
+	${MAKE} ${JOBS} all \
+		>${LOG_DIR}/$target.MAKELOG 2> ${LOG_DIR}/$target.ERR
+
+	# Check for 'make' errors
+	if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+		RC=1
+	fi
+
+	if [ $BUILD_MANY == 1 ] ; then
+		${MAKE} tidy
+
+		if [ -s ${LOG_DIR}/${target}.ERR ] ; then
+			cp ${LOG_DIR}/${target}.ERR ${OUTPUT_PREFIX}/ERR/${target}
+		else
+			rm ${LOG_DIR}/${target}.ERR
+		fi
+	else
+		if [ -s ${LOG_DIR}/${target}.ERR ] ; then
+			if grep -iw error ${LOG_DIR}/${target}.ERR ; then
+				: $(( ERR_CNT += 1 ))
+				ERR_LIST="${ERR_LIST} $target"
+			else
+				: $(( WRN_CNT += 1 ))
+				WRN_LIST="${WRN_LIST} $target"
+			fi
+		else
+			rm ${LOG_DIR}/${target}.ERR
+		fi
+	fi
+
+	OBJS=${output_dir}/u-boot
+	if [ -e ${output_dir}/spl/u-boot-spl ]; then
+		OBJS="${OBJS} ${output_dir}/spl/u-boot-spl"
+	fi
+
+	${CROSS_COMPILE}size ${OBJS} | tee -a ${LOG_DIR}/$target.MAKELOG
+
+	[ -e "${LOG_DIR}/${target}.ERR" ] && cat "${LOG_DIR}/${target}.ERR"
+
+	touch "${donep}${build_idx}"
+}
+
+manage_builds() {
+	search_idx=${OLDEST_IDX}
+	if [ "$ONLY_LIST" == 'y' ] ; then return ; fi
+
+	while true; do
+		if [ -e "${donep}${search_idx}" ] ; then
+			: $(( CURRENT_CNT-- ))
+			[ ${OLDEST_IDX} -eq ${search_idx} ] &&
+				: $(( OLDEST_IDX++ ))
+
+			# Only want to count it once
+			rm -f "${donep}${search_idx}"
+			touch "${skipp}${search_idx}"
+		elif [ -e "${skipp}${search_idx}" ] ; then
+			[ ${OLDEST_IDX} -eq ${search_idx} ] &&
+				: $(( OLDEST_IDX++ ))
+		fi
+		: $(( search_idx++ ))
+		if [ ${search_idx} -gt ${TOTAL_CNT} ] ; then
+			if [ ${CURRENT_CNT} -ge ${BUILD_NBUILDS} ] ; then
+				search_idx=${OLDEST_IDX}
+				sleep 1
+			else
+				break
+			fi
+		fi
+	done
+}
+
+build_targets() {
+	for t in "$@" ; do
+		# If a LIST_xxx var exists, use it.  But avoid variable
+		# expansion in the eval when a board name contains certain
+		# characters that the shell interprets.
+		case ${t} in
+			*[-+=]*) list= ;;
+			*)       list=$(eval echo '${LIST_'$t'}') ;;
+		esac
+		if [ -n "${list}" ] ; then
+			build_targets ${list}
+		else
+			: $((TOTAL_CNT += 1))
+			: $((CURRENT_CNT += 1))
+			rm -f "${donep}${TOTAL_CNT}"
+			rm -f "${skipp}${TOTAL_CNT}"
+			if [ $BUILD_MANY == 1 ] ; then
+				build_target ${t} ${TOTAL_CNT} &
+			else
+				build_target ${t} ${TOTAL_CNT}
+			fi
+		fi
+
+		# We maintain a running count of all the builds we have done.
+		# Each finished build will have a file called ${donep}${n},
+		# where n is the index of the build. Each build
+		# we've already noted as finished will have ${skipp}${n}.
+		# We track the current index via TOTAL_CNT, and the oldest
+		# index. When we exceed the maximum number of parallel builds,
+		# We look from oldest to current for builds that have completed,
+		# and update the current count and oldest index as appropriate.
+		# If we've gone through the entire list, wait a second, and
+		# reprocess the entire list until we find a build that has
+		# completed
+		if [ ${CURRENT_CNT} -ge ${BUILD_NBUILDS} ] ; then
+			manage_builds
+		fi
+	done
+}
+
+#-----------------------------------------------------------------------
+
+kill_children() {
+	kill -- "-$1"
+
+	exit
+}
+
+print_stats() {
+	if [ "$ONLY_LIST" == 'y' ] ; then return ; fi
+
+	rm -f ${donep}* ${skipp}*
+
+	if [ $BUILD_MANY == 1 ] && [ -e "${OUTPUT_PREFIX}/ERR" ] ; then
+		ERR_LIST=`grep -iwl error ${OUTPUT_PREFIX}/ERR/*`
+		ERR_LIST=`for f in $ERR_LIST ; do echo -n " $(basename $f)" ; done`
+		ERR_CNT=`echo $ERR_LIST | wc -w | awk '{print $1}'`
+		WRN_LIST=`grep -iwL error ${OUTPUT_PREFIX}/ERR/*`
+		WRN_LIST=`for f in $WRN_LIST ; do echo -n " $(basename $f)" ; done`
+		WRN_CNT=`echo $WRN_LIST | wc -w | awk '{print $1}'`
+	fi
+
+	echo ""
+	echo "--------------------- SUMMARY ----------------------------"
+	echo "Boards compiled: ${TOTAL_CNT}"
+	if [ ${ERR_CNT} -gt 0 ] ; then
+		echo "Boards with errors: ${ERR_CNT} (${ERR_LIST} )"
+	fi
+	if [ ${WRN_CNT} -gt 0 ] ; then
+		echo "Boards with warnings but no errors: ${WRN_CNT} (${WRN_LIST} )"
+	fi
+	echo "----------------------------------------------------------"
+
+	if [ $BUILD_MANY == 1 ] ; then
+		kill_children $$ &
+	fi
+
+	exit $RC
+}
+
+#-----------------------------------------------------------------------
+
+# Build target groups selected by options, plus any command line args
+set -- ${SELECTED} "$@"
+# run PowerPC by default
+[ $# = 0 ] && set -- powerpc
+build_targets "$@"
+wait

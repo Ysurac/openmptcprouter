@@ -1,0 +1,120 @@
+#!/bin/sh
+
+. /usr/share/libubox/jshn.sh
+
+PS_ON=1
+PS_OFF=2
+
+MPS=0
+MLBL="modem"
+
+modem_reset() {
+	local label="$1"
+
+	[ -e "/sys/class/gpio/${label}_reset/value" ] || return
+
+	echo 1 > "/sys/class/gpio/${label}_reset/value"
+	sleep 1
+	echo 0 > "/sys/class/gpio/${label}_reset/value"
+}
+
+modem_off() {
+	local label="$1"
+
+	[ -e "/sys/class/gpio/${label}_reset/value" ] || return
+
+	echo 1 > "/sys/class/gpio/${label}_reset/value"
+}
+
+modem_power() {
+	local label="$1"
+
+	[ -e "/sys/class/gpio/${label}_power/value" ] || return
+
+	# simulate power press
+	echo 1 > "/sys/class/gpio/${label}_power/value"
+	sleep 1
+	echo 0 > "/sys/class/gpio/${label}_power/value"
+}
+
+modem_list() {
+	local list="modem"
+	local label
+
+	[ "$(modem_fetch_primary)" -eq 0 ] && {
+		echo "${list}"
+		return
+	}
+
+	for m in /sys/class/gpio/modem*_power; do
+	        label="$(basename $m | awk -F_ '{print $1}')"
+	        [ "${label}" != "modem" ] && list="${list},${label}"
+	done
+
+	echo "${list}"
+}
+
+modem_fetch_primary() {
+	local modem modems primary
+
+	json_init
+	json_load_file "/etc/board.json"
+
+	json_get_keys modems modems
+	json_select modems
+
+	for modem in $modems; do
+		json_select "$modem"
+		json_get_vars primary
+
+		[ -n "$primary" ] && {
+			echo 1
+			return
+		}
+
+		json_select ..
+	done
+	echo 0
+}
+
+modem_is_available() {
+	local label="$1"
+	[ -e "/sys/class/gpio/${label}_power/value" ]
+}
+
+usage() {
+	cat <<EOF
+Usage $0 <option>
+Control modem power state.
+
+Options:
+ -p, --power-on                power on modem
+ -s, --shutdown                shutdown modem
+ -r, --reboot                  reboot modem
+ -m, --modem <label>           use specified modem instead of default one
+
+Available modem labels:
+ $(modem_list)
+EOF
+	exit 1
+}
+
+while [ -n "$1" ]; do
+	case "$1" in
+	-p | --power-on) MPS="${PS_ON}";;
+	-s | --shutdown) MPS="${PS_OFF}";;
+	-r | --reboot) MPS="${PS_ON}";;
+	-m | --modem) MLBL="$2"; shift;;
+	-*) echo "Invalid option: $1"; usage;;
+	*) break;;
+	esac
+	shift
+done
+
+[ "${MPS}" -eq 0 ] && usage
+modem_is_available "${MLBL}" || usage
+
+case "${MPS}" in
+"${PS_ON}") modem_reset "${MLBL}"; sleep 1; modem_power "${MLBL}";;
+"${PS_OFF}") modem_off "${MLBL}";;
+esac
