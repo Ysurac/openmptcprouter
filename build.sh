@@ -98,7 +98,7 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "6711badf079986f847da07747c95c0a74960b965"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "04257f6704c1b8707ee7a58ca4ec0f18a2133611"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "0d43c22d47b91fd64fea707290f9dce3ba2a273f"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "d7876daf6552a9f39bd5e0bf50b554e9406ec275"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8762261112c8235f7f85a6f57dbf342cf17093b9"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "a1ee78fa696e13ad4e19c0252eb345500d4ab3ee"
 	fi
@@ -238,20 +238,23 @@ if [ "$OMR_PACKAGES" = "mini" ]; then
 	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
-if [ "$SHORTCUT_FE" = "yes" ] && [ "${OMR_KERNEL}" = "5.4" ]; then
-	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-	echo "CONFIG_PACKAGE_kmod-fast-classifier-noload=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-	echo "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+if [ "$SHORTCUT_FE" = "yes" ]; then
+	echo "CONFIG_PACKAGE_kmod-fast-classifier=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "CONFIG_PACKAGE_kmod-shortcut-fe=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_kmod-shortcut-fe-cm=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_shortcut-fe-drv=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 else
 	echo "# CONFIG_PACKAGE_kmod-fast-classifier is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-	echo "# CONFIG_PACKAGE_kmod-fast-classifier-noload is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-shortcut-fe-cm is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-shortcut-fe is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "# CONFIG_PACKAGE_shortcut-fe is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "x86" ]; then
 	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+fi
+if [ "$OMR_KERNEL" = "6.1" ]; then
+	echo "# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$OMR_TARGET" = "rutx" -a "$OMR_KERNEL" = "5.4" ]; then
@@ -614,6 +617,35 @@ if [ "$OMR_KERNEL" = "5.15" ]; then
 	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
 	if [ "$TARGET" = "bpi-r2" ]; then
 		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
+	fi
+fi
+if [ "$OMR_KERNEL" = "6.1" ]; then
+	echo "Set to kernel 6.1 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=6.1%g' {} \;
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "Set to kernel 5.15 for rockchip arch (R2S/R4S)"
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.15%g' {} \;
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.10%KERNEL_PATCHVER:=5.15%g' {} \;
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "CONFIG_DEVEL=y" >> ".config"
+	echo "CONFIG_NEED_TOOLCHAIN=y" >> ".config"
+	echo "CONFIG_TOOLCHAINOPTS=y" >> ".config"
+	echo 'CONFIG_BINUTILS_VERSION_2_36_1=y' >> ".config"
+	echo 'CONFIG_BINUTILS_VERSION="2.36.1"' >> ".config"
+	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
+	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
+	#echo "CONFIG_GCC_VERSION_10=y" >> ".config"
+	#echo 'CONFIG_GCC_VERSION="10.3.0"' >> ".config"
+	echo "CONFIG_VERSION_CODE=6.1" >> ".config"
+	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
+	if [ "$TARGET" = "bpi-r2" ]; then
+		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
+	fi
+	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ]; then
+		echo "Sorry but kernel 6.1 is not supported on your arch yet"
+		exit 1
 	fi
 fi
 
