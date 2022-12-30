@@ -562,9 +562,9 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	if [ -f package/kernel/mac80211/patches/build/firmware-replace-HOTPLUG-with-UEVENT-in-FW_ACTION-defines.patch ]; then
 		rm -f package/kernel/mac80211/patches/build/firmware-replace-HOTPLUG-with-UEVENT-in-FW_ACTION-defines.patch
 	fi
-	#if [ -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch ]; then
-	#	rm -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch
-	#fi
+	if [ -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch ]; then
+		rm -f package/kernel/rtl8812au-ct/patches/003-wireless-5.8.patch
+	fi
 	if [ -f target/linux/mvebu/patches-5.4/021-arm64-dts-marvell-armada-37xx-Move-PCIe-comphy-handl.patch ]; then
 		rm -f target/linux/mvebu/patches-5.4/021-arm64-dts-marvell-armada-37xx-Move-PCIe-comphy-handl.patch
 	fi
