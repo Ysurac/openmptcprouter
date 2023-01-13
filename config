@@ -259,3 +259,4 @@ CONFIG_AUTOREMOVE=y
 # CONFIG_PACKAGE_kmod-sound-core is not set
 # CONFIG_PACKAGE_kmod-video-core is not set
 # CONFIG_PACKAGE_kmod-leds-ubnt-ledbar is not set
+# CONFIG_PACKAGE_kmod-ath11k-pci is not set
