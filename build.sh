@@ -100,13 +100,13 @@ fi
 if [ "$OMR_OPENWRT" = "default" ]; then
 	if [ "$OMR_KERNEL" = "5.4" ]; then
 		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "ab26cddca2e45911a980a60afaee889bd1353a6e"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "6711badf079986f847da07747c95c0a74960b965"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "04257f6704c1b8707ee7a58ca4ec0f18a2133611"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "1b6e9b3f64344aa17bdb2dc7b89bb2765305dbe5"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "88b0e30806965a73058d79dd2d8bcbe6a2da88f9"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "d548d858c8cf62d36ab87dcf5d317fe05ede19cf"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "d7876daf6552a9f39bd5e0bf50b554e9406ec275"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8762261112c8235f7f85a6f57dbf342cf17093b9"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "a1ee78fa696e13ad4e19c0252eb345500d4ab3ee"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "895f38ca1efeb46f0cd3029c732e6156d4589eb0"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8f68e1bd911dd4cab5d11199f65f78f97bc4faf9"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ec3aac47c43d44d170af6a09d31493c2e8efe590"
 	fi
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "master"
@@ -386,6 +386,12 @@ echo "Checking if Nanqinlang patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nanqinlang.patch; then
 	echo "apply..."
 	patch -N -p1 -s < ../../../patches/nanqinlang.patch
+fi
+echo "Done"
+
+echo "Checking if Meson patch is set or not"
+if [ "$OMR_KERNEL" = "5.4" ] && ! patch -Rf -N -p1 -s --dry-run < ../../../patches/meson.patch; then
+	patch -N -p1 -s < ../../../patches/meson.patch
 fi
 echo "Done"
 
