@@ -71,6 +71,13 @@ setup_json() {
 		ucidef_add_static_modem_info "$model" "2-1" "2" "gps_out"
 		ucidef_set_hwinfo usb gps dual_sim mobile wifi dual_band_ssid bluetooth ethernet ios
 		;;
+	RUTX50*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "0u@eth1" "5:wan"
+		ucidef_add_static_modem_info "$model" "2-1" "2" "gps_out"
+		ucidef_set_hwinfo dual_sim usb gps mobile wifi dual_band_ssid ethernet ios at_sim
+		;;
 	TRB2*)
 		ucidef_set_led_switch "lan" "LAN" "eth_led" "switch0" "0x04"
 		ucidef_set_interface_lan "eth0"
