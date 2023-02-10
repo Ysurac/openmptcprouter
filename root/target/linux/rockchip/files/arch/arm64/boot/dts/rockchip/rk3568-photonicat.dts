@@ -254,13 +254,13 @@
 	assigned-clocks = <&cru SCLK_GMAC0_RX_TX>;
 	assigned-clock-parents = <&gmac0_xpcsclk>;
 	power-domains = <&power RK3568_PD_PIPE>;
-	phys = <&combphy2 PHY_TYPE_SGMII>;
+	//phys = <&combphy2 PHY_TYPE_SGMII>;
 	phy-handle = <&sgmii_phy>;
 	phy-mode = "sgmii";
 	phy-supply = <&vcc_3v3>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&gmac0_miim>;
-	rockchip,xpcs = <&xpcs>;
+	//rockchip,xpcs = <&xpcs>;
 	snps,reset-gpio = <&gpio3 RK_PC6 GPIO_ACTIVE_LOW>;
 	snps,reset-active-low;
 	snps,reset-delays-us = <0 20000 100000>;
@@ -587,6 +587,6 @@
 	pinctrl-0 = <&clk32k_out1>;
 };
 
-&xpcs {
-	status = "okay";
-};
+//&xpcs {
+//	status = "okay";
+//};
