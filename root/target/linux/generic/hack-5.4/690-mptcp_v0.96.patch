@@ -75,7 +75,7 @@ index a465c6a45d6f..3bfdbfb49c5a 100644
  /* IPX options */
  #define IPX_TYPE	1
 diff --git a/include/linux/tcp.h b/include/linux/tcp.h
-index 89751c89f11f..4d8f36da81de 100644
+index 89751c89f11f..b9c3608ce7a1 100644
 --- a/include/linux/tcp.h
 +++ b/include/linux/tcp.h
 @@ -54,7 +54,7 @@ static inline unsigned int tcp_optlen(const struct sk_buff *skb)
@@ -204,9 +204,9 @@ index 89751c89f11f..4d8f36da81de 100644
 +		record_master_info:1,
 +		tcp_disconnect:1;
 +	struct mptcp_tcp_sock *mptcp;
-+#ifdef CONFIG_MPTCP
 +#define MPTCP_SCHED_NAME_MAX 16
 +#define MPTCP_PM_NAME_MAX 16
++#ifdef CONFIG_MPTCP
 +	struct hlist_nulls_node tk_table;
 +	u32		mptcp_loc_token;
 +	u64		mptcp_loc_key;
@@ -299,10 +299,10 @@ index 58db7c69c146..1acaa5e45f15 100644
  	union {
 diff --git a/include/net/mptcp.h b/include/net/mptcp.h
 new file mode 100644
-index 000000000000..281558f4983e
+index 000000000000..a42774ef7fb4
 --- /dev/null
 +++ b/include/net/mptcp.h
-@@ -0,0 +1,1601 @@
+@@ -0,0 +1,1600 @@
 +/*
 + *	MPTCP implementation
 + *
@@ -520,7 +520,6 @@ index 000000000000..281558f4983e
 +	   in_list:1;
 +};
 +
-+#define MPTCP_PM_NAME_MAX 16
 +struct mptcp_pm_ops {
 +	struct list_head list;
 +
@@ -3059,7 +3058,7 @@ index 449fc0b221f8..08683343642e 100644
  obj-$(CONFIG_PACKET)		+= packet/
  obj-$(CONFIG_NET_KEY)		+= key/
 diff --git a/net/core/dev.c b/net/core/dev.c
-index 84bc6d0e8560..4b958f5028f4 100644
+index 296bed9431f3..e4883cdc71fb 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
 @@ -7893,7 +7893,7 @@ int __dev_change_flags(struct net_device *dev, unsigned int flags,
@@ -3072,7 +3071,7 @@ index 84bc6d0e8560..4b958f5028f4 100644
  				    IFF_ALLMULTI));
  
 diff --git a/net/core/filter.c b/net/core/filter.c
-index 72bf78032f45..b96c3c126b7c 100644
+index 71fcb4e7edae..9e49d7edcc1d 100644
 --- a/net/core/filter.c
 +++ b/net/core/filter.c
 @@ -73,6 +73,7 @@
@@ -3083,7 +3082,7 @@ index 72bf78032f45..b96c3c126b7c 100644
  
  /**
   *	sk_filter_trim_cap - run a packet through a socket filter
-@@ -4285,6 +4286,19 @@ static unsigned long bpf_xdp_copy(void *dst_buff, const void *src_buff,
+@@ -4297,6 +4298,19 @@ static unsigned long bpf_xdp_copy(void *dst_buff, const void *src_buff,
  			if (sk->sk_mark != val) {
  				sk->sk_mark = val;
  				sk_dst_reset(sk);
@@ -3103,7 +3102,7 @@ index 72bf78032f45..b96c3c126b7c 100644
  			}
  			break;
  		default:
-@@ -4307,6 +4321,14 @@ static unsigned long bpf_xdp_copy(void *dst_buff, const void *src_buff,
+@@ -4319,6 +4333,14 @@ static unsigned long bpf_xdp_copy(void *dst_buff, const void *src_buff,
  				if (val == -1)
  					val = 0;
  				inet->tos = val;
@@ -3118,7 +3117,7 @@ index 72bf78032f45..b96c3c126b7c 100644
  			}
  			break;
  		default:
-@@ -4329,6 +4351,17 @@ static unsigned long bpf_xdp_copy(void *dst_buff, const void *src_buff,
+@@ -4341,6 +4363,17 @@ static unsigned long bpf_xdp_copy(void *dst_buff, const void *src_buff,
  				if (val == -1)
  					val = 0;
  				np->tclass = val;
@@ -3147,22 +3146,20 @@ index 283ddb2dbc7d..8f526a0d1912 100644
 +
 +EXPORT_TRACEPOINT_SYMBOL_GPL(mptcp_retransmit);
 diff --git a/net/core/sock.c b/net/core/sock.c
-index a2b12a5cf42b..222762983441 100644
+index a2b12a5cf42b..687c2ed8bcd9 100644
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -135,6 +135,11 @@
+@@ -135,6 +135,9 @@
  
  #include <trace/events/sock.h>
  
-+#ifdef CONFIG_MPTCP
 +#include <net/mptcp.h>
 +#include <net/inet_common.h>
-+#endif
 +
  #include <net/tcp.h>
  #include <net/busy_poll.h>
  
-@@ -1063,6 +1068,19 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+@@ -1063,6 +1066,19 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
  		} else if (val != sk->sk_mark) {
  			sk->sk_mark = val;
  			sk_dst_reset(sk);
@@ -3182,7 +3179,7 @@ index a2b12a5cf42b..222762983441 100644
  		}
  		break;
  
-@@ -1135,7 +1153,8 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+@@ -1135,7 +1151,8 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
  			if (!((sk->sk_type == SOCK_STREAM &&
  			       sk->sk_protocol == IPPROTO_TCP) ||
  			      (sk->sk_type == SOCK_DGRAM &&
@@ -3192,7 +3189,7 @@ index a2b12a5cf42b..222762983441 100644
  				ret = -ENOTSUPP;
  		} else if (sk->sk_family != PF_RDS) {
  			ret = -ENOTSUPP;
-@@ -1563,6 +1582,23 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
+@@ -1563,6 +1580,23 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
   */
  static inline void sock_lock_init(struct sock *sk)
  {
@@ -3216,7 +3213,7 @@ index a2b12a5cf42b..222762983441 100644
  	if (sk->sk_kern_sock)
  		sock_lock_init_class_and_name(
  			sk,
-@@ -1611,8 +1647,12 @@ static struct sock *sk_prot_alloc(struct proto *prot, gfp_t priority,
+@@ -1611,8 +1645,12 @@ static struct sock *sk_prot_alloc(struct proto *prot, gfp_t priority,
  		sk = kmem_cache_alloc(slab, priority & ~__GFP_ZERO);
  		if (!sk)
  			return sk;
@@ -3231,7 +3228,7 @@ index a2b12a5cf42b..222762983441 100644
  	} else
  		sk = kmalloc(prot->obj_size, priority);
  
-@@ -1846,6 +1886,7 @@ struct sock *sk_clone_lock(const struct sock *sk, const gfp_t priority)
+@@ -1846,6 +1884,7 @@ struct sock *sk_clone_lock(const struct sock *sk, const gfp_t priority)
  		atomic_set(&newsk->sk_zckey, 0);
  
  		sock_reset_flag(newsk, SOCK_DONE);
@@ -3395,7 +3392,7 @@ index 3c6412cb4b48..bf84fb3817ee 100644
  	tcp_init();
  
 diff --git a/net/ipv4/inet_connection_sock.c b/net/ipv4/inet_connection_sock.c
-index 6cbf0db57ad0..61d829c2613d 100644
+index 9ef69c975b15..c39986c37039 100644
 --- a/net/ipv4/inet_connection_sock.c
 +++ b/net/ipv4/inet_connection_sock.c
 @@ -19,6 +19,7 @@
@@ -3429,7 +3426,7 @@ index 6cbf0db57ad0..61d829c2613d 100644
  
  	if (newsk) {
  		struct inet_connection_sock *newicsk = inet_csk(newsk);
-@@ -966,6 +972,16 @@ struct sock *inet_csk_reqsk_queue_add(struct sock *sk,
+@@ -980,6 +986,16 @@ struct sock *inet_csk_reqsk_queue_add(struct sock *sk,
  
  	spin_lock(&queue->rskq_lock);
  	if (unlikely(sk->sk_state != TCP_LISTEN)) {
@@ -3446,7 +3443,7 @@ index 6cbf0db57ad0..61d829c2613d 100644
  		inet_child_forget(sk, req, child);
  		child = NULL;
  	} else {
-@@ -1019,7 +1035,14 @@ void inet_csk_listen_stop(struct sock *sk)
+@@ -1033,7 +1049,14 @@ void inet_csk_listen_stop(struct sock *sk)
  	 */
  	while ((req = reqsk_queue_remove(queue, sk)) != NULL) {
  		struct sock *child = req->sk;
@@ -3461,7 +3458,7 @@ index 6cbf0db57ad0..61d829c2613d 100644
  		local_bh_disable();
  		bh_lock_sock(child);
  		WARN_ON(sock_owned_by_user(child));
-@@ -1029,6 +1052,10 @@ void inet_csk_listen_stop(struct sock *sk)
+@@ -1043,6 +1066,10 @@ void inet_csk_listen_stop(struct sock *sk)
  		reqsk_put(req);
  		bh_unlock_sock(child);
  		local_bh_enable();
@@ -6283,7 +6280,7 @@ index 324f43fadb37..4f87543c4d5f 100644
  	return ret;
  }
 diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
-index b4a9f6948cb5..e2af0626147b 100644
+index b4a9f6948cb5..5cb726ff77c3 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
 @@ -37,6 +37,12 @@
@@ -6477,11 +6474,11 @@ index b4a9f6948cb5..e2af0626147b 100644
 +
 +		if (mptcp(tp))
 +			tcp_tsq_write(meta_sk);
-+	} else {
++	} else if (sk->sk_state != TCP_CLOSE) {
 +		if (!test_and_set_bit(TCP_TSQ_DEFERRED, &sk->sk_tsq_flags))
 +			sock_hold(sk);
 +
-+		if ((mptcp(tp)) && (sk->sk_state != TCP_CLOSE))
++		if (mptcp(tp))
 +			mptcp_tsq_flags(sk);
 +	}
 +
@@ -9683,7 +9680,7 @@ index 000000000000..9eb7628053f6
 +MODULE_VERSION("0.1");
 diff --git a/net/mptcp/mptcp_ctrl.c b/net/mptcp/mptcp_ctrl.c
 new file mode 100644
-index 000000000000..4dd1ed2f2b0d
+index 000000000000..8fa24e1a32b9
 --- /dev/null
 +++ b/net/mptcp/mptcp_ctrl.c
 @@ -0,0 +1,3607 @@
@@ -13253,7 +13250,7 @@ index 000000000000..4dd1ed2f2b0d
 +	if (mptcp_register_scheduler(&mptcp_sched_default))
 +		goto register_sched_failed;
 +
-+	pr_info("MPTCP: Unstable branch");
++	pr_info("MPTCP: Stable release v0.96");
 +
 +	mptcp_init_failed = false;
 +
@@ -24794,7 +24791,7 @@ index 000000000000..6caba957467a
 +MODULE_DESCRIPTION("MPTCP wVegas");
 +MODULE_VERSION("0.1");
 diff --git a/net/socket.c b/net/socket.c
-index 02feaf5bd84a..b355036c445b 100644
+index 02feaf5bd84a..718868c2a8a9 100644
 --- a/net/socket.c
 +++ b/net/socket.c
 @@ -91,6 +91,7 @@
@@ -24823,13 +24820,15 @@ index 02feaf5bd84a..b355036c445b 100644
  	err = security_socket_create(family, type, protocol, kern);
  	if (err)
  		return err;
-@@ -1408,6 +1413,10 @@ int __sock_create(struct net *net, int family, int type, int protocol,
+@@ -1408,6 +1413,12 @@ int __sock_create(struct net *net, int family, int type, int protocol,
  	if (err < 0)
  		goto out_module_put;
  
++#ifdef CONFIG_MPTCP
 +	if (sysctl_mptcp_enabled && old_protocol == IPPROTO_MPTCP &&
 +	    type == SOCK_STREAM && (family == AF_INET || family == AF_INET6))
 +		mptcp_enable_sock(sock->sk);
++#endif
 +
  	/*
  	 * Now to bump the refcnt of the [loadable] module that owns this
