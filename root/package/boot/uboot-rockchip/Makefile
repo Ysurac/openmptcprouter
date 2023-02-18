@@ -104,17 +104,6 @@ define U-Boot/nanopi-r4se-rk3399
   USE_RKBIN:=1
 endef
 
-define U-Boot/nanopi-r5s-rk3568
-  BUILD_SUBTARGET:=armv8
-  NAME:=NanoPi R5S
-  BUILD_DEVICES:= \
-    friendlyarm_nanopi-r5s
-  DEPENDS:=+PACKAGE_u-boot-nanopi-r5s-rk3568:arm-trusted-firmware-rk3568
-  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
-  ATF:=rk3568_bl31_v1.28.elf
-  DDR:=rk3568_ddr_1560MHz_v1.13.bin
-endef
-
 define U-Boot/rock-pi-4-rk3399
   BUILD_SUBTARGET:=armv8
   NAME:=Rock Pi 4
@@ -146,6 +135,17 @@ define U-Boot/rongpin-king3399-rk3399
   USE_RKBIN:=1
 endef
 
+define U-Boot/rocktech-mpc1903-rk3399
+  BUILD_SUBTARGET:=armv8
+  NAME:=Rocktech MPC1903
+  BUILD_DEVICES:= \
+    rocktech_mpc1903
+  DEPENDS:=+PACKAGE_u-boot-rocktech-mpc1903-rk3399:arm-trusted-firmware-rk3399
+  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
+  ATF:=rk3399_bl31_v1.35.elf
+  USE_RKBIN:=1
+endef
+
 # RK3568 boards
 
 define U-Boot/mrkaio-m68s-rk3568
@@ -163,8 +163,31 @@ define U-Boot/opc-h68k-rk3568
   BUILD_SUBTARGET:=armv8
   NAME:=OPC-H68K Board
   BUILD_DEVICES:= \
+    hinlink_opc-h66k \
     hinlink_opc-h68k
   DEPENDS:=+PACKAGE_u-boot-opc-h68k-rk3568:arm-trusted-firmware-rk3568
+  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
+  ATF:=rk3568_bl31_v1.28.elf
+  DDR:=rk3568_ddr_1560MHz_v1.13.bin
+endef
+
+define U-Boot/photonicat-rk3568
+  BUILD_SUBTARGET:=armv8
+  NAME:=Ariaboard Photonicat
+  BUILD_DEVICES:= \
+    ariaboard_photonicat
+  DEPENDS:=+PACKAGE_u-boot-photonicat-rk3568:arm-trusted-firmware-rk3568
+  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
+  ATF:=rk3568_bl31_v1.28.elf
+  DDR:=rk3568_ddr_1560MHz_v1.13.bin
+endef
+
+define U-Boot/radxa-e25-rk3568
+  BUILD_SUBTARGET:=armv8
+  NAME:=Radxa E25
+  BUILD_DEVICES:= \
+    radxa_e25
+  DEPENDS:=+PACKAGE_u-boot-radxa-e25-rk3568:arm-trusted-firmware-rk3568
   PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
   ATF:=rk3568_bl31_v1.28.elf
   DDR:=rk3568_ddr_1560MHz_v1.13.bin
@@ -176,17 +199,6 @@ define U-Boot/rock-3a-rk3568
   BUILD_DEVICES:= \
     radxa_rock-3a
   DEPENDS:=+PACKAGE_u-boot-rock-3a-rk3568:arm-trusted-firmware-rk3568
-  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
-  ATF:=rk3568_bl31_v1.28.elf
-  DDR:=rk3568_ddr_1560MHz_v1.13.bin
-endef
-
-define U-Boot/rock-pi-e25-rk3568
-  BUILD_SUBTARGET:=armv8
-  NAME:=ROCK Pi E25
-  BUILD_DEVICES:= \
-    radxa_rock-pi-e25
-  DEPENDS:=+PACKAGE_u-boot-rock-pi-e25-rk3568:arm-trusted-firmware-rk3568
   PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
   ATF:=rk3568_bl31_v1.28.elf
   DDR:=rk3568_ddr_1560MHz_v1.13.bin
@@ -215,20 +227,45 @@ define U-Boot/station-p2-rk3568
   DDR:=rk3568_ddr_1560MHz_v1.13.bin
 endef
 
+define U-Boot/nanopi-r5s-rk3568
+  BUILD_SUBTARGET:=armv8
+  NAME:=NanoPi R5S
+  BUILD_DEVICES:= \
+    friendlyarm_nanopi-r5s
+  DEPENDS:=+PACKAGE_u-boot-nanopi-r5s-rk3568:arm-trusted-firmware-rk3568
+  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
+  ATF:=rk3568_bl31_v1.28.elf
+  DDR:=rk3568_ddr_1560MHz_v1.13.bin
+endef
+
+define U-Boot/nanopi-r5c-rk3568
+  BUILD_SUBTARGET:=armv8
+  NAME:=NanoPi R5C
+  BUILD_DEVICES:= \
+    friendlyarm_nanopi-r5c
+  DEPENDS:=+PACKAGE_u-boot-nanopi-r5c-rk3568:arm-trusted-firmware-rk3568
+  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip-vendor
+  ATF:=rk3568_bl31_v1.28.elf
+  DDR:=rk3568_ddr_1560MHz_v1.13.bin
+endef
+
 UBOOT_TARGETS := \
   mrkaio-m68s-rk3568 \
   opc-h68k-rk3568 \
+  photonicat-rk3568 \
+  radxa-e25-rk3568 \
   rock-3a-rk3568 \
-  rock-pi-e25-rk3568 \
   r66s-rk3568 \
   station-p2-rk3568 \
   guangmiao-g4c-rk3399 \
   nanopi-r4s-rk3399 \
   nanopi-r4se-rk3399 \
   nanopi-r5s-rk3568 \
+  nanopi-r5c-rk3568 \
   rock-pi-4-rk3399 \
   rockpro64-rk3399 \
   rongpin-king3399-rk3399 \
+  rocktech-mpc1903-rk3399 \
   nanopi-r2c-rk3328 \
   nanopi-r2s-rk3328 \
   orangepi-r1-plus-rk3328 \
