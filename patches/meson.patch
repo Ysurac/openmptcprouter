@@ -1,0 +1,89 @@
+diff --git a/include/cmake.mk b/include/cmake.mk
+index 96c4d7df3479f..8a1c4fc4d5db7 100644
+--- a/include/cmake.mk
++++ b/include/cmake.mk
+@@ -1,5 +1,11 @@
+ cmake_bool = $(patsubst %,-D%:BOOL=$(if $($(1)),ON,OFF),$(2))
+ 
++ifeq ($(PKG_USE_NINJA),1)
++  PKG_BUILD_PARALLEL ?= 1
++endif
++ifeq ($(HOST_USE_NINJA),1)
++  HOST_BUILD_PARALLEL ?= 1
++endif
+ PKG_INSTALL:=1
+ 
+ ifneq ($(findstring c,$(OPENWRT_VERBOSE)),)
+@@ -44,6 +50,34 @@ CMAKE_FIND_ROOT_PATH:=$(STAGING_DIR)/usr;$(TOOLCHAIN_DIR)$(if $(CONFIG_EXTERNAL_
+ CMAKE_HOST_FIND_ROOT_PATH:=$(STAGING_DIR)/host;$(STAGING_DIR_HOSTPKG);$(STAGING_DIR_HOST)
+ CMAKE_SHARED_LDFLAGS:=-Wl,-Bsymbolic-functions
+ 
++ifeq ($(HOST_USE_NINJA),1)
++  CMAKE_HOST_OPTIONS += -DCMAKE_GENERATOR="Ninja"
++
++  define Host/Compile/Default
++	+$(NINJA) -C $(HOST_BUILD_DIR) $(1)
++  endef
++
++  define Host/Install/Default
++	+DESTDIR="$(HOST_INSTALL_DIR)" $(NINJA) -C $(HOST_BUILD_DIR) install
++  endef
++
++  define Host/Uninstall/Default
++	+DESTDIR="$(HOST_INSTALL_DIR)" $(NINJA) -C $(HOST_BUILD_DIR) uninstall
++  endef
++endif
++
++ifeq ($(PKG_USE_NINJA),1)
++  CMAKE_OPTIONS += -DCMAKE_GENERATOR="Ninja"
++
++  define Build/Compile/Default
++	+$(NINJA) -C $(CMAKE_BINARY_DIR) $(1)
++  endef
++
++  define Build/Install/Default
++	+DESTDIR="$(PKG_INSTALL_DIR)" $(NINJA) -C $(CMAKE_BINARY_DIR) install
++  endef
++endif
++
+ define Build/Configure/Default
+ 	mkdir -p $(CMAKE_BINARY_DIR)
+ 	(cd $(CMAKE_BINARY_DIR); \
+diff --git a/rules.mk b/rules.mk
+index 51f822e3f1c5f..8b24d3a3bb416 100644
+--- a/rules.mk
++++ b/rules.mk
+@@ -342,6 +342,12 @@ else
+     $(SCRIPT_DIR)/rstrip.sh
+ endif
+ 
++NINJA = \
++	MAKEFLAGS="$(MAKE_JOBSERVER)" \
++	$(STAGING_DIR_HOST)/bin/ninja \
++		$(if $(findstring c,$(OPENWRT_VERBOSE)),-v) \
++		$(if $(MAKE_JOBSERVER),,-j1)
++
+ ifeq ($(CONFIG_IPV6),y)
+   DISABLE_IPV6:=
+ else
+diff --git a/tools/Makefile b/tools/Makefile
+index 8752a3e2b5139..47a82fd237828 100644
+--- a/tools/Makefile
++++ b/tools/Makefile
+@@ -24,7 +24,7 @@ endif
+ tools-y += autoconf autoconf-archive automake bc bison cmake dosfstools
+ tools-y += e2fsprogs fakeroot findutils firmware-utils flex gengetopt
+ tools-y += libressl libtool lzma m4 make-ext4fs missing-macros mkimage
+-tools-y += mklibs mm-macros mtd-utils mtools padjffs2 patch-image
++tools-y += mklibs mm-macros mtd-utils mtools ninja meson padjffs2 patch-image
+ tools-y += patchelf pkgconf quilt squashfskit4 sstrip zip zlib zstd
+ tools-$(BUILD_B43_TOOLS) += b43-tools
+ tools-$(BUILD_ISL) += isl
+@@ -57,6 +57,7 @@ $(curdir)/libressl/compile := $(curdir)/pkgconf/compile
+ $(curdir)/libtool/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/automake/compile $(curdir)/missing-macros/compile
+ $(curdir)/lzma-old/compile := $(curdir)/zlib/compile
+ $(curdir)/make-ext4fs/compile := $(curdir)/zlib/compile
++$(curdir)/meson/compile := $(curdir)/ninja/compile
+ $(curdir)/missing-macros/compile := $(curdir)/autoconf/compile
+ $(curdir)/mkimage/compile += $(curdir)/libressl/compile
+ $(curdir)/mklibs/compile := $(curdir)/libtool/compile

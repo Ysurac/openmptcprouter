@@ -1,0 +1,99 @@
+#include "qcom-ipq4018-rutx-common.dtsi"
+#include "qcom-ipq4018-rutx-shiftreg.dtsi"
+
+/ {
+	model = "Teltonika RUTX14";
+
+	soc {
+		gpio-export {
+			compatible = "gpio-export";
+			#size-cells = <0>;
+
+			gpio_modem_reset {
+				gpio-export,name = "modem_reset";
+				gpio-export,output = <0>;
+				gpios = <&shift_io 8 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio_modem_power {
+				gpio-export,name = "modem_power";
+				gpio-export,output = <0>;
+				gpios = <&shift_io 9 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio_out_1 {
+				gpio-export,name = "gpio23";
+				gpio-export,output = <0>;
+				gpios = <&shift_io 10 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio_in_1 {
+				gpio-export,name = "gpio24";
+				gpio-export,input = <0>;
+				gpios = <&tlmm 0 GPIO_ACTIVE_HIGH>;
+			};
+		};
+
+		leds {
+			compatible = "gpio-leds";
+
+			led_wan_sim1 {
+				label = "wan_sim_1";
+				gpios = <&shift_io 14 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_wan_sim2 {
+				label = "wan_sim_2";
+				gpios = <&shift_io 15 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_wan_eth {
+				label = "wan_eth_3";
+				gpios = <&shift_io 7 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_wan_wifi {
+				label = "wan_wifi_4";
+				gpios = <&shift_io 6 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_gen_3 {
+				label = "mob_gen_3";
+				gpios = <&shift_io 5 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_gen_4 {
+				label = "mob_gen_4";
+				gpios = <&shift_io 4 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_ssid_1 {
+				label = "mob_ssid_1";
+				gpios = <&shift_io 0 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "timer";
+			};
+
+			led_ssid_3 {
+				label = "mob_ssid_3";
+				gpios = <&shift_io 1 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "timer";
+			};
+
+			led_ssid_5 {
+				label = "mob_ssid_5";
+				gpios = <&shift_io 2 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "timer";
+			};
+
+			led_wifi_24 {
+				label = "wifi_gen_2";
+				gpios = <&shift_io 12 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_wifi_50 {
+				label = "wifi_gen_5";
+				gpios = <&shift_io 13 GPIO_ACTIVE_HIGH>;
+			};
+		};
+	};
+};

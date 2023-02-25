@@ -13,7 +13,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-
 #include "qcom-ipq4019.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
@@ -29,7 +28,7 @@
 		led-running = &power;
 		led-upgrade = &power;
 		serial0 = &blsp1_uart1;
-		serial1 = &blsp1_uart2;
+		
 	};
 
 	chosen {
@@ -122,7 +121,9 @@
 
 	leds {
 		compatible = "gpio-leds";
-
+		pinctrl-0 = <&led_pins>;
+		pinctrl-names = "default";
+		
 		power: power {
 			label = "green:power";
 			gpios = <&tlmm 36 GPIO_ACTIVE_LOW>;
@@ -138,8 +139,8 @@
 			gpios = <&tlmm 42 GPIO_ACTIVE_LOW>;
 		};
 
-		4g {
-			label = "green:4g";
+		4g1 {
+			label = "green:4g1";
 			gpios = <&tlmm 1 GPIO_ACTIVE_LOW>;
 		};
 
@@ -153,24 +154,19 @@
 			gpios = <&tlmm 4 GPIO_ACTIVE_LOW>;
 		};
 
-		4gpwr {
-			label = "green:4gpwr";
-			gpios = <&tlmm 20 GPIO_ACTIVE_LOW>;
+		4g1pwr {
+			label = "green:4g1pwr";
+			gpios = <&tlmm 20 GPIO_ACTIVE_HIGH>;
 		};
 
 		4g2pwr {
 			label = "green:4g2pwr";
-			gpios = <&tlmm 8 GPIO_ACTIVE_LOW>;
+			gpios = <&tlmm 8 GPIO_ACTIVE_HIGH>;
 		};
 
 		4g3pwr {
 			label = "green:4g3pwr";
-			gpios = <&tlmm 9 GPIO_ACTIVE_LOW>;
-		};
-
-		4g2sim {
-			label = "green:4g2sim";
-			gpios = <&tlmm 0 GPIO_ACTIVE_LOW>;
+			gpios = <&tlmm 9 GPIO_ACTIVE_HIGH>;
 		};
 
 		watchdog {
@@ -280,12 +276,6 @@
 	status = "okay";
 };
 
-&blsp1_uart2 {
-	pinctrl-0 = <&serial_1_pins>;
-	pinctrl-names = "default";
-	status = "okay";
-};
-
 &tlmm {
 	mdio_pins: mdio_pinmux {
 		mux_1 {
@@ -308,44 +298,65 @@
 		};
 	};
 
+	led_pins: led_pins {
+		wifi1 {
+			pins = "gpio42";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
 
-	power_4g_pinmux {
-		mux {
+		wifi2 {
+			pins = "gpio43";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		4g1 {
+			pins = "gpio1";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		4g2 {
+			pins = "gpio2";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		4g3 {
+			pins = "gpio4";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+
+		power_4g1 {
 			pins = "gpio20";
 			function = "gpio";
-			drive-strength = <12>;
-			bias-pull-down;
+			drive-strength = <8>;
+			bias-pull-up;
 			output-high;
 		};
-	};
 
-	power_4g2_pinmux {
-		mux {
+		power_4g2 {
 			pins = "gpio8";
 			function = "gpio";
-			drive-strength = <12>;
-			bias-pull-down;
+			drive-strength = <8>;
+			bias-pull-up;
 			output-high;
 		};
-	};
 
-	power_4g3_pinmux {
-		mux {
+		power_4g3 {
 			pins = "gpio9";
 			function = "gpio";
-			drive-strength = <12>;
-			bias-pull-down;
+			drive-strength = <8>;
+			bias-pull-up;
 			output-high;
-		};
-	};
-
-	power_sim_sw_pinmux {
-		mux {
-			pins = "gpio0";
-			function = "gpio";
-			drive-strength = <12>;
-			bias-disable;
-			output-low;
 		};
 	};
 

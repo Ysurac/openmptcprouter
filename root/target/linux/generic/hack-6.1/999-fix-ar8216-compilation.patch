@@ -1,0 +1,20 @@
+--- a/drivers/net/phy/ar8216.c	2022-12-16 09:52:12.560547743 +0100
++++ b/drivers/net/phy/ar8216.c	2022-12-16 09:54:48.161592238 +0100
+@@ -2467,7 +2467,7 @@
+ 	/* VID fixup only needed on ar8216 */
+ 	if (chip_is_ar8216(priv)) {
+ 		dev->phy_ptr = priv;
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6,0,0)
+ 		dev->extra_priv_flags |= IFF_NO_IP_ALIGN;
+ #else
+ 		dev->priv_flags |= IFF_NO_IP_ALIGN;
+@@ -2706,7 +2706,7 @@
+ 
+ #ifdef CONFIG_ETHERNET_PACKET_MANGLE
+ 	dev->phy_ptr = NULL;
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6,0,0)
+ 	dev->extra_priv_flags &= ~IFF_NO_IP_ALIGN;
+ #else
+ 	dev->priv_flags &= ~IFF_NO_IP_ALIGN;
