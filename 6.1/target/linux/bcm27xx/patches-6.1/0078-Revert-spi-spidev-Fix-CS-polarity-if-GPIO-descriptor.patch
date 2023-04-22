@@ -1,0 +1,37 @@
+From da4c39c84fbee2224a586249d3d5a337dede635f Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Mon, 20 Apr 2020 13:41:10 +0100
+Subject: [PATCH 078/726] Revert "spi: spidev: Fix CS polarity if GPIO
+ descriptors are used"
+
+This reverts commit 83b2a8fe43bda0c11981ad6afa5dd0104d78be28.
+---
+ drivers/spi/spidev.c | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
+index 71c3db60e968..1dcf8886efb9 100644
+--- a/drivers/spi/spidev.c
++++ b/drivers/spi/spidev.c
+@@ -414,7 +414,6 @@ spidev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		else
+ 			retval = get_user(tmp, (u32 __user *)arg);
+ 		if (retval == 0) {
+-			struct spi_controller *ctlr = spi->controller;
+ 			u32	save = spi->mode;
+ 
+ 			if (tmp & ~SPI_MODE_MASK) {
+@@ -422,10 +421,6 @@ spidev_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 				break;
+ 			}
+ 
+-			if (ctlr->use_gpio_descriptors && ctlr->cs_gpiods &&
+-			    ctlr->cs_gpiods[spi->chip_select])
+-				tmp |= SPI_CS_HIGH;
+-
+ 			tmp |= spi->mode & ~SPI_MODE_MASK;
+ 			spi->mode = tmp & SPI_MODE_USER_MASK;
+ 			retval = spi_setup(spi);
+-- 
+2.33.1
+

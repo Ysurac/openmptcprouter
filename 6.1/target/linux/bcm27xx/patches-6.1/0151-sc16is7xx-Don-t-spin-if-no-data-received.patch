@@ -1,0 +1,28 @@
+From 631ee829489df94f0ebc1c9436846c9c2de52110 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Tue, 6 Nov 2018 12:57:48 +0000
+Subject: [PATCH 151/726] sc16is7xx: Don't spin if no data received
+
+See: https://github.com/raspberrypi/linux/issues/2676
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ drivers/tty/serial/sc16is7xx.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/tty/serial/sc16is7xx.c b/drivers/tty/serial/sc16is7xx.c
+index 93cf5f788817..6864adaaba7d 100644
+--- a/drivers/tty/serial/sc16is7xx.c
++++ b/drivers/tty/serial/sc16is7xx.c
+@@ -772,6 +772,8 @@ static bool sc16is7xx_port_irq(struct sc16is7xx_port *s, int portno)
+ 			rxlen = sc16is7xx_port_read(port, SC16IS7XX_RXLVL_REG);
+ 			if (rxlen)
+ 				sc16is7xx_handle_rx(port, rxlen, iir);
++			else
++				return false;
+ 			break;
+ 		/* CTSRTS interrupt comes only when CTS goes inactive */
+ 		case SC16IS7XX_IIR_CTSRTS_SRC:
+-- 
+2.33.1
+

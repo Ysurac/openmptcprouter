@@ -1,0 +1,31 @@
+From fe8843db09671eb45a21f4254fff30321929981e Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Tue, 14 Dec 2021 17:18:49 +0000
+Subject: [PATCH 373/726] media: i2c: ov7251: Make the enable GPIO optional.
+
+Not all implementations wire up the enable GPIO and may just tie
+it to a supply rail.
+Make it optional.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/media/i2c/ov7251.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ov7251.c b/drivers/media/i2c/ov7251.c
+index 05cea92277ca..e5adaa17cddf 100644
+--- a/drivers/media/i2c/ov7251.c
++++ b/drivers/media/i2c/ov7251.c
+@@ -1676,7 +1676,8 @@ static int ov7251_probe(struct i2c_client *client)
+ 		return PTR_ERR(ov7251->analog_regulator);
+ 	}
+ 
+-	ov7251->enable_gpio = devm_gpiod_get(dev, "enable", GPIOD_OUT_HIGH);
++	ov7251->enable_gpio = devm_gpiod_get_optional(dev, "enable",
++						      GPIOD_OUT_HIGH);
+ 	if (IS_ERR(ov7251->enable_gpio)) {
+ 		dev_err(dev, "cannot get enable gpio\n");
+ 		return PTR_ERR(ov7251->enable_gpio);
+-- 
+2.33.1
+

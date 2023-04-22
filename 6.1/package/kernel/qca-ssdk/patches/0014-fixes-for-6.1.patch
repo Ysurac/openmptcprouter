@@ -1,0 +1,12 @@
+diff -aurN src2/hsl/phy/qca808x_phy.c src/hsl/phy/qca808x_phy.c
+--- a/src/hsl/phy/qca808x_phy.c	2023-04-18 20:11:11.095219045 +0200
++++ b/src/hsl/phy/qca808x_phy.c	2023-04-18 20:15:18.570795360 +0200
+@@ -299,7 +299,7 @@
+ 	phy_data = qca808x_phy_debug_read(dev_id, phy_id,
+ 		QCA808X_DEBUG_LOCAL_SEED);
+ 	phy_data &= ~(QCA808X_MASTER_SLAVE_SEED_CFG);
+-	phy_data |= (prandom_u32()%QCA808X_MASTER_SLAVE_SEED_RANGE) << 2;
++	phy_data |= (get_random_u32()%QCA808X_MASTER_SLAVE_SEED_RANGE) << 2;
+ 	SSDK_DEBUG("QCA808X_DEBUG_LOCAL_SEED:%x\n", phy_data);
+ 	rv = qca808x_phy_debug_write(dev_id, phy_id,
+ 		QCA808X_DEBUG_LOCAL_SEED, phy_data);

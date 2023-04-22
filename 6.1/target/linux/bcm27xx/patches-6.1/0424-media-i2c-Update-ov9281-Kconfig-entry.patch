@@ -1,0 +1,27 @@
+From 277b69f76f783331c638088eb98b15a597248aa1 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Thu, 12 May 2022 14:31:43 +0100
+Subject: [PATCH 424/726] media: i2c: Update ov9281 Kconfig entry
+
+Bring the OV9281 Kconfig declaration in line with upstream entries.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/media/i2c/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 62c94d2ac69d..a253fe2cfbb6 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -1379,7 +1379,6 @@ config VIDEO_TW2804
+ config VIDEO_OV9281
+ 	tristate "OmniVision OV9281 sensor support"
+ 	depends on I2C && VIDEO_DEV
+-	depends on MEDIA_CAMERA_SUPPORT
+ 	help
+ 	  This is a Video4Linux2 sensor-level driver for the OmniVision
+ 	  OV9281 camera.
+-- 
+2.33.1
+

@@ -65,9 +65,11 @@ CONFIG_KERNEL_UTS_NS=y
 CONFIG_PACKAGE_kmod-8021q=y
 CONFIG_PACKAGE_kmod-ata-ahci=y
 CONFIG_PACKAGE_kmod-ata-core=y
+# CONFIG_PACKAGE_kmod-ath10k-ct is not set
 CONFIG_PACKAGE_kmod-block2mtd=y
 CONFIG_PACKAGE_kmod-bridge=y
 CONFIG_PACKAGE_kmod-crypto-gcm=y
+# CONFIG_PACKAGE_kmod-gobinet is not set
 CONFIG_PACKAGE_kmod-gpio-button-hotplug=y
 CONFIG_PACKAGE_kmod-hid=y
 CONFIG_PACKAGE_kmod-hid-generic=y
@@ -76,10 +78,13 @@ CONFIG_PACKAGE_kmod-i2c-gpio-custom=y
 CONFIG_PACKAGE_kmod-ifb=y
 CONFIG_PACKAGE_kmod-ikconfig=y
 CONFIG_PACKAGE_kmod-input-evdev=y
+# CONFIG_PACKAGE_kmod-fs-ksmbd is not set
 CONFIG_PACKAGE_kmod-loop=y
 CONFIG_PACKAGE_kmod-macvlan=y
 CONFIG_PACKAGE_kmod-mmc=y
 CONFIG_PACKAGE_kmod-mmc-spi=y
+# CONFIG_PACKAGE_kmod-nft-offload is not set
+# CONFIG_PACKAGE_kmod-pcie_mhi is not set
 CONFIG_PACKAGE_kmod-random-core=y
 CONFIG_DEFAULT_kmod-r8169=y
 CONFIG_PACKAGE_kmod-scsi-core=y
@@ -164,19 +169,24 @@ CONFIG_PACKAGE_kmod-of-mdio=y
 CONFIG_PACKAGE_kmod-pcnet32=y
 CONFIG_PACKAGE_kmod-phy-broadcom=y
 CONFIG_PACKAGE_kmod-ppfe=y
+# CONFIG_PACKAGE_kmod-qmi_wwan_f is not set
 CONFIG_PACKAGE_kmod-r6040=y
+# CONFIG_PACKAGE_kmod-r8101 is not set
 CONFIG_PACKAGE_kmod-r8169=y
+# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set
 CONFIG_PACKAGE_kmod-sis190=y
 CONFIG_PACKAGE_kmod-sis900=y
 CONFIG_PACKAGE_kmod-skge=y
 CONFIG_PACKAGE_kmod-sky2=y
 CONFIG_PACKAGE_kmod-solos-pci=y
 CONFIG_PACKAGE_kmod-spi-ks8995=y
+# CONFIG_PACKAGE_kmod-sprd_pcie is not set
 CONFIG_PACKAGE_kmod-tg3=y
 CONFIG_PACKAGE_kmod-tulip=y
 CONFIG_PACKAGE_kmod-via-rhine=y
 CONFIG_PACKAGE_kmod-via-velocity=y
 CONFIG_PACKAGE_kmod-vmxnet3=y
+# CONFIG_PACKAGE_kmod-xr-usb-serial is not set
 CONFIG_PACKAGE_kmod-fs-vfat=y
 CONFIG_PACKAGE_kmod-macremapper=m
 CONFIG_TARGET_IMAGES_PAD=y

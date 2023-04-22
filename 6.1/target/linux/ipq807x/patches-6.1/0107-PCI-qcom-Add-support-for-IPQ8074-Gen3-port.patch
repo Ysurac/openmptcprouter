@@ -1,0 +1,23 @@
+From 76893579a74e7e5c79f0c717d95d13f4cbbb5f4d Mon Sep 17 00:00:00 2001
+From: Robert Marko <robimarko@gmail.com>
+Date: Sat, 24 Dec 2022 17:11:16 +0100
+Subject: [PATCH] PCI: qcom: Add support for IPQ8074 Gen3 port
+
+IPQ8074 has one Gen2 and one Gen3 port, with Gen2 port already supported.
+Add compatible for Gen3 port which uses the same controller as IPQ6018.
+
+Signed-off-by: Robert Marko <robimarko@gmail.com>
+---
+ drivers/pci/controller/dwc/pcie-qcom.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/pci/controller/dwc/pcie-qcom.c
++++ b/drivers/pci/controller/dwc/pcie-qcom.c
+@@ -1747,6 +1747,7 @@
+ 	{ .compatible = "qcom,pcie-ipq8064", .data = &cfg_2_1_0 },
+ 	{ .compatible = "qcom,pcie-ipq8064-v2", .data = &cfg_2_1_0 },
+ 	{ .compatible = "qcom,pcie-ipq8074", .data = &cfg_2_3_3 },
++	{ .compatible = "qcom,pcie-ipq8074-gen3", .data = &cfg_2_9_0 },
+ 	{ .compatible = "qcom,pcie-msm8996", .data = &cfg_2_3_2 },
+ 	{ .compatible = "qcom,pcie-qcs404", .data = &cfg_2_4_0 },
+ 	{ .compatible = "qcom,pcie-sa8540p", .data = &cfg_1_9_0 },

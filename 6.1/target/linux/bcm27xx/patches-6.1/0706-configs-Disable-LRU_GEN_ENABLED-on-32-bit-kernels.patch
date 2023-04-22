@@ -1,0 +1,57 @@
+From ed858468d6cf3687c1d8744c312a9fcb21ea6ff2 Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Thu, 30 Mar 2023 11:24:42 +0100
+Subject: [PATCH 706/726] configs: Disable LRU_GEN_ENABLED on 32-bit kernels
+
+We seem to be getting increased OOM failures with MGLRU
+enabled on 32-bit kernels.
+Let's disable it by default
+(it can still be manually enabled at runtime).
+
+See: https://github.com/raspberrypi/linux/issues/5395
+Signed-off-by: Dom Cobley <popcornmix@gmail.com>
+---
+ arch/arm/configs/bcm2709_defconfig | 1 -
+ arch/arm/configs/bcm2711_defconfig | 1 -
+ arch/arm/configs/bcmrpi_defconfig  | 1 -
+ 3 files changed, 3 deletions(-)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 82f64a6bdb1c..2c09f88e7c84 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -69,7 +69,6 @@ CONFIG_Z3FOLD=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CMA=y
+ CONFIG_LRU_GEN=y
+-CONFIG_LRU_GEN_ENABLED=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 50ba0a3741de..eb11b4f12e4f 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -70,7 +70,6 @@ CONFIG_Z3FOLD=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CMA=y
+ CONFIG_LRU_GEN=y
+-CONFIG_LRU_GEN_ENABLED=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 7ae9985f01ea..7f7faa4ac77b 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -64,7 +64,6 @@ CONFIG_Z3FOLD=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CMA=y
+ CONFIG_LRU_GEN=y
+-CONFIG_LRU_GEN_ENABLED=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+-- 
+2.33.1
+

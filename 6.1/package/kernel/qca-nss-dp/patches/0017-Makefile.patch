@@ -1,0 +1,9 @@
+--- a/Makefile	2023-04-19 14:17:15.575068565 +0200
++++ b/Makefile	2023-04-19 14:17:28.166843041 +0200
+@@ -64,5 +64,5 @@
+ endif
+ 
+ ccflags-y += $(NSS_DP_INCLUDE)
+-ccflags-y += -Wall -Werror
++ccflags-y += -Wall
+ ccflags-y += -DEDMA_DEBUG_LEVEL=2

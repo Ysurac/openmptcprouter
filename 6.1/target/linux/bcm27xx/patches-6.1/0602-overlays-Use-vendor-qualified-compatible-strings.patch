@@ -1,0 +1,166 @@
+From 0c16f10d839ca1a56c53026a0642c8d687f7a797 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Mon, 6 Mar 2023 20:54:47 +0000
+Subject: [PATCH 602/726] overlays: Use vendor-qualified compatible strings
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ .../arm/boot/dts/overlays/i2c-rtc-common.dtsi |  2 +-
+ .../boot/dts/overlays/i2c-sensor-common.dtsi  | 22 +++++++++----------
+ .../arm/boot/dts/overlays/papirus-overlay.dts |  2 +-
+ .../arm/boot/dts/overlays/spi-rtc-overlay.dts |  4 ++--
+ 4 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/arch/arm/boot/dts/overlays/i2c-rtc-common.dtsi b/arch/arm/boot/dts/overlays/i2c-rtc-common.dtsi
+index 94b0243bc328..286d661d1605 100644
+--- a/arch/arm/boot/dts/overlays/i2c-rtc-common.dtsi
++++ b/arch/arm/boot/dts/overlays/i2c-rtc-common.dtsi
+@@ -250,7 +250,7 @@ __dormant__ {
+ 			#size-cells = <0>;
+ 
+ 			s35390a: s35390a@30 {
+-				compatible = "ablic,s35390a";
++				compatible = "sii,s35390a";
+ 				reg = <0x30>;
+ 			};
+ 		};
+diff --git a/arch/arm/boot/dts/overlays/i2c-sensor-common.dtsi b/arch/arm/boot/dts/overlays/i2c-sensor-common.dtsi
+index 52b08c68987a..65f606aaa84c 100755
+--- a/arch/arm/boot/dts/overlays/i2c-sensor-common.dtsi
++++ b/arch/arm/boot/dts/overlays/i2c-sensor-common.dtsi
+@@ -76,7 +76,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			htu21: htu21@40 {
+-				compatible = "htu21";
++				compatible = "meas,htu21";
+ 				reg = <0x40>;
+ 				status = "okay";
+ 			};
+@@ -91,7 +91,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			lm75: lm75@4f {
+-				compatible = "lm75";
++				compatible = "national,lm75";
+ 				reg = <0x4f>;
+ 				status = "okay";
+ 			};
+@@ -106,7 +106,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			si7020: si7020@40 {
+-				compatible = "si7020";
++				compatible = "silabs,si7020";
+ 				reg = <0x40>;
+ 				status = "okay";
+ 			};
+@@ -136,7 +136,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			hdc100x: hdc100x@40 {
+-				compatible = "hdc100x";
++				compatible = "ti,hdc1000";
+ 				reg = <0x40>;
+ 				status = "okay";
+ 			};
+@@ -151,7 +151,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			tsl4531: tsl4531@29 {
+-				compatible = "tsl4531";
++				compatible = "amstaos,tsl4531";
+ 				reg = <0x29>;
+ 				status = "okay";
+ 			};
+@@ -166,7 +166,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			veml6070: veml6070@38 {
+-				compatible = "veml6070";
++				compatible = "vishay,veml6070";
+ 				reg = <0x38>;
+ 				status = "okay";
+ 			};
+@@ -181,7 +181,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			sht3x: sht3x@44 {
+-				compatible = "sht3x";
++				compatible = "sensirion,sht3x";
+ 				reg = <0x44>;
+ 				status = "okay";
+ 			};
+@@ -196,7 +196,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			ds1621: ds1621@48 {
+-				compatible = "ds1621";
++				compatible = "dallas,ds1621";
+ 				reg = <0x48>;
+ 				status = "okay";
+ 			};
+@@ -271,7 +271,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			ccs811: ccs811@5b {
+-				compatible = "ccs811";
++				compatible = "ams,ccs811";
+ 				reg = <0x5b>;
+ 				status = "okay";
+ 			};
+@@ -286,7 +286,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			bh1750: bh1750@23 {
+-				compatible = "bh1750";
++				compatible = "rohm,bh1750";
+ 				reg = <0x23>;
+ 				status = "okay";
+ 			};
+@@ -486,7 +486,7 @@ __dormant__ {
+ 			status = "okay";
+ 
+ 			sht4x: sht4x@44 {
+-				compatible = "sht4x";
++				compatible = "sensirion,sht4x";
+ 				reg = <0x44>;
+ 				status = "okay";
+ 			};
+diff --git a/arch/arm/boot/dts/overlays/papirus-overlay.dts b/arch/arm/boot/dts/overlays/papirus-overlay.dts
+index d3e819c0578d..67052b53a59c 100644
+--- a/arch/arm/boot/dts/overlays/papirus-overlay.dts
++++ b/arch/arm/boot/dts/overlays/papirus-overlay.dts
+@@ -14,7 +14,7 @@ __overlay__ {
+ 			status = "okay";
+ 
+ 			display_temp: lm75@48 {
+-				compatible = "lm75b";
++				compatible = "national,lm75b";
+ 				reg = <0x48>;
+ 				status = "okay";
+ 				#thermal-sensor-cells = <0>;
+diff --git a/arch/arm/boot/dts/overlays/spi-rtc-overlay.dts b/arch/arm/boot/dts/overlays/spi-rtc-overlay.dts
+index 51b7fec281c0..df3286929c2e 100644
+--- a/arch/arm/boot/dts/overlays/spi-rtc-overlay.dts
++++ b/arch/arm/boot/dts/overlays/spi-rtc-overlay.dts
+@@ -8,14 +8,14 @@ / {
+ 	fragment@0 {
+ 		target = <&rtc>;
+ 		__dormant__ {
+-			compatible = "maxim,ds3232";
++			compatible = "dallas,ds3232";
+ 		};
+ 	};
+ 
+ 	fragment@1 {
+ 		target = <&rtc>;
+ 		__dormant__ {
+-			compatible = "maxim,ds3234";
++			compatible = "dallas,ds3234";
+ 		};
+ 	};
+ 
+-- 
+2.33.1
+

@@ -1,0 +1,29 @@
+From c07c369e59d863f5e89b548a60370c4b03811d95 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.org>
+Date: Thu, 24 Jan 2019 15:09:28 +0000
+Subject: [PATCH 068/726] clk: clk-bcm2835: Use %zd when printing size_t
+
+The debug text for how many clocks have been registered
+uses "%d" with a size_t. Correct it to "%zd".
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.org>
+---
+ drivers/clk/bcm/clk-bcm2835.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/clk/bcm/clk-bcm2835.c b/drivers/clk/bcm/clk-bcm2835.c
+index 406ac78b08a6..060a45a59b70 100644
+--- a/drivers/clk/bcm/clk-bcm2835.c
++++ b/drivers/clk/bcm/clk-bcm2835.c
+@@ -2406,7 +2406,7 @@ static int bcm2835_clk_probe(struct platform_device *pdev)
+ 		return ret;
+ 
+ 	/* note that we have registered all the clocks */
+-	dev_dbg(dev, "registered %d clocks\n", asize);
++	dev_dbg(dev, "registered %zd clocks\n", asize);
+ 
+ 	return 0;
+ }
+-- 
+2.33.1
+

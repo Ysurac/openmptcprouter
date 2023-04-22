@@ -1,0 +1,34 @@
+From 4e0d070d78bf3901dda8b53277108392ac66daf7 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Wed, 20 Jun 2018 12:20:01 +0100
+Subject: [PATCH 147/726] brcmfmac: Re-enable firmware roaming support
+
+As of 4.18, a firmware that implements the update_connect_params
+method but doesn't claim to support roaming causes an error. We
+disabled firmware roaming in 4.4 [1] because it appeared to
+prevent disconnects, but let's try with the current firmware to see
+if things have improved.
+
+[1] https://github.com/raspberrypi/linux/commit/dd9188011786fb62a7960922f31e8e086fb2009b
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ drivers/net/wireless/broadcom/brcm80211/brcmfmac/common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/common.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/common.c
+index 53acff45294a..fc5232a89653 100644
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/common.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/common.c
+@@ -59,7 +59,7 @@ static int brcmf_fcmode;
+ module_param_named(fcmode, brcmf_fcmode, int, 0);
+ MODULE_PARM_DESC(fcmode, "Mode of firmware signalled flow control");
+ 
+-static int brcmf_roamoff = 1;
++static int brcmf_roamoff;
+ module_param_named(roamoff, brcmf_roamoff, int, 0400);
+ MODULE_PARM_DESC(roamoff, "Do not use internal roaming engine");
+ 
+-- 
+2.33.1
+

@@ -1,0 +1,79 @@
+From e4d66150c245f1c70fc13bc8e08d8e84ec868d54 Mon Sep 17 00:00:00 2001
+From: Lee Jackson <info@arducam.com>
+Date: Fri, 17 Feb 2023 10:36:29 +0800
+Subject: [PATCH 590/726] configs: Add CONFIG_VIDEO_AK7375=m
+
+Include the driver module for the AK7375.
+
+Signed-off-by: Lee Jackson <lee.jackson@arducam.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 +
+ arch/arm/configs/bcm2711_defconfig   | 1 +
+ arch/arm/configs/bcmrpi_defconfig    | 1 +
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ arch/arm64/configs/bcmrpi3_defconfig | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 1ce8985725b4..59e9cdb16813 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -930,6 +930,7 @@ CONFIG_VIDEO_OV5647=m
+ CONFIG_VIDEO_OV7251=m
+ CONFIG_VIDEO_OV7640=m
+ CONFIG_VIDEO_AD5398=m
++CONFIG_VIDEO_AK7375=m
+ CONFIG_VIDEO_DW9807_VCM=m
+ CONFIG_VIDEO_SONY_BTF_MPX=m
+ CONFIG_VIDEO_UDA1342=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 2c78621a8d1f..28245b94f440 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -948,6 +948,7 @@ CONFIG_VIDEO_OV5647=m
+ CONFIG_VIDEO_OV7251=m
+ CONFIG_VIDEO_OV7640=m
+ CONFIG_VIDEO_AD5398=m
++CONFIG_VIDEO_AK7375=m
+ CONFIG_VIDEO_DW9807_VCM=m
+ CONFIG_VIDEO_SONY_BTF_MPX=m
+ CONFIG_VIDEO_UDA1342=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index a86b357a91a8..2c10329939b1 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -924,6 +924,7 @@ CONFIG_VIDEO_OV5647=m
+ CONFIG_VIDEO_OV7251=m
+ CONFIG_VIDEO_OV7640=m
+ CONFIG_VIDEO_AD5398=m
++CONFIG_VIDEO_AK7375=m
+ CONFIG_VIDEO_DW9807_VCM=m
+ CONFIG_VIDEO_SONY_BTF_MPX=m
+ CONFIG_VIDEO_UDA1342=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 8b877f4b333f..5b82d64ea2f4 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -960,6 +960,7 @@ CONFIG_VIDEO_OV5647=m
+ CONFIG_VIDEO_OV7251=m
+ CONFIG_VIDEO_OV7640=m
+ CONFIG_VIDEO_AD5398=m
++CONFIG_VIDEO_AK7375=m
+ CONFIG_VIDEO_DW9807_VCM=m
+ CONFIG_VIDEO_SONY_BTF_MPX=m
+ CONFIG_VIDEO_UDA1342=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 1fd2d7bffe68..a3c5c072872f 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -898,6 +898,7 @@ CONFIG_VIDEO_OV5647=m
+ CONFIG_VIDEO_OV7251=m
+ CONFIG_VIDEO_OV7640=m
+ CONFIG_VIDEO_AD5398=m
++CONFIG_VIDEO_AK7375=m
+ CONFIG_VIDEO_DW9807_VCM=m
+ CONFIG_VIDEO_SONY_BTF_MPX=m
+ CONFIG_VIDEO_UDA1342=m
+-- 
+2.33.1
+

@@ -1,0 +1,82 @@
+From 3ebece61c66afc9f6c5a7b526f77fa0298638e1d Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Thu, 30 Mar 2023 11:31:55 +0100
+Subject: [PATCH 705/726] configs: Regenerate defconfigs
+
+Upstream change [1] has deleted the NET_CLS_TCINDEX Kconfig symbol.
+Regenerate our defconfigs without it.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+
+[1] 3abebc503a51 ("net/sched: Retire tcindex classifier")
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 -
+ arch/arm/configs/bcm2711_defconfig   | 1 -
+ arch/arm/configs/bcmrpi_defconfig    | 1 -
+ arch/arm64/configs/bcm2711_defconfig | 1 -
+ arch/arm64/configs/bcmrpi3_defconfig | 1 -
+ 5 files changed, 5 deletions(-)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 043dac139994..82f64a6bdb1c 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -363,7 +363,6 @@ CONFIG_NET_SCH_PIE=m
+ CONFIG_NET_SCH_INGRESS=m
+ CONFIG_NET_SCH_PLUG=m
+ CONFIG_NET_CLS_BASIC=m
+-CONFIG_NET_CLS_TCINDEX=m
+ CONFIG_NET_CLS_ROUTE4=m
+ CONFIG_NET_CLS_FW=m
+ CONFIG_NET_CLS_U32=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index fc333d09d7f0..50ba0a3741de 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -365,7 +365,6 @@ CONFIG_NET_SCH_PIE=m
+ CONFIG_NET_SCH_INGRESS=m
+ CONFIG_NET_SCH_PLUG=m
+ CONFIG_NET_CLS_BASIC=m
+-CONFIG_NET_CLS_TCINDEX=m
+ CONFIG_NET_CLS_ROUTE4=m
+ CONFIG_NET_CLS_FW=m
+ CONFIG_NET_CLS_U32=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 32bb4d737a7d..7ae9985f01ea 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -358,7 +358,6 @@ CONFIG_NET_SCH_PIE=m
+ CONFIG_NET_SCH_INGRESS=m
+ CONFIG_NET_SCH_PLUG=m
+ CONFIG_NET_CLS_BASIC=m
+-CONFIG_NET_CLS_TCINDEX=m
+ CONFIG_NET_CLS_ROUTE4=m
+ CONFIG_NET_CLS_FW=m
+ CONFIG_NET_CLS_U32=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 9e07e5e13acc..630195fec52f 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -369,7 +369,6 @@ CONFIG_NET_SCH_PIE=m
+ CONFIG_NET_SCH_INGRESS=m
+ CONFIG_NET_SCH_PLUG=m
+ CONFIG_NET_CLS_BASIC=m
+-CONFIG_NET_CLS_TCINDEX=m
+ CONFIG_NET_CLS_ROUTE4=m
+ CONFIG_NET_CLS_FW=m
+ CONFIG_NET_CLS_U32=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 35eece2cf4a1..1c569b2aa543 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -360,7 +360,6 @@ CONFIG_NET_SCH_FQ=m
+ CONFIG_NET_SCH_INGRESS=m
+ CONFIG_NET_SCH_PLUG=m
+ CONFIG_NET_CLS_BASIC=m
+-CONFIG_NET_CLS_TCINDEX=m
+ CONFIG_NET_CLS_ROUTE4=m
+ CONFIG_NET_CLS_FW=m
+ CONFIG_NET_CLS_U32=m
+-- 
+2.33.1
+

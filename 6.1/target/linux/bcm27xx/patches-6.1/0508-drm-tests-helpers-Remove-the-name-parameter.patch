@@ -1,0 +1,73 @@
+From 23f4e2217bb1be0558969aeb42925cf602c6079f Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime@cerno.tech>
+Date: Mon, 21 Nov 2022 13:25:32 +0100
+Subject: [PATCH 508/726] drm/tests: helpers: Remove the name parameter
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The device name isn't really useful, we can just define it instead of
+exposing it in the API.
+
+Reviewed-by: Maíra Canal <mcanal@igalia.com>
+Signed-off-by: Maxime Ripard <maxime@cerno.tech>
+---
+ drivers/gpu/drm/tests/drm_kunit_helpers.c | 7 ++++---
+ include/drm/drm_kunit_helpers.h           | 3 +--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpu/drm/tests/drm_kunit_helpers.c b/drivers/gpu/drm/tests/drm_kunit_helpers.c
+index e718073ba6e9..ec33fcbd092d 100644
+--- a/drivers/gpu/drm/tests/drm_kunit_helpers.c
++++ b/drivers/gpu/drm/tests/drm_kunit_helpers.c
+@@ -8,6 +8,8 @@
+ 
+ #include <linux/device.h>
+ 
++#define KUNIT_DEVICE_NAME	"drm-kunit-mock-device"
++
+ struct kunit_dev {
+ 	struct drm_device base;
+ };
+@@ -39,7 +41,6 @@ static void dev_free(struct kunit_resource *res)
+  * drm_kunit_helper_alloc_drm_device - Allocates a mock DRM device for KUnit tests
+  * @test: The test context object
+  * @features: Mocked DRM device driver features
+- * @name: Name of the struct &device to allocate
+  *
+  * This function allocates a new struct &device, creates a struct
+  * &drm_driver and will create a struct &drm_device using both.
+@@ -54,7 +55,7 @@ static void dev_free(struct kunit_resource *res)
+  */
+ struct drm_device *
+ drm_kunit_helper_alloc_drm_device(struct kunit *test,
+-				  u32 features, char *name)
++				  u32 features)
+ {
+ 	struct kunit_dev *kdev;
+ 	struct drm_device *drm;
+@@ -62,7 +63,7 @@ drm_kunit_helper_alloc_drm_device(struct kunit *test,
+ 	struct device *dev;
+ 	int ret;
+ 
+-	dev = kunit_alloc_resource(test, dev_init, dev_free, GFP_KERNEL, name);
++	dev = kunit_alloc_resource(test, dev_init, dev_free, GFP_KERNEL, KUNIT_DEVICE_NAME);
+ 	if (!dev)
+ 		return ERR_PTR(-ENOMEM);
+ 
+diff --git a/include/drm/drm_kunit_helpers.h b/include/drm/drm_kunit_helpers.h
+index e9870c7911fe..6c12b1426ba0 100644
+--- a/include/drm/drm_kunit_helpers.h
++++ b/include/drm/drm_kunit_helpers.h
+@@ -8,7 +8,6 @@ struct kunit;
+ 
+ struct drm_device *
+ drm_kunit_helper_alloc_drm_device(struct kunit *test,
+-				  u32 features,
+-				  char *name);
++				  u32 features);
+ 
+ #endif // DRM_KUNIT_HELPERS_H_
+-- 
+2.33.1
+

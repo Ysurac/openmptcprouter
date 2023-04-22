@@ -1,0 +1,79 @@
+From 1f52c1782286adb2ece44db5652fe662c2cd601a Mon Sep 17 00:00:00 2001
+From: lihgong <lihgong@gmail.com>
+Date: Tue, 13 Dec 2022 09:14:31 +0800
+Subject: [PATCH 530/726] configs: Add 8DEV USB2CAN driver support
+
+See: https://github.com/raspberrypi/linux/pull/5273
+Requested-by: lihgong <lihgong@gmail.com>
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 +
+ arch/arm/configs/bcm2711_defconfig   | 1 +
+ arch/arm/configs/bcmrpi_defconfig    | 1 +
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ arch/arm64/configs/bcmrpi3_defconfig | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 888265968c51..786e94705bae 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -496,6 +496,7 @@ CONFIG_CAN_VCAN=m
+ CONFIG_CAN_SLCAN=m
+ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
++CONFIG_CAN_8DEV_USB=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_GS_USB=m
+ CONFIG_CAN_PEAK_USB=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index a22cd11d4c88..c457d1b744e3 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -512,6 +512,7 @@ CONFIG_CAN_VCAN=m
+ CONFIG_CAN_SLCAN=m
+ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
++CONFIG_CAN_8DEV_USB=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_GS_USB=m
+ CONFIG_CAN_PEAK_USB=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index bb5ba2cb9a4d..c516ab64bd6b 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -491,6 +491,7 @@ CONFIG_CAN_VCAN=m
+ CONFIG_CAN_SLCAN=m
+ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
++CONFIG_CAN_8DEV_USB=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_GS_USB=m
+ CONFIG_CAN_PEAK_USB=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index dcac5bf23418..5e9159464a48 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -518,6 +518,7 @@ CONFIG_CAN_VCAN=m
+ CONFIG_CAN_SLCAN=m
+ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
++CONFIG_CAN_8DEV_USB=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_GS_USB=m
+ CONFIG_CAN_PEAK_USB=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index cb0e91c6839c..0dac7e44292a 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -494,6 +494,7 @@ CONFIG_WIZNET_W5100_SPI=m
+ CONFIG_CAN_VCAN=m
+ CONFIG_CAN_MCP251X=m
+ CONFIG_CAN_MCP251XFD=m
++CONFIG_CAN_8DEV_USB=m
+ CONFIG_CAN_EMS_USB=m
+ CONFIG_CAN_PEAK_USB=m
+ CONFIG_MDIO_BITBANG=m
+-- 
+2.33.1
+

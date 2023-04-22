@@ -1,0 +1,55 @@
+From 84c9048842ec35942523be439416e510be15964b Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Wed, 8 Mar 2023 15:28:19 +0000
+Subject: [PATCH 612/726] workflows: We all love checkpatch, so add it to the
+ CI workflows
+
+This is currently running on defaults, so the --strict desired
+for media drivers and similar won't be observed. That may be
+possible to add later.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ .github/workflows/checkpatch.yml     | 18 ++++++++++++++++++
+ .github/workflows/ci_checkpatch.conf |  4 ++++
+ 2 files changed, 22 insertions(+)
+ create mode 100644 .github/workflows/checkpatch.yml
+ create mode 100644 .github/workflows/ci_checkpatch.conf
+
+diff --git a/.github/workflows/checkpatch.yml b/.github/workflows/checkpatch.yml
+new file mode 100644
+index 000000000000..4a01aee5fd2a
+--- /dev/null
++++ b/.github/workflows/checkpatch.yml
+@@ -0,0 +1,18 @@
++name: Advisory checkpatch review
++on: [pull_request]
++
++jobs:
++  review:
++    name: checkpatch review
++    runs-on: ubuntu-latest
++    steps:
++    - name: 'Calculate PR commits + 1'
++      run: echo "PR_FETCH_DEPTH=$(( ${{ github.event.pull_request.commits }} + 1 ))" >> $GITHUB_ENV
++    - uses: actions/checkout@v3
++      with:
++        ref: ${{ github.event.pull_request.head.sha }}
++        fetch-depth: ${{ env.PR_FETCH_DEPTH }}
++    - name: Copy checkpatch.conf
++      run: cp ${{github.workspace}}/.github/workflows/ci_checkpatch.conf ${{github.workspace}}/.checkpatch.conf
++    - name: Run checkpatch review
++      uses: webispy/checkpatch-action@v9
+diff --git a/.github/workflows/ci_checkpatch.conf b/.github/workflows/ci_checkpatch.conf
+new file mode 100644
+index 000000000000..5d79c37b1d8c
+--- /dev/null
++++ b/.github/workflows/ci_checkpatch.conf
+@@ -0,0 +1,4 @@
++--no-tree
++--ignore FILE_PATH_CHANGES
++--ignore GIT_COMMIT_ID
++--ignore SPDX_LICENSE_TAG
+-- 
+2.33.1
+

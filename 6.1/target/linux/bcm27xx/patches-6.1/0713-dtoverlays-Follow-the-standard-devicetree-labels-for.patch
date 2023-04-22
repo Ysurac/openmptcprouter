@@ -1,0 +1,39 @@
+From dbb9efdf61fe1c4459774d69839ea877d25fe743 Mon Sep 17 00:00:00 2001
+From: Naushir Patuck <naush@raspberrypi.com>
+Date: Fri, 31 Mar 2023 15:08:10 +0100
+Subject: [PATCH 713/726] dtoverlays: Follow the standard devicetree labels for
+ IMX708
+
+Switch the system clock name from "xclk" to "inclk".
+Use lower case lables for all regulator names.
+
+Signed-off-by: Naushir Patuck <naush@raspberrypi.com>
+---
+ arch/arm/boot/dts/overlays/imx708.dtsi | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/overlays/imx708.dtsi b/arch/arm/boot/dts/overlays/imx708.dtsi
+index 1381caf22668..1558458d58ec 100644
+--- a/arch/arm/boot/dts/overlays/imx708.dtsi
++++ b/arch/arm/boot/dts/overlays/imx708.dtsi
+@@ -6,12 +6,12 @@ cam_node: imx708@1a {
+ 	status = "disabled";
+ 
+ 	clocks = <&cam1_clk>;
+-	clock-names = "xclk";
++	clock-names = "inclk";
+ 
+-	VANA1-supply = <&cam1_reg>;	/* 2.8v */
+-	VANA2-supply = <&cam_dummy_reg>;/* 1.8v */
+-	VDIG-supply = <&cam_dummy_reg>;	/* 1.1v */
+-	VDDL-supply = <&cam_dummy_reg>;	/* 1.8v */
++	vana1-supply = <&cam1_reg>;	/* 2.8v */
++	vana2-supply = <&cam_dummy_reg>;/* 1.8v */
++	vdig-supply = <&cam_dummy_reg>;	/* 1.1v */
++	vddl-supply = <&cam_dummy_reg>;	/* 1.8v */
+ 
+ 	rotation = <180>;
+ 	orientation = <2>;
+-- 
+2.33.1
+

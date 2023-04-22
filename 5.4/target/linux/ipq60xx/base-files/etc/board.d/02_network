@@ -1,0 +1,46 @@
+#!/bin/sh
+#
+# Copyright (c) 2015, 2020 The Linux Foundation. All rights reserved.
+# Copyright (C) 2011 OpenWrt.org
+#
+
+[ -e /etc/config/network ] && exit 0
+
+CFG=/etc/board.json
+
+. /lib/functions/uci-defaults.sh
+
+ipq60xx_setup_interfaces()
+{
+	local board="$1"
+
+	case "$board" in
+	qcom,ipq6018-ap-cp01-c1 |\
+	qcom,ipq6018-ap-cp01-c2 |\
+	qcom,ipq6018-ap-cp01-c3 |\
+	qcom,ipq6018-ap-cp01-c4 |\
+	qcom,ipq6018-ap-cp01-c5 |\
+	qcom,ipq6018-db-cp01)
+		ucidef_set_interfaces_lan_wan "eth1 eth2 eth3 eth4" "eth0"
+		;;
+	pangu,l6018|\
+	wf,hr6001)
+		ucidef_set_interfaces_lan_wan "eth0 eth1 eth2 eth3" "eth4"
+		;;
+	qcom,ipq6018-ap-cp02-c1 |\
+	qcom,ipq6018-ap-cp03-c1 |\
+	qcom,ipq6018-db-cp02)
+		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+		;;
+	*)
+		echo "Unsupported hardware. Network interfaces not intialized"
+		;;
+	esac
+}
+
+board_config_update
+board=$(board_name)
+ipq60xx_setup_interfaces $board
+board_config_flush
+
+exit 0

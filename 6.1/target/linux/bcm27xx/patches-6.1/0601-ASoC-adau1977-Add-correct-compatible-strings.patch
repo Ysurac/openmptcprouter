@@ -1,0 +1,37 @@
+From 91f6b47c44228f2eca848dd626f2ffb5f474ac64 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Mon, 6 Mar 2023 20:48:14 +0000
+Subject: [PATCH 601/726] ASoC: adau1977: Add correct compatible strings
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ sound/soc/codecs/adau1977-i2c.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/sound/soc/codecs/adau1977-i2c.c b/sound/soc/codecs/adau1977-i2c.c
+index 9f137a0634d5..8e36a9fb276f 100644
+--- a/sound/soc/codecs/adau1977-i2c.c
++++ b/sound/soc/codecs/adau1977-i2c.c
+@@ -38,9 +38,19 @@ static const struct i2c_device_id adau1977_i2c_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, adau1977_i2c_ids);
+ 
++static const struct of_device_id adau1977_of_ids[] = {
++	{ .compatible = "adi,adau1977", },
++	{ .compatible = "adi,adau1978", },
++	{ .compatible = "adi,adau1979", },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, adau1977_of_ids);
++
++
+ static struct i2c_driver adau1977_i2c_driver = {
+ 	.driver = {
+ 		.name = "adau1977",
++		.of_match_table = adau1977_of_ids,
+ 	},
+ 	.probe_new = adau1977_i2c_probe,
+ 	.id_table = adau1977_i2c_ids,
+-- 
+2.33.1
+

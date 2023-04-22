@@ -1,0 +1,42 @@
+From f2fd85791301b6c123cee37fae21153cb5ffef34 Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Thu, 8 Dec 2022 17:21:00 +0000
+Subject: [PATCH 557/726] drm_probe_helper: Cancel previous job before starting
+ new one
+
+Currently we schedule a call to output_poll_execute from drm_kms_helper_poll_enable for 10s in future.
+Later we try to replace that in drm_helper_probe_single_connector_modes with a 0s schedule with delayed_event set.
+
+But as there is already a job in the queue this fails, and the immediate job we wanted with delayed_event set
+doesn't occur until 10s later.
+
+And that call acts as if connector state has changed, reprobing modes.
+This has a side effect of waking up a display that has been blanked.
+
+Make sure we cancel the old job before submitting the immediate one.
+
+Signed-off-by: Dom Cobley <popcornmix@gmail.com>
+---
+ drivers/gpu/drm/drm_probe_helper.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/drm_probe_helper.c b/drivers/gpu/drm/drm_probe_helper.c
+index 69b0b2b9cc1c..e248fb99e87a 100644
+--- a/drivers/gpu/drm/drm_probe_helper.c
++++ b/drivers/gpu/drm/drm_probe_helper.c
+@@ -556,9 +556,11 @@ int drm_helper_probe_single_connector_modes(struct drm_connector *connector,
+ 		 * disable itself again.
+ 		 */
+ 		dev->mode_config.delayed_event = true;
+-		if (dev->mode_config.poll_enabled)
++		if (dev->mode_config.poll_enabled) {
++			cancel_delayed_work_sync(&dev->mode_config.output_poll_work);
+ 			schedule_delayed_work(&dev->mode_config.output_poll_work,
+ 					      0);
++		}
+ 	}
+ 
+ 	/* Re-enable polling in case the global poll config changed. */
+-- 
+2.33.1
+

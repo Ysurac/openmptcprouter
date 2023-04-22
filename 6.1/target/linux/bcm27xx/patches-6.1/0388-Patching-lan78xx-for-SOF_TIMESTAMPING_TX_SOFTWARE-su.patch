@@ -1,0 +1,25 @@
+From 95efb2503ea555f89b6c263979fde2d4d498ffc0 Mon Sep 17 00:00:00 2001
+From: tiagofreire-pt <41837236+tiagofreire-pt@users.noreply.github.com>
+Date: Sat, 29 Jan 2022 10:01:36 +0000
+Subject: [PATCH 388/726] Patching lan78xx for SOF_TIMESTAMPING_TX_SOFTWARE
+ support
+
+---
+ drivers/net/usb/lan78xx.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/usb/lan78xx.c b/drivers/net/usb/lan78xx.c
+index 1ce889fdd3aa..9bbdd23311fe 100644
+--- a/drivers/net/usb/lan78xx.c
++++ b/drivers/net/usb/lan78xx.c
+@@ -1953,6 +1953,7 @@ static const struct ethtool_ops lan78xx_ethtool_ops = {
+ 	.set_link_ksettings = lan78xx_set_link_ksettings,
+ 	.get_regs_len	= lan78xx_get_regs_len,
+ 	.get_regs	= lan78xx_get_regs,
++	.get_ts_info    = ethtool_op_get_ts_info,
+ };
+ 
+ static void lan78xx_init_mac_address(struct lan78xx_net *dev)
+-- 
+2.33.1
+

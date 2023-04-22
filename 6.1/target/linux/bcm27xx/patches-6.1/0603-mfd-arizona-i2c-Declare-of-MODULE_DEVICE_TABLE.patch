@@ -1,0 +1,28 @@
+From 294d81c1f69967ccca8c409bbcbf20c7cf721368 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Mon, 6 Mar 2023 20:56:08 +0000
+Subject: [PATCH 603/726] mfd: arizona-i2c: Declare of MODULE_DEVICE_TABLE
+
+Without a MODULE_DEVICE_TABLE declare for the of_device_ids, the
+compatible strings won't be turned into module aliases.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/mfd/arizona-i2c.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/mfd/arizona-i2c.c b/drivers/mfd/arizona-i2c.c
+index bfc7cf56ff2c..071920764eca 100644
+--- a/drivers/mfd/arizona-i2c.c
++++ b/drivers/mfd/arizona-i2c.c
+@@ -112,6 +112,7 @@ static const struct of_device_id arizona_i2c_of_match[] = {
+ 	{ .compatible = "wlf,wm1814", .data = (void *)WM1814 },
+ 	{},
+ };
++MODULE_DEVICE_TABLE(of, arizona_i2c_of_match);
+ #endif
+ 
+ static struct i2c_driver arizona_i2c_driver = {
+-- 
+2.33.1
+

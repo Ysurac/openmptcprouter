@@ -97,11 +97,23 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "1b6e9b3f64344aa17bdb2dc7b89bb2765305dbe5"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "88b0e30806965a73058d79dd2d8bcbe6a2da88f9"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "d548d858c8cf62d36ab87dcf5d317fe05ede19cf"
+#	elif [ "$OMR_KERNEL" = "6.1" ]; then
+#		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
+#		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
+#		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
 	else
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "895f38ca1efeb46f0cd3029c732e6156d4589eb0"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8f68e1bd911dd4cab5d11199f65f78f97bc4faf9"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ec3aac47c43d44d170af6a09d31493c2e8efe590"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "e11d00d44c66b1534fbc399fda55951cd0a2168a"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "0d8fc4124cf60cce3133a8dcc218411c8ce9565b"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "b683ff3ea2bbd49a38b12bab4225440ba3de5ff5"
 	fi
+elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
+	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
+	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
+	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
+elif [ "$OMR_OPENWRT" = "coolsnowwolf" ]; then
+	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
+	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/coolsnowwolf/packages "master"
+	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/coolsnowwolf/luci "master"
 elif [ "$OMR_OPENWRT" = "master" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "master"
 	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
@@ -135,16 +147,22 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/mediatek/patches-5.4"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
-rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
+[ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 if [ "$OMR_TARGET" != "rutx" ]; then
 	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
-	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
-	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+	[ -d "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" ] && mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
+#	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+	echo "cp -rf common/* $OMR_TARGET/${OMR_KERNEL}/source"
+	cp -rf common/* "$OMR_TARGET/${OMR_KERNEL}/source"
+	echo "cp -rf ${OMR_KERNEL}/* $OMR_TARGET/${OMR_KERNEL}/source"
+	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source"
 	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
-	mv "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
+	mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
 else
-	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+#	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+	cp -rf common/* "$OMR_TARGET/${OMR_KERNEL}/source/"
+	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source/"
 fi
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
@@ -274,7 +292,6 @@ if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
 	sed -i "s/CONFIG_MC_CHARSET=y/# CONFIG_MC_CHARSET is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	sed -i "s/CONFIG_MC_VFS=y/# CONFIG_MC_VFS is not set/" "$OMR_TARGET/${OMR_KERNEL}/source/.config"	
 	echo "done"
-
 	# 2021-03-05 Oliver Welter <oliver@welter.rocks>
 fi
 
@@ -552,6 +569,7 @@ fi
 #if [ -f target/linux/bcm27xx/patches-5.15/950-0785-dtoverlays-Connect-the-backlight-to-the-pitft35-disp.patch ]; then
 #	rm -f target/linux/bcm27xx/patches-5.15/950-0785-dtoverlays-Connect-the-backlight-to-the-pitft35-disp.patch
 #fi
+NOT_SUPPORTED="0"
 
 if [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "Set to kernel 5.4 for rpi arch"
@@ -579,6 +597,7 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	if [ -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch ]; then
 		rm -f target/linux/mvebu/patches-5.4/022-arm64-dts-marvell-armada-37xx-Move-PCIe-max-link-spe.patch
 	fi
+	#rm -f target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3568-photonicat.dts
 	echo "CONFIG_VERSION_CODE=5.4" >> ".config"
 fi
 if [ "$OMR_KERNEL" = "5.15" ]; then
@@ -632,28 +651,38 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.10%KERNEL_PATCHVER:=6.1%g' {} \;
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
 	echo "Done"
-	echo "Set to kernel 5.15 for rockchip arch (R2S/R4S)"
-	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.4%KERNEL_PATCHVER:=5.15%g' {} \;
-	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.10%KERNEL_PATCHVER:=5.15%g' {} \;
-	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Set to kernel 6.1 for rockchip arch (R2S/R4S)"
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
 	echo "Done"
-	echo "CONFIG_DEVEL=y" >> ".config"
-	echo "CONFIG_NEED_TOOLCHAIN=y" >> ".config"
-	echo "CONFIG_TOOLCHAINOPTS=y" >> ".config"
-	echo 'CONFIG_BINUTILS_VERSION_2_36_1=y' >> ".config"
-	echo 'CONFIG_BINUTILS_VERSION="2.36.1"' >> ".config"
-	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
-	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
-	#echo "CONFIG_GCC_VERSION_10=y" >> ".config"
-	#echo 'CONFIG_GCC_VERSION="10.3.0"' >> ".config"
+	echo "Set to kernel 6.1 for ipq807x"
+	find target/linux/ipq807x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.1 for bcm27xx"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
+	rm -f package/kernel/rtl8812au-ct/patches/002-*
+	rm -f package/kernel/rtl8812au-ct/patches/003-*
+	rm -f package/kernel/rtl8812au-ct/patches/004-*
+	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
+	rm -f target/linux/bcm27xx/modules/sound.mk
+#	echo "CONFIG_DEVEL=y" >> ".config"
+#	echo "CONFIG_NEED_TOOLCHAIN=y" >> ".config"
+#	echo "CONFIG_TOOLCHAINOPTS=y" >> ".config"
+#	echo 'CONFIG_BINUTILS_VERSION_2_36_1=y' >> ".config"
+#	echo 'CONFIG_BINUTILS_VERSION="2.36.1"' >> ".config"
+#	echo "CONFIG_BINUTILS_USE_VERSION_2_36_1=y" >> ".config"
+#	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
+#	#echo "CONFIG_GCC_VERSION_10=y" >> ".config"
+#	#echo 'CONFIG_GCC_VERSION="10.3.0"' >> ".config"
 	echo "CONFIG_VERSION_CODE=6.1" >> ".config"
-	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
+#	#echo "CONFIG_GCC_USE_VERSION_10=y" >> ".config"
 	if [ "$TARGET" = "bpi-r2" ]; then
 		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
 	fi
-	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ]; then
+	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ] && [ "$OMR_TARGET" != "qnap-301w" ] && [ "$OMR_TARGET" != "rpi4" ]; then
 		echo "Sorry but kernel 6.1 is not supported on your arch yet"
-		exit 1
+		NOT_SUPPORTED="1"
+		#exit 1
 	fi
 fi
 
@@ -706,7 +735,7 @@ cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
 
-if [ ! -f "../../../$OMR_TARGET_CONFIG" ]; then
+if [ ! -f "../../../$OMR_TARGET_CONFIG" ] || [ "$NOT_SUPPORTED" = "1" ]; then
 	echo "Target $OMR_TARGET not found ! You have to configure and compile your kernel manually."
 	exit 1
 fi

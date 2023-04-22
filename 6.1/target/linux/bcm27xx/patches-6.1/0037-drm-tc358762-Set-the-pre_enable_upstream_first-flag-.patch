@@ -1,0 +1,30 @@
+From ea22ce9fff9ba6faaf78bf00196ab24475b91690 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Thu, 16 Dec 2021 15:33:43 +0000
+Subject: [PATCH 037/726] drm/tc358762: Set the pre_enable_upstream_first flag
+ to configure DSI host
+
+TC358762 wants the DSI host to be prepared before it is powered up, so
+set the flag to request that the upstream bridges have their
+pre_enable called first.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/gpu/drm/bridge/tc358762.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/bridge/tc358762.c b/drivers/gpu/drm/bridge/tc358762.c
+index 0adc4864beea..9914cfb05b11 100644
+--- a/drivers/gpu/drm/bridge/tc358762.c
++++ b/drivers/gpu/drm/bridge/tc358762.c
+@@ -229,6 +229,7 @@ static int tc358762_probe(struct mipi_dsi_device *dsi)
+ 	ctx->bridge.funcs = &tc358762_bridge_funcs;
+ 	ctx->bridge.type = DRM_MODE_CONNECTOR_DPI;
+ 	ctx->bridge.of_node = dev->of_node;
++	ctx->bridge.pre_enable_upstream_first = true;
+ 
+ 	drm_bridge_add(&ctx->bridge);
+ 
+-- 
+2.33.1
+

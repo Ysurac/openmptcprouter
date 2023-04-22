@@ -1,0 +1,38 @@
+From bbf89a7d1d964585ca55a6167653a8b8c9650193 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Thu, 17 Mar 2022 15:13:10 +0000
+Subject: [PATCH 408/726] media: i2c: Rename ad5398 to ad5398_vcm
+
+There's already a regulator module called ad5398 that exposes
+this device through the regulator API. That is meaningless in
+the terms that it uses and how it maps to V4L2, so a new driver
+was added. However the module name collision wasn't noted, so
+rename it now.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/media/i2c/Makefile                   | 2 +-
+ drivers/media/i2c/{ad5398.c => ad5398_vcm.c} | 0
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+ rename drivers/media/i2c/{ad5398.c => ad5398_vcm.c} (100%)
+
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 19a1d28fdc27..580998a05543 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -3,7 +3,7 @@
+ msp3400-objs	:=	msp3400-driver.o msp3400-kthreads.o
+ 
+ obj-$(CONFIG_SDR_MAX2175) += max2175.o
+-obj-$(CONFIG_VIDEO_AD5398)  += ad5398.o
++obj-$(CONFIG_VIDEO_AD5398) += ad5398_vcm.o
+ obj-$(CONFIG_VIDEO_AD5820) += ad5820.o
+ obj-$(CONFIG_VIDEO_AD9389B) += ad9389b.o
+ obj-$(CONFIG_VIDEO_ADP1653) += adp1653.o
+diff --git a/drivers/media/i2c/ad5398.c b/drivers/media/i2c/ad5398_vcm.c
+similarity index 100%
+rename from drivers/media/i2c/ad5398.c
+rename to drivers/media/i2c/ad5398_vcm.c
+-- 
+2.33.1
+

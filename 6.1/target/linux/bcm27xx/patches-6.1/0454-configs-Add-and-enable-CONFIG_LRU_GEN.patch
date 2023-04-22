@@ -1,0 +1,81 @@
+From 33a045bd9c0d665ada6832fc1d22747f916c8930 Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Wed, 19 Oct 2022 13:33:10 +0100
+Subject: [PATCH 454/726] configs: Add and enable CONFIG_LRU_GEN
+
+---
+ arch/arm/configs/bcm2709_defconfig   | 2 ++
+ arch/arm/configs/bcm2711_defconfig   | 2 ++
+ arch/arm/configs/bcmrpi_defconfig    | 2 ++
+ arch/arm64/configs/bcm2711_defconfig | 2 ++
+ arch/arm64/configs/bcmrpi3_defconfig | 2 ++
+ 5 files changed, 10 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index e260a9665167..569cee8d4153 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -68,6 +68,8 @@ CONFIG_ZSWAP=y
+ CONFIG_Z3FOLD=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CMA=y
++CONFIG_LRU_GEN=y
++CONFIG_LRU_GEN_ENABLED=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index d406b64f0a8e..c9e01d39ba18 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -69,6 +69,8 @@ CONFIG_ZSWAP=y
+ CONFIG_Z3FOLD=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CMA=y
++CONFIG_LRU_GEN=y
++CONFIG_LRU_GEN_ENABLED=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index bf4710a39ddd..80834a804779 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -63,6 +63,8 @@ CONFIG_ZSWAP=y
+ CONFIG_Z3FOLD=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CMA=y
++CONFIG_LRU_GEN=y
++CONFIG_LRU_GEN_ENABLED=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 4a3c1ca610ac..7724f0e9d6bd 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -72,6 +72,8 @@ CONFIG_ZSWAP=y
+ CONFIG_Z3FOLD=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CMA=y
++CONFIG_LRU_GEN=y
++CONFIG_LRU_GEN_ENABLED=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 513205895c4a..e2a9970f0a56 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -71,6 +71,8 @@ CONFIG_ZSWAP=y
+ CONFIG_Z3FOLD=m
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_CMA=y
++CONFIG_LRU_GEN=y
++CONFIG_LRU_GEN_ENABLED=y
+ CONFIG_NET=y
+ CONFIG_PACKET=y
+ CONFIG_UNIX=y
+-- 
+2.33.1
+

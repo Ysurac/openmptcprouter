@@ -1,0 +1,38 @@
+From 6543c9f5bfa414277ebe6789abbd51ab35b156a8 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Mon, 3 Feb 2020 09:32:22 +0000
+Subject: [PATCH 277/726] brcmfmac: Increase power saving delay to 2s
+
+Increase the delay before entering the lower power state to 2 seconds
+(the maximum allowed) in order to reduce the packet latencies,
+particularly for inbound packets.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
+index ca296913e5fe..674002ea408b 100644
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
+@@ -2962,7 +2962,7 @@ brcmf_cfg80211_set_power_mgmt(struct wiphy *wiphy, struct net_device *ndev,
+ 		brcmf_dbg(INFO, "Do not enable power save for P2P clients\n");
+ 		pm = PM_OFF;
+ 	}
+-	brcmf_err("power save %s\n", (pm ? "enabled" : "disabled"));
++	brcmf_info("power save %s\n", (pm ? "enabled" : "disabled"));
+ 
+ 	err = brcmf_fil_cmd_int_set(ifp, BRCMF_C_SET_PM, pm);
+ 	if (err) {
+@@ -2972,6 +2972,7 @@ brcmf_cfg80211_set_power_mgmt(struct wiphy *wiphy, struct net_device *ndev,
+ 			bphy_err(drvr, "error (%d)\n", err);
+ 	}
+ 
++	timeout = 2000; /* 2000ms - the maximum */
+ 	err = brcmf_fil_iovar_int_set(ifp, "pm2_sleep_ret",
+ 				min_t(u32, timeout, BRCMF_PS_MAX_TIMEOUT_MS));
+ 	if (err)
+-- 
+2.33.1
+

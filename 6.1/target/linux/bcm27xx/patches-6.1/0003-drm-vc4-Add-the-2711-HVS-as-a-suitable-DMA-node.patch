@@ -1,0 +1,29 @@
+From 3467910104cb9db5265b15fc028ca762f6d59a65 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Mon, 26 Oct 2020 12:38:27 +0000
+Subject: [PATCH 003/726] drm/vc4: Add the 2711 HVS as a suitable DMA node
+
+With vc4-drv node not being under /soc on Pi4, we need to
+adopt the correct DMA parameters from a suitable sub-component.
+Add "brcm,bcm2711-hvs" to that list of components.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/gpu/drm/vc4/vc4_drv.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_drv.c b/drivers/gpu/drm/vc4/vc4_drv.c
+index 5a1c2f3ded30..f8053b591317 100644
+--- a/drivers/gpu/drm/vc4/vc4_drv.c
++++ b/drivers/gpu/drm/vc4/vc4_drv.c
+@@ -276,6 +276,7 @@ static void vc4_component_unbind_all(void *ptr)
+ static const struct of_device_id vc4_dma_range_matches[] = {
+ 	{ .compatible = "brcm,bcm2711-hvs" },
+ 	{ .compatible = "brcm,bcm2835-hvs" },
++	{ .compatible = "brcm,bcm2711-hvs" },
+ 	{ .compatible = "raspberrypi,rpi-firmware-kms" },
+ 	{ .compatible = "brcm,bcm2835-v3d" },
+ 	{ .compatible = "brcm,cygnus-v3d" },
+-- 
+2.33.1
+

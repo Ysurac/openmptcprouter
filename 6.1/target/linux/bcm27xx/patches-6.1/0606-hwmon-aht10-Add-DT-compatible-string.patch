@@ -1,0 +1,34 @@
+From 19867a058a2eca2f800069d56dea2f54e41c0813 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 7 Mar 2023 11:52:36 +0000
+Subject: [PATCH 606/726] hwmon: (aht10): Add DT compatible string
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/hwmon/aht10.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/hwmon/aht10.c b/drivers/hwmon/aht10.c
+index 2d9770cb4401..d1caa524b8ca 100644
+--- a/drivers/hwmon/aht10.c
++++ b/drivers/hwmon/aht10.c
+@@ -332,9 +332,16 @@ static const struct i2c_device_id aht10_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, aht10_id);
+ 
++static const struct of_device_id aht10_of_id[] = {
++	{ .compatible = "aosong,aht10", },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, aht10_of_id);
++
+ static struct i2c_driver aht10_driver = {
+ 	.driver = {
+ 		.name = "aht10",
++		.of_match_table = aht10_of_id,
+ 	},
+ 	.probe      = aht10_probe,
+ 	.id_table   = aht10_id,
+-- 
+2.33.1
+

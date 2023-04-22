@@ -1,0 +1,12 @@
+diff -uprN a/arch/arm64/boot/dts/qcom/Makefile b/arch/arm64/boot/dts/qcom/Makefile
+--- a/arch/arm64/boot/dts/qcom/Makefile	2022-04-05 05:28:39.000000000 -0700
++++ b/arch/arm64/boot/dts/qcom/Makefile	2022-04-05 05:59:32.747237306 -0700
+@@ -7,6 +7,8 @@ dtb-$(CONFIG_ARCH_QCOM)	+= ipq6018-cp01-
+ dtb-$(CONFIG_ARCH_QCOM)	+= ipq6018-cp01-c5.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= ipq6018-cp02-c1.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= ipq6018-cp03-c1.dtb
++dtb-$(CONFIG_ARCH_QCOM)	+= ipq6018-hr6001.dtb
++dtb-$(CONFIG_ARCH_QCOM)	+= ipq6018-l6018.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= ipq8074-hk01.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= ipq8074-hk01.c2.dtb
+ dtb-$(CONFIG_ARCH_QCOM)	+= ipq8074-hk01.c3.dtb

@@ -1,0 +1,33 @@
+From 7bb4b148d55d3ddf903749aaa16278b156d14961 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Thu, 2 Dec 2021 18:16:21 +0000
+Subject: [PATCH 367/726] drm/panel-simple: Allow the bus format to be read
+ from DT for panel-dpi
+
+The "panel-dpi" compatible string configures panel from device tree,
+but it doesn't provide any way of configuring the bus format (colour
+representation), nor does it populate it.
+
+Add a DT parameter "bus-format" that allows the MEDIA_BUS_FMT_xxx value
+to be specified from device tree.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/gpu/drm/panel/panel-simple.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/panel/panel-simple.c b/drivers/gpu/drm/panel/panel-simple.c
+index 8028dbff4990..9f87f4c1f55a 100644
+--- a/drivers/gpu/drm/panel/panel-simple.c
++++ b/drivers/gpu/drm/panel/panel-simple.c
+@@ -490,6 +490,7 @@ static int panel_dpi_probe(struct device *dev,
+ 
+ 	of_property_read_u32(np, "width-mm", &desc->size.width);
+ 	of_property_read_u32(np, "height-mm", &desc->size.height);
++	of_property_read_u32(np, "bus-format", &desc->bus_format);
+ 
+ 	/* Extract bus_flags from display_timing */
+ 	bus_flags = 0;
+-- 
+2.33.1
+

@@ -1,0 +1,44 @@
+From a7fb577f299f851b9958e3b0c3f5206c024b8e24 Mon Sep 17 00:00:00 2001
+From: Naushir Patuck <naush@raspberrypi.com>
+Date: Wed, 22 Apr 2020 08:32:32 +0100
+Subject: [PATCH 238/726] staging: vchiq: Load bcm2835_isp driver from vchiq
+
+bcmn2835_isp is a platform driver dependent on vchiq,
+therefore add the load/unload functions for it to vchiq.
+
+Signed-off-by: Naushir Patuck <naush@raspberrypi.com>
+---
+ drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+index 716e52752752..004ad2e7f168 100644
+--- a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
++++ b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+@@ -69,6 +69,7 @@ static struct platform_device *bcm2835_camera;
+ static struct platform_device *bcm2835_audio;
+ static struct platform_device *bcm2835_codec;
+ static struct platform_device *vcsm_cma;
++static struct platform_device *bcm2835_isp;
+ 
+ struct vchiq_drvdata {
+ 	const unsigned int cache_line_size;
+@@ -1863,6 +1864,7 @@ static int vchiq_probe(struct platform_device *pdev)
+ 	bcm2835_codec = vchiq_register_child(pdev, "bcm2835-codec");
+ 	bcm2835_camera = vchiq_register_child(pdev, "bcm2835-camera");
+ 	bcm2835_audio = vchiq_register_child(pdev, "bcm2835_audio");
++	bcm2835_isp = vchiq_register_child(pdev, "bcm2835-isp");
+ 
+ 	return 0;
+ 
+@@ -1874,6 +1876,7 @@ static int vchiq_probe(struct platform_device *pdev)
+ 
+ static int vchiq_remove(struct platform_device *pdev)
+ {
++	platform_device_unregister(bcm2835_isp);
+ 	platform_device_unregister(bcm2835_audio);
+ 	platform_device_unregister(bcm2835_camera);
+ 	platform_device_unregister(bcm2835_codec);
+-- 
+2.33.1
+
