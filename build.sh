@@ -148,7 +148,8 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mediatek"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 [ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
-rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
+echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
+rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 if [ "$OMR_TARGET" != "rutx" ]; then
 	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
 	[ -d "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" ] && mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
@@ -665,6 +666,7 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	rm -f package/kernel/rtl8812au-ct/patches/004-*
 	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 	rm -f target/linux/bcm27xx/modules/sound.mk
+	rm -f package/libs/elfutils/patches/101-no-fts.patch
 #	echo "CONFIG_DEVEL=y" >> ".config"
 #	echo "CONFIG_NEED_TOOLCHAIN=y" >> ".config"
 #	echo "CONFIG_TOOLCHAINOPTS=y" >> ".config"
