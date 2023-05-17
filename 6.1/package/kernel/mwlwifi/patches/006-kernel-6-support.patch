@@ -1,0 +1,433 @@
+From 03431e9b720a6a9ff833c26eaadc4e4e53620d75 Mon Sep 17 00:00:00 2001
+From: jbsky <webmaster@jbsky.fr>
+Date: Fri, 14 Apr 2023 23:19:57 +0200
+Subject: [PATCH] kernel 6.1.2 working
+
+---
+ core.c            |  3 +-
+ core.h            |  2 ++
+ debugfs.c         | 36 +++++++++++-----------
+ hif/fwcmd.c       | 76 ++++++++++++++++++++++++-----------------------
+ hif/pcie/dev.h    | 21 +++++++------
+ hif/pcie/pcie.c   | 10 ++++---
+ hif/pcie/rx.c     | 20 ++++++-------
+ hif/pcie/rx_ndp.c | 20 ++++++-------
+ hif/pcie/tx.c     | 32 ++++++++++++--------
+ hif/pcie/tx_ndp.c | 18 +++++------
+ mac80211.c        | 34 ++++++++++-----------
+ utils.c           | 16 +++++-----
+ utils.h           | 26 ++++------------
+ 13 files changed, 157 insertions(+), 157 deletions(-)
+diff --git a/core.h b/core.h
+index 4fe48df..7355262 100644
+--- a/core.h
++++ b/core.h
+@@ -65,6 +65,8 @@
+ #define TX_RATE_INFO_STD_GI           0
+ #define TX_RATE_INFO_SHORT_GI         1
+ 
++#define TX_RATE_INFO_PREAMBLE         1
++
+ /* tx rate information */
+ /* 0: legacy format 1: 11n format 2: 11ac format */
+ #define MWL_TX_RATE_FORMAT_MASK       0x00000003
+diff --git a/hif/pcie/dev.h b/hif/pcie/dev.h
+index 24cf551..4c25a9e 100644
+--- a/hif/pcie/dev.h
++++ b/hif/pcie/dev.h
+@@ -827,7 +827,7 @@ static inline void pcie_tx_encapsulate_frame(struct mwl_priv *priv,
+ static inline void pcie_tx_prepare_info(struct mwl_priv *priv, u32 rate,
+ 					struct ieee80211_tx_info *info)
+ {
+-	u32 format, bandwidth, short_gi, rate_id;
++	u32 format, bandwidth, short_gi, rate_id, preamble, powerid, advcoding, bf;
+ 
+ 	ieee80211_tx_info_clear_status(info);
+ 
+@@ -839,14 +839,14 @@ static inline void pcie_tx_prepare_info(struct mwl_priv *priv, u32 rate,
+ 
+ 	if (rate) {
+ 		/* Prepare rate information */
+-		format = rate & MWL_TX_RATE_FORMAT_MASK;
+-		bandwidth =
+-			(rate & MWL_TX_RATE_BANDWIDTH_MASK) >>
+-			MWL_TX_RATE_BANDWIDTH_SHIFT;
+-		short_gi = (rate & MWL_TX_RATE_SHORTGI_MASK) >>
+-			MWL_TX_RATE_SHORTGI_SHIFT;
+-		rate_id = (rate & MWL_TX_RATE_RATEIDMCS_MASK) >>
+-			MWL_TX_RATE_RATEIDMCS_SHIFT;
++		format    =  rate & MWL_TX_RATE_FORMAT_MASK;
++		bandwidth = (rate & MWL_TX_RATE_BANDWIDTH_MASK) >> MWL_TX_RATE_BANDWIDTH_SHIFT;
++		short_gi  = (rate & MWL_TX_RATE_SHORTGI_MASK)   >> MWL_TX_RATE_SHORTGI_SHIFT;
++		rate_id   = (rate & MWL_TX_RATE_RATEIDMCS_MASK) >> MWL_TX_RATE_RATEIDMCS_SHIFT;
++		preamble  = (rate & MWL_TX_RATE_PREAMBLE_MASK)  >> MWL_TX_RATE_PREAMBLE_SHIFT;
++		powerid   = (rate & MWL_TX_RATE_POWERID_MASK)   >> MWL_TX_RATE_POWERID_SHIFT;
++		advcoding = (rate & MWL_TX_RATE_ADVCODING_MASK) >> MWL_TX_RATE_ADVCODING_SHIFT;
++		bf        = (rate & MWL_TX_RATE_BF_MASK)        >> MWL_TX_RATE_BF_SHIFT;
+ 
+ 		info->status.rates[0].idx = rate_id;
+ 		if (format == TX_RATE_FORMAT_LEGACY) {
+@@ -873,6 +873,9 @@ static inline void pcie_tx_prepare_info(struct mwl_priv *priv, u32 rate,
+ 		if (short_gi == TX_RATE_INFO_SHORT_GI)
+ 			info->status.rates[0].flags |=
+ 				IEEE80211_TX_RC_SHORT_GI;
++		if (preamble == TX_RATE_INFO_PREAMBLE) 
++			info->status.rates[0].flags |=
++				IEEE80211_TX_RC_USE_SHORT_PREAMBLE;
+ 		info->status.rates[0].count = 1;
+ 		info->status.rates[1].idx = -1;
+ 	}
+diff --git a/hif/pcie/pcie.c b/hif/pcie/pcie.c
+index d494c0e..6ee2c49 100644
+--- a/hif/pcie/pcie.c
++++ b/hif/pcie/pcie.c
+@@ -1278,15 +1278,17 @@ static void pcie_bf_mimo_ctrl_decode(struct mwl_priv *priv,
+ 	const char filename[] = "/tmp/BF_MIMO_Ctrl_Field_Output.txt";
+ 	char str_buf[256];
+ 	char *buf = &str_buf[0];
+-	mm_segment_t oldfs;
+ 
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(5,0,0)
++	mm_segment_t oldfs;
+ 	oldfs = get_fs();
+ 	set_fs( get_ds() );
+ #elif LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
++	mm_segment_t oldfs;
+ 	oldfs = get_fs();
+ 	set_fs(KERNEL_DS);
+-#else
++#elif LINUX_VERSION_CODE < KERNEL_VERSION(6,0,0)
++	mm_segment_t oldfs;
+ 	oldfs = force_uaccess_begin();
+ #endif
+ 
+@@ -1310,7 +1312,7 @@ static void pcie_bf_mimo_ctrl_decode(struct mwl_priv *priv,
+ 
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(5,10,0)
+ 	set_fs(oldfs);
+-#else
++#elif LINUX_VERSION_CODE < KERNEL_VERSION(6,0,0)
+ 	force_uaccess_end(oldfs);
+ #endif
+ }
+@@ -1538,7 +1540,7 @@ static int pcie_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 		return rc;
+ 	}
+ 
+-	rc = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
++	rc = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+ 	if (rc) {
+ 		pr_err("%s: 32-bit PCI DMA not supported\n",
+ 		       PCIE_DRV_NAME);
+diff --git a/hif/pcie/rx.c b/hif/pcie/rx.c
+index 5cef0ac..c32d367 100644
+--- a/hif/pcie/rx.c
++++ b/hif/pcie/rx.c
+@@ -107,11 +107,11 @@ static int pcie_rx_ring_init(struct mwl_priv *priv)
+ 			desc->prx_ring[i].rssi = 0x00;
+ 			desc->prx_ring[i].pkt_len =
+ 				cpu_to_le16(SYSADPT_MAX_AGGR_SIZE);
+-			dma = pci_map_single(pcie_priv->pdev,
++			dma = dma_map_single(&pcie_priv->pdev->dev,
+ 					     rx_hndl->psk_buff->data,
+ 					     desc->rx_buf_size,
+-					     PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(pcie_priv->pdev, dma)) {
++					     DMA_FROM_DEVICE);
++			if (dma_mapping_error(&pcie_priv->pdev->dev, dma)) {
+ 				wiphy_err(priv->hw->wiphy,
+ 					  "failed to map pci memory!\n");
+ 				return -ENOMEM;
+@@ -153,11 +153,11 @@ static void pcie_rx_ring_cleanup(struct mwl_priv *priv)
+ 			if (!rx_hndl->psk_buff)
+ 				continue;
+ 
+-			pci_unmap_single(pcie_priv->pdev,
++			dma_unmap_single(&pcie_priv->pdev->dev,
+ 					 le32_to_cpu
+ 					 (rx_hndl->pdesc->pphys_buff_data),
+ 					 desc->rx_buf_size,
+-					 PCI_DMA_FROMDEVICE);
++					 DMA_FROM_DEVICE);
+ 
+ 			dev_kfree_skb_any(rx_hndl->psk_buff);
+ 
+@@ -337,11 +337,11 @@ static inline int pcie_rx_refill(struct mwl_priv *priv,
+ 	rx_hndl->pdesc->rssi = 0x00;
+ 	rx_hndl->pdesc->pkt_len = cpu_to_le16(desc->rx_buf_size);
+ 
+-	dma = pci_map_single(pcie_priv->pdev,
++	dma = dma_map_single(&pcie_priv->pdev->dev,
+ 			     rx_hndl->psk_buff->data,
+ 			     desc->rx_buf_size,
+-			     PCI_DMA_FROMDEVICE);
+-	if (pci_dma_mapping_error(pcie_priv->pdev, dma)) {
++			     DMA_FROM_DEVICE);
++	if (dma_mapping_error(&pcie_priv->pdev->dev, dma)) {
+ 		dev_kfree_skb_any(rx_hndl->psk_buff);
+ 		wiphy_err(priv->hw->wiphy,
+ 			  "failed to map pci memory!\n");
+@@ -416,10 +416,10 @@ void pcie_rx_recv(unsigned long data)
+ 		prx_skb = curr_hndl->psk_buff;
+ 		if (!prx_skb)
+ 			goto out;
+-		pci_unmap_single(pcie_priv->pdev,
++		dma_unmap_single(&pcie_priv->pdev->dev,
+ 				 le32_to_cpu(curr_hndl->pdesc->pphys_buff_data),
+ 				 desc->rx_buf_size,
+-				 PCI_DMA_FROMDEVICE);
++				 DMA_FROM_DEVICE);
+ 		pkt_len = le16_to_cpu(curr_hndl->pdesc->pkt_len);
+ 
+ 		if (skb_tailroom(prx_skb) < pkt_len) {
+diff --git a/hif/pcie/rx_ndp.c b/hif/pcie/rx_ndp.c
+index 0d8c3af..56f875d 100644
+--- a/hif/pcie/rx_ndp.c
++++ b/hif/pcie/rx_ndp.c
+@@ -86,11 +86,11 @@ static int pcie_rx_ring_init_ndp(struct mwl_priv *priv)
+ 			}
+ 			skb_reserve(psk_buff, MIN_BYTES_RX_HEADROOM);
+ 
+-			dma = pci_map_single(pcie_priv->pdev,
++			dma = dma_map_single(&pcie_priv->pdev->dev,
+ 					     psk_buff->data,
+ 					     desc->rx_buf_size,
+-					     PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(pcie_priv->pdev, dma)) {
++					     DMA_FROM_DEVICE);
++			if (dma_mapping_error(&pcie_priv->pdev->dev, dma)) {
+ 				wiphy_err(priv->hw->wiphy,
+ 					  "failed to map pci memory!\n");
+ 				return -ENOMEM;
+@@ -120,11 +120,11 @@ static void pcie_rx_ring_cleanup_ndp(struct mwl_priv *priv)
+ 	if (desc->prx_ring) {
+ 		for (i = 0; i < MAX_NUM_RX_DESC; i++) {
+ 			if (desc->rx_vbuflist[i]) {
+-				pci_unmap_single(pcie_priv->pdev,
++				dma_unmap_single(&pcie_priv->pdev->dev,
+ 						 le32_to_cpu(
+ 						 desc->prx_ring[i].data),
+ 						 desc->rx_buf_size,
+-						 PCI_DMA_FROMDEVICE);
++						 DMA_FROM_DEVICE);
+ 				desc->rx_vbuflist[i] = NULL;
+ 			}
+ 		}
+@@ -400,11 +400,11 @@ static inline int pcie_rx_refill_ndp(struct mwl_priv *priv, u32 buf_idx)
+ 		return -ENOMEM;
+ 	skb_reserve(psk_buff, MIN_BYTES_RX_HEADROOM);
+ 
+-	dma = pci_map_single(pcie_priv->pdev,
++	dma = dma_map_single(&pcie_priv->pdev->dev,
+ 			     psk_buff->data,
+ 			     desc->rx_buf_size,
+-			     PCI_DMA_FROMDEVICE);
+-	if (pci_dma_mapping_error(pcie_priv->pdev, dma)) {
++			     DMA_FROM_DEVICE);
++	if (dma_mapping_error(&pcie_priv->pdev->dev, dma)) {
+ 		wiphy_err(priv->hw->wiphy,
+ 			  "refill: failed to map pci memory!\n");
+ 		return -ENOMEM;
+@@ -509,10 +509,10 @@ void pcie_rx_recv_ndp(unsigned long data)
+ 			break;
+ 		}
+ 
+-		pci_unmap_single(pcie_priv->pdev,
++		dma_unmap_single(&pcie_priv->pdev->dev,
+ 				 le32_to_cpu(prx_desc->data),
+ 				 desc->rx_buf_size,
+-				 PCI_DMA_FROMDEVICE);
++				 DMA_FROM_DEVICE);
+ 
+ 		bad_mic = false;
+ 		ctrl = le32_to_cpu(prx_ring_done->ctrl);
+diff --git a/hif/pcie/tx.c b/hif/pcie/tx.c
+index 4fc9e79..2d5bc88 100644
+--- a/hif/pcie/tx.c
++++ b/hif/pcie/tx.c
+@@ -47,6 +47,12 @@
+ 		(iv32)++; \
+ }
+ 
++#define TID_TO_WME_AC(_tid)				\
++	((((_tid) == 0) || ((_tid) == 3)) ? IEEE80211_AC_BE :	\
++	 (((_tid) == 1) || ((_tid) == 2)) ? IEEE80211_AC_BK :	\
++	 (((_tid) == 4) || ((_tid) == 5)) ? IEEE80211_AC_VI :	\
++	 IEEE80211_AC_VO)
++
+ /* Transmission information to transmit a socket buffer. */
+ struct pcie_tx_ctrl {
+ 	void *sta;
+@@ -243,11 +249,11 @@ static void pcie_tx_ring_cleanup(struct mwl_priv *priv)
+ 					    desc->tx_hndl[i].psk_buff->data,
+ 					    le32_to_cpu(
+ 					    desc->ptx_ring[i].pkt_ptr));
+-				pci_unmap_single(pcie_priv->pdev,
++				dma_unmap_single(&pcie_priv->pdev->dev,
+ 						 le32_to_cpu(
+ 						 desc->ptx_ring[i].pkt_ptr),
+ 						 desc->tx_hndl[i].psk_buff->len,
+-						 PCI_DMA_TODEVICE);
++						 DMA_TO_DEVICE);
+ 				dev_kfree_skb_any(desc->tx_hndl[i].psk_buff);
+ 				desc->ptx_ring[i].status =
+ 					cpu_to_le32(EAGLE_TXD_STATUS_IDLE);
+@@ -305,10 +311,10 @@ static void pcie_txbd_ring_delete(struct mwl_priv *priv)
+ 			skb = pcie_priv->tx_buf_list[num];
+ 			tx_desc = (struct pcie_tx_desc *)skb->data;
+ 
+-			pci_unmap_single(pcie_priv->pdev,
++			dma_unmap_single(&pcie_priv->pdev->dev,
+ 					 le32_to_cpu(tx_desc->pkt_ptr),
+ 					 skb->len,
+-					 PCI_DMA_TODEVICE);
++					 DMA_TO_DEVICE);
+ 			dev_kfree_skb_any(skb);
+ 		}
+ 		pcie_priv->tx_buf_list[num] = NULL;
+@@ -453,9 +459,9 @@ static inline void pcie_tx_skb(struct mwl_priv *priv, int desc_num,
+ 	tx_desc->type = tx_ctrl->type;
+ 	tx_desc->xmit_control = tx_ctrl->xmit_control;
+ 	tx_desc->sap_pkt_info = 0;
+-	dma = pci_map_single(pcie_priv->pdev, tx_skb->data,
+-			     tx_skb->len, PCI_DMA_TODEVICE);
+-	if (pci_dma_mapping_error(pcie_priv->pdev, dma)) {
++	dma = dma_map_single(&pcie_priv->pdev->dev, tx_skb->data,
++			     tx_skb->len, DMA_TO_DEVICE);
++	if (dma_mapping_error(&pcie_priv->pdev->dev, dma)) {
+ 		dev_kfree_skb_any(tx_skb);
+ 		wiphy_err(priv->hw->wiphy,
+ 			  "failed to map pci memory!\n");
+@@ -679,10 +685,10 @@ static void pcie_pfu_tx_done(struct mwl_priv *priv)
+ 			pfu_dma = (struct pcie_pfu_dma_data *)done_skb->data;
+ 			tx_desc = &pfu_dma->tx_desc;
+ 			dma_data = &pfu_dma->dma_data;
+-			pci_unmap_single(pcie_priv->pdev,
++			dma_unmap_single(&pcie_priv->pdev->dev,
+ 					 le32_to_cpu(data_buf->paddr),
+ 					 le16_to_cpu(data_buf->len),
+-					 PCI_DMA_TODEVICE);
++					 DMA_TO_DEVICE);
+ 			tx_desc->pkt_ptr = 0;
+ 			tx_desc->pkt_len = 0;
+ 			tx_desc->status = cpu_to_le32(EAGLE_TXD_STATUS_IDLE);
+@@ -763,10 +769,10 @@ static void pcie_non_pfu_tx_done(struct mwl_priv *priv)
+ 		       (tx_desc->status & cpu_to_le32(EAGLE_TXD_STATUS_OK)) &&
+ 		       (!(tx_desc->status &
+ 		       cpu_to_le32(EAGLE_TXD_STATUS_FW_OWNED)))) {
+-			pci_unmap_single(pcie_priv->pdev,
++			dma_unmap_single(&pcie_priv->pdev->dev,
+ 					 le32_to_cpu(tx_desc->pkt_ptr),
+ 					 le16_to_cpu(tx_desc->pkt_len),
+-					 PCI_DMA_TODEVICE);
++					 DMA_TO_DEVICE);
+ 			done_skb = tx_hndl->psk_buff;
+ 			rate = le32_to_cpu(tx_desc->rate_info);
+ 			tx_desc->pkt_ptr = 0;
+@@ -1038,7 +1044,7 @@ void pcie_tx_xmit(struct ieee80211_hw *hw,
+ 			     WLAN_ACTION_ADDBA_REQ)) {
+ 			capab = le16_to_cpu(mgmt->u.action.u.addba_req.capab);
+ 			tid = (capab & IEEE80211_ADDBA_PARAM_TID_MASK) >> 2;
+-			index = utils_tid_to_ac(tid);
++			index = TID_TO_WME_AC(tid);
+ 		}
+ 
+ 		if (unlikely(ieee80211_is_assoc_req(wh->frame_control)))
+@@ -1247,7 +1247,7 @@
+ 	struct pcie_tx_ctrl *tx_ctrl;
+ 	unsigned long flags;
+ 
+-	ac = utils_tid_to_ac(tid);
++	ac = TID_TO_WME_AC(tid);
+ 	desc_num = SYSADPT_TX_WMM_QUEUES - ac - 1;
+ 	spin_lock_irqsave(&pcie_priv->txq[desc_num].lock, flags);
+ 	skb_queue_walk_safe(&pcie_priv->txq[desc_num], skb, tmp) {
+diff --git a/hif/pcie/tx_ndp.c b/hif/pcie/tx_ndp.c
+index 6758cde..14b9ed2 100644
+--- a/hif/pcie/tx_ndp.c
++++ b/hif/pcie/tx_ndp.c
+@@ -131,10 +131,10 @@ static void pcie_tx_ring_cleanup_ndp(struct mwl_priv *priv)
+ 	for (i = 0; i < MAX_TX_RING_SEND_SIZE; i++) {
+ 		tx_skb = desc->tx_vbuflist[i];
+ 		if (tx_skb) {
+-			pci_unmap_single(pcie_priv->pdev,
++			dma_unmap_single(&pcie_priv->pdev->dev,
+ 					 desc->pphys_tx_buflist[i],
+ 					 tx_skb->len,
+-					 PCI_DMA_TODEVICE);
++					 DMA_TO_DEVICE);
+ 			dev_kfree_skb_any(tx_skb);
+ 			desc->pphys_tx_buflist[i] = 0;
+ 			desc->tx_vbuflist[i] = NULL;
+@@ -266,9 +266,9 @@ static inline int pcie_tx_skb_ndp(struct mwl_priv *priv,
+ 			(TXRING_CTRL_TAG_MGMT << TXRING_CTRL_TAG_SHIFT));
+ 	}
+ 
+-	dma = pci_map_single(pcie_priv->pdev, tx_skb->data,
+-			     tx_skb->len, PCI_DMA_TODEVICE);
+-	if (pci_dma_mapping_error(pcie_priv->pdev, dma)) {
++	dma = dma_map_single(&pcie_priv->pdev->dev, tx_skb->data,
++			     tx_skb->len, DMA_TO_DEVICE);
++	if (dma_mapping_error(&pcie_priv->pdev->dev, dma)) {
+ 		dev_kfree_skb_any(tx_skb);
+ 		wiphy_err(priv->hw->wiphy,
+ 			  "failed to map pci memory!\n");
+@@ -450,10 +450,10 @@ void pcie_tx_done_ndp(struct ieee80211_hw *hw)
+ 				  "buffer is NULL for tx done ring\n");
+ 			break;
+ 		}
+-		pci_unmap_single(pcie_priv->pdev,
++		dma_unmap_single(&pcie_priv->pdev->dev,
+ 				 desc->pphys_tx_buflist[index],
+ 				 skb->len,
+-				 PCI_DMA_TODEVICE);
++				 DMA_TO_DEVICE);
+ 		desc->pphys_tx_buflist[index] = 0;
+ 		desc->tx_vbuflist[index] = NULL;
+ 
+@@ -555,7 +555,7 @@ void pcie_tx_xmit_ndp(struct ieee80211_hw *hw,
+ 			     WLAN_ACTION_ADDBA_REQ)) {
+ 			capab = le16_to_cpu(mgmt->u.action.u.addba_req.capab);
+ 			tid = (capab & IEEE80211_ADDBA_PARAM_TID_MASK) >> 2;
+-			index = utils_tid_to_ac(tid);
++			index = TID_TO_WME_AC(tid);
+ 		}
+ 
+ 		if (unlikely(ieee80211_is_assoc_req(wh->frame_control)))
+diff --git a/utils.h b/utils.h
+index 4a292e9..519d451 100644
+--- a/utils.h
++++ b/utils.h
+@@ -33,27 +33,11 @@
+ #define DHCPRELEASE     7
+ #define DHCPINFORM      8
+ 
+-static inline int utils_tid_to_ac(u8 tid)
+-{
+-	switch (tid) {
+-	case 0:
+-	case 3:
+-		return IEEE80211_AC_BE;
+-	case 1:
+-	case 2:
+-		return IEEE80211_AC_BK;
+-	case 4:
+-	case 5:
+-		return IEEE80211_AC_VI;
+-	case 6:
+-	case 7:
+-		return IEEE80211_AC_VO;
+-	default:
+-		break;
+-	}
+-
+-	return -1;
+-}
++#define TID_TO_WME_AC(_tid)				\
++	((((_tid) == 0) || ((_tid) == 3)) ? IEEE80211_AC_BE :	\
++	 (((_tid) == 1) || ((_tid) == 2)) ? IEEE80211_AC_BK :	\
++	 (((_tid) == 4) || ((_tid) == 5)) ? IEEE80211_AC_VI :	\
++	 IEEE80211_AC_VO)
+ 
+ static inline void utils_add_basic_rates(int band, struct sk_buff *skb)
+ {
