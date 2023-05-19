@@ -667,6 +667,9 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	echo "Set to kernel 6.1 for mediatek"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
 	echo "Done"
+	echo "Set to kernel 6.1 for ipq806x"
+	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
+	echo "Done"
 	rm -f package/kernel/rtl8812au-ct/patches/002-*
 	rm -f package/kernel/rtl8812au-ct/patches/003-*
 	rm -f package/kernel/rtl8812au-ct/patches/004-*
@@ -692,7 +695,7 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	if [ "$TARGET" = "bpi-r2" ]; then
 		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
 	fi
-	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ] && [ "$OMR_TARGET" != "qnap-301w" ] && [ "$OMR_TARGET" != "rpi4" ] && [ "$OMR_TARGET" != "rpi3" ] && [ "$OMR_TARGET" != "wrt32x" ] && [ "$OMR_TARGET" != "wrt3200acm" ] && [ "$OMR_TARGET" != "bpi-r64" ]; then
+	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ] && [ "$OMR_TARGET" != "qnap-301w" ] && [ "$OMR_TARGET" != "rpi4" ] && [ "$OMR_TARGET" != "rpi3" ] && [ "$OMR_TARGET" != "wrt32x" ] && [ "$OMR_TARGET" != "wrt3200acm" ] && [ "$OMR_TARGET" != "bpi-r64" ] && [ "$OMR_TARGET" != "r7800" ]; then
 		echo "Sorry but kernel 6.1 is not supported on your arch yet"
 		NOT_SUPPORTED="1"
 		#exit 1
