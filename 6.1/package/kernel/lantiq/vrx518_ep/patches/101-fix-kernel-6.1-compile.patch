@@ -1,0 +1,18 @@
+--- a/ep.c	2023-05-22 10:23:11.790142567 +0200
++++ b/ep.c	2023-05-22 10:27:23.029791914 +0200
+@@ -589,13 +589,13 @@
+ 	/* Target structures have a limit of 32 bit DMA pointers.
+ 	 * DMA pointers can be wider than 32 bits by default on some systems.
+ 	 */
+-	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
++	ret = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "32-bit DMA not available: %d\n", ret);
+ 		goto err_region;
+ 	}
+ 
+-	ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
++	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "cannot enable 32-bit consistent DMA\n");
+ 		goto err_region;

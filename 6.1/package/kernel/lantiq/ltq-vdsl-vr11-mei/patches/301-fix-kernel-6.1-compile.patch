@@ -1,0 +1,22 @@
+--- a/src/drv_mei_cpe_linux.c	2023-05-22 14:07:34.356721319 +0200
++++ b/src/drv_mei_cpe_linux.c	2023-05-22 14:08:02.328250656 +0200
+@@ -2062,7 +2062,7 @@
+ 
+ static int mei_proc_single_open(struct inode *inode, struct file *file)
+ {
+-   return single_open(file, mei_seq_single_show, PDE_DATA(inode));
++   return single_open(file, mei_seq_single_show, pde_data(inode));
+ }
+ 
+ static void mei_proc_entry_create(struct proc_dir_entry *parent_node,
+--- a/src/drv_mei_cpe_linux_proc_config.c	2023-05-22 14:12:26.251818708 +0200
++++ b/src/drv_mei_cpe_linux_proc_config.c	2023-05-22 14:12:51.219401891 +0200
+@@ -1274,7 +1274,7 @@
+ 
+ static int mei_proc_single_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, mei_seq_single_show, PDE_DATA(inode));
++	return single_open(file, mei_seq_single_show, pde_data(inode));
+ }
+ 
+ static struct proc_ops proc_ops = {
