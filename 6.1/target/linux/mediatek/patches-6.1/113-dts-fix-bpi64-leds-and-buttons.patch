@@ -1,6 +1,6 @@
 --- a/arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dts
 +++ b/arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dts
-@@ -20,6 +20,10 @@
+@@ -21,6 +21,10 @@
  	aliases {
  		serial0 = &uart0;
  		ethernet0 = &gmac0;
@@ -11,7 +11,7 @@
  	};
  
  	chosen {
-@@ -43,8 +47,8 @@
+@@ -44,8 +48,8 @@
  		compatible = "gpio-keys";
  
  		factory-key {
@@ -22,17 +22,15 @@
  			gpios = <&pio 0 GPIO_ACTIVE_HIGH>;
  		};
  
-@@ -58,19 +62,25 @@
+@@ -59,17 +63,17 @@
  	leds {
  		compatible = "gpio-leds";
  
 -		led-0 {
--			label = "bpi-r64:pio:green";
--			color = <LED_COLOR_ID_GREEN>;
--			gpios = <&pio 89 GPIO_ACTIVE_HIGH>;
-+		led_system_blue: blue {
-+			label = "bpi-r64:pio:blue";
-+			gpios = <&pio 85 GPIO_ACTIVE_HIGH>;
++		led_system_green: led-0 {
+ 			label = "bpi-r64:pio:green";
+ 			color = <LED_COLOR_ID_GREEN>;
+ 			gpios = <&pio 89 GPIO_ACTIVE_HIGH>;
  			default-state = "off";
  		};
  
@@ -40,19 +38,10 @@
 -			label = "bpi-r64:pio:red";
 -			color = <LED_COLOR_ID_RED>;
 -			gpios = <&pio 88 GPIO_ACTIVE_HIGH>;
-+		led_system_green: green {
-+			label = "bpi-r64:pio:green";
-+			gpios = <&pio 89 GPIO_ACTIVE_HIGH>;
++		led_system_blue: led-1 {
++			label = "bpi-r64:pio:blue";
++			color = <LED_COLOR_ID_BLUE>;
++			gpios = <&pio 85 GPIO_ACTIVE_HIGH>;
  			default-state = "off";
  		};
-+
-+/*
-+ *		red {
-+ *			label = "bpi-r64:pio:red";
-+ *			gpios = <&pio 88 GPIO_ACTIVE_HIGH>;
-+ *			default-state = "off";
-+ *		};
-+ */
  	};
- 
- 	memory {
