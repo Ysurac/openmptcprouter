@@ -690,9 +690,9 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 	#rm -f target/linux/bcm27xx/modules/sound.mk
 	rm -f package/libs/elfutils/patches/101-no-fts.patch
-	rm -f package/kernel/mwlwifi/patches/001-*
-	rm -f package/kernel/mwlwifi/patches/002-*
-	rm -f package/kernel/mwlwifi/patches/003-*
+	#rm -f package/kernel/mwlwifi/patches/001-*
+	#rm -f package/kernel/mwlwifi/patches/002-*
+	#rm -f package/kernel/mwlwifi/patches/003-*
 	rm -rf package/kernel/mt76
 	rm -rf target/linux/ipq40xx/files/drivers/net/dsa
 	rm -rf target/linux/ipq40xx/files/drivers/net/ethernet
@@ -711,7 +711,7 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	if [ "$TARGET" = "bpi-r2" ]; then
 		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
 	fi
-	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ] && [ "$OMR_TARGET" != "qnap-301w" ] && [ "$OMR_TARGET" != "rpi4" ] && [ "$OMR_TARGET" != "rpi3" ] && [ "$OMR_TARGET" != "wrt32x" ] && [ "$OMR_TARGET" != "wrt3200acm" ] && [ "$OMR_TARGET" != "bpi-r64" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "rutx" ]; then
+	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ] && [ "$OMR_TARGET" != "qnap-301w" ] && [ "$OMR_TARGET" != "rpi4" ] && [ "$OMR_TARGET" != "rpi3" ] && [ "$OMR_TARGET" != "wrt32x" ] && [ "$OMR_TARGET" != "wrt3200acm" ] && [ "$OMR_TARGET" != "bpi-r64" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "espressobin" ] && [ "$OMR_TARGET" != "rutx" ]; then
 		echo "Sorry but kernel 6.1 is not supported on your arch yet"
 		NOT_SUPPORTED="1"
 		#exit 1
