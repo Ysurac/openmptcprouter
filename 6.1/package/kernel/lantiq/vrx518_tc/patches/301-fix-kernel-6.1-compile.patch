@@ -323,3 +323,14 @@
  	if (priv == NULL) {
  		pr_err("<%s>: Invalid private data\n", __func__);
  		return count;
+--- a/dcdp/ptm_tc.c	2023-06-29 11:30:37.060472655 +0200
++++ b/dcdp/ptm_tc.c	2023-06-29 11:31:01.376064210 +0200
+@@ -88,7 +88,7 @@
+ 	unsigned int *data_addr, unsigned int *desc_addr);
+ 
+ 
+-static inline void tc_ether_addr_copy(u8 *dst, const u8 *src)
++static inline void tc_ether_addr_copy(const u8 *dst, const u8 *src)
+ {
+ #if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
+ 	*(u32 *)dst = *(const u32 *)src;
