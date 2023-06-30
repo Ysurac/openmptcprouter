@@ -1,0 +1,22 @@
+--- a/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/syslog.js	2023-06-29 19:59:37.617291312 +0200
++++ b/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/syslog.js	2023-06-29 19:59:52.497047710 +0200
+@@ -11,7 +11,7 @@
+ 		]).then(function(stat) {
+ 			var logger = stat[0] ? stat[0].path : stat[1] ? stat[1].path : null;
+ 
+-			return fs.exec_direct(logger, [ '-e', '^' ]).catch(function(err) {
++			return fs.exec_direct(logger).catch(function(err) {
+ 				ui.addNotification(null, E('p', {}, _('Unable to load log data: ' + err.message)));
+ 				return '';
+ 			});
+--- a/luci/modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json	2023-06-29 20:01:01.203922762 +0200
++++ b/luci/modules/luci-mod-status/root/usr/share/rpcd/acl.d/luci-mod-status.json	2023-06-29 20:01:05.479852745 +0200
+@@ -33,7 +33,7 @@
+ 			"file": {
+ 				"/bin/dmesg -r": [ "exec" ],
+ 				"/sbin/logread": [ "stat" ],
+-				"/sbin/logread -e ^": [ "exec" ],
++				"/sbin/logread": [ "exec" ],
+ 				"/usr/sbin/logread": [ "stat" ],
+ 				"/usr/sbin/logread -e ^": [ "exec" ]
+ 			},

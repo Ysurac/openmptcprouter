@@ -159,20 +159,20 @@ echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 
 [ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
-if [ "$OMR_TARGET" != "rutx" ]; then
+if [ "$OMR_TARGET" = "rutx" ] && [ "${OMR_KERNEL}" = "5.4" ]; then
+#	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
+	cp -rf common/* "$OMR_TARGET/${OMR_KERNEL}/source/"
+	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source/"
+else
 	# There is many customization to support rutx and this seems to break other ipq40xx, so dirty workaround for now
-	[ -d "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" ] && mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
+#	[ -d "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" ] && mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old"
 #	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
 	echo "cp -rf common/* $OMR_TARGET/${OMR_KERNEL}/source"
 	cp -rf common/* "$OMR_TARGET/${OMR_KERNEL}/source"
 	echo "cp -rf ${OMR_KERNEL}/* $OMR_TARGET/${OMR_KERNEL}/source"
 	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source"
-	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
-	mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
-else
-#	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
-	cp -rf common/* "$OMR_TARGET/${OMR_KERNEL}/source/"
-	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source/"
+#	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
+#	mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
 fi
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
@@ -733,6 +733,9 @@ cd feeds/${OMR_KERNEL}
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
 	patch -N -p1 -s < ../../patches/luci-occitan.patch
 	#sh feeds/luci/build/i18n-add-language.sh oc
+fi
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog.patch; then
+	patch -N -p1 -s < ../../patches/luci-syslog.patch
 fi
 cd ../..
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/${OMR_KERNEL}/luci/modules/luci-base/po/
