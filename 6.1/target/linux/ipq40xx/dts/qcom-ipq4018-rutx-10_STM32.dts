@@ -1,0 +1,40 @@
+#include "qcom-ipq4018-rutx-STM32.dtsi"
+
+/ {
+	model = "RUTX10 STM32";
+
+	soc {
+		gpio-export {
+			compatible = "gpio-export";
+			#size-cells = <0>;
+
+			gpio_out_1 {
+				gpio-export,name = "gpio23";
+				gpio-export,output = <0>;
+				gpio-export,direction_may_change;
+				gpios = <&stm32_io 23 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio_in_1 {
+				gpio-export,name = "gpio24";
+				gpio-export,input = <0>;
+				gpio-export,direction_may_change;
+				gpios = <&stm32_io 24 GPIO_ACTIVE_LOW>;
+			};
+		};
+
+		leds {
+			compatible = "gpio-leds";
+
+			led_wifi_24 {
+				label = "wifi_gen_2";
+				gpios = <&stm32_io 19 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_wifi_50 {
+				label = "wifi_gen_5";
+				gpios = <&stm32_io 18 GPIO_ACTIVE_HIGH>;
+			};
+		};
+	};
+};

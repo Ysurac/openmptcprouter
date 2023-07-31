@@ -58,6 +58,19 @@ define Build/append-rutx-metadata
 		}' | fwtool -I - $@
 endef
 
+define Build/fit-rutx
+	$(TOPDIR)/scripts/mkits-rutx.sh \
+                -D $(DEVICE_NAME) -o $@.its -k $@ \
+                $(if $(word 2,$(1)),-d $(word 2,$(1))) -C $(word 1,$(1)) \
+                -a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
+                $(if $(DEVICE_FDT_NUM),-n $(DEVICE_FDT_NUM)) \
+                -c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config@1") \
+                -A $(LINUX_KARCH) -v $(LINUX_VERSION)
+	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $@.its $@.new
+	@mv $@.new $@
+endef
+
+
 define Build/copy-file
 	cat "$(1)" > "$@"
 endef
@@ -1089,7 +1102,31 @@ define Device/teltonika_rutx12
 	DEVICE_PACKAGES := kmod-bluetooth
 endef
 # Missing DSA Setup
-TARGET_DEVICES += teltonika_rutx12
+#TARGET_DEVICES += teltonika_rutx12
+
+define Device/teltonika_rutx
+        $(call Device/FitImage)
+        $(call Device/UbiFit)
+        DEVICE_VENDOR := Teltonika
+        DEVICE_MODEL := RUTX
+        BOARD_NAME := rutx
+        SOC := qcom-ipq4018
+        DEVICE_DTS_DIR := ../dts
+        DEVICE_DTS := $(foreach dts,$(notdir $(wildcard $(PLATFORM_DIR)/dts/*.dts)),$(patsubst %.dts,%,$(dts)))
+        DEVICE_DTS_CONFIG := config@5
+        KERNEL = kernel-bin | gzip | fit-rutx gzip "$$(KDIR)/{$$(subst $$(space),$$(comma),$$(addprefix image-,$$(addsuffix .dtb,$$(DEVICE_DTS))))}"
+        KERNEL_INSTALL := 1
+        BLOCKSIZE := 128k
+        PAGESIZE := 2048
+        FILESYSTEMS := squashfs
+        KERNEL_IN_UBI := 1
+        IMAGES := sysupgrade.bin
+        IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
+        #DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth kmod-r2ec sysupgrade-helper
+        DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth sysupgrade-helper
+        HW_SUPPORT := io_expander%stm32:shiftreg_1
+endef
+TARGET_DEVICES += teltonika_rutx
 
 define Device/tel_x1pro
 	$(call Device/FitImage)
