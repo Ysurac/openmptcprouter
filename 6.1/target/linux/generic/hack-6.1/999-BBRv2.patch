@@ -1224,7 +1224,7 @@ new file mode 100644
 index 000000000000..a6959b70e51d
 --- /dev/null
 +++ b/net/ipv4/tcp_bbr2.c
-@@ -0,0 +1,2683 @@
+@@ -0,0 +1,2686 @@
 +/* BBR (Bottleneck Bandwidth and RTT) congestion control, v2
 + *
 + * BBRv2 is a model-based congestion control algorithm that aims for low
@@ -1717,18 +1717,19 @@ index 000000000000..a6959b70e51d
 +	return bbr_rate_bytes_per_sec(sk, rate, BBR_UNIT, 0);
 +}
 +
-+static u64 bbr_rate_kbps(struct sock *sk, u64 rate)
++/*static u64 bbr_rate_kbps(struct sock *sk, u64 rate)
 +{
 +	rate = bbr_bw_bytes_per_sec(sk, rate);
 +	rate *= 8;
 +	do_div(rate, 1000);
 +	return rate;
-+}
++}*/
 +
 +static u32 bbr_tso_segs_goal(struct sock *sk);
 +static void bbr_debug(struct sock *sk, u32 acked,
 +		      const struct rate_sample *rs, struct bbr_context *ctx)
 +{
++#if 0
 +	static const char ca_states[] = {
 +		[TCP_CA_Open]		= 'O',
 +		[TCP_CA_Disorder]	= 'D',
@@ -1749,10 +1750,11 @@ index 000000000000..a6959b70e51d
 +		'F',	/* BBR_ACKS_PROBE_FEEDBACK - 'Feedback' */
 +		'A',	/* BBR_ACKS_PROBE_STOPPING - 'After' */
 +	};
++#endif
 +	struct tcp_sock *tp = tcp_sk(sk);
 +	struct bbr *bbr = inet_csk_ca(sk);
 +	const u32 una = tp->snd_una - bbr->debug.snd_isn;
-+	const u32 fack = tcp_highest_sack_seq(tp);
++	//const u32 fack = tcp_highest_sack_seq(tp);
 +	const u16 dport = ntohs(inet_sk(sk)->inet_dport);
 +	bool is_port_match = (bbr_debug_port_mask &&
 +			      ((dport & bbr_debug_port_mask) == 0));
@@ -1798,7 +1800,7 @@ index 000000000000..a6959b70e51d
 +	if (ipv4_is_loopback(inet_sk(sk)->inet_daddr) &&
 +	    !(bbr_flags & FLAG_DEBUG_LOOPBACK))
 +		return;
-+
++#if 0
 +	snprintf(debugmsg, sizeof(debugmsg) - 1,
 +		 "BBR %pI4:%-5u %5u,%03u:%-7u %c "
 +		 "%c %2u br %2u cr %2d rtt %5ld d %2d i %5ld mrtt %d %cbw %llu "
@@ -1850,6 +1852,7 @@ index 000000000000..a6959b70e51d
 +		 bbr->cycle_idx,
 +		 ack_phase[bbr->ack_phase],
 +		 bbr->bw_probe_samples ? "Y" : "N");
++#endif
 +	debugmsg[sizeof(debugmsg) - 1] = 0;
 +
 +	/* printk takes a higher precedence. */
@@ -1916,7 +1919,7 @@ index 000000000000..a6959b70e51d
 +{
 +	struct bbr *bbr = inet_csk_ca(sk);
 +	u32 segs, r;
-+	u64 bytes;
++	u32 bytes;
 +
 +	/* Budget a TSO/GSO burst size allowance based on bw (pacing_rate). */
 +	bytes = sk->sk_pacing_rate >> sk->sk_pacing_shift;
