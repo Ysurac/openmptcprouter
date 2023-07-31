@@ -1,0 +1,81 @@
+diff -urpN linux-6.1.38.old/include/net/netfilter/nf_conntrack.h linux-6.1.38/include/net/netfilter/nf_conntrack.h
+--- linux-6.1.38.old/include/net/netfilter/nf_conntrack.h	2023-07-05 23:27:38.000000000 +0600
++++ linux-6.1.38/include/net/netfilter/nf_conntrack.h	2023-07-14 12:34:56.663750711 +0600
+@@ -362,6 +362,11 @@ static inline struct nf_conntrack_net *n
+ 	return net_generic(net, nf_conntrack_net_id);
+ }
+ 
++#ifdef CONFIG_NDPI_HOOK
++void register_ndpi_hook(void (*hook)(struct nf_conn *));
++void unregister_ndpi_hook(void);
++#endif
++
+ #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_ADD_ATOMIC(net, count, v) this_cpu_add((net)->ct.stat->count, (v))
+diff -urpN linux-6.1.38.old/net/netfilter/Kconfig linux-6.1.38/net/netfilter/Kconfig
+--- linux-6.1.38.old/net/netfilter/Kconfig	2023-07-05 23:27:38.000000000 +0600
++++ linux-6.1.38/net/netfilter/Kconfig	2023-07-14 12:34:11.966879899 +0600
+@@ -76,11 +76,15 @@ config NETFILTER_NETLINK_OSF
+ 	  If this option is enabled, the kernel will include support
+ 	  for passive OS fingerprint via NFNETLINK.
+ 
++config NDPI_HOOK
++	bool
++
+ config NF_CONNTRACK
+ 	tristate "Netfilter connection tracking support"
+ 	default m if NETFILTER_ADVANCED=n
+ 	select NF_DEFRAG_IPV4
+ 	select NF_DEFRAG_IPV6 if IPV6 != n
++	select NDPI_HOOK
+ 	help
+ 	  Connection tracking keeps a record of what packets have passed
+ 	  through your machine, in order to figure out how they are related
+diff -urpN linux-6.1.38.old/net/netfilter/nf_conntrack_core.c linux-6.1.38/net/netfilter/nf_conntrack_core.c
+--- linux-6.1.38.old/net/netfilter/nf_conntrack_core.c	2023-07-05 23:27:38.000000000 +0600
++++ linux-6.1.38/net/netfilter/nf_conntrack_core.c	2023-07-14 12:33:45.580092713 +0600
+@@ -582,9 +582,30 @@ static void destroy_gre_conntrack(struct
+ #endif
+ }
+ 
++#ifdef CONFIG_NDPI_HOOK
++
++static void (*ndpi_hook)(struct nf_conn *) __rcu __read_mostly = NULL;
++
++void register_ndpi_hook(void (*hook)(struct nf_conn *))
++{
++	rcu_assign_pointer(ndpi_hook, hook);
++}
++EXPORT_SYMBOL(register_ndpi_hook);
++
++void unregister_ndpi_hook(void)
++{
++	rcu_assign_pointer(ndpi_hook, NULL);
++}
++
++EXPORT_SYMBOL(unregister_ndpi_hook);
++#endif
++
+ void nf_ct_destroy(struct nf_conntrack *nfct)
+ {
+ 	struct nf_conn *ct = (struct nf_conn *)nfct;
++#ifdef CONFIG_NDPI_HOOK
++	void (*hook)(struct nf_conn *);
++#endif
+ 
+ 	pr_debug("%s(%p)\n", __func__, ct);
+ 	WARN_ON(refcount_read(&nfct->use) != 0);
+@@ -594,6 +615,12 @@ void nf_ct_destroy(struct nf_conntrack *
+ 		return;
+ 	}
+ 
++#ifdef CONFIG_NDPI_HOOK
++	hook = rcu_dereference(ndpi_hook);
++	if (hook)
++		hook(ct);
++#endif
++
+ 	if (unlikely(nf_ct_protonum(ct) == IPPROTO_GRE))
+ 		destroy_gre_conntrack(ct);
+ 
