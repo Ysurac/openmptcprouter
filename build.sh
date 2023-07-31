@@ -157,6 +157,8 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
+echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
+rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 
 [ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
 if [ "$OMR_TARGET" = "rutx" ] && [ "${OMR_KERNEL}" = "5.4" ]; then
@@ -684,6 +686,7 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	echo "Set to kernel 6.1 for ipq40xx"
 	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.1%g' {} \;
 	echo "Done"
+	rm -f target/linux/bcm27xx/patches-6.1/950-0509-README-Add-README.md-with-CI-kernel-build-status-tag.patch
 	rm -f package/kernel/rtl8812au-ct/patches/002-*
 	rm -f package/kernel/rtl8812au-ct/patches/003-*
 	rm -f package/kernel/rtl8812au-ct/patches/004-*
