@@ -1,0 +1,10 @@
+#!/bin/sh
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+	-n|--name)
+	    echo $(dd if=/dev/mtd13 bs=1 count=12 skip=16 2>/dev/null)
+	    shift
+	    ;;
+    esac
+done

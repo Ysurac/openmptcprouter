@@ -1,0 +1,214 @@
+#!/bin/sh
+#
+# Copyright (c) 2015 The Linux Foundation. All rights reserved.
+# Copyright (c) 2011-2015 OpenWrt.org
+#
+
+. /lib/functions/uci-defaults.sh
+. /lib/functions/teltonika-defaults.sh
+. /lib/functions/system.sh
+
+setup_json() {
+	local model="$1"
+
+	case "$model" in
+	RUTX08*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "2:lan:1" "3:lan:2" "4:lan:3" "0u@eth1" "5:wan"
+		ucidef_set_hwinfo usb ethernet ios
+		;;
+	RUTX09*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "2:lan:1" "3:lan:2" "4:lan:3" "0u@eth1" "5:wan"
+		ucidef_add_static_modem_info "$model" "3-1" "2" "gps_out"
+		ucidef_set_hwinfo dual_sim usb gps mobile ethernet ios
+		;;
+	RUTX10*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "2:lan:1" "3:lan:2" "4:lan:3" "0u@eth1" "5:wan"
+		ucidef_set_hwinfo bluetooth usb wifi dual_band_ssid ethernet ios
+		;;
+	RUTX11*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "2:lan:1" "3:lan:2" "4:lan:3" "0u@eth1" "5:wan"
+		ucidef_add_static_modem_info "$model" "3-1" "2" "gps_out"
+		ucidef_set_hwinfo dual_sim usb gps mobile wifi dual_band_ssid bluetooth ethernet ios
+		;;
+	RUTXR1*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "0u@eth1" "5:wan"
+		ucidef_add_static_modem_info "$model" "3-1" "2"
+		ucidef_set_hwinfo dual_sim usb mobile wifi dual_band_ssid ethernet sfp_port
+		ucidef_set_release_version "2.3.1"
+		;;
+	RUTX12*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "0u@eth1" "5:wan"
+		# builtin and primary should be first modem
+		ucidef_add_static_modem_info "$model" "3-1" "1" "primary" "gps_out"
+		ucidef_add_static_modem_info "$model" "1-1.2" "1"
+		ucidef_set_hwinfo usb gps mobile wifi dual_band_ssid bluetooth ethernet ios
+		ucidef_set_release_version "2.3.1"
+		;;
+	RUTX14*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "0u@eth1" "5:wan"
+		ucidef_add_static_modem_info "$model" "1-1" "2" "gps_out"
+		ucidef_set_hwinfo usb gps dual_sim mobile wifi dual_band_ssid bluetooth ethernet ios at_sim
+		ucidef_set_release_version "2.6.1"
+		;;
+	RUTX18*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "0u@eth1" "5:wan"
+		ucidef_add_static_modem_info "$model" "2-1" "2" "gps_out"
+		ucidef_set_hwinfo usb gps dual_sim mobile wifi dual_band_ssid bluetooth ethernet ios
+		;;
+	RUTX50*)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "0u@eth1" "5:wan"
+		ucidef_add_static_modem_info "$model" "2-1" "2" "gps_out"
+		ucidef_set_hwinfo dual_sim usb gps mobile wifi dual_band_ssid ethernet ios at_sim
+		;;
+	TRB2*)
+		ucidef_set_led_switch "lan" "LAN" "eth_led" "switch0" "0x04"
+		ucidef_set_interface_lan "eth0"
+		ucidef_add_static_modem_info "$model" "1-1.4" "2" "gps_out"
+		ucidef_add_serial_capabilities "rs232 rs485" \
+			"300 600 1200 2400 4800 9600 14400 19200 38400 56000 57600 115200 \
+			 230400 460800 921600 1000000 3000000" \
+			"7 8"
+		ucidef_set_hwinfo dual_sim mobile gps ethernet ios
+		;;
+	RUT200* |\
+	RUT241*)
+		ucidef_set_led_switch "lan" "LAN" "eth1_led" "switch0" "0x2"
+		ucidef_set_led_switch "wan" "WAN" "eth2_led" "switch0" "0x1"
+		ucidef_add_switch "switch0" "1:lan" "0:wan" "6@eth0"
+		ucidef_set_interface_macaddr "lan" "$(mtd_get_mac_binary config 0x0)"
+		ucidef_set_interface_macaddr "wan" "$(macaddr_add "$(mtd_get_mac_binary config 0x0)" 1)"
+		ucidef_add_static_modem_info "$model" "1-1" "1"
+		[ "${model:7:1}" = "1" ] && ucidef_set_hwinfo mobile wifi \
+		ethernet || ucidef_set_hwinfo mobile wifi ethernet ios
+		;;
+	RUT2*)
+		ucidef_set_led_switch "lan" "LAN" "lan_led" "switch0" "0x04"
+		ucidef_set_led_netdev "wan" "WAN" "wan_led" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_static_modem_info "$model" "1-1" "1"
+		[ "${model:6:1}" = "1" ] && ucidef_set_hwinfo mobile wifi \
+		ethernet || ucidef_set_hwinfo mobile wifi ethernet ios
+		;;
+	RUT300*)
+		ucidef_set_led_switch "lan1" "LAN1" "eth1_led" "switch0" "0x02"
+		ucidef_set_led_switch "lan2" "LAN2" "eth2_led" "switch0" "0x10"
+		ucidef_set_led_switch "lan3" "LAN3" "eth3_led" "switch0" "0x08"
+		ucidef_set_led_switch "lan4" "LAN4" "eth4_led" "switch0" "0x04"
+		ucidef_set_led_netdev "wan" "WAN" "wan_led" "eth1"
+		ucidef_set_interface_wan "eth1"
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan:1" "2:lan:4" "3:lan:3" "4:lan:2"
+		ucidef_set_hwinfo usb ethernet ios
+		;;
+	RUT360*)
+		ucidef_set_led_switch "lan" "LAN" "eth1_led" "switch0" "0x10"
+		ucidef_set_led_netdev "wan" "WAN" "eth2_led" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_static_modem_info "$model" "1-1" "1"
+		ucidef_set_hwinfo mobile wifi dual_band_ssid ethernet ios
+		;;
+	RUT950*)
+		ucidef_set_led_switch "lan1" "LAN1" "eth1_led" "switch0" "0x10"
+		ucidef_set_led_switch "lan2" "LAN2" "eth2_led" "switch0" "0x08"
+		ucidef_set_led_switch "lan3" "LAN3" "eth3_led" "switch0" "0x04"
+		ucidef_set_led_netdev "wan" "WAN" "wan_led" "eth1"
+		ucidef_set_interface_wan "eth1"
+		ucidef_add_switch "switch0" "0@eth0" "2:lan:3" "3:lan:2" "4:lan:1"
+		ucidef_add_static_modem_info "$model" "1-1" "2"
+		[ "${model:7:2}" = "06" ] && ucidef_set_hwinfo dual_sim mobile \
+		wifi ethernet || ucidef_set_hwinfo dual_sim mobile wifi ethernet ios
+		;;
+	RUT955*)
+		ucidef_set_led_switch "lan1" "LAN1" "eth1_led" "switch0" "0x10"
+		ucidef_set_led_switch "lan2" "LAN2" "eth2_led" "switch0" "0x08"
+		ucidef_set_led_switch "lan3" "LAN3" "eth3_led" "switch0" "0x04"
+		ucidef_set_led_netdev "wan" "WAN" "wan_led" "eth1"
+		ucidef_set_interface_wan "eth1"
+		ucidef_add_switch "switch0" "0@eth0" "2:lan:3" "3:lan:2" "4:lan:1"
+		ucidef_add_static_modem_info "$model" "1-1.4" "2" "gps_out"
+		[ "${model:7:2}" = "06" ] && ucidef_set_hwinfo dual_sim usb gps \
+		mobile wifi ethernet || ucidef_set_hwinfo dual_sim usb gps \
+						mobile wifi ethernet ios
+		ucidef_add_serial_capabilities "rs232" \
+			"200 300 600 1200 1800 2400 4800 9600 19200 38400 57600 115200 \
+			 230400 460800 500000 576000" \
+			"5 6 7 8"
+		ucidef_add_serial_capabilities "rs485" \
+			"300 600 1200 1800 2400 4800 9600 19200 38400 57600 115200 230400 \
+			 460800 500000 576000 921600 1000000 1152000 1500000 2000000 \
+			 2500000 3000000" \
+			"8"
+		;;
+	TRB140*)
+		ucidef_set_interface_lan "eth0 rndis0"
+		ucidef_add_trb14x_lte_modem "$model"
+		ucidef_add_nand_info "$model"
+		[ "${model:7:1}" = "2" ] && ucidef_set_hwinfo mobile ethernet || \
+			ucidef_set_hwinfo mobile ethernet ios
+		;;
+	TRB141*)
+		ucidef_set_interface_lan "rndis0"
+		ucidef_add_trb14x_lte_modem "$model"
+		ucidef_add_nand_info "$model"
+		ucidef_set_hwinfo mobile ios
+		;;
+	TRB142* |\
+	TRB145*)
+		ucidef_set_interface_lan "rndis0"
+		ucidef_add_trb14x_lte_modem "$model"
+		ucidef_add_nand_info "$model"
+		[ "${model:7:1}" = "2" ] && ucidef_set_hwinfo mobile || \
+			ucidef_set_hwinfo mobile ios
+		[ "${model:5:1}" = "2" ] && local rs="rs232"
+		ucidef_add_serial_capabilities "${rs:-rs485}" \
+			"300 600 1200 2400 4800 9600 19200 38400 57600 115200 460800" \
+			"5 6 7 8"
+		[ "${model:5:2}" = "23" -o "${model:5:2}" = "52" ] && \
+			ucidef_set_release_version "7.1"
+		;;
+	TCR100*)
+		ucidef_set_led_switch "lan" "LAN" "eth1_led" "switch0" "0x10"
+		ucidef_set_led_netdev "wan" "WAN" "eth2_led" "eth1"
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interface guest proto static type bridge \
+		guest 1 _wireless true _dhcp true
+		ucidef_add_static_modem_info "$model" "1-1" "1"
+		ucidef_set_hwinfo mobile wifi dual_band_ssid wps ethernet
+		;;
+	*)
+		echo "Unsupported hardware. Network interfaces not intialized"
+		;;
+	esac
+}
+
+#~ Get model name for RUTX products
+model="$(mnf_info --name)" 2>/dev/null
+
+platform="$(cat /proc/device-tree/platform)" 2>/dev/null
+
+board_config_update
+setup_json "$model"
+
+ucidef_set_board_platform "$platform"
+
+board_config_flush
+
+exit 0

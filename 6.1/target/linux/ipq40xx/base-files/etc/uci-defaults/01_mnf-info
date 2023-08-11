@@ -1,0 +1,26 @@
+#!/bin/sh
+
+SECTION="hwinfo"
+CONFIG="hwinfo"
+
+get_hw_info() {
+	param=$(/sbin/mnf_info "--name")
+	[ -n "$param" -a ${#param} == 12 ] && uci set "system"."@system[0]"."device_code"=$param
+
+	hostname=${param:0:6}
+	[ -n "$hostname" -a ${#hostname} == 6 -a -z "$(uci -q get system.@system[0].hostname)" ] && uci set "system"."@system[0]"."hostname"=OpenMPTCProuter
+
+	routername=${param:0:6}
+	[ -n "$routername" -a ${#routername} == 6 -a -z "$(uci -q get system.@system[0].routername)" ] && uci set "system"."@system[0]"."routername"=$routername
+
+	version=$(cat /etc/version)
+	[ -n "$version" ] && uci set "system"."@system[0]"."device_fw_version"=$version
+
+	uci commit "system"
+}
+
+# get device information
+echo "Reading device information"
+get_hw_info
+
+exit 0

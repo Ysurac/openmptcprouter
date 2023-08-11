@@ -1,0 +1,307 @@
+#!/bin/sh
+#
+# Copyright (c) 2015 The Linux Foundation. All rights reserved.
+# Copyright (c) 2011-2015 OpenWrt.org
+#
+
+. /lib/functions/uci-defaults.sh
+. /lib/functions/system.sh
+
+CFG=/etc/board.json
+
+# do not run on preinit/early init
+[ "$EARLY_INIT" ] && return
+
+strstr() {
+  [ "${1#*$2*}" = "$1" ] && return 1
+  return 0
+}
+
+print_array() {
+        json_add_array $1
+        case "$1" in
+                4G)
+                        for element in $2
+                        do
+                        json_add_string "" "$(echo $element)"
+                        done
+                ;;
+                3G)
+                        for element in $2
+                        do
+                        json_add_string "" "wcdma_$(echo $element)"
+                        done
+                ;;
+                2G)
+                        for element in $2
+                        do
+                        json_add_string "" "$(echo $element)"
+                        done
+                ;;
+        esac
+        json_close_array
+}
+
+gather_band_capabilities() {
+	# Same logic as unhandler.c
+	###################### EG06 #########################
+	if strstr $revision_from_unhandler "EG06E"; then #EG06E
+		lte_bands="1 3 5 7 8 20 28 32 38 40 41" #B
+		trysg_bands="850 900 1800 2100" #MHz
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EG06A"; then #EG06A
+		lte_bands="2 4 5 7 12 13 25 26 29 30 66"
+		trysg_bands="850 1700 1900"
+		dug_bands=""
+	###################### EC25 #########################
+	elif strstr $revision_from_unhandler "EC25EF"; then #EC25E
+		lte_bands="1 3 5 7 8 20 38 40 41"
+		trysg_bands="850 900 2100"
+		dug_bands="900 1800" #MHz
+	elif strstr $revision_from_unhandler "EC25EC"; then #EC25EC
+		lte_bands="1 3 7 8 20 28"
+		trysg_bands="900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "EC25AUX"; then #EC25AUX
+		lte_bands="1 2 3 4 5 7 8 28 40"
+		trysg_bands="850 900 1700 1900 2100"
+		dug_bands="850 900 1800 1900"
+	elif strstr $revision_from_unhandler "EC25AFA"; then #EC25A
+		lte_bands="2 4 12"
+		trysg_bands="850 1700 1900"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC25V"; then #EC25V
+		lte_bands="4 13"
+		trysg_bands=""
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC25AFX"; then #EC25AFX
+		lte_bands="2 4 5 12 13 14 66 71"
+		trysg_bands="850 1700 1900"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC25AFF"; then #EC25AF
+		lte_bands="2 4 5 12 13 14 66 71"
+		trysg_bands="850 1700 1900"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC25AUTF"; then #EC25AUT
+		lte_bands="1 3 5 7 28"
+		trysg_bands="850 2100"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC25AUTL"; then #EC25AUTL
+		lte_bands="3 7 28"
+		trysg_bands=""
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC25AUF"; then #EC25AU
+		lte_bands="1 2 3 4 5 7 8 28 40"
+		trysg_bands="850 900 1900 2100"
+		dug_bands="850 900 1800 1900"
+	elif strstr $revision_from_unhandler "EC25J"; then #EC25J
+		lte_bands="1 3 8 18 19 26 41"
+		trysg_bands="800 900 2100"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC25EUX"; then #EC25EUX
+		lte_bands="1 3 7 8 20 28 38 40 41"
+		trysg_bands="900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "EC25EUF"; then #EC25EU
+		lte_bands="1 3 7 8 20 28 38 40 41"
+		trysg_bands="900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "EC25EUG"; then #EC25EU
+		lte_bands="1 3 7 8 20 28 38 40 41"
+		trysg_bands="900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "EC25MX"; then #EC25MX
+		lte_bands="2 4 5 7 28 66"
+		trysg_bands="850 1700 1900"
+		dug_bands=""
+	###################### EC21 #########################
+	elif strstr $revision_from_unhandler "EC21EUX"; then #EC21EUX
+		lte_bands="1 3 7 8 20 28"
+		trysg_bands="900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "EC21EU"; then #EC21EU
+		lte_bands="1 3 7 8 20 28"
+		trysg_bands="900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "EC21EC"; then #EC21EC
+		lte_bands="1 3 7 8 20 28"
+		trysg_bands="900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "EC21E"; then #EC21E
+		lte_bands="1 3 5 7 8 20"
+		trysg_bands="850 900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "EC21V"; then #EC21V
+		lte_bands="4 13"
+		trysg_bands=""
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC21KL"; then #EC21KL
+		lte_bands="1 3 5 7 8"
+		trysg_bands=""
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC21J"; then #EC21J
+		lte_bands="1 3 8 18 19 26"
+		trysg_bands=""
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC21AUX"; then #EC21AUX
+		lte_bands="1 2 3 4 5 7 8 28 40"
+		trysg_bands="850 900 1700 1900 2100"
+		dug_bands="850 900 1800 1900"
+	elif strstr $revision_from_unhandler "EC21AUT"; then #EC21AUT
+		lte_bands="1 3 5 7 28"
+		trysg_bands="850 2100"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EC21AU"; then #EC21AU
+		lte_bands="1 2 3 4 5 7 8 28 40"
+		trysg_bands="850 900 1900 2100"
+		dug_bands="850 900 1800 1900"
+	elif strstr $revision_from_unhandler "EC21A"; then #EC21A
+		lte_bands="2 4 12"
+		trysg_bands="850 1700 1900"
+		dug_bands=""
+	###################### EG25 #########################
+	elif strstr $revision_from_unhandler "EG25G"; then #EG25G
+		lte_bands="1 2 3 4 5 7 8 12 13 18 19 20 25 26 28 38 39 40 41"
+		trysg_bands="800 850 900 1700 1900 2100"
+		dug_bands="850 900 1800 1900"
+	elif strstr $revision_from_unhandler "EG12EA"; then #EG12EA
+		lte_bands="1 3 5 7 8 20 28 38 40 41"
+		trysg_bands="850 900 1800 2100"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "EG12NA"; then #EG12NA
+		lte_bands="2 4 5 7 12 13 14 17 25 26 29 30 41 66 71"
+		trysg_bands="850 1700 1900"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "BG96"; then #BG96M
+		lte_bands="1 2 3 4 5 8 12 13 18 19 20 26 28 39"
+		trysg_bands=""
+		dug_bands="850 900 1800 1900"
+	##################### SLM750 ########################
+	elif strstr $revision_from_unhandler "750VE"; then #SLM750VE
+		lte_bands="1 3 5 7 8 20 40"
+		trysg_bands="850 900 2100"
+		dug_bands="900 1800"
+	elif strstr $revision_from_unhandler "750VAU"; then #SLM750VAU
+		lte_bands="1 3 5 7 8 28 40"
+		trysg_bands="850 900 2100"
+		dug_bands="850 900 1800"
+	elif strstr $revision_from_unhandler "750VA"; then #SLM750VA
+		lte_bands="2 4 5 12 13 17 18 25 26 41"
+		trysg_bands="850 1700 1900"
+		dug_bands="850 1900"
+	elif strstr $revision_from_unhandler "750VJ"; then #SLM750VJ
+		lte_bands="1 3 8 18 19 26 41"
+		trysg_bands="800 900 2100"
+		dug_bands=""
+	elif strstr $revision_from_unhandler "750VSA"; then #SLM750VSA
+		lte_bands="2 4 5 7 8 28 40"
+		trysg_bands="850 900 1900"
+		dug_bands="850 900 1900"
+	###################### UC20 #########################
+	elif strstr $revision_from_unhandler "UC20E"; then #UC20E
+		lte_bands=""
+		trysg_bands="900 2100"
+		dug_bands="850 900 1800 1900"
+	elif strstr $revision_from_unhandler "UC20G"; then #UC20G
+		lte_bands=""
+		trysg_bands="800 850 900 1900 2100"
+		dug_bands="850 900 1800 1900"
+	elif strstr $revision_from_unhandler "UC20A"; then #UC20A
+		lte_bands=""
+		trysg_bands="850 1900"
+		dug_bands=""
+	else
+		lte_bands="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28"
+		trysg_bands="700 800 850 900 1500 1700 2600"
+		dug_bands="1700 1800 1900 2100"
+	fi
+}
+
+validate_service_modes() {
+	json_get_keys service_modes service_modes
+
+	found_modes="$(printf "$service_modes" | awk '!seen[$0]++'| wc -l)"
+	[ "$found_modes" -eq 0 ] && {
+		return 0
+	}
+
+	return 1
+}
+
+#~ Get model name for RUTX products
+setup_modem() {
+	local key="$1"
+	local object_num="$2"
+	local id gps boudrate type desc control product vendor stop_bits
+
+	json_select "$object_num"
+	json_get_vars id product
+
+	if [ "$id" = "$id_from_unhandler" ]; then
+
+		[ -z "$product" ] || \
+		{
+			[ -f "/sys/bus/usb/devices/$id/idVendor" ] && [ -f "/sys/bus/usb/devices/$id/idProduct" ] || {
+				json_select ..
+				return 1
+			}
+
+			validate_service_modes && {
+				gather_band_capabilities
+				json_select_object service_modes
+				[ -z "$lte_bands" ] || print_array "4G" "$lte_bands"
+				[ -z "$trysg_bands" ] || print_array "3G" "$trysg_bands"
+				[ -z "$dug_bands" ] || print_array "2G" "$dug_bands"
+				json_select ..
+			}
+			json_select ..
+			return 1
+		}
+
+		vendor="$(cat "/sys/bus/usb/devices/$id/idVendor")"
+		product="$(cat "/sys/bus/usb/devices/$id/idProduct")"
+
+		[ -f "/lib/network/wwan/$vendor:$product" ] && {
+			devicename="$id"
+
+			gather_band_capabilities
+
+			json_set_namespace defaults old_cb
+			json_load "$(cat /lib/network/wwan/$vendor:$product)"
+			json_get_vars gps boudrate type desc control stop_bits
+			json_set_namespace "$old_cb"
+
+			[ "${devicename%%:*}" = "$devicename" ] && {
+				json_add_string vendor "$vendor"
+				json_add_string product "$product"
+				json_add_string gps "$gps"
+				json_add_string stop_bits "$stop_bits"
+				json_add_string boudrate "$boudrate"
+				json_add_string type "$type"
+				json_add_string desc "$desc"
+				json_add_string control "$control"
+				json_add_object service_modes
+				[ -z "$lte_bands" ] || print_array "4G" "$lte_bands"
+				[ -z "$trysg_bands" ] || print_array "3G" "$trysg_bands"
+				[ -z "$dug_bands" ] || print_array "2G" "$dug_bands"
+				json_close_object
+			}
+		}
+	fi
+	json_select ..
+}
+
+[ -s "${CFG}" ] || exit 1
+
+id_from_unhandler="$1"
+revision_from_unhandler="$2"
+
+lock /var/run/board_modem.lock
+
+board_config_update
+json_for_each_item setup_modem modems
+board_config_flush
+
+lock -u /var/run/board_modem.lock
+
+exit 0
