@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>U-Boot update</title>
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div id="m">
+			<h1>U-BOOT UPDATE</h1>
+			<p>You are going to update <strong>U-Boot bootloader</strong> on the device.<br>Please, choose file from your local hard drive and click <strong>Update U-Boot</strong> button.</p>
+			<form method="post" enctype="multipart/form-data"><input type="file" name="uboot"><input type="submit" value="Update U-Boot"></form>
+			<div class="i w">
+				<strong>WARNINGS</strong>
+				<ul>
+					<li>do not power off the device during update</li>
+					<li>if everything goes well, the device will restart</li>
+					<li>you can upload whatever you want, so be sure that you choose proper U-Boot image for your device</li>
+					<li>updating U-Boot is a very dangerous operation and may damage your device!</li>
+				</ul>
+			</div>
+		</div>
+		<div id="f">You can find more information about this project on <a href="https://github.com/pepe2k/u-boot_mod" target="_blank">GitHub</a></div>
+	</body>
+</html>

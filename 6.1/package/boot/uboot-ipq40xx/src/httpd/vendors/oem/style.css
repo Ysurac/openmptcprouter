@@ -1,0 +1,37 @@
+h1,
+p,
+form,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+html,
+body {
+	font: 13px/20px Tahoma, sans-serif;
+	background: #FFF;
+	color: #000;
+	text-align: center;
+	height: 100%;
+}
+
+#m {
+	padding: 30px 0;
+}
+
+#m > * {
+	padding: 20px;
+}
+
+a {
+	color: #0069FB;
+	text-decoration: none;
+}
+
+h1 {
+	font: bold 40px/40px Arial;
+}
+
+.red {
+	color: #ED0000;
+}
