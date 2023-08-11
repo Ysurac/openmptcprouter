@@ -187,10 +187,16 @@ platform_do_upgrade() {
 		PART_NAME="inactive"
 		platform_do_upgrade_dualboot_datachk "$1"
 		;;
+	teltonika,rutx12 |\
 	teltonika,rutx)
 		platform_do_upgrade_ipq "$1"
 		;;
-	zte,mf286d)
+	teltonika,rutx10 |\
+	teltonika,rutx50 |\
+	zte,mf18a |\
+	zte,mf286d |\
+	zte,mf287plus |\
+	zte,mf289f)
 		CI_UBIPART="rootfs"
 		nand_do_upgrade "$1"
 		;;
