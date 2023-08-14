@@ -40,11 +40,14 @@ ucidef_set_interface() {
 		local val=$1; shift
 
 		[ -n "$opt" -a -n "$val" ] || break
-		case "$val" in
-		true) json_add_boolean "$opt" "1" ;;
-		false) json_add_boolean "$opt" "0" ;;
-		*) json_add_string "$opt" "$val" ;;
-		esac
+
+		[ "$opt" = "device" -a "$val" != "${val/ //}" ] && {
+			json_select_array "ports"
+			for e in $val; do json_add_string "" "$e"; done
+			json_close_array
+		} || {
+			json_add_string "$opt" "$val"
+		}
 	done
 
 	if ! json_is_a proto string; then
@@ -57,6 +60,36 @@ ucidef_set_interface() {
 
 	json_select ..
 	json_select ..
+}
+
+ucidef_set_interface_default_macaddr() {
+	local network="$1" ifname
+
+	json_select_object 'network'
+		json_select_object "$network"
+		if json_is_a ports array; then
+			json_select_array 'ports'
+			json_get_keys port_id
+			for i in $port_id; do
+				json_get_var port "$i"
+				ifname="${ifname} $port"
+			done
+			json_select ..
+		else
+			json_get_var ifname 'device'
+		fi
+		json_select ..
+	json_select ..
+
+	for i in $ifname; do
+		local macaddr="$2"; shift
+		[ -n "$macaddr" ] || break
+		json_select_object 'network-device'
+			json_select_object "$i"
+				json_add_string 'macaddr' "$macaddr"
+			json_select ..
+		json_select ..
+	done
 }
 
 ucidef_set_board_id() {
@@ -84,11 +117,11 @@ ucidef_set_compat_version() {
 }
 
 ucidef_set_interface_lan() {
-	ucidef_set_interface "lan" ifname "$1" proto "${2:-static}"
+	ucidef_set_interface "lan" device "$1" proto "${2:-static}"
 }
 
 ucidef_set_interface_wan() {
-	ucidef_set_interface "wan" ifname "$1" proto "${2:-dhcp}"
+	ucidef_set_interface "wan" device "$1" proto "${2:-dhcp}"
 }
 
 ucidef_set_interfaces_lan_wan() {
@@ -186,14 +219,14 @@ _ucidef_finish_switch_roles() {
 
 			json_select_object "$role"
 				# attach previous interfaces (for multi-switch devices)
-				json_get_var devices ifname
+				json_get_var devices device
 				if ! list_contains devices "$device"; then
 					devices="${devices:+$devices }$device"
 				fi
 			json_select ..
 		json_select ..
 
-		ucidef_set_interface "$role" ifname "$devices"
+		ucidef_set_interface "$role" device "$devices"
 	done
 }
 
@@ -210,7 +243,14 @@ ucidef_set_ar8xxx_switch_mib() {
 	json_select ..
 }
 
-ucidef_add_switch() {
+ucidef_add_switch() {	
+	local enabled=1
+	if [ "$1" = "enabled" ]; then
+		shift
+		enabled="$1"
+		shift
+	fi
+
 	local name="$1"; shift
 	local port num role device index need_tag prev_role
 	local cpu0 cpu1 cpu2 cpu3 cpu4 cpu5
@@ -218,7 +258,7 @@ ucidef_add_switch() {
 
 	json_select_object switch
 		json_select_object "$name"
-			json_add_boolean enable 1
+			json_add_boolean enable "$enabled"
 			json_add_boolean reset 1
 
 			for port in "$@"; do
@@ -602,6 +642,66 @@ ucidef_set_ntpserver() {
 			for server in "$@"; do
 				json_add_string "" "$server"
 			done
+		json_select ..
+	json_select ..
+}
+
+ucidef_set_network_options() {
+	json_add_object "network_options"
+	n=$#
+
+	for i in $(seq $((n / 2))); do
+		opt="$1"
+		val="$2"
+
+		if [ "$val" -eq "$val" ] 2>/dev/null; then
+			json_add_int "$opt" "$val"
+		else
+			[ "$val" = "true" ] && val=1 || val=0
+			json_add_boolean "$opt" "$val"
+		fi
+		shift; shift
+	done
+	json_close_object
+}
+
+ucidef_set_poe() {
+	json_add_object poe
+		json_add_int "chip_count" "$1"
+		json_add_int "budget" "$2"
+		json_add_int "poe_ports" "$3"
+		shift 3
+		json_add_array ports
+			while [ $# -gt 0 ]
+			do
+				json_add_object ""
+					json_add_string "name" "$1"
+					json_add_string "class" "$2"
+					json_add_int "budget" "$3"
+				json_close_object
+				shift 3
+			done
+		json_close_array
+		json_add_array poe_chips
+		json_close_array
+	json_close_object
+}
+
+ucidef_set_poe_chip() {
+	json_select_object poe
+		json_select_array poe_chips
+			json_add_object ""
+				for port in "$@"; do
+					case "$port" in
+						0X*)
+							json_add_string address "$port"
+						;;
+						[0-9]:*)
+							json_add_string chan"${port%%:*}" "${port##*:}"
+						;;
+					esac
+				done
+			json_close_object
 		json_select ..
 	json_select ..
 }

@@ -1,8 +1,7 @@
-#include "qcom-ipq4018-rutx-common.dtsi"
 #include "qcom-ipq4018-rutx-shiftreg.dtsi"
 
 / {
-	model = "Teltonika RUTX09/11";
+	model = "RUTX11";
 
 	soc {
 		gpio-export {
@@ -54,12 +53,12 @@
 			};
 
 			led_wan_eth {
-				label = "wan_wifi_4"; // not wan_eth_3 !
+				label = "wan_eth_3";
 				gpios = <&shift_io 13 GPIO_ACTIVE_HIGH>;
 			};
 
 			led_wan_wifi {
-				label = "wan_eth_3"; // not wan_wifi_4 !
+				label = "wan_wifi_4";
 				gpios = <&shift_io 20 GPIO_ACTIVE_HIGH>;
 			};
 

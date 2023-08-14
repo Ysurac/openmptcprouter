@@ -1,0 +1,21 @@
+#include "qcom-ipq4018-rutx-common.dtsi"
+#include "qcom-ipq4018-rutx-i2c.dtsi"
+
+/ {
+	io_expander = "stm32";
+
+	soc {
+		i2c_0: i2c@78b7000 {
+			stm32_io: stm32@74 {
+				#gpio-cells = <2>;
+				compatible = "tlt,stm32v1";
+				reg = <0x74>;
+				gpio-controller;
+				interrupt-parent = <&tlmm>;
+				interrupts = <5 2>;
+				interrupt-controller;
+				#interrupt-cells = <2>;
+			};
+		};
+	};
+};

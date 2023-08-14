@@ -1,8 +1,7 @@
-#include "qcom-ipq4018-rutx-common.dtsi"
 #include "qcom-ipq4018-rutx-shiftreg.dtsi"
 
 / {
-	model = "Teltonika RUTX50";
+	model = "RUTX50";
 
 	soc {
 		

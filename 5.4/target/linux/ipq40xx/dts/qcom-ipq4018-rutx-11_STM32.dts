@@ -1,50 +1,23 @@
-#include "qcom-ipq4018-rutx-common.dtsi"
-#include "qcom-ipq4018-rutx-i2c.dtsi"
+#include "qcom-ipq4018-rutx-STM32.dtsi"
 
 / {
-	model = "Teltonika RUTX STM32";
-	io_expander = "stm32";
+	model = "RUTX11 STM32";
 
 	soc {
-		i2c_0: i2c@78b7000 {
-			stm32_io: stm32@74 {
-				#gpio-cells = <2>;
-				compatible = "tlt,stm32v1";
-				reg = <0x74>;
-				gpio-controller;
-				interrupt-parent = <&tlmm>;
-				interrupts = <5 2>;
-				interrupt-controller;
-				#interrupt-cells = <2>;
-			};
-		};
-
 		gpio-export {
 			compatible = "gpio-export";
 			#size-cells = <0>;
 
 			gpio_modem_reset {
-				gpio-export,name = "modem1_reset";
+				gpio-export,name = "modem_reset";
 				gpio-export,output = <0>;
 				gpios = <&stm32_io 21 GPIO_ACTIVE_HIGH>;
 			};
 
 			gpio_modem_power {
-				gpio-export,name = "modem1_power";
+				gpio-export,name = "modem_power";
 				gpio-export,output = <0>;
 				gpios = <&stm32_io 20 GPIO_ACTIVE_HIGH>;
-			};
-
-			gpio_modem2_reset {
-				gpio-export,name = "modem2_reset";
-				gpio-export,output = <0>;
-				gpios = <&stm32_io 13 GPIO_ACTIVE_HIGH>;
-			};
-
-			gpio_modem2_power {
-				gpio-export,name = "modem2_power";
-				gpio-export,output = <0>;
-				gpios = <&stm32_io 14 GPIO_ACTIVE_HIGH>;
 			};
 
 			gpio_sim_select {
@@ -83,17 +56,12 @@
 
 			led_wan_eth {
 				label = "wan_eth_3";
-				gpios = <&stm32_io 2 GPIO_ACTIVE_HIGH>;
+				gpios = <&stm32_io 3 GPIO_ACTIVE_HIGH>;
 			};
 
 			led_wan_wifi {
 				label = "wan_wifi_4";
-				gpios = <&stm32_io 3 GPIO_ACTIVE_HIGH>;
-			};
-
-			led_wan_mob {
-				label = "wan_mob_5";
-				gpios = <&stm32_io 16 GPIO_ACTIVE_HIGH>;
+				gpios = <&stm32_io 2 GPIO_ACTIVE_HIGH>;
 			};
 
 			led_gen_2 {
@@ -109,21 +77,6 @@
 			led_gen_4 {
 				label = "mob_gen_4";
 				gpios = <&stm32_io 6 GPIO_ACTIVE_HIGH>;
-			};
-
-			led2_gen_2 {
-				label = "mob2_gen_2";
-				gpios = <&stm32_io 32 GPIO_ACTIVE_HIGH>;
-			};
-
-			led2_gen_3 {
-				label = "mob2_gen_3";
-				gpios = <&stm32_io 33 GPIO_ACTIVE_HIGH>;
-			};
-
-			led2_gen_4 {
-				label = "mob2_gen_4";
-				gpios = <&stm32_io 34 GPIO_ACTIVE_HIGH>;
 			};
 
 			led_ssid_1 {
@@ -153,24 +106,6 @@
 			led_ssid_5 {
 				label = "mob_ssid_5";
 				gpios = <&stm32_io 11 GPIO_ACTIVE_HIGH>;
-				linux,default-trigger = "timer";
-			};
-
-			led2_ssid_1 {
-				label = "mob2_ssid_1";
-				gpios = <&stm32_io 31 GPIO_ACTIVE_HIGH>;
-				linux,default-trigger = "timer";
-			};
-
-			led2_ssid_3 {
-				label = "mob2_ssid_3";
-				gpios = <&stm32_io 30 GPIO_ACTIVE_HIGH>;
-				linux,default-trigger = "timer";
-			};
-
-			led2_ssid_5 {
-				label = "mob2_ssid_5";
-				gpios = <&stm32_io 29 GPIO_ACTIVE_HIGH>;
 				linux,default-trigger = "timer";
 			};
 

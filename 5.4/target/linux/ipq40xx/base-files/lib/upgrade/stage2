@@ -42,13 +42,22 @@ switch_to_ramfs() {
 		mtd partx losetup mkfs.ext4 nandwrite flash_erase	\
 		ubiupdatevol ubiattach ubiblock ubiformat		\
 		ubidetach ubirsvol ubirmvol ubimkvol			\
-		snapshot snapshot_tool date				\
-		dumpimage $RAMFS_COPY_BIN
+		snapshot snapshot_tool date jshn dtbtool dtc mkbootimg	\
+		ubinize-image.sh sysupgrade-tar.sh which ubinize mktemp	\
+		dumpimage ledman fwtool \
+		$RAMFS_COPY_BIN
 	do
 		local file="$(command -v "$binary" 2>/dev/null)"
 		[ -n "$file" ] && install_bin "$file"
 	done
-	install_file /etc/resolv.conf /lib/*.sh /lib/functions/*.sh /lib/upgrade/*.sh /lib/upgrade/do_stage2 /usr/share/libubox/jshn.sh $RAMFS_COPY_DATA
+	install_file /etc/resolv.conf \
+		/lib/*.sh \
+		/lib/functions/*.sh \
+		/lib/upgrade/*.sh \
+		/lib/upgrade/do_stage2 \
+		/usr/share/libubox/jshn.sh \
+		/etc/board.json \
+		$RAMFS_COPY_DATA
 
 	[ -L "/lib64" ] && ln -s /lib $RAM_ROOT/lib64
 
@@ -111,10 +120,14 @@ kill_remaining() { # [ <signal> [ <loop> ] ]
 	_v
 }
 
-indicate_upgrade
+[ -n "$(pgrep telnetd)" ] && {
+	killall -9 telnetd
+}
 
-killall -9 telnetd
-killall -9 dropbear
+[ -n "$(pgrep dropbear)" ] && {
+	killall -9 dropbear
+}
+
 killall -9 ash
 
 kill_remaining TERM
@@ -124,10 +137,6 @@ kill_remaining KILL 1
 sleep 1
 
 echo 3 > /proc/sys/vm/drop_caches
-
-if [ -n "$IMAGE" ] && type 'platform_pre_upgrade' >/dev/null 2>/dev/null; then
-	platform_pre_upgrade "$IMAGE"
-fi
 
 if [ -n "$(rootfs_type)" ]; then
 	v "Switching to ramdisk..."

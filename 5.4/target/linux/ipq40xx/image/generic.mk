@@ -82,6 +82,19 @@ define Build/UbootFw
         fi
 endef
 
+define Build/UbootFw-rutx
+        $(CP) ./uboot_fw/ $(STAGING_DIR_HOST)/
+        if [ -e $(STAGING_DIR_HOST)/uboot_fw/tz.mbn ]; then \
+                $(SED) 's~file\.ubi~$@~g' $(STAGING_DIR_HOST)/uboot_fw/norplusnand-flash.conf; \
+                $(SED) 's~file\.elf~$(BIN_DIR)/openwrt-ipq40xx-u-boot-stripped.elf~g'  $(STAGING_DIR_HOST)/uboot_fw/norplusnand-flash.conf; \
+                python $(TOPDIR)/target/linux/ipq40xx/image/uboot_fw/pack.py -t norplusnand -B -F boardconfig_premium_tlt -o $@ $(STAGING_DIR_HOST)/uboot_fw; \
+        else \
+                $(SED) 's~file\.ubi~$@~g' $(STAGING_DIR_HOST)/uboot_fw/norplusnand-apps-flash.conf; \
+                $(SED) 's~file\.elf~$(BIN_DIR)/openwrt-ipq40xx-u-boot-stripped.elf~g'  $(STAGING_DIR_HOST)/uboot_fw/norplusnand-apps-flash.conf; \
+                python $(TOPDIR)/target/linux/ipq40xx/image/uboot_fw/pack.py -t norplusnand -B -F appsboardconfig_premium_tlt -o $@ $(STAGING_DIR_HOST)/uboot_fw; \
+        fi
+endef
+
 define Build/mkmylofw_32m
 	$(eval device_id=$(word 1,$(1)))
 	$(eval revision=$(word 2,$(1)))
@@ -840,9 +853,11 @@ define Device/teltonika_rutx
 	FILESYSTEMS := squashfs
 	KERNEL_IN_UBI := 1
 	IMAGES := sysupgrade.bin
-	IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
+	#IMAGE/sysupgrade.bin := append-ubi | qsdk-ipq-factory-nand | append-rutx-metadata
+	#IMAGE/sysupgrade.bin := append-ubi | UbootFw-rutx | append-rutx-metadata
+	IMAGE/sysupgrade.bin := append-ubi | UbootFw-rutx | append-metadata
 	#DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth kmod-r2ec sysupgrade-helper
-	DEVICE_PACKAGES := ipq-wifi-teltonika_rutx kmod-bluetooth sysupgrade-helper
+	DEVICE_PACKAGES := uboot-ipq40xx ipq-wifi-teltonika_rutx kmod-bluetooth sysupgrade-helper
 	HW_SUPPORT := io_expander%stm32:shiftreg_1
 endef
 TARGET_DEVICES += teltonika_rutx

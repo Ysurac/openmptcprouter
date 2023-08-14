@@ -18,6 +18,8 @@ static const struct of_device_id r2ec_of_table[] = {
 };
 MODULE_DEVICE_TABLE(of, r2ec_of_table);
 
+static uint8_t g_proto;
+
 struct r2ec {
 	struct gpio_chip chip;
 	struct irq_chip irqchip;
@@ -107,18 +109,29 @@ static int stm32_read(struct i2c_client *client, uint8_t *data, size_t len)
 	char buffer[64] = { 0 };
 	uint8_t checksum;
 	int err;
-	unsigned i;
+	unsigned i, cnt = 0;
 
 	if (!client) {
 		printk(KERN_ERR "R2EC I2C client is not ready!\n");
 		return -ENXIO;
 	}
 
+retry:
 	if ((err = i2c_master_recv(client, data, len)) < 0) {
+		if (err == -ETIMEDOUT && cnt < 10) {
+			cnt++;
+			msleep(10);
+			goto retry;
+		}
 		return err;
 	}
 
 	if (len == 1) {
+		return 0;
+	}
+
+	// ignore checksum on partial i2c response
+	if (len == sizeof(struct i2c_response) - 1) {
 		return 0;
 	}
 
@@ -140,6 +153,16 @@ static int stm32_read(struct i2c_client *client, uint8_t *data, size_t len)
 				      "does not match!\n"
 				      "Received: %s\n", buffer);
 
+		// for some reason checksum might appear as 1st byte in the
+		//  data buffer, and actual checksum byte is zero
+		// apply quirk - discard first byte, skip checksum checking
+		if (!*(data + len - 1)) {
+			dev_err(&client->dev,
+				"Applying wrong-checksum quirk...\n");
+			memmove(data, data + 1, len - 1);
+			return 0;
+		}
+
 		return -EBADE;
 	}
 
@@ -153,7 +176,7 @@ static int stm32_read(struct i2c_client *client, uint8_t *data, size_t len)
 static int stm32_prepare(struct r2ec *gpio, struct i2c_client *client)
 {
 	struct i2c_response rsp;
-	uint8_t data[1], recv[1], proto;
+	uint8_t data[1], recv[1];
 	int ret;
 
 	memset(&rsp, 0, sizeof(rsp));
@@ -177,13 +200,19 @@ static int stm32_prepare(struct r2ec *gpio, struct i2c_client *client)
 		return ret;
 	}
 
-	proto = rsp.data[1];
+	g_proto = rsp.data[1];
 
-	printk("STM32 supported protocol: %d\n", proto);
+	// fallback to version 1
+	if (g_proto != PROTO_VERSION_1 && g_proto != PROTO_VERSION_2) {
+		printk("STM32 fallback protocol: %u\n", g_proto);
+		g_proto = PROTO_VERSION_1;
+	}
+
+	printk("STM32 supported protocol: %u\n", g_proto);
 
 	data[0] = BOOT_STATE;
 
-	if ((ret = stm32_write(client, proto, CMD_BOOT, data, 1))) {
+	if ((ret = stm32_write(client, g_proto, CMD_BOOT, data, 1))) {
 		dev_err(&client->dev,
 			"stm32_prepare: boot state write failed (%d)\n", ret);
 		return ret;
@@ -224,7 +253,7 @@ static int stm32_prepare(struct r2ec *gpio, struct i2c_client *client)
 
 	data[0] = BOOT_START_APP;
 
-	if ((ret = stm32_write(client, proto, CMD_BOOT, data, 1))) {
+	if ((ret = stm32_write(client, g_proto, CMD_BOOT, data, 1))) {
 		dev_err(&client->dev,
 			"stm32_prepare: boot start write failed (%d)\n", ret);
 		return ret;
@@ -411,6 +440,7 @@ static int get_stm32_version(struct device *dev, uint8_t type, char *buffer)
 	struct r2ec *gpio;
 	uint8_t recv[sizeof(struct i2c_response)];
 	uint8_t data[1];
+	int ret;
 
 	struct pt_fw_get_ver {
 		unsigned char command_ex;
@@ -437,13 +467,33 @@ static int get_stm32_version(struct device *dev, uint8_t type, char *buffer)
 
 	mutex_lock(&gpio->i2c_lock);
 
-	if (stm32_write(gpio->client, PROTO_VERSION_2, type, data, 1)) {
-		printk(KERN_ERR "Unable transmit R2EC data!\n");
+	if ((ret = stm32_write(gpio->client, g_proto, type, data, 1))) {
+		printk("%s: firmware version write failed (%d)\n",
+			__func__, ret);
 		goto done;
 	}
 
-	if (stm32_read(gpio->client, recv, sizeof(recv))) {
-		printk(KERN_ERR "Unable receive R2EC data!\n");
+	// prevent possible I2C bus lockup when master requests more than 1 byte
+	//  and slave only sends a couple of bytes, but master is still waiting
+	//  and SCL line is down; there is no recovery except power cycle
+	// first read 1 byte and compare with supported protocol versions
+	// if they match, then full messsage can be read, otherwise drop
+	//  everything to not introduce bus lockup
+	if ((ret = stm32_read(gpio->client, data, 1))) {
+		printk("%s: firmware version read failed (%d)\n",
+			__func__, ret);
+		goto done;
+	}
+
+	if (data[0] != PROTO_VERSION_1 && data[0] != PROTO_VERSION_2) {
+		goto done;
+	}
+
+	recv[0] = data[0];
+
+	if ((ret = stm32_read(gpio->client, &recv[1], sizeof(recv) - 1))) {
+		printk("%s: firmware version read failed (%d)\n",
+			__func__, ret);
 		goto done;
 	}
 
@@ -498,7 +548,7 @@ static ssize_t reset_store(struct device *dev, struct device_attribute *attr,
 	data[0] = BOOT_START_APP;
 
 	mutex_lock(&gpio->i2c_lock);
-	if (stm32_write(gpio->client, PROTO_VERSION_2, CMD_BOOT, data, 1)) {
+	if (stm32_write(gpio->client, g_proto, CMD_BOOT, data, 1)) {
 		printk(KERN_ERR "Unable transmit R2EC data!\n");
 		goto done;
 	}
@@ -619,18 +669,6 @@ static int r2ec_probe(struct i2c_client *client, const struct i2c_device_id *id)
 		}
 	}
 
-	g_r2ec_kobj = kobject_create_and_add("r2ec", NULL);
-	if (!g_r2ec_kobj) {
-		printk(KERN_ERR "Unable to create `r2ec` kobject!\n");
-		goto fail;
-	}
-
-	if (sysfs_create_group(g_r2ec_kobj, &g_r2ec_attr_group)) {
-		kobject_put(g_r2ec_kobj);
-		printk(KERN_ERR "Unable to create `r2ec` sysfs group!\n");
-		goto fail;
-	}
-
 	dev_info(&client->dev, "probed\n");
 	return 0;
 
@@ -657,8 +695,6 @@ static int r2ec_remove(struct i2c_client *client)
 		dev_err(&client->dev, "%s --> %d\n", "teardown", status);
 	}
 
-	kobject_put(g_r2ec_kobj);
-
 	return status;
 }
 
@@ -672,7 +708,41 @@ static struct i2c_driver r2ec_driver = {
 	.id_table = r2ec_id,
 };
 
-module_i2c_driver(r2ec_driver);
+static int __init r2ec_init(void)
+{
+	int ret;
+
+	ret = i2c_add_driver(&r2ec_driver);
+	if (ret) {
+		printk(KERN_ERR "Unable to initialize `r2ec` driver!\n");
+		return ret;
+	}
+
+	g_r2ec_kobj = kobject_create_and_add("r2ec", NULL);
+	if (!g_r2ec_kobj) {
+		i2c_del_driver(&r2ec_driver);
+		printk(KERN_ERR "Unable to create `r2ec` kobject!\n");
+		return -ENOMEM;
+	}
+
+	if (sysfs_create_group(g_r2ec_kobj, &g_r2ec_attr_group)) {
+		kobject_put(g_r2ec_kobj);
+		i2c_del_driver(&r2ec_driver);
+		printk(KERN_ERR "Unable to create `r2ec` sysfs group!\n");
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+static void __exit r2ec_exit(void)
+{
+	kobject_put(g_r2ec_kobj);
+	i2c_del_driver(&r2ec_driver);
+}
+
+module_init(r2ec_init);
+module_exit(r2ec_exit);
 
 MODULE_AUTHOR("Jokubas Maciulaitis <jokubas.maciulaitis@teltonika.lt>");
 MODULE_DESCRIPTION("STM32F0 (R2EC) I2C GPIO Expander driver");

@@ -1,3 +1,5 @@
+#include "qcom-ipq4018-rutx-common.dtsi"
+
 / {
 	io_expander = "shiftreg_1";
 
