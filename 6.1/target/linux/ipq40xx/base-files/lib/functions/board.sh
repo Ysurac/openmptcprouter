@@ -38,3 +38,17 @@ is_builtin_modem() {
 
 	echo 0
 }
+
+is_dual_modem() {
+	json_init
+	json_load_file "/etc/board.json"
+
+	json_get_keys hwinfo hwinfo
+	json_select hwinfo
+
+	json_get_vars dual_modem
+
+	[ "$dual_modem" = "1" ] && echo 1 || echo 0
+
+	json_select ..
+}

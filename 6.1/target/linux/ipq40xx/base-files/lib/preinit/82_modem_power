@@ -5,13 +5,16 @@ set_state() {
 	[ -e "/sys/class/gpio/${label}_power/value" ] || return
 
 	config_get disable ${label} disable
+
 	[ "${disable}" -eq 1 ] && \
-		/sbin/mctl -s -m "${label}" || \
-		/sbin/mctl -p -m "${label}"
+		/sbin/mctl -s -m "${label}" -c || \
+		/sbin/mctl -p -m "${label}" -c
 }
 
 do_power_modem() {
-	/sbin/mctl -p || {
+	[ -f /etc/board.json ] || return
+
+	[ -z "$(uci -q get system.modem.disable)" ] && /sbin/mctl -p -a -c || {
 		config_load system
 		config_foreach set_state mctl
 	}
