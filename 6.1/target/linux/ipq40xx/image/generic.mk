@@ -1132,9 +1132,9 @@ define Device/teltonika_rutx
         BLOCKSIZE := 128k
         PAGESIZE := 2048
         FILESYSTEMS := squashfs
-        IMAGES := factory.bin sysupgrade.bin
-        IMAGE/factory.ubi := append-ubi
-        IMAGE/sysupgrade.bin := append-ubi | UbootFw-rutx | append-metadata
+        IMAGES := sysupgrade.bin
+        #IMAGE/sysupgrade.bin := append-ubi | UbootFw-rutx | append-metadata
+        IMAGE/sysupgrade.bin := append-ubi
         DEVICE_PACKAGES := uboot-ipq40xx ipq-wifi-teltonika_rutx kmod-usb-net-qmi-wwan kmod-usb-serial-option kmod-bluetooth sysupgrade-helper
         HW_SUPPORT := io_expander%stm32:shiftreg_1
 endef
