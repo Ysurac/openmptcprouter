@@ -4126,12 +4126,13 @@ index 93825ec968aa..aac80ddc837f 100644
  	tp->duplicate_sack[0].start_seq = 0;
  	tp->duplicate_sack[0].end_seq = 0;
  	tp->dsack_dups = 0;
-@@ -2673,8 +2787,6 @@ int tcp_disconnect(struct sock *sk, int flags)
+@@ -2673,9 +2787,7 @@ int tcp_disconnect(struct sock *sk, int flags)
  	tp->sacked_out = 0;
  	tp->tlp_high_seq = 0;
  	tp->last_oow_ack_time = 0;
 -	/* There's a bubble in the pipe until at least the first ACK. */
 -	tp->app_limited = ~0U;
+ 	tp->rate_app_limited = 1;
  	tp->rack.mstamp = 0;
  	tp->rack.advanced = 0;
  	tp->rack.reo_wnd_steps = 1;
