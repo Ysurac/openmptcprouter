@@ -195,7 +195,7 @@ index 1b4764c..c5716da 100644
  
 +		if (!nft_try_fullcone()) {
 +			delete defs.fullcone;
-+			warn("nft_try_fullcone failed, disable fullcone globally\n");
++			//warn("nft_try_fullcone failed, disable fullcone globally\n");
 +		}
 +
  		this.state.defaults = defs;
