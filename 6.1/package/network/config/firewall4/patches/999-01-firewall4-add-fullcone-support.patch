@@ -123,9 +123,9 @@ index 1b4764c..c5716da 100644
 +		'}; ';
 +	let cmd = sprintf("/usr/sbin/nft -c '%s' 2>/dev/null", replace(nft_test, "'", "'\\''"));
 +	let ok = system(cmd) == 0;
-+	if (!ok) {
-+		warn("nft_try_fullcone: cmd "+ cmd + "\n");
-+	}
++	//if (!ok) {
++	//	warn("nft_try_fullcone: cmd "+ cmd + "\n");
++	//}
 +	return ok;
 +}
 +
