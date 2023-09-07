@@ -722,7 +722,7 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	if [ "$TARGET" = "bpi-r2" ]; then
 		echo "# CONFIG_VERSION_CODE_FILENAMES is not set" >> ".config"
 	fi
-	if [ "$OMR_TARGET" != "x86" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "r2s" ] && [ "$OMR_TARGET" != "r4s" ] && [ "$OMR_TARGET" != "r5s" ] && [ "$OMR_TARGET" != "qnap-301w" ] && [ "$OMR_TARGET" != "rpi2" ] && [ "$OMR_TARGET" != "rpi3" ] && [ "$OMR_TARGET" != "rpi4" ] && [ "$OMR_TARGET" != "rpi3" ] && [ "$OMR_TARGET" != "wrt32x" ] && [ "$OMR_TARGET" != "wrt3200acm" ] && [ "$OMR_TARGET" != "bpi-r64" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "espressobin" ] && [ "$OMR_TARGET" != "rutx" ] && [ "$OMR_TARGET" != "ubnt-erx" ] && [ "$OMR_TARGET" != "bpi-r2" ]; then
+	if [ "$OMR_TARGET" = "bpi-r1" ]; then
 		echo "Sorry but kernel 6.1 is not supported on your arch yet"
 		NOT_SUPPORTED="1"
 		#exit 1
