@@ -2336,9 +2336,10 @@ index f2c6c5d31..1ce016437 100644
  				u32 gso_max_size)
  {
 -	u32 segs;
+-	u64 bytes;
 +	struct bbr *bbr = inet_csk_ca(sk);
 +	u32 segs, r;
- 	u64 bytes;
++	u32 bytes;
  
  	/* Budget a TSO/GSO burst size allowance based on bw (pacing_rate). */
  	bytes = sk->sk_pacing_rate >> sk->sk_pacing_shift;
