@@ -48,6 +48,7 @@ OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
 OMR_FEED_SRC="${OMR_FEED_SRC:-develop}"
 
 CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
+CUSTOM_FEED_URL_BRANCH="${CUSTOM_FEED_URL_BRANCH:-main}"
 
 OMR_OPENWRT=${OMR_OPENWRT:-default}
 
@@ -139,7 +140,7 @@ fi
 
 if [ -n "$CUSTOM_FEED_URL" ] && [ -z "$CUSTOM_FEED" ]; then
 	CUSTOM_FEED=feeds/${OMR_KERNEL}/${OMR_DIST}
-	_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "master"
+	_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "$CUSTOM_FEED_URL_BRANCH"
 fi
 
 if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
@@ -749,6 +750,10 @@ fi
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog.patch; then
 	patch -N -p1 -s < ../../patches/luci-syslog.patch
 fi
+if [ ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-nftables.patch ] && [ -d luci/modules/luci-mod-status ]; then
+	patch -N -p1 -s < ../../patches/luci-nftables.patch
+fi
+
 cd ../..
 [ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/${OMR_KERNEL}/luci/modules/luci-base/po/
 echo "Done"
