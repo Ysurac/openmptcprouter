@@ -54,6 +54,10 @@ OMR_OPENWRT=${OMR_OPENWRT:-default}
 
 OMR_FORCE_DSA=${OMR_FORCE_DSA:-0}
 
+if [ "$OMR_KERNEL" = "5.4" ] && [ "$OMR_TARGET" = "rutx12" ]; then
+	OMR_TARGET_CONFIG="config-rutx"
+fi
+
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
 	#exit 1
@@ -74,6 +78,10 @@ elif [ "$OMR_TARGET" = "bpi-r1" ]; then
 elif [ "$OMR_TARGET" = "bpi-r2" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "rutx" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "rutx12" ]; then
+	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
+elif [ "$OMR_TARGET" = "rutx50" ]; then
 	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
 elif [ "$OMR_TARGET" = "bpi-r64" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
@@ -110,7 +118,7 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "106c83a1eafcccb6059a0427953b7780d184c692"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "8939b43659dabe9b737feee02976949ad0355adc"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "3e14e055a177dec4bd3a4bd40883b56a6930fd7c"
-	elif [ "$OMR_KERNEL" = "6.1" ]; then
+	elif [ "$OMR_KERNEL" = "6.1" ] || [ "$OMR_KERNEL" = "6.6" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "74e7f8ebbdc19c58ac59c792154041a6b3c124f5"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "b738e42c4de80bcc59559c436618e42845d62fc1"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "957a6313bd6371e5afae20573a43f5440948e66e"
@@ -160,13 +168,13 @@ echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
-[ "${OMR_KERNEL}" = "6.1" ] && {
+[ "${OMR_KERNEL}" = "6.1" ] || [ "${OMR_KERNEL}" = "6.6" ] && {
 	echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
 	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
 }
 
 [ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
-if [ "$OMR_TARGET" = "rutx" ] && [ "${OMR_KERNEL}" = "5.4" ]; then
+if ([ "$OMR_TARGET" = "rutx" ] || [ "$OMR_TARGET" = "rutx12" ]) && [ "${OMR_KERNEL}" = "5.4" ]; then
 #	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
 	cp -rf common/* "$OMR_TARGET/${OMR_KERNEL}/source/"
 	cp -rf ${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source/"
@@ -290,7 +298,7 @@ if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET
 	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
-if [ "$OMR_KERNEL" = "6.1" ]; then
+if [ "$OMR_KERNEL" = "6.1" ] || [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
@@ -728,6 +736,21 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 		NOT_SUPPORTED="1"
 		#exit 1
 	fi
+fi
+if [ "$OMR_KERNEL" = "6.6" ]; then
+	echo "Set to kernel 6.6 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.6%g' {} \;
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
+	echo "CONFIG_VERSION_CODE=6.6" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152 is not set" >> ".config"
+	echo "# CONFIG_CONFIG_PACKAGE_r8152-firmware is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
+	echo "# CONFIG_CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
 fi
 
 #rm -rf feeds/packages/libs/libwebp
