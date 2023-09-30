@@ -302,7 +302,7 @@ if [ "$OMR_KERNEL" = "6.1" ] || [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
-if [ "$OMR_TARGET" = "rutx" -a "$OMR_KERNEL" = "5.4" ]; then
+if ([ "$OMR_TARGET" = "rutx" ] || [ "$OMR_TARGET" = "rutx12" ]) && [ "$OMR_KERNEL" = "5.4" ]; then
 	echo "CONFIG_PACKAGE_kmod-r2ec=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
