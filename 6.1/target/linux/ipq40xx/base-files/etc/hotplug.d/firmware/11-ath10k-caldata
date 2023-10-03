@@ -53,6 +53,8 @@ ensure_correct_art
 case "$FIRMWARE" in
 "ath10k/pre-cal-ahb-a000000.wifi.bin")
 	case "$board" in
+	teltonika,rutx50|\
+	teltonika,rutx12|\
 	teltonika,rutx)
 		ath10kcal_extract "0:ART" 4096 12064
 		;;
@@ -60,6 +62,8 @@ case "$FIRMWARE" in
 	;;
 "ath10k/pre-cal-ahb-a800000.wifi.bin")
 	case "$board" in
+	teltonika,rutx50|\
+	teltonika,rutx12|\
 	teltonika,rutx)
 		ath10kcal_extract "0:ART" 20480 12064
 		;;

@@ -12,6 +12,8 @@ PHYNBR=${DEVPATH##*/phy}
 board=$(board_name)
 
 case "$board" in
+	teltonika,rutx12|\
+	teltonika,rutx50|\
 	teltonika,rutx)
 		mac_addr=$(mtd_get_mac_binary 0:CONFIG 0)
 		if [ "$mac_addr" != "ff:ff:ff:ff:ff:ff" ]; then
