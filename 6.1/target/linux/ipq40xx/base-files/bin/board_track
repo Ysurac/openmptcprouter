@@ -1,0 +1,47 @@
+#!/bin/sh
+
+. /lib/functions/uci-defaults.sh
+
+CFG=/etc/board.json
+SLP=30
+
+check_modem() {
+	json_select "$2"
+	json_get_vars id
+
+	[ -z "$id" ] && {
+		json_select ..
+		return 0
+	}
+
+	#logger -t "board-track" "ls -d /sys/bus/usb/devices/$id/${id}*/tty?*"
+	ttys=$(ls -d /sys/bus/usb/devices/$id/${id}*/tty?*)
+
+	[ -n "$ttys" ] || { #FAILED TO FIND MODEM
+		logger -t "board-track" "modem $id not detected"
+		for m in /sys/class/gpio/modem*_power; do
+			label="$(basename $m | awk -F_ '{print $1}')"
+			mctl -s -m ${label}
+			sleep 1
+			mctl -p -m ${label}
+		done
+		sleep 5
+		ip link set up dev wwan0 2>&1 >/dev/null
+		ip link set up dev wwan1 2>&1 >/dev/null
+		json_select ..
+		return 1
+	}
+
+	[ -n "$(ip link show dev wwan0 | grep DOWN)" ] && ip link set up dev wwan0 2>&1 >/dev/null
+	[ -n "$(ip link show dev wwan1 | grep DOWN)" ] && ip link set up dev wwan1 2>&1 >/dev/null
+
+	#MODEM UP
+	json_select ..
+}
+
+board_config_update
+while true; do
+	json_for_each_item check_modem modems
+	sleep $SLP
+	[ $SLP -lt 300 ] && SLP=$((SLP+30))
+done

@@ -1,0 +1,37 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2021 Teltonika Networks
+# Copyright (C) 2022 Ycarus (Yannick Chabanois) <ycarus@zugaina.org>
+
+START=2
+
+USE_PROCD=1
+
+PROG=/bin/board_track
+NAME=board_track
+PIDCOUNT=1
+
+start_service() {
+	. /lib/functions
+	
+	[ "$(board_name)" != "teltonika,rutx" ] && return 0
+	local pid_file="/var/run/${NAME}.${PIDCOUNT}.pid"
+
+	procd_open_instance
+	procd_set_param command "$PROG"
+	procd_set_param file /etc/config/system
+
+	procd_set_param respawn
+
+	procd_set_param stdout 1
+	procd_set_param pidfile $pid_file
+	procd_close_instance
+}
+
+reload_service() {
+	stop
+	start
+}
+
+service_triggers() {
+	procd_add_reload_trigger "system"
+}

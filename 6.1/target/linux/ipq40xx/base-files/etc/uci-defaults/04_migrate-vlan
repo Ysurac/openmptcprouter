@@ -1,0 +1,34 @@
+#!/bin/sh
+. /lib/functions.sh
+
+move_network(){
+	local section=$1
+	local device ports vlan
+
+	config_get ports "$section" ports
+	config_get device "$section" device
+	config_get vlan "$section" vlan
+
+	[ "$vlan" -eq 1 ] && {
+		if list_contains "ports" "0t" && list_contains "ports" "5"; then
+			uci_set network "$section" ports "${ports/0t/0}"
+			uci_set network "$section" vlan "2"
+			uci_remove network "$section" vid
+		fi
+	}
+
+	[ "$vlan" -eq 2 ] && {
+		if list_contains ports "0t"; then
+			echo "Contains"
+			uci_set network "$section" ports "${ports/0t/0}"
+			uci_set network "$section" vlan "1"
+			uci_remove network "$section" vid
+		fi
+	}
+}
+
+config_load network
+config_foreach move_network switch_vlan
+uci_commit network
+
+exit 0

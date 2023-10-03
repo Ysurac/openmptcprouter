@@ -1,0 +1,28 @@
+#!/bin/sh /etc/rc.common
+
+# Copyright (C) 2021 Teltonika
+
+START=50
+STOP=51
+USE_PROCD=1
+
+service_triggers()
+{
+	procd_add_reload_trigger "ntpserver"
+}
+
+start_service() {
+	. /lib/functions.sh
+	local enabled
+
+	config_load ntpserver
+	config_get enabled general enabled "0"
+
+	[ "$enabled" -gt 0 ] || return
+
+	logger -t "ntpd" "Starting NTP server"
+	procd_open_instance
+	procd_set_param respawn 0
+	procd_set_param command "ntpd" -ln
+	procd_close_instance
+}
