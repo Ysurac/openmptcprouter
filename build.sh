@@ -626,6 +626,11 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 	#rm -f target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3568-photonicat.dts
 	echo "CONFIG_VERSION_CODE=5.4" >> ".config"
+	if [ "$OMR_TARGET" = "rpi5" ]; then
+		echo "Sorry but kernel 5.4 is not supported on your arch yet"
+		NOT_SUPPORTED="1"
+		exit 1
+	fi
 fi
 if [ "$OMR_KERNEL" = "5.15" ]; then
 	echo "Set to kernel 5.15 for rpi arch"

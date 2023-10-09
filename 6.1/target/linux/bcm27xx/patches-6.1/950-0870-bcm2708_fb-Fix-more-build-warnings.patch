@@ -1,0 +1,48 @@
+From 7b11991e91e65ebeb315986fae05d363663d24c4 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Thu, 1 Sep 2022 17:51:54 +0100
+Subject: [PATCH 0870/1016] bcm2708_fb: Fix more build warnings
+
+---
+ drivers/video/fbdev/bcm2708_fb.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/video/fbdev/bcm2708_fb.c b/drivers/video/fbdev/bcm2708_fb.c
+index 39ab8d5ce552..797cad76b0b7 100644
+--- a/drivers/video/fbdev/bcm2708_fb.c
++++ b/drivers/video/fbdev/bcm2708_fb.c
+@@ -955,6 +955,7 @@ static void bcm2708_fb_imageblit(struct fb_info *info,
+ 	cfb_imageblit(info, image);
+ }
+ 
++#if 0
+ static irqreturn_t bcm2708_fb_dma_irq(int irq, void *cxt)
+ {
+ 	struct bcm2708_fb_dev *fbdev = cxt;
+@@ -972,6 +973,7 @@ static irqreturn_t bcm2708_fb_dma_irq(int irq, void *cxt)
+ 	wake_up(&fbdev->dma_waitq);
+ 	return IRQ_HANDLED;
+ }
++#endif
+ 
+ static struct fb_ops bcm2708_fb_ops = {
+ 	.owner = THIS_MODULE,
+@@ -1195,12 +1197,12 @@ static int bcm2708_fb_probe(struct platform_device *dev)
+ 		return ret;
+ 	}
+ 
+-free_dma_chan:
++//free_dma_chan:
+ 	bcm_dma_chan_free(fbdev->dma_chan);
+-free_cb:
++//free_cb:
+ 	dma_free_wc(&dev->dev, SZ_64K, fbdev->cb_base,
+ 			      fbdev->cb_handle);
+-free_fb:
++//free_fb:
+ 	dev_err(&dev->dev, "probe failed, err %d\n", ret);
+ 
+ 	return ret;
+-- 
+2.42.0
+
