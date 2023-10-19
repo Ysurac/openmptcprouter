@@ -1,0 +1,22 @@
+--- a/root/usr/share/firewall4/templates/ruleset.uc	2023-07-28 18:55:05.492297782 +0200
++++ b/root/usr/share/firewall4/templates/ruleset.uc	2023-07-28 18:58:52.300598623 +0200
+@@ -218,9 +218,7 @@
+ {%  for (let rule in fw4.rules(`input_${zone.name}`)): %}
+ 		{%+ include("rule.uc", { fw4, rule }) %}
+ {%  endfor %}
+-{%  if (zone.dflags.dnat): %}
+ 		ct status dnat accept comment "!fw4: Accept port redirections"
+-{%  endif %}
+ {%  fw4.includes('chain-append', `input_${zone.name}`) %}
+ 		jump {{ zone.input }}_from_{{ zone.name }}
+ 	}
+@@ -239,9 +237,7 @@
+ {%  for (let rule in fw4.rules(`forward_${zone.name}`)): %}
+ 		{%+ include("rule.uc", { fw4, rule }) %}
+ {%  endfor %}
+-{%  if (zone.dflags.dnat): %}
+ 		ct status dnat accept comment "!fw4: Accept port forwards"
+-{%  endif %}
+ {%  fw4.includes('chain-append', `forward_${zone.name}`) %}
+ 		jump {{ zone.forward }}_to_{{ zone.name }}
+ {%  if (fw4.forward_policy() != "accept" && (zone.log & 1)): %}

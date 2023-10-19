@@ -753,9 +753,23 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152 is not set" >> ".config"
-	echo "# CONFIG_CONFIG_PACKAGE_r8152-firmware is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152-vendor is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_r8152-firmware is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
-	echo "# CONFIG_CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_luci-proto-modemmanager is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_modemmanager is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_luci-proto-ppp is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_luci-proto-ncm is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_luci-proto-3g is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_comgt is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_comgt-ncm is not set" >> ".config"
+	# Remove for now packages that doesn't compile
+	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/services/ppp
+	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/mac80211
+	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/ath10k-ct
+	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/mt76
+	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/rtl8812au-ct
 fi
 
 #rm -rf feeds/packages/libs/libwebp
