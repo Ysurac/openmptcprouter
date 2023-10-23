@@ -1,0 +1,31 @@
+--- a/backport-include/net/genetlink.h	2023-10-19 17:24:48.721119999 +0200
++++ b/backport-include/net/genetlink.h	2023-10-19 17:35:11.810569190 +0200
+@@ -3,6 +3,7 @@
+ #include_next <net/genetlink.h>
+ #include <linux/version.h>
+ 
++#if LINUX_VERSION_IS_LESS(6,5,0)
+ static inline void __bp_genl_info_userhdr_set(struct genl_info *info,
+ 					      void *userhdr)
+ {
+@@ -13,6 +14,7 @@
+ {
+ 	return info->userhdr;
+ }
++#endif /* < 6.5.0 */
+ 
+ #if LINUX_VERSION_IS_LESS(4,12,0)
+ #define GENL_SET_ERR_MSG(info, msg) NL_SET_ERR_MSG(genl_info_extack(info), msg)
+@@ -47,10 +47,12 @@
+ }
+ 
+ /* this gets put in place of info->userhdr, since we use that above */
++#if LINUX_VERSION_IS_LESS(6,5,0)
+ static inline void *genl_info_userhdr(struct genl_info *info)
+ {
+ 	return (u8 *)info->genlhdr + GENL_HDRLEN;
+ }
++#endif
+ 
+ #if LINUX_VERSION_IS_LESS(4,10,0)
+ #define __genl_ro_after_init

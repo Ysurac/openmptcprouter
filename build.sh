@@ -752,24 +752,30 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152 is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152-vendor is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_r8152-firmware is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152 is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152-vendor is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_r8152-firmware is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_luci-proto-modemmanager is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_modemmanager is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_luci-proto-ppp is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_luci-proto-ncm is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_luci-proto-3g is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_comgt is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_comgt-ncm is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_luci-proto-modemmanager is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_modemmanager is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_luci-proto-ppp is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_luci-proto-ncm is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_luci-proto-3g is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_comgt is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_comgt-ncm is not set" >> ".config"
 	# Remove for now packages that doesn't compile
-	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/services/ppp
-	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/mac80211
-	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/ath10k-ct
+	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/services/ppp
+	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/mac80211
+	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/ath10k-ct
 	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/mt76
 	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/rtl8812au-ct
+	# Remove not needed patches
+	rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
+	rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
+	rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
+	rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
+	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 fi
 
 #rm -rf feeds/packages/libs/libwebp
@@ -782,6 +788,7 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 [ -d ${OMR_FEED}/iperf3 ] && rm -rf feeds/${OMR_KERNEL}/packages/net/iperf3
 [ -d ${OMR_FEED}/golang ] && rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
 [ -d ${OMR_FEED}/openvpn ] && rm -rf feeds/${OMR_KERNEL}/packages/net/openvpn
+[ "$OMR_KERNEL" = "6.6" ] && [ -d ${OMR_FEED}/xtables-addons ] && rm -rf feeds/${OMR_KERNEL}/packages/net/xtables-addons
 
 echo "Add Occitan translation support"
 cd feeds/${OMR_KERNEL}
