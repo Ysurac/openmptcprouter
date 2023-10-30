@@ -843,5 +843,9 @@ fi
 
 echo "Building $OMR_DIST for the target $OMR_TARGET with kernel ${OMR_KERNEL}"
 make defconfig
-make IGNORE_ERRORS=m "$@"
-echo "Done"
+if make IGNORE_ERRORS=m "$@"
+then
+       echo "Done"
+else
+       cd $OMR_TARGET/$OMR_KERNEL/source && make
+fi
