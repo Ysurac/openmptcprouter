@@ -631,6 +631,11 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 		NOT_SUPPORTED="1"
 		exit 1
 	fi
+	if [ "$OMR_TARGET" = "rutx50" ]; then
+		echo "Sorry but kernel 5.4 is not supported on your arch yet"
+		NOT_SUPPORTED="1"
+		#exit 1
+	fi
 fi
 if [ "$OMR_KERNEL" = "5.15" ]; then
 	echo "Set to kernel 5.15 for rpi arch"
@@ -768,8 +773,8 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/services/ppp
 	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/mac80211
 	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/ath10k-ct
-	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/mt76
-	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/rtl8812au-ct
+	rm -rf package/kernel/mt76
+	rm -rf package/kernel/rtl8812au-ct
 	# Remove not needed patches
 	rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
 	rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
