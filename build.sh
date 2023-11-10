@@ -723,7 +723,7 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	#rm -f package/kernel/mwlwifi/patches/001-*
 	#rm -f package/kernel/mwlwifi/patches/002-*
 	#rm -f package/kernel/mwlwifi/patches/003-*
-	rm -rf package/kernel/mt76
+	#rm -rf package/kernel/mt76
 	rm -rf target/linux/ipq40xx/files/drivers/net/dsa
 	rm -rf target/linux/ipq40xx/files/drivers/net/ethernet
 
