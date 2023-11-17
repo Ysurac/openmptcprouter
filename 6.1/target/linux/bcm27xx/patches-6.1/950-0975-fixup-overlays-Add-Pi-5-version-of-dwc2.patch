@@ -1,0 +1,21 @@
+From d90a331708d8a3cffdc42c9ed7c61189b512251e Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Thu, 19 Oct 2023 16:12:07 +0100
+Subject: [PATCH] fixup! overlays: Add Pi 5 version of dwc2
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/boot/dts/overlays/dwc2-pi5-overlay.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm/boot/dts/overlays/dwc2-pi5-overlay.dts
++++ b/arch/arm/boot/dts/overlays/dwc2-pi5-overlay.dts
+@@ -2,7 +2,7 @@
+ 
+ /{
+ 	fragment@1 {
+-		target = <&soc>;
++		target-path = "/";
+ 		__overlay__ {
+ 			/*
+ 			 * Add a node with a dma-ranges value that exists only to be found

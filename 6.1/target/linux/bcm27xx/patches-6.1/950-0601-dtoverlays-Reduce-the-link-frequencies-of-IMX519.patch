@@ -1,0 +1,23 @@
+From 86996ad89d885dfc3302d685b3e5efdab92733ad Mon Sep 17 00:00:00 2001
+From: Lee Jackson <lee.jackson@arducam.com>
+Date: Wed, 22 Mar 2023 16:24:19 +0800
+Subject: [PATCH] dtoverlays: Reduce the link-frequencies of IMX519
+
+Modify the link-frequencies of IMX519 to 408000000.
+
+Signed-off-by: Lee Jackson <lee.jackson@arducam.com>
+---
+ arch/arm/boot/dts/overlays/imx519.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm/boot/dts/overlays/imx519.dtsi
++++ b/arch/arm/boot/dts/overlays/imx519.dtsi
+@@ -21,7 +21,7 @@ cam_node: imx519@1a {
+ 			data-lanes = <1 2>;
+ 			clock-noncontinuous;
+ 			link-frequencies =
+-				/bits/ 64 <493500000>;
++				/bits/ 64 <408000000>;
+ 		};
+ 	};
+ };

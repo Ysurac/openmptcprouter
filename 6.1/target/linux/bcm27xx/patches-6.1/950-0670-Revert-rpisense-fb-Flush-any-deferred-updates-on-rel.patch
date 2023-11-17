@@ -1,0 +1,33 @@
+From a47a2f37d977431f6fd2445892f81375099bedee Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Wed, 29 Mar 2023 09:57:56 +0100
+Subject: [PATCH] Revert "rpisense-fb: Flush any deferred updates on release"
+
+This reverts commit b70f2a8883802e33e1aeb1a25f570c69976ca6fb.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/video/fbdev/rpisense-fb.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+--- a/drivers/video/fbdev/rpisense-fb.c
++++ b/drivers/video/fbdev/rpisense-fb.c
+@@ -183,18 +183,8 @@ static int rpisense_fb_ioctl(struct fb_i
+ 	return 0;
+ }
+ 
+-static int rpisense_fb_release(struct fb_info *info, int user)
+-{
+-	/* Flush any pending updates */
+-	cancel_delayed_work(&info->deferred_work);
+-	schedule_delayed_work(&info->deferred_work, 0);
+-
+-	return 0;
+-}
+-
+ static struct fb_ops rpisense_fb_ops = {
+ 	.owner		= THIS_MODULE,
+-	.fb_release	= rpisense_fb_release,
+ 	.fb_read	= fb_sys_read,
+ 	.fb_write	= rpisense_fb_write,
+ 	.fb_fillrect	= rpisense_fb_fillrect,

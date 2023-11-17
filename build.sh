@@ -172,6 +172,9 @@ rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 	echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
 	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
 }
+[ "${OMR_KERNEL}" = "6.1" ] && {
+	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/target/linux/bcm27xx/patches-6.1"
+}
 
 [ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
 if ([ "$OMR_TARGET" = "rutx" ] || [ "$OMR_TARGET" = "rutx12" ]) && [ "${OMR_KERNEL}" = "5.4" ]; then
@@ -714,6 +717,7 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	echo "Done"
 	rm -f target/linux/bcm27xx/patches-6.1/950-0509-README-Add-README.md-with-CI-kernel-build-status-tag.patch
 	rm -f target/linux/bcm27xx/patches-6.1/950-0555-README.md-Replace-6.0-build-status-with-6.2.patch
+	rm -f target/linux/bcm27xx/modules/sound.mk
 	rm -f package/kernel/rtl8812au-ct/patches/002-*
 	rm -f package/kernel/rtl8812au-ct/patches/003-*
 	rm -f package/kernel/rtl8812au-ct/patches/004-*
