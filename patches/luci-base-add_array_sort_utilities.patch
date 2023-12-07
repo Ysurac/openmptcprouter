@@ -1,0 +1,88 @@
+From 8199b2ce9a7d36359aedea1ad9dab157134a46c2 Mon Sep 17 00:00:00 2001
+From: Jo-Philipp Wich <jo@mein.io>
+Date: Wed, 27 Jul 2022 16:31:10 +0200
+Subject: [PATCH] luci-base: luci.js: add array sort utilities
+
+Add two new utility functions L.naturalCompare() and L.sortedArray() to
+simplify sorting arrays naturally.
+
+Ref: #5899
+Signed-off-by: Jo-Philipp Wich <jo@mein.io>
+---
+ .../htdocs/luci-static/resources/luci.js      | 51 ++++++++++++++++---
+ 1 file changed, 45 insertions(+), 6 deletions(-)
+
+diff --git a/luci/modules/luci-base/htdocs/luci-static/resources/luci.js b/luci/modules/luci-base/htdocs/luci-static/resources/luci.js
+index ffa1c002b8a5..741f5689836d 100644
+--- a/luci/modules/luci-base/htdocs/luci-static/resources/luci.js
++++ b/luci/modules/luci-base/htdocs/luci-static/resources/luci.js
+@@ -2220,6 +2220,8 @@
+ 		view: View
+ 	};
+ 
++	var naturalCompare = new Intl.Collator(undefined, { numeric: true }).compare;
++
+ 	var LuCI = Class.extend(/** @lends LuCI.prototype */ {
+ 		__name__: 'LuCI',
+ 		__init__: function(setenv) {
+@@ -2965,17 +2967,54 @@
+ 			}).filter(function(e) {
+ 				return (e[1] != null);
+ 			}).sort(function(a, b) {
+-				if (a[1] < b[1])
+-					return -1;
+-				else if (a[1] > b[1])
+-					return 1;
+-				else
+-					return 0;
++				return naturalCompare(a[1], b[1]);
+ 			}).map(function(e) {
+ 				return e[0];
+ 			});
+ 		},
+ 
++		/**
++		 * Compares two values numerically and returns -1, 0 or 1 depending
++		 * on whether the first value is smaller, equal to or larger than the
++		 * second one respectively.
++		 *
++		 * This function is meant to be used as comparator function for
++		 * Array.sort().
++		 *
++		 * @type {function}
++		 *
++		 * @param {*} a
++		 * The first value
++		 *
++		 * @param {*} b
++		 * The second value.
++		 *
++		 * @return {number}
++		 * Returns -1 if the first value is smaller than the second one.
++		 * Returns 0 if both values are equal.
++		 * Returns 1 if the first value is larger than the second one.
++		 */
++		naturalCompare: naturalCompare,
++
++		/**
++		 * Converts the given value to an array using toArray() if needed,
++		 * performs a numerical sort using naturalCompare() and returns the
++		 * result. If the input already is an array, no copy is being made
++		 * and the sorting is performed in-place.
++		 *
++		 * @see toArray
++		 * @see naturalCompare
++		 *
++		 * @param {*} val
++		 * The input value to sort (and convert to an array if needed).
++		 *
++		 * @return {Array<*>}
++		 * Returns the resulting, numerically sorted array.
++		 */
++		sortedArray: function(val) {
++			return this.toArray(val).sort(naturalCompare);
++		},
++
+ 		/**
+ 		 * Converts the given value to an array. If the given value is of
+ 		 * type array, it is returned as-is, values of type object are

@@ -799,9 +799,6 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 if [ -d ${OMR_FEED}/netifd ]; then
 	if [ "${OMR_KERNEL}" != "5.4" ]; then
 		rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/config/netifd
-	else
-		rm -rf ${OMR_FEED}/netifd
-	fi
 fi
 [ -d ${OMR_FEED}/iperf3 ] && rm -rf feeds/${OMR_KERNEL}/packages/net/iperf3
 [ -d ${OMR_FEED}/golang ] && rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
@@ -817,6 +814,9 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
 fi
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog.patch; then
 	patch -N -p1 -s < ../../patches/luci-syslog.patch
+fi
+if [ "$OMR_KERNEL" = "5.4" ] && ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-base-add_array_sort_utilities.patch; then
+	patch -N -p1 -s < ../../patches/luci-base-add_array_sort_utilities.patch
 fi
 if [ ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-nftables.patch ] && [ -d luci/modules/luci-mod-status ]; then
 	patch -N -p1 -s < ../../patches/luci-nftables.patch
@@ -850,6 +850,14 @@ if [ -n "$CUSTOM_FEED" ]; then
 	scripts/feeds install -a -d y -f -p ${OMR_DIST}
 else
 	scripts/feeds install -a -d y -f -p openmptcprouter
+fi
+# Use iproute2 package from the normal repo for 5.4
+if [ "$OMR_KERNEL" = "5.4" ]; then
+	scripts/feeds uninstall iproute2
+	scripts/feeds uninstall libbpf
+	scripts/feeds uninstall netifd
+	scripts/feeds install iproute2
+	scripts/feeds install netifd
 fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
