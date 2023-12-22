@@ -5,9 +5,9 @@ diff -urpN linux-6.1.38.old/include/net/netfilter/nf_conntrack.h linux-6.1.38/in
  	return net_generic(net, nf_conntrack_net_id);
  }
  
-+#ifdef CONFIG_NDPI_HOOK
-+void register_ndpi_hook(void (*hook)(struct nf_conn *));
-+void unregister_ndpi_hook(void);
++#ifdef CONFIG_NF_CONNTRACK_DESTROY_HOOK
++void register_nf_ct_destroy_hook(void (*hook)(struct nf_conn *));
++void unregister_nf_ct_destroy_hook(void);
 +#endif
 +
  #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
@@ -20,7 +20,7 @@ diff -urpN linux-6.1.38.old/net/netfilter/Kconfig linux-6.1.38/net/netfilter/Kco
  	  If this option is enabled, the kernel will include support
  	  for passive OS fingerprint via NFNETLINK.
  
-+config NDPI_HOOK
++config NF_CONNTRACK_DESTROY_HOOK
 +	bool
 +
  config NF_CONNTRACK
@@ -28,7 +28,7 @@ diff -urpN linux-6.1.38.old/net/netfilter/Kconfig linux-6.1.38/net/netfilter/Kco
  	default m if NETFILTER_ADVANCED=n
  	select NF_DEFRAG_IPV4
  	select NF_DEFRAG_IPV6 if IPV6 != n
-+	select NDPI_HOOK
++	select NF_CONNTRACK_DESTROY_HOOK
  	help
  	  Connection tracking keeps a record of what packets have passed
  	  through your machine, in order to figure out how they are related
@@ -39,28 +39,28 @@ diff -urpN linux-6.1.38.old/net/netfilter/nf_conntrack_core.c linux-6.1.38/net/n
  #endif
  }
  
-+#ifdef CONFIG_NDPI_HOOK
++#ifdef CONFIG_NF_CONNTRACK_DESTROY_HOOK
 +
-+static void (*ndpi_hook)(struct nf_conn *) __rcu __read_mostly = NULL;
++static void (*nf_ct_destroy_hook)(struct nf_conn *) __rcu __read_mostly = NULL;
 +
-+void register_ndpi_hook(void (*hook)(struct nf_conn *))
++void register_nf_ct_destroy_hook(void (*hook)(struct nf_conn *))
 +{
-+	rcu_assign_pointer(ndpi_hook, hook);
++	rcu_assign_pointer(nf_ct_destroy_hook, hook);
 +}
-+EXPORT_SYMBOL(register_ndpi_hook);
++EXPORT_SYMBOL(register_nf_ct_destroy_hook);
 +
-+void unregister_ndpi_hook(void)
++void unregister_nf_ct_destroy_hook(void)
 +{
-+	rcu_assign_pointer(ndpi_hook, NULL);
++	rcu_assign_pointer(nf_ct_destroy_hook, NULL);
 +}
 +
-+EXPORT_SYMBOL(unregister_ndpi_hook);
++EXPORT_SYMBOL(unregister_nf_ct_destroy_hook);
 +#endif
 +
  void nf_ct_destroy(struct nf_conntrack *nfct)
  {
  	struct nf_conn *ct = (struct nf_conn *)nfct;
-+#ifdef CONFIG_NDPI_HOOK
++#ifdef CONFIG_NF_CONNTRACK_DESTROY_HOOK
 +	void (*hook)(struct nf_conn *);
 +#endif
  
@@ -70,8 +70,8 @@ diff -urpN linux-6.1.38.old/net/netfilter/nf_conntrack_core.c linux-6.1.38/net/n
  		return;
  	}
  
-+#ifdef CONFIG_NDPI_HOOK
-+	hook = rcu_dereference(ndpi_hook);
++#ifdef CONFIG_NF_CONNTRACK_DESTROY_HOOK
++	hook = rcu_dereference(nf_ct_destroy_hook);
 +	if (hook)
 +		hook(ct);
 +#endif
