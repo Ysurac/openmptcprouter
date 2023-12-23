@@ -122,7 +122,7 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "74e7f8ebbdc19c58ac59c792154041a6b3c124f5"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "b738e42c4de80bcc59559c436618e42845d62fc1"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "957a6313bd6371e5afae20573a43f5440948e66e"
-	elif [ "$OMR_KERNEL" = "6.6" ]; then
+	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.7" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "2872ff7be19cfd20c95c4cbc880c0af38f82ea15"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "ee4573cd420888d9ee9d763531865c8c1709728f"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "e7650bb86aaacb6ef654c9e10f25cc7c9f799556"
@@ -172,7 +172,7 @@ echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-rockchip"
 echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
-[ "${OMR_KERNEL}" = "6.1" ] || [ "${OMR_KERNEL}" = "6.6" ] && {
+[ "${OMR_KERNEL}" = "6.1" ] || [ "${OMR_KERNEL}" = "6.6" ] || [ "${OMR_KERNEL}" = "6.7" ] && {
 	echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
 	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
 }
@@ -305,7 +305,7 @@ if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET
 	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
-if [ "$OMR_KERNEL" = "6.1" ] || [ "$OMR_KERNEL" = "6.6" ]; then
+if [ "$OMR_KERNEL" = "6.1" ] || [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.7" ]; then
 	echo "# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
@@ -768,22 +768,9 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152 is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_kmod-usb-net-rtl8152-vendor is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_r8152-firmware is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_luci-proto-modemmanager is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_modemmanager is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_luci-proto-ppp is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_luci-proto-ncm is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_luci-proto-3g is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_comgt is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_comgt-ncm is not set" >> ".config"
 	# Remove for now packages that doesn't compile
-	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/services/ppp
-	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/mac80211
-	#rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/kernel/ath10k-ct
 	rm -rf package/kernel/mt76
 	rm -rf package/kernel/rtl8812au-ct
 	# Remove not needed patches
@@ -792,6 +779,33 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
 	rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
 	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
+fi
+if [ "$OMR_KERNEL" = "6.7" ]; then
+	echo "Set to kernel 6.7 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.7%g' {} \;
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.7%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.7 for mediatek"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.7%g' {} \;
+	echo "Done"
+	echo "CONFIG_VERSION_CODE=6.7" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
+	# Remove for now packages that doesn't compile
+	rm -rf package/kernel/mt76
+	rm -rf package/kernel/rtl8812au-ct
+	# Remove not needed patches
+	rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
+	rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
+	rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
+	rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
+	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
+	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
+	echo 'CONFIG_KERNEL_GIT_REF="7377151edddb46e11f664e5709e594551a414fe3"' >> ".config"
 fi
 
 #rm -rf feeds/packages/libs/libwebp

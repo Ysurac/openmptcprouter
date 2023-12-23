@@ -1,0 +1,11 @@
+--- a/ath10k-6.4/debug.c	2023-12-22 20:15:58.689480802 +0100
++++ b/ath10k-6.4/debug.c	2023-12-22 20:16:29.156946389 +0100
+@@ -3961,7 +3961,7 @@
+ 
+ 	buf[buf_size] = '\0';
+ 
+-	if (strtobool(buf, &val) != 0)
++	if (kstrtobool(buf, &val) != 0)
+ 		return -EINVAL;
+ 
+ 	ar->debug.use_ofdm_peak_power = val;
