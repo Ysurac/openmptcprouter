@@ -721,7 +721,6 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 	echo "Done"
 	rm -f target/linux/bcm27xx/patches-6.1/950-0509-README-Add-README.md-with-CI-kernel-build-status-tag.patch
 	rm -f target/linux/bcm27xx/patches-6.1/950-0555-README.md-Replace-6.0-build-status-with-6.2.patch
-	rm -f target/linux/rockchip/patches-6.1/009-v6.4-arm64-dts-rockchip-Add-FriendlyElec-Nanopi-R5S.patch
 	rm -f target/linux/mvebu/patches-6.1/102-leds-turris-omnia-support-HW-controlled-mode-via-pri.patch
 	rm -f target/linux/bcm27xx/modules/sound.mk
 	rm -f package/kernel/rtl8812au-ct/patches/002-*
