@@ -286,15 +286,4 @@ CONFIG_GNUTLS_CRYPTODEV=y
 CONFIG_PACKAGE_kmod-phylink=y
 CONFIG_OPENVPN_openssl_ENABLE_DCO=y
 CONFIG_KERNEL_NF_CONNTRACK_DESTROY_HOOK=y
-# CONFIG_PACKAGE_dnsmasq_full_nftset is not set
-CONFIG_PACKAGE_firewall=y
-# CONFIG_PACKAGE_firewall4 is not set
-CONFIG_PACKAGE_ip6tables-zz-legacy=y
-CONFIG_PACKAGE_iptables-zz-legacy=y
-# CONFIG_PACKAGE_nftables-json is not set
-# CONFIG_PACKAGE_miniupnpd-nftables is not set
-CONFIG_PACKAGE_miniupnpd-iptables=y
-# CONFIG_PACKAGE_ip6tables-nft is not set
-# CONFIG_PACKAGE_iptables-nft is not set
-# CONFIG_PACKAGE_xtables-nft is not set
-CONFIG_PACKAGE_xtables-legacy=y
+# CONFIG_SIGNATURE_CHECK is not set
