@@ -66,9 +66,13 @@
 			label = "4g2:status";
 			gpios = <&pio 13 GPIO_ACTIVE_LOW>;
 		};
-
 	};
-	
+	watchdog {
+		compatible = "linux,wdt-gpio";
+		gpios = <&pio 2 GPIO_ACTIVE_HIGH>;
+		hw_algo = "toggle";
+		hw_margin_ms = <1000>;
+	};
 	usb_vbus: regulator-usb-vbus {
 		compatible = "regulator-fixed";
 		regulator-name = "usb_vbus";
@@ -160,9 +164,8 @@
 				read-only;
 			};
 
-			partition@580000 {
+			nand_rootfs: partition@580000 {
 				label = "ubi";
-				reg = <0x0580000 0x4000000>;
 			};
 		};
 	};
