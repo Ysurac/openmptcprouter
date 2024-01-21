@@ -645,8 +645,6 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 		NOT_SUPPORTED="1"
 		#exit 1
 	fi
-else
-	[ -d "../../../${OMR_FEED}/rust" ] && rm -rf "../../../${OMR_FEED}/rust"
 fi
 if [ "$OMR_KERNEL" = "5.15" ]; then
 	echo "Set to kernel 5.15 for rpi arch"
@@ -815,6 +813,7 @@ fi
 
 #rm -rf feeds/packages/libs/libwebp
 cd "../../.."
+[ "$OMR_KERNEL" = "5.4" ] && [ -d ${OMR_FEED}/rust ] && rm -rf ${OMR_FEED}/rust
 rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
 [ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
