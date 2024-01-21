@@ -646,7 +646,7 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 		#exit 1
 	fi
 else
-	[ -d ${OMR_FEED}/rust ] && rm -rf ${OMR_FEED}/rust
+	[ -d "../../../${OMR_FEED}/rust" ] && rm -rf "../../../${OMR_FEED}/rust"
 fi
 if [ "$OMR_KERNEL" = "5.15" ]; then
 	echo "Set to kernel 5.15 for rpi arch"
