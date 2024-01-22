@@ -813,7 +813,6 @@ fi
 
 #rm -rf feeds/packages/libs/libwebp
 cd "../../.."
-[ "$OMR_KERNEL" = "5.4" ] && [ -d ${OMR_FEED}/rust ] && rm -rf ${OMR_FEED}/rust
 rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
 [ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
