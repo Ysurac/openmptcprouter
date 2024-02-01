@@ -1,0 +1,31 @@
+diff --git a/mac80211.c b/mac80211.c
+index cc9e9ff1..9b29340d 100644
+--- a/mac80211.c
++++ b/mac80211.c
+@@ -4,7 +4,11 @@
+  */
+ #include <linux/sched.h>
+ #include <linux/of.h>
++#if LINUX_VERSION_IS_LESS(6,6,0)
+ #include <net/page_pool.h>
++#else
++#include <net/page_pool/helpers.h>
++#endif
+ #include "mt76.h"
+ 
+ #define CHAN2G(_idx, _freq) {			\
+diff --git a/mt76.h b/mt76.h
+index d2ead585..bb9002d8 100644
+--- a/mt76.h
++++ b/mt76.h
+@@ -15,6 +15,10 @@
+ #include <linux/average.h>
+ #include <linux/soc/mediatek/mtk_wed.h>
+ #include <net/mac80211.h>
++#if LINUX_VERSION_IS_GEQ(6,6,0)
++#include <net/page_pool/helpers.h>
++#endif
++
+ #include "util.h"
+ #include "testmode.h"
+ 

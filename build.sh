@@ -778,7 +778,7 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
 	# Remove for now packages that doesn't compile
-	rm -rf package/kernel/mt76
+	#rm -rf package/kernel/mt76
 	rm -rf package/kernel/rtl8812au-ct
 	# Remove not needed patches
 	rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
