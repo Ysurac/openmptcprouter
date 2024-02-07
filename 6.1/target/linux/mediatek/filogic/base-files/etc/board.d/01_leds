@@ -29,9 +29,10 @@ xiaomi,redmi-router-ax6000-stock|\
 xiaomi,redmi-router-ax6000-ubootmod)
 	ucidef_set_led_netdev "wan" "wan" "rgb:network" "wan"
 	;;
-z8102axx)
-	ucidef_set_led_netdev "4g" "4g" "4g:status" "wwan0"
-	ucidef_set_led_netdev "4g2" "4g2" "4g2:status" "wwan1"
+z8102ax-128m|\
+z8102ax-64m)
+	ucidef_set_led_netdev "modem1" "modem1" "modem1:status" "wwan0"
+	ucidef_set_led_netdev "modem2" "modem2" "modem2:status" "wwan1"
 	;;
 esac
 
