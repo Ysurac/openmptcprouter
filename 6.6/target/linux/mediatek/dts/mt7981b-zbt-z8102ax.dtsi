@@ -147,6 +147,8 @@
 		reg = <1>;
 		phy-mode = "gmii";
 		phy-handle = <&int_gbe_phy>;
+		nvmem-cell-names = "mac-address";
+		nvmem-cells = <&macaddr_factory_02a>;
 	};
 };
 
@@ -224,21 +226,29 @@
 		port@0 {
 			reg = <0>;
 			label = "lan1";
+			nvmem-cell-names = "mac-address";
+			nvmem-cells = <&macaddr_factory_004>;
 		};
 
 		port@1 {
 			reg = <1>;
 			label = "lan2";
+			nvmem-cell-names = "mac-address";
+			nvmem-cells = <&macaddr_factory_004>;
 		};
 
 		port@2 {
 			reg = <2>;
 			label = "lan3";
+			nvmem-cell-names = "mac-address";
+			nvmem-cells = <&macaddr_factory_004>;
 		};
 
 		port@3 {
 			reg = <3>;
 			label = "lan4";
+			nvmem-cell-names = "mac-address";
+			nvmem-cells = <&macaddr_factory_004>;
 		};
 
 		port@6 {
@@ -322,5 +332,8 @@
 
 	macaddr_factory_004: macaddr@004 {
 		reg = <0x004 0x6>;
+	};
+	macaddr_factory_02a: macaddr@02a {
+		reg = <0x02a 0x6>;
 	};
 };
