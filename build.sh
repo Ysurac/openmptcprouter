@@ -202,6 +202,10 @@ else
 #	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
 #	mv -f "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx.old" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/ipq40xx"
 fi
+if [ -n "$CUSTOM_FEED" ] && [ -d ${CUSTOM_FEED}/source/${OMR_TARGET}/${OMR_KERNEL} ]; then
+	echo "Copy ${CUSTOM_FEED}/source/${OMR_TARGET}/${OMR_KERNEL}/* to $OMR_TARGET/${OMR_KERNEL}/source"
+	cp -rf ${CUSTOM_FEED}/source/${OMR_TARGET}/${OMR_KERNEL}/* "$OMR_TARGET/${OMR_KERNEL}/source"
+fi
 
 cat >> "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/etc/banner" <<EOF
 -----------------------------------------------------
@@ -882,6 +886,9 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	scripts/feeds uninstall netifd
 	scripts/feeds install iproute2
 	scripts/feeds install netifd
+else
+	scripts/feeds uninstall rust
+	scripts/feeds install rust
 fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
