@@ -888,7 +888,7 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 	scripts/feeds install netifd
 else
 	scripts/feeds uninstall rust
-	scripts/feeds install rust
+	scripts/feeds install -p packages rust
 fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
