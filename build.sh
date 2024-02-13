@@ -648,6 +648,11 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 		NOT_SUPPORTED="1"
 		exit 1
 	fi
+	if ([ "$OMR_TARGET" = "z8102ax_128m" ] || [ "$OMR_TARGET" = "z8102ax_64m" ]); then
+		echo "Sorry but kernel 5.4 is not supported on your arch yet"
+		NOT_SUPPORTED="1"
+		exit 1
+	fi
 	if [ "$OMR_TARGET" = "rutx50" ]; then
 		echo "Sorry but kernel 5.4 is not supported on your arch yet"
 		NOT_SUPPORTED="1"
