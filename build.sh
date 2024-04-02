@@ -41,7 +41,7 @@ OMR_KERNEL=${OMR_KERNEL:-5.4}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
 #OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
-OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1 | cut -d '-' -f1)}
+OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE-$OMR_KERNEL/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
@@ -127,9 +127,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
 	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.7" ]; then
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "acf40c022e3d8949c7bb1f9c5212eb91512ae8a9"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "7236d4f82b57680d76a52abc934130cb02cc913c"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "888c7bb77ae18edd286f5e9effb2e0c1ffbb7e05"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "723507231566b61750e32284b49acdae0d0162d3"
 	fi
 elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
@@ -773,28 +773,33 @@ if [ "$OMR_KERNEL" = "6.1" ]; then
 fi
 if [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "Set to kernel 6.6 for x86 arch"
-	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.6%g' {} \;
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
 	echo "Done"
 	echo "Set to kernel 6.6 for mediatek"
-	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.6%g' {} \;
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
 	echo "Done"
-	echo "CONFIG_VERSION_CODE=6.6" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
+	echo "Set to kernel 6.6 for qualcommmax"
+	find target/linux/qualcommax -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
+	#echo "CONFIG_VERSION_CODE=6.6" >> ".config"
+	#echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-vfio is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-vfio-pci is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
+	#echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
 	# Remove for now packages that doesn't compile
 	#rm -rf package/kernel/mt76
-	rm -rf package/kernel/rtl8812au-ct
+	#rm -rf package/kernel/rtl8812au-ct
 	# Remove not needed patches
-	rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
-	rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
-	rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
-	rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
-	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
+	#rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
+	#rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
+	#rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
+	#rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
+	#rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
+	rm -f target/linux/generic/hack-6.6/212-tools_portability.patch
 fi
 if [ "$OMR_KERNEL" = "6.7" ]; then
 	echo "Set to kernel 6.7 for x86 arch"
@@ -802,7 +807,7 @@ if [ "$OMR_KERNEL" = "6.7" ]; then
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.7%g' {} \;
 	echo "Done"
 	echo "Set to kernel 6.7 for mediatek"
-	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=5.15%KERNEL_PATCHVER:=6.7%g' {} \;
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.7%g' {} \;
 	echo "Done"
 	echo "CONFIG_VERSION_CODE=6.7" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
@@ -821,7 +826,8 @@ if [ "$OMR_KERNEL" = "6.7" ]; then
 	rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
 	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
-	echo 'CONFIG_KERNEL_GIT_REF="7377151edddb46e11f664e5709e594551a414fe3"' >> ".config"
+	#echo 'CONFIG_KERNEL_GIT_REF="7377151edddb46e11f664e5709e594551a414fe3"' >> ".config"
+	echo 'CONFIG_KERNEL_GIT_REF="3d1856db1e4d551bffe5987f57b84b62e245689b"' >> ".config"
 fi
 
 #rm -rf feeds/packages/libs/libwebp
@@ -830,9 +836,9 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 [ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
 [ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
 #[ -d feeds/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/${OMR_KERNEL}/luci/protocols/luci-proto-modemmanager
-if [ -d ${OMR_FEED}/netifd ] && [ "${OMR_KERNEL}" != "5.4" ]; then
-	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/config/netifd
-fi
+#if [ -d ${OMR_FEED}/netifd ] && [ "${OMR_KERNEL}" != "5.4" ]; then
+#	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/config/netifd
+#fi
 [ -d ${OMR_FEED}/iperf3 ] && rm -rf feeds/${OMR_KERNEL}/packages/net/iperf3
 [ -d ${OMR_FEED}/golang ] && rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
 [ -d ${OMR_FEED}/openvpn ] && rm -rf feeds/${OMR_KERNEL}/packages/net/openvpn
@@ -894,6 +900,10 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 #else
 #	scripts/feeds uninstall rust
 #	scripts/feeds install -p packages rust
+fi
+if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_KERNEL" != "6.1" ]; then
+	scripts/feeds uninstall netifd
+	scripts/feeds install netifd
 fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
