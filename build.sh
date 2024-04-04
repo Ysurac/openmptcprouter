@@ -781,6 +781,9 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "Set to kernel 6.6 for qualcommmax"
 	find target/linux/qualcommax -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
 	echo "Done"
+	echo "Set to kernel 6.1 for bcm27xx"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
 	#echo "CONFIG_VERSION_CODE=6.6" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
@@ -833,8 +836,8 @@ fi
 #rm -rf feeds/packages/libs/libwebp
 cd "../../.."
 rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
-[ -d feeds/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
-[ -d feeds/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
+[ -d feeds/${OMR_DIST}/${OMR_KERNEL}/luci-mod-status ] && rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
+[ -d feeds/${OMR_DIST}/${OMR_KERNEL}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
 #[ -d feeds/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/${OMR_KERNEL}/luci/protocols/luci-proto-modemmanager
 #if [ -d ${OMR_FEED}/netifd ] && [ "${OMR_KERNEL}" != "5.4" ]; then
 #	rm -rf ${OMR_TARGET}/${OMR_KERNEL}/source/package/network/config/netifd
