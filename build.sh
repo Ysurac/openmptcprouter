@@ -837,7 +837,12 @@ fi
 cd "../../.."
 rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 
-[ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ] && rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
+if [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ]; then
+	rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
+elif ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog.patch; then
+	patch -N -p1 -s < ../../patches/luci-syslog.patch
+fi
+
 [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
 #[ -d feeds/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/${OMR_KERNEL}/luci/protocols/luci-proto-modemmanager
 #if [ -d ${OMR_FEED}/netifd ] && [ "${OMR_KERNEL}" != "5.4" ]; then
@@ -854,9 +859,6 @@ cd feeds/${OMR_KERNEL}
 if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
 	patch -N -p1 -s < ../../patches/luci-occitan.patch
 	#sh feeds/luci/build/i18n-add-language.sh oc
-fi
-if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog.patch; then
-	patch -N -p1 -s < ../../patches/luci-syslog.patch
 fi
 if [ "$OMR_KERNEL" = "5.4" ] && ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-base-add_array_sort_utilities.patch; then
 	patch -N -p1 -s < ../../patches/luci-base-add_array_sort_utilities.patch
