@@ -839,8 +839,12 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 
 if [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ]; then
 	rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
-elif ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog.patch; then
-	patch -N -p1 -s < ../../patches/luci-syslog.patch
+else
+	cd feeds/${OMR_KERNEL}
+	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog.patch; then
+		patch -N -p1 -s < ../../patches/luci-syslog.patch
+	fi
+	cd -
 fi
 
 [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
