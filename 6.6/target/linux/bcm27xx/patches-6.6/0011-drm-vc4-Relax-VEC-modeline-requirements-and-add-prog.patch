@@ -1,0 +1,61 @@
+From 099d0ffd5baa82d113f9731369603a1410cf8877 Mon Sep 17 00:00:00 2001
+From: Mateusz Kwiatkowski <kfyatek+publicgit@gmail.com>
+Date: Thu, 15 Jul 2021 01:08:08 +0200
+Subject: [PATCH 0011/1002] drm/vc4: Relax VEC modeline requirements and add
+ progressive mode support
+
+Make vc4_vec_encoder_atomic_check() accept arbitrary modelines, as long
+as they result in somewhat sane output from the VEC. The bounds have
+been determined empirically. Additionally, add support for the
+progressive 262-line and 312-line modes.
+
+Signed-off-by: Mateusz Kwiatkowski <kfyatek+publicgit@gmail.com>
+---
+ drivers/gpu/drm/vc4/vc4_vec.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/drivers/gpu/drm/vc4/vc4_vec.c b/drivers/gpu/drm/vc4/vc4_vec.c
+index 83c2d6f94c8d..a6702acd6b9e 100644
+--- a/drivers/gpu/drm/vc4/vc4_vec.c
++++ b/drivers/gpu/drm/vc4/vc4_vec.c
+@@ -721,6 +721,18 @@ static int vc4_vec_encoder_atomic_check(struct drm_encoder *encoder,
+ 		if ((mode->crtc_vtotal - mode->crtc_vsync_end) < 4)
+ 			return -EINVAL;
+ 
++		if ((mode->flags & DRM_MODE_FLAG_INTERLACE) &&
++		    (mode->vdisplay % 2 != 0 ||
++		     mode->vsync_start % 2 != 1 ||
++		     mode->vsync_end % 2 != 1 ||
++		     mode->vtotal % 2 != 1))
++			return -EINVAL;
++
++		/* progressive mode is hard-wired to 262 total lines */
++		if (!(mode->flags & DRM_MODE_FLAG_INTERLACE) &&
++		    mode->crtc_vtotal != 262)
++			return -EINVAL;
++
+ 		break;
+ 
+ 	/* PAL/SECAM */
+@@ -740,6 +752,18 @@ static int vc4_vec_encoder_atomic_check(struct drm_encoder *encoder,
+ 		if ((mode->crtc_vtotal - mode->crtc_vsync_end) < 2)
+ 			return -EINVAL;
+ 
++		if ((mode->flags & DRM_MODE_FLAG_INTERLACE) &&
++		    (mode->vdisplay % 2 != 0 ||
++		     mode->vsync_start % 2 != 0 ||
++		     mode->vsync_end % 2 != 0 ||
++		     mode->vtotal % 2 != 1))
++			return -EINVAL;
++
++		/* progressive mode is hard-wired to 312 total lines */
++		if (!(mode->flags & DRM_MODE_FLAG_INTERLACE) &&
++		    mode->crtc_vtotal != 312)
++			return -EINVAL;
++
+ 		break;
+ 
+ 	default:
+-- 
+2.44.0
+

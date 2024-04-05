@@ -1,0 +1,65 @@
+From 383072a0b4f9f2c8ec0752788e9bf7f79c86368e Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Tue, 21 Nov 2023 12:55:03 +0000
+Subject: [PATCH 0733/1002] Revert "hwrng: bcm2835 - sleep more intelligently"
+
+This reverts commit 6a825ed68f75bd768e31110ba825b75c5c09cf2d.
+---
+ drivers/char/hw_random/bcm2835-rng.c | 20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/char/hw_random/bcm2835-rng.c b/drivers/char/hw_random/bcm2835-rng.c
+index 84c964b63324..d31ef43b9530 100644
+--- a/drivers/char/hw_random/bcm2835-rng.c
++++ b/drivers/char/hw_random/bcm2835-rng.c
+@@ -13,7 +13,6 @@
+ #include <linux/printk.h>
+ #include <linux/clk.h>
+ #include <linux/reset.h>
+-#include <linux/delay.h>
+ 
+ #define RNG_CTRL	0x0
+ #define RNG_STATUS	0x4
+@@ -28,9 +27,6 @@
+ 
+ #define RNG_INT_OFF	0x1
+ 
+-#define RNG_FIFO_WORDS	4
+-#define RNG_US_PER_WORD	34 /* Tuned for throughput */
+-
+ struct bcm2835_rng_priv {
+ 	struct hwrng rng;
+ 	void __iomem *base;
+@@ -67,23 +63,19 @@ static inline void rng_writel(struct bcm2835_rng_priv *priv, u32 val,
+ static int bcm2835_rng_read(struct hwrng *rng, void *buf, size_t max,
+ 			       bool wait)
+ {
+-	u32 retries = 1000000/(RNG_FIFO_WORDS * RNG_US_PER_WORD);
+ 	struct bcm2835_rng_priv *priv = to_rng_priv(rng);
+ 	u32 max_words = max / sizeof(u32);
+ 	u32 num_words, count;
+ 
+-	num_words = rng_readl(priv, RNG_STATUS) >> 24;
+-
+-	while (!num_words) {
+-		if (!wait || !retries)
++	while ((rng_readl(priv, RNG_STATUS) >> 24) == 0) {
++		if (!wait)
+ 			return 0;
+-		retries--;
+-		usleep_range((u32)RNG_US_PER_WORD,
+-			     (u32)RNG_US_PER_WORD * RNG_FIFO_WORDS);
+-		num_words = rng_readl(priv, RNG_STATUS) >> 24;
++		hwrng_msleep(rng, 1000);
+ 	}
+ 
+-	num_words = min(num_words, max_words);
++	num_words = rng_readl(priv, RNG_STATUS) >> 24;
++	if (num_words > max_words)
++		num_words = max_words;
+ 
+ 	for (count = 0; count < num_words; count++)
+ 		((u32 *)buf)[count] = rng_readl(priv, RNG_DATA);
+-- 
+2.44.0
+

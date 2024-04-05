@@ -1,0 +1,116 @@
+From c45b55466e6c8c5c1aa729676992cee4a1017fcd Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Fri, 17 Nov 2023 19:23:15 +0000
+Subject: [PATCH 0725/1002] configs: Add the drivetemp module
+
+See: https://github.com/raspberrypi/linux/issues/5670
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 2 ++
+ arch/arm/configs/bcm2711_defconfig   | 1 +
+ arch/arm/configs/bcmrpi_defconfig    | 2 ++
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ arch/arm64/configs/bcm2712_defconfig | 1 +
+ arch/arm64/configs/bcmrpi3_defconfig | 2 ++
+ 6 files changed, 9 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index cb74f5e7f1e2..0714b6137b31 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -458,6 +458,7 @@ CONFIG_CHR_DEV_SG=m
+ CONFIG_SCSI_ISCSI_ATTRS=y
+ CONFIG_ISCSI_TCP=m
+ CONFIG_ISCSI_BOOT_SYSFS=m
++CONFIG_ATA=m
+ CONFIG_MD=y
+ CONFIG_MD_LINEAR=m
+ CONFIG_BLK_DEV_DM=m
+@@ -720,6 +721,7 @@ CONFIG_BATTERY_MAX17040=m
+ CONFIG_CHARGER_GPIO=m
+ CONFIG_BATTERY_GAUGE_LTC2941=m
+ CONFIG_SENSORS_AHT10=m
++CONFIG_SENSORS_DRIVETEMP=m
+ CONFIG_SENSORS_DS1621=m
+ CONFIG_SENSORS_GPIO_FAN=m
+ CONFIG_SENSORS_IIO_HWMON=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 4ca272323f51..b1ed094a96e6 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -735,6 +735,7 @@ CONFIG_BATTERY_MAX17040=m
+ CONFIG_CHARGER_GPIO=m
+ CONFIG_BATTERY_GAUGE_LTC2941=m
+ CONFIG_SENSORS_AHT10=m
++CONFIG_SENSORS_DRIVETEMP=m
+ CONFIG_SENSORS_DS1621=m
+ CONFIG_SENSORS_GPIO_FAN=m
+ CONFIG_SENSORS_IIO_HWMON=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 20fc39e72eb9..e76ceb659e84 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -453,6 +453,7 @@ CONFIG_CHR_DEV_SG=m
+ CONFIG_SCSI_ISCSI_ATTRS=y
+ CONFIG_ISCSI_TCP=m
+ CONFIG_ISCSI_BOOT_SYSFS=m
++CONFIG_ATA=m
+ CONFIG_MD=y
+ CONFIG_MD_LINEAR=m
+ CONFIG_BLK_DEV_DM=m
+@@ -714,6 +715,7 @@ CONFIG_BATTERY_MAX17040=m
+ CONFIG_CHARGER_GPIO=m
+ CONFIG_BATTERY_GAUGE_LTC2941=m
+ CONFIG_SENSORS_AHT10=m
++CONFIG_SENSORS_DRIVETEMP=m
+ CONFIG_SENSORS_DS1621=m
+ CONFIG_SENSORS_GPIO_FAN=m
+ CONFIG_SENSORS_IIO_HWMON=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index f4ebe2f531c4..3bfabb058b1a 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -758,6 +758,7 @@ CONFIG_BATTERY_MAX17040=m
+ CONFIG_CHARGER_GPIO=m
+ CONFIG_BATTERY_GAUGE_LTC2941=m
+ CONFIG_SENSORS_AHT10=m
++CONFIG_SENSORS_DRIVETEMP=m
+ CONFIG_SENSORS_DS1621=m
+ CONFIG_SENSORS_GPIO_FAN=m
+ CONFIG_SENSORS_IIO_HWMON=m
+diff --git a/arch/arm64/configs/bcm2712_defconfig b/arch/arm64/configs/bcm2712_defconfig
+index 500d9edb211b..3956c866ab2b 100644
+--- a/arch/arm64/configs/bcm2712_defconfig
++++ b/arch/arm64/configs/bcm2712_defconfig
+@@ -761,6 +761,7 @@ CONFIG_BATTERY_MAX17040=m
+ CONFIG_CHARGER_GPIO=m
+ CONFIG_BATTERY_GAUGE_LTC2941=m
+ CONFIG_SENSORS_AHT10=m
++CONFIG_SENSORS_DRIVETEMP=m
+ CONFIG_SENSORS_DS1621=m
+ CONFIG_SENSORS_GPIO_FAN=m
+ CONFIG_SENSORS_IIO_HWMON=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index ee48a0308146..42fe4d1e6466 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -458,6 +458,7 @@ CONFIG_CHR_DEV_SG=m
+ CONFIG_SCSI_ISCSI_ATTRS=y
+ CONFIG_ISCSI_TCP=m
+ CONFIG_ISCSI_BOOT_SYSFS=m
++CONFIG_ATA=m
+ CONFIG_MD=y
+ CONFIG_MD_LINEAR=m
+ CONFIG_BLK_DEV_DM=m
+@@ -716,6 +717,7 @@ CONFIG_BATTERY_MAX17040=m
+ CONFIG_CHARGER_GPIO=m
+ CONFIG_BATTERY_GAUGE_LTC2941=m
+ CONFIG_SENSORS_AHT10=m
++CONFIG_SENSORS_DRIVETEMP=m
+ CONFIG_SENSORS_DS1621=m
+ CONFIG_SENSORS_GPIO_FAN=m
+ CONFIG_SENSORS_IIO_HWMON=m
+-- 
+2.44.0
+

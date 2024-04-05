@@ -1,0 +1,102 @@
+From 93e87e5c55e319be1658317c23b1cf4b62bba49d Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Wed, 8 Nov 2023 12:04:20 +0000
+Subject: [PATCH 0715/1002] defconfigs: Drop FB_UDL from all Pi defconfigs
+
+CONFIG_FB_UBL is the fbdev driver for DisplayLink USB displays.
+CONFIG_UDL is the DRM driver for DisplayLink USB displays.
+
+Both attach themselves to the same USB device alias, so both
+get loaded for any attached display. You now have 2 drivers for
+the same hardware, and a race as to which one will load.
+
+DRM emulates the framebuffer interface, so disable the fbdev
+driver.
+
+https://github.com/raspberrypi/bookworm-feedback/issues/133
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 -
+ arch/arm/configs/bcm2711_defconfig   | 1 -
+ arch/arm/configs/bcmrpi_defconfig    | 1 -
+ arch/arm64/configs/bcm2711_defconfig | 1 -
+ arch/arm64/configs/bcm2712_defconfig | 1 -
+ arch/arm64/configs/bcmrpi3_defconfig | 1 -
+ 6 files changed, 6 deletions(-)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index e2b84bf6805d..cb74f5e7f1e2 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -965,7 +965,6 @@ CONFIG_TINYDRM_ST7735R=m
+ CONFIG_DRM_GUD=m
+ CONFIG_FB=y
+ CONFIG_FB_BCM2708=y
+-CONFIG_FB_UDL=m
+ CONFIG_FB_SIMPLE=y
+ CONFIG_FB_SSD1307=m
+ CONFIG_FB_RPISENSE=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index fcc7d9a1e29e..4ca272323f51 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -983,7 +983,6 @@ CONFIG_TINYDRM_ST7735R=m
+ CONFIG_DRM_GUD=m
+ CONFIG_FB=y
+ CONFIG_FB_BCM2708=y
+-CONFIG_FB_UDL=m
+ CONFIG_FB_SIMPLE=y
+ CONFIG_FB_SSD1307=m
+ CONFIG_FB_RPISENSE=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 4bfe9f439e24..20fc39e72eb9 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -959,7 +959,6 @@ CONFIG_TINYDRM_ST7735R=m
+ CONFIG_DRM_GUD=m
+ CONFIG_FB=y
+ CONFIG_FB_BCM2708=y
+-CONFIG_FB_UDL=m
+ CONFIG_FB_SIMPLE=y
+ CONFIG_FB_SSD1307=m
+ CONFIG_FB_RPISENSE=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index b5a23465388b..f4ebe2f531c4 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -1020,7 +1020,6 @@ CONFIG_TINYDRM_ST7735R=m
+ CONFIG_DRM_GUD=m
+ CONFIG_FB=y
+ CONFIG_FB_BCM2708=y
+-CONFIG_FB_UDL=m
+ CONFIG_FB_SIMPLE=y
+ CONFIG_FB_SSD1307=m
+ CONFIG_FB_RPISENSE=m
+diff --git a/arch/arm64/configs/bcm2712_defconfig b/arch/arm64/configs/bcm2712_defconfig
+index ef1a8c8bd0f0..500d9edb211b 100644
+--- a/arch/arm64/configs/bcm2712_defconfig
++++ b/arch/arm64/configs/bcm2712_defconfig
+@@ -1023,7 +1023,6 @@ CONFIG_TINYDRM_ST7735R=m
+ CONFIG_DRM_GUD=m
+ CONFIG_FB=y
+ CONFIG_FB_BCM2708=y
+-CONFIG_FB_UDL=m
+ CONFIG_FB_SIMPLE=y
+ CONFIG_FB_SSD1307=m
+ CONFIG_FB_RPISENSE=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 21a236bd7c72..ee48a0308146 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -935,7 +935,6 @@ CONFIG_TINYDRM_ST7735R=m
+ CONFIG_DRM_GUD=m
+ CONFIG_FB=y
+ CONFIG_FB_BCM2708=y
+-CONFIG_FB_UDL=m
+ CONFIG_FB_SIMPLE=y
+ CONFIG_FB_SSD1307=m
+ CONFIG_FB_RPISENSE=m
+-- 
+2.44.0
+

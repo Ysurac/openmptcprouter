@@ -1,0 +1,83 @@
+From c696ba4aacc39492ce09279c71135663d899a298 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 16 Jan 2024 16:05:18 +0000
+Subject: [PATCH 0865/1002] ARM: dts: rp1: Add I2C timings
+
+Add SCL rise and fall times, to allow the derivation of timings at
+arbitrary speeds.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/boot/dts/broadcom/rp1.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/arch/arm/boot/dts/broadcom/rp1.dtsi b/arch/arm/boot/dts/broadcom/rp1.dtsi
+index 8c2ff53a045a..46f80a729a9c 100644
+--- a/arch/arm/boot/dts/broadcom/rp1.dtsi
++++ b/arch/arm/boot/dts/broadcom/rp1.dtsi
+@@ -305,6 +305,8 @@ rp1_i2c0: i2c@70000 {
+ 			compatible = "snps,designware-i2c";
+ 			interrupts = <RP1_INT_I2C0 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&rp1_clocks RP1_CLK_SYS>;
++			i2c-scl-rising-time-ns = <65>;
++			i2c-scl-falling-time-ns = <100>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -313,6 +315,8 @@ rp1_i2c1: i2c@74000 {
+ 			compatible = "snps,designware-i2c";
+ 			interrupts = <RP1_INT_I2C1 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&rp1_clocks RP1_CLK_SYS>;
++			i2c-scl-rising-time-ns = <65>;
++			i2c-scl-falling-time-ns = <100>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -321,6 +325,8 @@ rp1_i2c2: i2c@78000 {
+ 			compatible = "snps,designware-i2c";
+ 			interrupts = <RP1_INT_I2C2 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&rp1_clocks RP1_CLK_SYS>;
++			i2c-scl-rising-time-ns = <65>;
++			i2c-scl-falling-time-ns = <100>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -329,6 +335,8 @@ rp1_i2c3: i2c@7c000 {
+ 			compatible = "snps,designware-i2c";
+ 			interrupts = <RP1_INT_I2C3 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&rp1_clocks RP1_CLK_SYS>;
++			i2c-scl-rising-time-ns = <65>;
++			i2c-scl-falling-time-ns = <100>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -337,6 +345,8 @@ rp1_i2c4: i2c@80000 {
+ 			compatible = "snps,designware-i2c";
+ 			interrupts = <RP1_INT_I2C4 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&rp1_clocks RP1_CLK_SYS>;
++			i2c-scl-rising-time-ns = <65>;
++			i2c-scl-falling-time-ns = <100>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -345,6 +355,8 @@ rp1_i2c5: i2c@84000 {
+ 			compatible = "snps,designware-i2c";
+ 			interrupts = <RP1_INT_I2C5 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&rp1_clocks RP1_CLK_SYS>;
++			i2c-scl-rising-time-ns = <65>;
++			i2c-scl-falling-time-ns = <100>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -353,6 +365,8 @@ rp1_i2c6: i2c@88000 {
+ 			compatible = "snps,designware-i2c";
+ 			interrupts = <RP1_INT_I2C6 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&rp1_clocks RP1_CLK_SYS>;
++			i2c-scl-rising-time-ns = <65>;
++			i2c-scl-falling-time-ns = <100>;
+ 			status = "disabled";
+ 		};
+ 
+-- 
+2.44.0
+

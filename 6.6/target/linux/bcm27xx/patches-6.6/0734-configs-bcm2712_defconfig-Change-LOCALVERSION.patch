@@ -1,0 +1,30 @@
+From 3638abc959034733d85ec9083413cc009a091e26 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 21 Nov 2023 11:54:28 +0000
+Subject: [PATCH 0734/1002] configs: bcm2712_defconfig: Change LOCALVERSION
+
+Debian seem to have rules about the content of the LOCALVERSION config
+setting. Specifically, the underscore is not accepted.
+
+Change it to a dash/hyphen.
+
+See: https://github.com/raspberrypi/linux/issues/5719
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm64/configs/bcm2712_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/configs/bcm2712_defconfig b/arch/arm64/configs/bcm2712_defconfig
+index 3956c866ab2b..2c3f3de48719 100644
+--- a/arch/arm64/configs/bcm2712_defconfig
++++ b/arch/arm64/configs/bcm2712_defconfig
+@@ -1,4 +1,4 @@
+-CONFIG_LOCALVERSION="-v8_16k"
++CONFIG_LOCALVERSION="-v8-16k"
+ # CONFIG_LOCALVERSION_AUTO is not set
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
+-- 
+2.44.0
+

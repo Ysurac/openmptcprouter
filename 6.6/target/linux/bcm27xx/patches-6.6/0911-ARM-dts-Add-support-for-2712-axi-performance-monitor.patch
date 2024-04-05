@@ -1,0 +1,63 @@
+From 7196450d72fd55bcb8f4295ad3af537e62446b82 Mon Sep 17 00:00:00 2001
+From: Dom Cobley <popcornmix@gmail.com>
+Date: Tue, 20 Feb 2024 18:14:44 +0000
+Subject: [PATCH 0911/1002] ARM: dts: Add support for 2712 axi performance
+ monitors
+
+Also give a unique compatible string to 2711 to allow for
+driver differences.
+---
+ arch/arm/boot/dts/broadcom/bcm2711-rpi-ds.dtsi | 4 ++++
+ arch/arm/boot/dts/broadcom/bcm2712-rpi.dtsi    | 1 +
+ arch/arm/boot/dts/broadcom/bcm2712.dtsi        | 8 ++++++++
+ 3 files changed, 13 insertions(+)
+
+diff --git a/arch/arm/boot/dts/broadcom/bcm2711-rpi-ds.dtsi b/arch/arm/boot/dts/broadcom/bcm2711-rpi-ds.dtsi
+index 968db6362989..d5d81d2a81bb 100644
+--- a/arch/arm/boot/dts/broadcom/bcm2711-rpi-ds.dtsi
++++ b/arch/arm/boot/dts/broadcom/bcm2711-rpi-ds.dtsi
+@@ -505,6 +505,10 @@ &uart5 {
+ 	pinctrl-names = "default";
+ };
+ 
++&axiperf {
++	compatible = "brcm,bcm2711-axiperf";
++};
++
+ /delete-node/ &v3d;
+ 
+ / {
+diff --git a/arch/arm/boot/dts/broadcom/bcm2712-rpi.dtsi b/arch/arm/boot/dts/broadcom/bcm2712-rpi.dtsi
+index e6b4edadce5d..169ded7a38ec 100644
+--- a/arch/arm/boot/dts/broadcom/bcm2712-rpi.dtsi
++++ b/arch/arm/boot/dts/broadcom/bcm2712-rpi.dtsi
+@@ -66,6 +66,7 @@ vdd_5v0_reg: fixedregulator_5v0 {
+ / {
+ 	__overrides__ {
+ 		arm_freq;
++		axiperf = <&axiperf>,"status";
+ 	};
+ };
+ 
+diff --git a/arch/arm/boot/dts/broadcom/bcm2712.dtsi b/arch/arm/boot/dts/broadcom/bcm2712.dtsi
+index 12319299ea91..1b6766ec4f3f 100644
+--- a/arch/arm/boot/dts/broadcom/bcm2712.dtsi
++++ b/arch/arm/boot/dts/broadcom/bcm2712.dtsi
+@@ -112,6 +112,14 @@ firmwarekms: firmwarekms@7d503000 {
+ 			status = "disabled";
+ 		};
+ 
++		axiperf: axiperf {
++			compatible = "brcm,bcm2712-axiperf";
++			reg = <0x7c012800 0x100>,
++				<0x7e000000 0x100>;
++			firmware = <&firmware>;
++			status = "disabled";
++		};
++
+ 		mailbox: mailbox@7c013880 {
+ 			compatible = "brcm,bcm2835-mbox";
+ 			reg = <0x7c013880 0x40>;
+-- 
+2.44.0
+

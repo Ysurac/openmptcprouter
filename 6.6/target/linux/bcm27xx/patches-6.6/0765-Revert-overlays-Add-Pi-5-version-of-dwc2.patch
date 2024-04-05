@@ -1,0 +1,97 @@
+From 424b596db0388789281add8c9bf1d827dda36062 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 5 Dec 2023 20:48:46 +0000
+Subject: [PATCH 0765/1002] Revert "overlays: Add Pi 5 version of dwc2"
+
+This reverts commit 72cd5eef1825f9ab3502d0c5584b13c43ad4c840.
+
+We don't need a special dwc2 overlay for Pi 5, with a node to limit the
+DMA zone to the first 1GB, since it turns out that the USB2 controller
+has a 4GB range after all.
+
+See https://github.com/raspberrypi/linux/pull/5772
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/boot/dts/overlays/Makefile            |  1 -
+ arch/arm/boot/dts/overlays/README              |  4 ----
+ .../arm/boot/dts/overlays/dwc2-pi5-overlay.dts | 18 ------------------
+ arch/arm/boot/dts/overlays/overlay_map.dts     | 10 ----------
+ 4 files changed, 33 deletions(-)
+ delete mode 100644 arch/arm/boot/dts/overlays/dwc2-pi5-overlay.dts
+
+diff --git a/arch/arm/boot/dts/overlays/Makefile b/arch/arm/boot/dts/overlays/Makefile
+index 14ce8e7833d6..d825a651439c 100644
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -59,7 +59,6 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
+ 	draws.dtbo \
+ 	dwc-otg.dtbo \
+ 	dwc2.dtbo \
+-	dwc2-pi5.dtbo \
+ 	edt-ft5406.dtbo \
+ 	enc28j60.dtbo \
+ 	enc28j60-spi2.dtbo \
+diff --git a/arch/arm/boot/dts/overlays/README b/arch/arm/boot/dts/overlays/README
+index 6f5b53e9ca71..8937cb4d5b6b 100644
+--- a/arch/arm/boot/dts/overlays/README
++++ b/arch/arm/boot/dts/overlays/README
+@@ -1128,10 +1128,6 @@ Params: dr_mode                 Dual role mode: "host", "peripheral" or "otg"
+                                 mode
+ 
+ 
+-Name:   dwc2-pi5
+-Info:   See dwc2 (this is the Pi 5 version)
+-
+-
+ [ The ds1307-rtc overlay has been deleted. See i2c-rtc. ]
+ 
+ 
+diff --git a/arch/arm/boot/dts/overlays/dwc2-pi5-overlay.dts b/arch/arm/boot/dts/overlays/dwc2-pi5-overlay.dts
+deleted file mode 100644
+index e552c63d049d..000000000000
+--- a/arch/arm/boot/dts/overlays/dwc2-pi5-overlay.dts
++++ /dev/null
+@@ -1,18 +0,0 @@
+-#include "dwc2-overlay.dts"
+-
+-/{
+-	fragment@1 {
+-		target-path = "/";
+-		__overlay__ {
+-			/*
+-			 * Add a node with a dma-ranges value that exists only to be found
+-			 * by of_dma_get_max_cpu_address, and hence limit the DMA zone.
+-			 */
+-			zone_dma {
+-				 #address-cells = <1>;
+-				 #size-cells = <1>;
+-				 dma-ranges = <0x0  0x0 0x0  0x40000000>;
+-			};
+-		};
+-	};
+-};
+diff --git a/arch/arm/boot/dts/overlays/overlay_map.dts b/arch/arm/boot/dts/overlays/overlay_map.dts
+index 4aa600404414..87dfbf987289 100644
+--- a/arch/arm/boot/dts/overlays/overlay_map.dts
++++ b/arch/arm/boot/dts/overlays/overlay_map.dts
+@@ -48,16 +48,6 @@ disable-wifi-pi5 {
+ 		bcm2712;
+ 	};
+ 
+-	dwc2 {
+-		bcm2835;
+-		bcm2711;
+-		bcm2712 = "dwc2-pi5";
+-	};
+-
+-	dwc2-pi5 {
+-		bcm2712;
+-	};
+-
+ 	highperi {
+ 		bcm2711;
+ 	};
+-- 
+2.44.0
+

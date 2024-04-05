@@ -1,0 +1,44 @@
+From 5a1ef915afb636bbc55893fdaed6c4d190bdc314 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 30 Jan 2024 13:26:58 +0000
+Subject: [PATCH 0866/1002] configs: Add NVME_HWMON=y to the Pi 5 kernels
+
+Enabling NVME_HWMON gives access to the temperature of an NVME drive,
+something which could be useful on a Pi 5. Enable the option in the
+arm64 configs bcm2712_defconfig and bcm2711_defconfig.
+
+See: https://github.com/raspberrypi/linux/issues/5909
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm64/configs/bcm2711_defconfig | 1 +
+ arch/arm64/configs/bcm2712_defconfig | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 171a69ef8173..73fbab375748 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -467,6 +467,7 @@ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_BLK_DEV_NVME=y
++CONFIG_NVME_HWMON=y
+ CONFIG_EEPROM_AT24=m
+ CONFIG_EEPROM_AT25=m
+ CONFIG_TI_ST=m
+diff --git a/arch/arm64/configs/bcm2712_defconfig b/arch/arm64/configs/bcm2712_defconfig
+index 4e32db929c03..4aecb0792c6d 100644
+--- a/arch/arm64/configs/bcm2712_defconfig
++++ b/arch/arm64/configs/bcm2712_defconfig
+@@ -470,6 +470,7 @@ CONFIG_BLK_DEV_NBD=m
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_ATA_OVER_ETH=m
+ CONFIG_BLK_DEV_NVME=y
++CONFIG_NVME_HWMON=y
+ CONFIG_EEPROM_AT24=m
+ CONFIG_EEPROM_AT25=m
+ CONFIG_TI_ST=m
+-- 
+2.44.0
+

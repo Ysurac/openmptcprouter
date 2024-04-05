@@ -1,0 +1,36 @@
+From 6b4e937480a4a9b5888e8f5d141044843f489175 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Fri, 6 Oct 2023 17:35:43 +0100
+Subject: [PATCH 0662/1002] Revert "pinctrl-bcm2835: Set base to 0 give
+ expected gpio numbering"
+
+This reverts commit 2afa8798ada2b03fd6ae3ef5c5dfcb39a5877ad8.
+---
+ drivers/pinctrl/bcm/pinctrl-bcm2835.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pinctrl/bcm/pinctrl-bcm2835.c b/drivers/pinctrl/bcm/pinctrl-bcm2835.c
+index ac26569d91b7..8b178b8d7242 100644
+--- a/drivers/pinctrl/bcm/pinctrl-bcm2835.c
++++ b/drivers/pinctrl/bcm/pinctrl-bcm2835.c
+@@ -391,7 +391,7 @@ static const struct gpio_chip bcm2835_gpio_chip = {
+ 	.get = bcm2835_gpio_get,
+ 	.set = bcm2835_gpio_set,
+ 	.set_config = gpiochip_generic_config,
+-	.base = 0,
++	.base = -1,
+ 	.ngpio = BCM2835_NUM_GPIOS,
+ 	.can_sleep = false,
+ 	.add_pin_ranges = bcm2835_add_pin_ranges_fallback,
+@@ -408,7 +408,7 @@ static const struct gpio_chip bcm2711_gpio_chip = {
+ 	.get = bcm2835_gpio_get,
+ 	.set = bcm2835_gpio_set,
+ 	.set_config = gpiochip_generic_config,
+-	.base = 0,
++	.base = -1,
+ 	.ngpio = BCM2711_NUM_GPIOS,
+ 	.can_sleep = false,
+ 	.add_pin_ranges = bcm2835_add_pin_ranges_fallback,
+-- 
+2.44.0
+

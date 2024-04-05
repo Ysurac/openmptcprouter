@@ -1,0 +1,49 @@
+From b96da8c337de4fd4000d3b0dc7956181ffac79f4 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Thu, 11 May 2023 15:40:16 +0100
+Subject: [PATCH 0460/1002] dt-bindings: media: imx258: Rename to include
+ vendor prefix
+
+imx258.yaml doesn't include the vendor prefix of sony, so
+rename to add it.
+Update the id entry and MAINTAINERS to match.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ .../bindings/media/i2c/{imx258.yaml => sony,imx258.yaml}        | 2 +-
+ MAINTAINERS                                                     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+ rename Documentation/devicetree/bindings/media/i2c/{imx258.yaml => sony,imx258.yaml} (97%)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/imx258.yaml b/Documentation/devicetree/bindings/media/i2c/sony,imx258.yaml
+similarity index 97%
+rename from Documentation/devicetree/bindings/media/i2c/imx258.yaml
+rename to Documentation/devicetree/bindings/media/i2c/sony,imx258.yaml
+index 80d24220baa0..bee61a443b23 100644
+--- a/Documentation/devicetree/bindings/media/i2c/imx258.yaml
++++ b/Documentation/devicetree/bindings/media/i2c/sony,imx258.yaml
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+ %YAML 1.2
+ ---
+-$id: http://devicetree.org/schemas/media/i2c/imx258.yaml#
++$id: http://devicetree.org/schemas/media/i2c/sony,imx258.yaml#
+ $schema: http://devicetree.org/meta-schemas/core.yaml#
+ 
+ title: Sony IMX258 13 Mpixel CMOS Digital Image Sensor
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 3efa6cb91db1..55b5cef67359 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -20002,7 +20002,7 @@ M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ T:	git git://linuxtv.org/media_tree.git
+-F:	Documentation/devicetree/bindings/media/i2c/imx258.yaml
++F:	Documentation/devicetree/bindings/media/i2c/sony,imx258.yaml
+ F:	drivers/media/i2c/imx258.c
+ 
+ SONY IMX274 SENSOR DRIVER
+-- 
+2.44.0
+

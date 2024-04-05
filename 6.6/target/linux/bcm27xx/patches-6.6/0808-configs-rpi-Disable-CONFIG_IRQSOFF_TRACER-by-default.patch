@@ -1,0 +1,95 @@
+From 51c963f1665818b6114b03f8c9575b6f7d69cb88 Mon Sep 17 00:00:00 2001
+From: Yangyu Chen <cyy@cyyself.name>
+Date: Mon, 18 Dec 2023 23:26:59 +0800
+Subject: [PATCH 0808/1002] configs: rpi: Disable CONFIG_IRQSOFF_TRACER by
+ default
+
+This configuration hindered performance by ~74% measured from RPI 4B
+from ~680Mbps to ~390Mbps when benchmarking wireguard locally using
+netns and iperf3. Remove it by default for better performance.
+
+Signed-off-by: Yangyu Chen <cyy@cyyself.name>
+---
+ arch/arm/configs/bcm2709_defconfig   | 1 -
+ arch/arm/configs/bcm2711_defconfig   | 1 -
+ arch/arm/configs/bcmrpi_defconfig    | 1 -
+ arch/arm64/configs/bcm2711_defconfig | 1 -
+ arch/arm64/configs/bcm2712_defconfig | 1 -
+ arch/arm64/configs/bcmrpi3_defconfig | 1 -
+ 6 files changed, 6 deletions(-)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index 980da7fbf0f6..1eeab74328d9 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -1568,7 +1568,6 @@ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_LATENCYTOP=y
+ CONFIG_FUNCTION_PROFILER=y
+ CONFIG_STACK_TRACER=y
+-CONFIG_IRQSOFF_TRACER=y
+ CONFIG_SCHED_TRACER=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+ # CONFIG_UPROBE_EVENTS is not set
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 34cc9970d5ed..059e4365cb7f 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -1594,7 +1594,6 @@ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_LATENCYTOP=y
+ CONFIG_FUNCTION_PROFILER=y
+ CONFIG_STACK_TRACER=y
+-CONFIG_IRQSOFF_TRACER=y
+ CONFIG_SCHED_TRACER=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+ # CONFIG_UPROBE_EVENTS is not set
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index 453a48e0fcdb..061bed460993 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -1562,7 +1562,6 @@ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_LATENCYTOP=y
+ CONFIG_FUNCTION_PROFILER=y
+ CONFIG_STACK_TRACER=y
+-CONFIG_IRQSOFF_TRACER=y
+ CONFIG_SCHED_TRACER=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+ # CONFIG_UPROBE_EVENTS is not set
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index f5d0082e6508..171a69ef8173 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -1656,7 +1656,6 @@ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_LATENCYTOP=y
+ CONFIG_FUNCTION_PROFILER=y
+ CONFIG_STACK_TRACER=y
+-CONFIG_IRQSOFF_TRACER=y
+ CONFIG_SCHED_TRACER=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+ # CONFIG_UPROBE_EVENTS is not set
+diff --git a/arch/arm64/configs/bcm2712_defconfig b/arch/arm64/configs/bcm2712_defconfig
+index c128a420a1ad..4e32db929c03 100644
+--- a/arch/arm64/configs/bcm2712_defconfig
++++ b/arch/arm64/configs/bcm2712_defconfig
+@@ -1659,7 +1659,6 @@ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_LATENCYTOP=y
+ CONFIG_FUNCTION_PROFILER=y
+ CONFIG_STACK_TRACER=y
+-CONFIG_IRQSOFF_TRACER=y
+ CONFIG_SCHED_TRACER=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+ # CONFIG_UPROBE_EVENTS is not set
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 862152385899..27209f1f255d 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -1545,7 +1545,6 @@ CONFIG_DETECT_HUNG_TASK=y
+ CONFIG_LATENCYTOP=y
+ CONFIG_FUNCTION_PROFILER=y
+ CONFIG_STACK_TRACER=y
+-CONFIG_IRQSOFF_TRACER=y
+ CONFIG_SCHED_TRACER=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+ # CONFIG_UPROBE_EVENTS is not set
+-- 
+2.44.0
+

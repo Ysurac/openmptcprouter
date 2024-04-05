@@ -1,0 +1,131 @@
+From 80c57b7437fb6f55b879f921f3118a2deb0c15a8 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 12 Mar 2024 10:16:58 +0000
+Subject: [PATCH 0961/1002] ARM: dts: Set all RPi PWM clocks to 50MHz
+
+With the RP1 PWM configured to use the 50MHz oscillator clock source,
+requesting a 100MHz clock will fail. Set the RP1 PWM clock rate to
+50MHz, do the same to other Pi PWM blocks, and remove the default
+clock override in the PWM overlays. However, an explicit
+"clock=..." parameter is still supported.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/boot/dts/broadcom/bcm2711.dtsi          | 2 +-
+ arch/arm/boot/dts/broadcom/bcm2712.dtsi          | 4 ++--
+ arch/arm/boot/dts/broadcom/bcm283x.dtsi          | 2 +-
+ arch/arm/boot/dts/broadcom/rp1.dtsi              | 4 ++--
+ arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts | 1 -
+ arch/arm/boot/dts/overlays/pwm-overlay.dts       | 1 -
+ arch/arm/boot/dts/overlays/pwm1-overlay.dts      | 1 -
+ 7 files changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/boot/dts/broadcom/bcm2711.dtsi b/arch/arm/boot/dts/broadcom/bcm2711.dtsi
+index 4a379a14966d..09dbe7b3ca39 100644
+--- a/arch/arm/boot/dts/broadcom/bcm2711.dtsi
++++ b/arch/arm/boot/dts/broadcom/bcm2711.dtsi
+@@ -277,7 +277,7 @@ pwm1: pwm@7e20c800 {
+ 			reg = <0x7e20c800 0x28>;
+ 			clocks = <&clocks BCM2835_CLOCK_PWM>;
+ 			assigned-clocks = <&clocks BCM2835_CLOCK_PWM>;
+-			assigned-clock-rates = <10000000>;
++			assigned-clock-rates = <50000000>;
+ 			#pwm-cells = <3>;
+ 			status = "disabled";
+ 		};
+diff --git a/arch/arm/boot/dts/broadcom/bcm2712.dtsi b/arch/arm/boot/dts/broadcom/bcm2712.dtsi
+index 1b6766ec4f3f..049cdfadbbbb 100644
+--- a/arch/arm/boot/dts/broadcom/bcm2712.dtsi
++++ b/arch/arm/boot/dts/broadcom/bcm2712.dtsi
+@@ -345,7 +345,7 @@ i2c8: i2c@7d005e00 {
+ 		pwm0: pwm@7d00c000 {
+ 			compatible = "brcm,bcm2835-pwm";
+ 			reg = <0x7d00c000 0x28>;
+-			assigned-clock-rates = <10000000>;
++			assigned-clock-rates = <50000000>;
+ 			#pwm-cells = <3>;
+ 			status = "disabled";
+ 		};
+@@ -353,7 +353,7 @@ pwm0: pwm@7d00c000 {
+ 		pwm1: pwm@7d00c800 {
+ 			compatible = "brcm,bcm2835-pwm";
+ 			reg = <0x7d00c800 0x28>;
+-			assigned-clock-rates = <10000000>;
++			assigned-clock-rates = <50000000>;
+ 			#pwm-cells = <3>;
+ 			status = "disabled";
+ 		};
+diff --git a/arch/arm/boot/dts/broadcom/bcm283x.dtsi b/arch/arm/boot/dts/broadcom/bcm283x.dtsi
+index 2ca8a2505a4d..8ac38cdb9ffc 100644
+--- a/arch/arm/boot/dts/broadcom/bcm283x.dtsi
++++ b/arch/arm/boot/dts/broadcom/bcm283x.dtsi
+@@ -415,7 +415,7 @@ pwm: pwm@7e20c000 {
+ 			reg = <0x7e20c000 0x28>;
+ 			clocks = <&clocks BCM2835_CLOCK_PWM>;
+ 			assigned-clocks = <&clocks BCM2835_CLOCK_PWM>;
+-			assigned-clock-rates = <10000000>;
++			assigned-clock-rates = <50000000>;
+ 			#pwm-cells = <3>;
+ 			status = "disabled";
+ 		};
+diff --git a/arch/arm/boot/dts/broadcom/rp1.dtsi b/arch/arm/boot/dts/broadcom/rp1.dtsi
+index d5f61e74ea27..3b0ca1edb932 100644
+--- a/arch/arm/boot/dts/broadcom/rp1.dtsi
++++ b/arch/arm/boot/dts/broadcom/rp1.dtsi
+@@ -383,7 +383,7 @@ rp1_pwm0: pwm@98000 {
+ 			#pwm-cells = <3>;
+ 			clocks = <&rp1_clocks RP1_CLK_PWM0>;
+ 			assigned-clocks = <&rp1_clocks RP1_CLK_PWM0>;
+-			assigned-clock-rates = <6144000>;
++			assigned-clock-rates = <50000000>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -393,7 +393,7 @@ rp1_pwm1: pwm@9c000 {
+ 			#pwm-cells = <3>;
+ 			clocks = <&rp1_clocks RP1_CLK_PWM1>;
+ 			assigned-clocks = <&rp1_clocks RP1_CLK_PWM1>;
+-			assigned-clock-rates = <6144000>;
++			assigned-clock-rates = <50000000>;
+ 			status = "disabled";
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts b/arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts
+index 4ddbbfa04065..823c8b4126d1 100644
+--- a/arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pwm-2chan-overlay.dts
+@@ -34,7 +34,6 @@ fragment@1 {
+ 		frag1: __overlay__ {
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&pwm_pins>;
+-			assigned-clock-rates = <100000000>;
+ 			status = "okay";
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/overlays/pwm-overlay.dts b/arch/arm/boot/dts/overlays/pwm-overlay.dts
+index 92876ab3bc8c..32853492aaea 100644
+--- a/arch/arm/boot/dts/overlays/pwm-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pwm-overlay.dts
+@@ -32,7 +32,6 @@ fragment@1 {
+ 		frag1: __overlay__ {
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&pwm_pins>;
+-			assigned-clock-rates = <100000000>;
+ 			status = "okay";
+ 		};
+ 	};
+diff --git a/arch/arm/boot/dts/overlays/pwm1-overlay.dts b/arch/arm/boot/dts/overlays/pwm1-overlay.dts
+index 19b4db26cded..3324d4160653 100644
+--- a/arch/arm/boot/dts/overlays/pwm1-overlay.dts
++++ b/arch/arm/boot/dts/overlays/pwm1-overlay.dts
+@@ -42,7 +42,6 @@ fragment@4 {
+ 		target = <&pwm1>;
+ 		pwm: __overlay__ {
+ 			status = "okay";
+-			assigned-clock-rates = <100000000>;
+ 			pinctrl-names = "default";
+ 			pinctrl-0 = <&pins>;
+ 		};
+-- 
+2.44.0
+

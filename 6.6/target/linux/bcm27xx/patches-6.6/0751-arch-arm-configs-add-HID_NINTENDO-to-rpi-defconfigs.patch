@@ -1,0 +1,97 @@
+From 5b2a54a56401a038a0d90fc97f5a373319343fab Mon Sep 17 00:00:00 2001
+From: Ryan McClelland <rymcclel@gmail.com>
+Date: Mon, 27 Nov 2023 16:55:08 -0800
+Subject: [PATCH 0751/1002] arch: arm: configs: add HID_NINTENDO to rpi
+ defconfigs
+
+Signed-off-by: Ryan McClelland <rymcclel@gmail.com>
+---
+ arch/arm/configs/bcm2709_defconfig   | 2 ++
+ arch/arm/configs/bcm2711_defconfig   | 2 ++
+ arch/arm/configs/bcmrpi_defconfig    | 2 ++
+ arch/arm64/configs/bcm2711_defconfig | 2 ++
+ arch/arm64/configs/bcm2712_defconfig | 2 ++
+ arch/arm64/configs/bcmrpi3_defconfig | 2 ++
+ 6 files changed, 12 insertions(+)
+
+diff --git a/arch/arm/configs/bcm2709_defconfig b/arch/arm/configs/bcm2709_defconfig
+index a7462ee7e74c..360ea2acbaa8 100644
+--- a/arch/arm/configs/bcm2709_defconfig
++++ b/arch/arm/configs/bcm2709_defconfig
+@@ -1091,6 +1091,8 @@ CONFIG_HID_MAGICMOUSE=m
+ CONFIG_HID_MICROSOFT=m
+ CONFIG_HID_MONTEREY=m
+ CONFIG_HID_MULTITOUCH=m
++CONFIG_HID_NINTENDO=m
++CONFIG_NINTENDO_FF=y
+ CONFIG_HID_NTRIG=m
+ CONFIG_HID_ORTEK=m
+ CONFIG_HID_PANTHERLORD=m
+diff --git a/arch/arm/configs/bcm2711_defconfig b/arch/arm/configs/bcm2711_defconfig
+index 5ea17d8e3c90..d2e6065d4dc5 100644
+--- a/arch/arm/configs/bcm2711_defconfig
++++ b/arch/arm/configs/bcm2711_defconfig
+@@ -1108,6 +1108,8 @@ CONFIG_HID_MAGICMOUSE=m
+ CONFIG_HID_MICROSOFT=m
+ CONFIG_HID_MONTEREY=m
+ CONFIG_HID_MULTITOUCH=m
++CONFIG_HID_NINTENDO=m
++CONFIG_NINTENDO_FF=y
+ CONFIG_HID_NTRIG=m
+ CONFIG_HID_ORTEK=m
+ CONFIG_HID_PANTHERLORD=m
+diff --git a/arch/arm/configs/bcmrpi_defconfig b/arch/arm/configs/bcmrpi_defconfig
+index b3973fe9c78a..22a2c6d856c0 100644
+--- a/arch/arm/configs/bcmrpi_defconfig
++++ b/arch/arm/configs/bcmrpi_defconfig
+@@ -1084,6 +1084,8 @@ CONFIG_HID_MAGICMOUSE=m
+ CONFIG_HID_MICROSOFT=m
+ CONFIG_HID_MONTEREY=m
+ CONFIG_HID_MULTITOUCH=m
++CONFIG_HID_NINTENDO=m
++CONFIG_NINTENDO_FF=y
+ CONFIG_HID_NTRIG=m
+ CONFIG_HID_ORTEK=m
+ CONFIG_HID_PANTHERLORD=m
+diff --git a/arch/arm64/configs/bcm2711_defconfig b/arch/arm64/configs/bcm2711_defconfig
+index 05afb30d5bc7..f08d3eac4ad7 100644
+--- a/arch/arm64/configs/bcm2711_defconfig
++++ b/arch/arm64/configs/bcm2711_defconfig
+@@ -1147,6 +1147,8 @@ CONFIG_HID_MAGICMOUSE=m
+ CONFIG_HID_MICROSOFT=m
+ CONFIG_HID_MONTEREY=m
+ CONFIG_HID_MULTITOUCH=m
++CONFIG_HID_NINTENDO=m
++CONFIG_NINTENDO_FF=y
+ CONFIG_HID_NTRIG=m
+ CONFIG_HID_ORTEK=m
+ CONFIG_HID_PANTHERLORD=m
+diff --git a/arch/arm64/configs/bcm2712_defconfig b/arch/arm64/configs/bcm2712_defconfig
+index 5945fe472443..22b245277806 100644
+--- a/arch/arm64/configs/bcm2712_defconfig
++++ b/arch/arm64/configs/bcm2712_defconfig
+@@ -1150,6 +1150,8 @@ CONFIG_HID_MAGICMOUSE=m
+ CONFIG_HID_MICROSOFT=m
+ CONFIG_HID_MONTEREY=m
+ CONFIG_HID_MULTITOUCH=m
++CONFIG_HID_NINTENDO=m
++CONFIG_NINTENDO_FF=y
+ CONFIG_HID_NTRIG=m
+ CONFIG_HID_ORTEK=m
+ CONFIG_HID_PANTHERLORD=m
+diff --git a/arch/arm64/configs/bcmrpi3_defconfig b/arch/arm64/configs/bcmrpi3_defconfig
+index 3c4ce0deb6bf..617b0040b47a 100644
+--- a/arch/arm64/configs/bcmrpi3_defconfig
++++ b/arch/arm64/configs/bcmrpi3_defconfig
+@@ -1061,6 +1061,8 @@ CONFIG_HID_MAGICMOUSE=m
+ CONFIG_HID_MICROSOFT=m
+ CONFIG_HID_MONTEREY=m
+ CONFIG_HID_MULTITOUCH=m
++CONFIG_HID_NINTENDO=m
++CONFIG_NINTENDO_FF=y
+ CONFIG_HID_NTRIG=m
+ CONFIG_HID_ORTEK=m
+ CONFIG_HID_PANTHERLORD=m
+-- 
+2.44.0
+

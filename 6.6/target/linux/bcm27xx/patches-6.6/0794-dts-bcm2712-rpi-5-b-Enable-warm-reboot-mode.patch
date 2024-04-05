@@ -1,0 +1,28 @@
+From 4f1c87f3fdc46179471cf7467852c97a8c2aff63 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Mon, 11 Dec 2023 17:00:56 +0000
+Subject: [PATCH 0794/1002] dts: bcm2712-rpi-5-b: Enable warm reboot mode
+
+Switch to warm reboot mode so that the partition number is preserved.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ arch/arm/boot/dts/broadcom/bcm2712-rpi-5-b.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/broadcom/bcm2712-rpi-5-b.dts b/arch/arm/boot/dts/broadcom/bcm2712-rpi-5-b.dts
+index b0f7da512f7d..016ec9e47d03 100644
+--- a/arch/arm/boot/dts/broadcom/bcm2712-rpi-5-b.dts
++++ b/arch/arm/boot/dts/broadcom/bcm2712-rpi-5-b.dts
+@@ -428,7 +428,7 @@ &i2c_rp1boot {
+ 
+ / {
+ 	chosen: chosen {
+-		bootargs = "coherent_pool=1M 8250.nr_uarts=1 pci=pcie_bus_safe snd_bcm2835.enable_compat_alsa=0 snd_bcm2835.enable_hdmi=1";
++		bootargs = "reboot=w coherent_pool=1M 8250.nr_uarts=1 pci=pcie_bus_safe snd_bcm2835.enable_compat_alsa=0 snd_bcm2835.enable_hdmi=1";
+ 		stdout-path = "serial10:115200n8";
+ 	};
+ 
+-- 
+2.44.0
+

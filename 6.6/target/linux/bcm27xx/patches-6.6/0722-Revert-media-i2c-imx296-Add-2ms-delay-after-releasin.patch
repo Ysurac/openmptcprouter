@@ -1,0 +1,29 @@
+From cd418fa469350df756a010ec1c2b5acf65c7dff2 Mon Sep 17 00:00:00 2001
+From: Nick Hollinghurst <nick.hollinghurst@raspberrypi.com>
+Date: Tue, 14 Nov 2023 16:03:54 +0000
+Subject: [PATCH 0722/1002] Revert "media: i2c: imx296: Add 2ms delay after
+ releasing standby"
+
+This reverts commit ecbc04aa0c2e7c8879764c9d2c769ecc74fd9093
+which duplicated 5fb3b300557d6a6902e7321f42fdabb8c09eef54
+
+Signed-off-by: Nick Hollinghurst <nick.hollinghurst@raspberrypi.com>
+---
+ drivers/media/i2c/imx296.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/i2c/imx296.c b/drivers/media/i2c/imx296.c
+index adce60a92002..e16588f2791a 100644
+--- a/drivers/media/i2c/imx296.c
++++ b/drivers/media/i2c/imx296.c
+@@ -949,7 +949,6 @@ static int imx296_identify_model(struct imx296 *sensor)
+ 			"failed to get sensor out of standby (%d)\n", ret);
+ 		return ret;
+ 	}
+-	usleep_range(2000, 5000);
+ 
+ 	usleep_range(2000, 5000);
+ 
+-- 
+2.44.0
+

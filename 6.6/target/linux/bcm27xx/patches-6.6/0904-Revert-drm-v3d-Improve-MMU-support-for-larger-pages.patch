@@ -1,0 +1,123 @@
+From 1158edaaa751f34aa9106e9bb0eb4f147c32cc71 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ma=C3=ADra=20Canal?= <mcanal@igalia.com>
+Date: Tue, 13 Feb 2024 15:22:26 -0300
+Subject: [PATCH 0904/1002] Revert "drm/v3d: Improve MMU support for larger
+ pages"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This implementation of MMU support for larger pages doesn't address the
+real problem: we are using the system's PAGE_SHIFT (which depends on the
+PAGE_SIZE) to allocate the VA.
+
+This implementation is especially problematic when dealing with a high
+memory usage, e.g. vkoverhead and RBDOOM-3-BFG, as it can lead to a
+kernel crash:
+
+[   72.794493] Unable to handle kernel paging request at virtual address ffffc00009b58000
+[   72.802451] Mem abort info:
+[   72.805251]   ESR = 0x0000000096000047
+[   72.809011]   EC = 0x25: DABT (current EL), IL = 32 bits
+[   72.814340]   SET = 0, FnV = 0
+[   72.817399]   EA = 0, S1PTW = 0
+[   72.820544]   FSC = 0x07: level 3 translation fault
+[   72.825438] Data abort info:
+[   72.828320]   ISV = 0, ISS = 0x00000047
+[   72.832165]   CM = 0, WnR = 1
+[   72.835137] swapper pgtable: 16k pages, 47-bit VAs, pgdp=000000000123c000
+[   72.841950] [ffffc00009b58000] pgd=100000010018c003, p4d=100000010018c003, pud=100000010018c003, pmd=1000000100190003, pte=0000000000000000
+[   72.854530] Internal error: Oops: 0000000096000047 [#1] PREEMPT SMP
+[   72.860819] Modules linked in: rfcomm snd_seq_dummy snd_hrtimer snd_seq snd_seq_device algif_hash algif_skcipher af_alg bnep binfmt_misc brcmfmac brcmutil hci_uart cfg80211 btbcm bluetooth aes_ce_blk aes_ce_cipher ghash_ce gf128mul sha2_ce rpivid_hevc(C) pisp_be joydev ecdh_generic sha256_arm64 ecc v4l2_mem2mem sha1_ce videobuf2_dma_contig videobuf2_memops rfkill videobuf2_v4l2 libaes videobuf2_common raspberrypi_hwmon videodev mc pwm_fan rp1_adc raspberrypi_gpiomem nvmem_rmem uio_pdrv_genirq uio i2c_dev fuse dm_mod ip_tables x_tables ipv6 hid_logitech_hidpp hid_logitech_dj vc4 snd_soc_hdmi_codec drm_display_helper cec drm_dma_helper spidev drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops snd_soc_core snd_compress spi_bcm2835 snd_pcm_dmaengine v3d gpu_sched drm_shmem_helper i2c_brcmstb drm snd_pcm snd_timer snd gpio_keys drm_panel_orientation_quirks backlight
+[   72.938384] CPU: 1 PID: 1918 Comm: vkoverhead Tainted: G         C         6.1.0-rpi8-rpi-2712 #1  Debian 1:6.1.73-1+rpt1
+[   72.949386] Hardware name: Raspberry Pi 5 Model B Rev 1.0 (DT)
+[   72.955236] pstate: 80400009 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[   72.962222] pc : v3d_mmu_insert_ptes+0xc0/0x154 [v3d]
+[   72.967298] lr : v3d_mmu_insert_ptes+0x6c/0x154 [v3d]
+[   72.972369] sp : ffffc0000a07bbb0
+[   72.975688] x29: ffffc0000a07bbb0 x28: ffffc0000a07bd48 x27: 0000000000000010
+[   72.982849] x26: ffffc0000a07bd48 x25: ffff800101d9ca00 x24: 0000000000000042
+[   72.990009] x23: ffff800101d9ca00 x22: ffff800100d42000 x21: 0000000000100004
+[   72.997169] x20: ffff8001ca4cc000 x19: 0000000000ffffff x18: 0000000000000100
+[   73.004330] x17: 0000000000000000 x16: ffffd0000c6434b0 x15: ffffd0000d16c008
+[   73.011491] x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[   73.018652] x11: 0000000000000001 x10: 0000000000000000 x9 : ffffcfffde8dc260
+[   73.025813] x8 : ffff800100d42700 x7 : 0000000000003fff x6 : ffff8001ca3a1520
+[   73.032973] x5 : 0000000000100000 x4 : ffffc00009758000 x3 : 0000000000100000
+[   73.040134] x2 : 00000000301ca4cf x1 : 0000000000100001 x0 : 00000000301ca4d0
+[   73.047295] Call trace:
+[   73.049741]  v3d_mmu_insert_ptes+0xc0/0x154 [v3d]
+[   73.054463]  v3d_bo_create_finish+0xd0/0xf0 [v3d]
+[   73.059185]  v3d_create_bo_ioctl+0x50/0x150 [v3d]
+[   73.063906]  drm_ioctl_kernel+0xd0/0x180 [drm]
+[   73.068412]  drm_ioctl+0x214/0x430 [drm]
+[   73.072383]  __arm64_sys_ioctl+0xb4/0xfc
+[   73.076318]  invoke_syscall+0x50/0x120
+[   73.080077]  el0_svc_common.constprop.0+0x4c/0xf4
+[   73.084794]  do_el0_svc+0x34/0xd0
+[   73.088114]  el0_svc+0x2c/0x84
+[   73.091173]  el0t_64_sync_handler+0xf4/0x120
+[   73.095454]  el0t_64_sync+0x18c/0x190
+[   73.099124] Code: 2a0103e3 11000421 4b050020 0b020000 (b8237880)
+[   73.105237] ---[ end trace 0000000000000000 ]---
+
+Signed-off-by: Maíra Canal <mcanal@igalia.com>
+---
+ drivers/gpu/drm/v3d/v3d_mmu.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/gpu/drm/v3d/v3d_mmu.c b/drivers/gpu/drm/v3d/v3d_mmu.c
+index b52ae2a49a1a..5a453532901f 100644
+--- a/drivers/gpu/drm/v3d/v3d_mmu.c
++++ b/drivers/gpu/drm/v3d/v3d_mmu.c
+@@ -22,7 +22,6 @@
+ #include "v3d_regs.h"
+ 
+ #define V3D_MMU_PAGE_SHIFT 12
+-#define V3D_PAGE_FACTOR (PAGE_SIZE >> V3D_MMU_PAGE_SHIFT)
+ 
+ /* Note: All PTEs for the 1MB superpage must be filled with the
+  * superpage bit set.
+@@ -89,7 +88,7 @@ void v3d_mmu_insert_ptes(struct v3d_bo *bo)
+ {
+ 	struct drm_gem_shmem_object *shmem_obj = &bo->base;
+ 	struct v3d_dev *v3d = to_v3d_dev(shmem_obj->base.dev);
+-	u32 page = bo->node.start * V3D_PAGE_FACTOR;
++	u32 page = bo->node.start;
+ 	u32 page_prot = V3D_PTE_WRITEABLE | V3D_PTE_VALID;
+ 	struct sg_dma_page_iter dma_iter;
+ 
+@@ -99,13 +98,13 @@ void v3d_mmu_insert_ptes(struct v3d_bo *bo)
+ 		u32 pte = page_prot | page_address;
+ 		u32 i;
+ 
+-		BUG_ON(page_address + V3D_PAGE_FACTOR >=
++		BUG_ON(page_address + (PAGE_SIZE >> V3D_MMU_PAGE_SHIFT) >=
+ 		       BIT(24));
+-		for (i = 0; i < V3D_PAGE_FACTOR; i++)
++		for (i = 0; i < PAGE_SIZE >> V3D_MMU_PAGE_SHIFT; i++)
+ 			v3d->pt[page++] = pte + i;
+ 	}
+ 
+-	WARN_ON_ONCE(page - (bo->node.start * V3D_PAGE_FACTOR) !=
++	WARN_ON_ONCE(page - bo->node.start !=
+ 		     shmem_obj->base.size >> V3D_MMU_PAGE_SHIFT);
+ 
+ 	if (v3d_mmu_flush_all(v3d))
+@@ -116,10 +115,10 @@ void v3d_mmu_remove_ptes(struct v3d_bo *bo)
+ {
+ 	struct v3d_dev *v3d = to_v3d_dev(bo->base.base.dev);
+ 	u32 npages = bo->base.base.size >> V3D_MMU_PAGE_SHIFT;
+-	u32 page = bo->node.start * V3D_PAGE_FACTOR;
++	u32 page;
+ 
+-	while (npages--)
+-		v3d->pt[page++] = 0;
++	for (page = bo->node.start; page < bo->node.start + npages; page++)
++		v3d->pt[page] = 0;
+ 
+ 	if (v3d_mmu_flush_all(v3d))
+ 		dev_err(v3d->drm.dev, "MMU flush timeout\n");
+-- 
+2.44.0
+
