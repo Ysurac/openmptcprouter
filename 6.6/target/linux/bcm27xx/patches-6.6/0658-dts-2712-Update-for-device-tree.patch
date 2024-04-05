@@ -7977,7 +7977,7 @@ index 000000000000..1457e696f968
 +++ b/arch/arm64/boot/dts/broadcom/bcm2712-rpi-5-b.dts
 @@ -0,0 +1,2 @@
 +// SPDX-License-Identifier: GPL-2.0
-+#include "arm/broadcom/bcm2712-rpi-5-b.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2712-rpi-5-b.dts"
 -- 
 2.44.0
 

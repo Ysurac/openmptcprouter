@@ -38472,63 +38472,63 @@ index 000000000000..9b2c0120842a
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-2-b.dts
 @@ -0,0 +1 @@
-+#include "arm/broadcom/bcm2710-rpi-2-b.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2710-rpi-2-b.dts"
 diff --git a/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b-plus.dts b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b-plus.dts
 new file mode 100644
 index 000000000000..bc869aeaee9b
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b-plus.dts
 @@ -0,0 +1 @@
-+#include "arm/broadcom/bcm2710-rpi-3-b-plus.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2710-rpi-3-b-plus.dts"
 diff --git a/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b.dts b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b.dts
 new file mode 100644
 index 000000000000..263fc8db863a
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-3-b.dts
 @@ -0,0 +1 @@
-+#include "arm/broadcom/bcm2710-rpi-3-b.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2710-rpi-3-b.dts"
 diff --git a/arch/arm64/boot/dts/broadcom/bcm2710-rpi-cm3.dts b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-cm3.dts
 new file mode 100644
 index 000000000000..6beee41b0077
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-cm3.dts
 @@ -0,0 +1 @@
-+#include "arm/broadcom/bcm2710-rpi-cm3.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2710-rpi-cm3.dts"
 diff --git a/arch/arm64/boot/dts/broadcom/bcm2710-rpi-zero-2-w.dts b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-zero-2-w.dts
 new file mode 100644
 index 000000000000..65fa59a939b7
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-zero-2-w.dts
 @@ -0,0 +1 @@
-+#include "arm/broadcom/bcm2710-rpi-zero-2-w.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2710-rpi-zero-2-w.dts"
 diff --git a/arch/arm64/boot/dts/broadcom/bcm2710-rpi-zero-2.dts b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-zero-2.dts
 new file mode 100644
 index 000000000000..65fa59a939b7
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2710-rpi-zero-2.dts
 @@ -0,0 +1 @@
-+#include "arm/broadcom/bcm2710-rpi-zero-2-w.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2710-rpi-zero-2-w.dts"
 diff --git a/arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4.dts b/arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4.dts
 new file mode 100644
 index 000000000000..3e25a0e1797f
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4.dts
 @@ -0,0 +1 @@
-+#include "arm/broadcom/bcm2711-rpi-cm4.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2711-rpi-cm4.dts"
 diff --git a/arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4s.dts b/arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4s.dts
 new file mode 100644
 index 000000000000..c72d752e7400
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4s.dts
 @@ -0,0 +1 @@
-+#include "arm/broadcom/bcm2711-rpi-cm4s.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2711-rpi-cm4s.dts"
 diff --git a/arch/arm64/boot/dts/broadcom/bcm283x-rpi-csi1-2lane.dtsi b/arch/arm64/boot/dts/broadcom/bcm283x-rpi-csi1-2lane.dtsi
 new file mode 120000
 index 000000000000..e5c400284467
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm283x-rpi-csi1-2lane.dtsi
 @@ -0,0 +1 @@
-+../../../../arm/boot/dts/bcm283x-rpi-csi1-2lane.dtsi
++../../../../arm/boot/dts/broadcom/bcm283x-rpi-csi1-2lane.dtsi
 \ No newline at end of file
 diff --git a/arch/arm64/boot/dts/broadcom/bcm283x-rpi-lan7515.dtsi b/arch/arm64/boot/dts/broadcom/bcm283x-rpi-lan7515.dtsi
 new file mode 120000
@@ -38536,7 +38536,7 @@ index 000000000000..fc4c05bbe7fd
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm283x-rpi-lan7515.dtsi
 @@ -0,0 +1 @@
-+../../../../arm/boot/dts/bcm283x-rpi-lan7515.dtsi
++../../../../arm/boot/dts/broadcom/bcm283x-rpi-lan7515.dtsi
 \ No newline at end of file
 diff --git a/arch/arm64/boot/dts/overlays b/arch/arm64/boot/dts/overlays
 new file mode 120000
