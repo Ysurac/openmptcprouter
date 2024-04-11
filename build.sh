@@ -781,9 +781,28 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	echo "Set to kernel 6.6 for qualcommmax"
 	find target/linux/qualcommax -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
 	echo "Done"
-	echo "Set to kernel 6.1 for bcm27xx"
+	echo "Set to kernel 6.6 for bcm27xx"
 	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
 	echo "Done"
+	echo "Set to kernel 6.6 for ipq40xx"
+	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.6 for ipq806x"
+	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.6 for kirkwood"
+	find target/linux/kirkwood -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.6 for mpc85xx"
+	find target/linux/mpc85xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.6 for mvebu"
+	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.6 for ramips"
+	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
+	echo "Done"
+
 	#echo "CONFIG_VERSION_CODE=6.6" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
@@ -803,6 +822,10 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	#rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
 	#rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 	rm -f target/linux/generic/hack-6.6/212-tools_portability.patch
+	if [ ! -d target/linux/$(sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n")/patches-6.6 ]; then
+		echo "Sorry but kernel 6.6 is not supported on your arch yet"
+		NOT_SUPPORTED="1"
+	fi
 fi
 if [ "$OMR_KERNEL" = "6.7" ]; then
 	echo "Set to kernel 6.7 for x86 arch"
