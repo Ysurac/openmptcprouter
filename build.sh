@@ -867,8 +867,10 @@ fi
 if [ "$OMR_KERNEL" = "5.4" ] && ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-base-add_array_sort_utilities.patch; then
 	patch -N -p1 -s < ../../patches/luci-base-add_array_sort_utilities.patch
 fi
-if [ ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-nftables.patch ] && [ -d luci/modules/luci-mod-status ]; then
-	patch -N -p1 -s < ../../patches/luci-nftables.patch
+if [ -d luci/modules/luci-mod-status ]; then
+	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-nftables.patch; then
+		patch -N -p1 -s < ../../patches/luci-nftables.patch
+	fi
 fi
 
 cd ../..
