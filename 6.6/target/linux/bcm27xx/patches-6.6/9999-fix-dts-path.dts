@@ -1,0 +1,56 @@
+diff -aurN arch/arm64/boot/dts/broadcom/bcm2711-rpi-400.dts arch/arm64/boot/dts/broadcom/bcm2711-rpi-400.dts
+--- a/arch/arm64/boot/dts/broadcom/bcm2711-rpi-400.dts	2024-04-13 08:17:32.894925535 +0200
++++ b/arch/arm64/boot/dts/broadcom/bcm2711-rpi-400.dts	2024-04-13 08:18:23.178056960 +0200
+@@ -1,2 +1,2 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include "arm/broadcom/bcm2711-rpi-400.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2711-rpi-400.dts"
+diff -aurN arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dts arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dts
+--- a/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dts	2024-04-13 08:17:32.894925535 +0200
++++ b/arch/arm64/boot/dts/broadcom/bcm2711-rpi-4-b.dts	2024-04-13 08:17:59.838454620 +0200
+@@ -1,2 +1,2 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include "arm/broadcom/bcm2711-rpi-4-b.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2711-rpi-4-b.dts"
+diff -aurN arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4-io.dts arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4-io.dts
+--- a/arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4-io.dts	2024-04-13 08:17:32.894925535 +0200
++++ b/arch/arm64/boot/dts/broadcom/bcm2711-rpi-cm4-io.dts	2024-04-13 08:18:34.909857073 +0200
+@@ -1,2 +1,2 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include "arm/broadcom/bcm2711-rpi-cm4-io.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2711-rpi-cm4-io.dts"
+diff -aurN arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-a-plus.dts arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-a-plus.dts
+--- a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-a-plus.dts	2024-04-13 08:17:32.894925535 +0200
++++ b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-a-plus.dts	2024-04-13 08:18:53.441541332 +0200
+@@ -1,2 +1,2 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include "arm/broadcom/bcm2837-rpi-3-a-plus.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2837-rpi-3-a-plus.dts"
+diff -aurN arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts
+--- a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts	2024-04-13 08:17:32.894925535 +0200
++++ b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts	2024-04-13 08:19:20.433081449 +0200
+@@ -1,2 +1,2 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include "arm/broadcom/bcm2837-rpi-3-b.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2837-rpi-3-b.dts"
+diff -aurN arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b-plus.dts arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b-plus.dts
+--- a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b-plus.dts	2024-04-13 08:17:32.894925535 +0200
++++ b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b-plus.dts	2024-04-13 08:19:05.369338105 +0200
+@@ -1,2 +1,2 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include "arm/broadcom/bcm2837-rpi-3-b-plus.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2837-rpi-3-b-plus.dts"
+diff -aurN arch/arm64/boot/dts/broadcom/bcm2837-rpi-cm3-io3.dts arch/arm64/boot/dts/broadcom/bcm2837-rpi-cm3-io3.dts
+--- a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-cm3-io3.dts	2024-04-13 08:17:32.894925535 +0200
++++ b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-cm3-io3.dts	2024-04-13 08:19:34.956833994 +0200
+@@ -1,2 +1,2 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include "arm/broadcom/bcm2837-rpi-cm3-io3.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2837-rpi-cm3-io3.dts"
+diff -aurN arch/arm64/boot/dts/broadcom/bcm2837-rpi-zero-2-w.dts arch/arm64/boot/dts/broadcom/bcm2837-rpi-zero-2-w.dts
+--- a/arch/arm64/boot/dts/broadcom/bcm2837-rpi-zero-2-w.dts	2024-04-13 08:17:32.894925535 +0200
++++ b/arch/arm64/boot/dts/broadcom/bcm2837-rpi-zero-2-w.dts	2024-04-13 08:19:46.904630428 +0200
+@@ -1,2 +1,2 @@
+ // SPDX-License-Identifier: GPL-2.0
+-#include "arm/broadcom/bcm2837-rpi-zero-2-w.dts"
++#include "../../../../arm/boot/dts/broadcom/bcm2837-rpi-zero-2-w.dts"
