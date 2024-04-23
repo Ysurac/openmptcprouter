@@ -128,9 +128,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
 	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.7" ]; then
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "d668c74fe6efb546f0fd65f0334a3f0bd7bf5df4"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "1cfb5ca084d50519384cb331303d9fde4411a9f2"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "11819152de9751d1edbbeff0bb6d543217b5213a"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "e0363233c958cf591597006f6a0853dc1b0a012f"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "22f8fd5c5b2e366ac7ee203181100fe1bb2fa157"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "f79634dc3e18671b3a2fd992d67d0c68fadd84dc"
 	fi
 elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
