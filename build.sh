@@ -39,6 +39,7 @@ OMR_TARGET_CONFIG="config-$OMR_TARGET"
 UPSTREAM=${UPSTREAM:-no}
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
+DISABLE_FAILSAFE=${DISABLE_FAILSAFE:-no}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
 #OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
 OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
@@ -291,6 +292,11 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo 'CONFIG_VHDX_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+fi
+
+if [ "$DISABLE_FAILSAFE" = "yes" ]; then
+	rm -f "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/lib/preinit/30_failsafe_wait"
+	rm -f "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/lib/preinit/40_run_failsafe_hook"
 fi
 
 if [ "$OMR_PACKAGES" = "full" ]; then
