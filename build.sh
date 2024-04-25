@@ -828,7 +828,7 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	#rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
 	#rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 	rm -f target/linux/generic/hack-6.6/212-tools_portability.patch
-	if [ ! -d target/linux/$(sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n")/patches-6.6 ]; then
+	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-6.6 ]; then
 		echo "Sorry but kernel 6.6 is not supported on your arch yet"
 		NOT_SUPPORTED="1"
 	fi
