@@ -818,6 +818,8 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	#echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
+	echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
+	echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
 	# Remove for now packages that doesn't compile
 	#rm -rf package/kernel/mt76
 	#rm -rf package/kernel/rtl8812au-ct
