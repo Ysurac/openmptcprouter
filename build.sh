@@ -809,7 +809,7 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.1%KERNEL_PATCHVER:=6.6%g' {} \;
 	echo "Done"
 
-	[ -d target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom ] && mv -f target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom/* target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/
+	[ -d target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom ] && mv -f target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom/* target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/ && rm -fr target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom
 	#echo "CONFIG_VERSION_CODE=6.6" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
