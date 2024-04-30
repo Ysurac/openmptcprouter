@@ -820,6 +820,10 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	#echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
 	echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
 	echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
+	echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> ".config"
+	echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> ".config"
 	# Remove for now packages that doesn't compile
 	#rm -rf package/kernel/mt76
 	#rm -rf package/kernel/rtl8812au-ct
