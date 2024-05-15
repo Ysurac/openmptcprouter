@@ -882,7 +882,7 @@ if [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ]; then
 elif [ "$OMR_KERNEL" = "6.6" ]; then
 	cd feeds/${OMR_KERNEL}
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-6.6.patch; then
-		patch -N -p1 -s < ../../patches/luci-syslog-6.6-.patch
+		patch -N -p1 -s < ../../patches/luci-syslog-6.6.patch
 	fi
 	cd -
 else
