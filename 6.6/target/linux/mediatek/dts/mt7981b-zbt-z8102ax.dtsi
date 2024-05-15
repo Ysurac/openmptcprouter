@@ -46,7 +46,7 @@
 
 		led_status_red: red {
 			label = "red:status";
-			gpios = <&pio 9 GPIO_ACTIVE_HIGH>;
+			gpios = <&pio 9 GPIO_ACTIVE_LOW>;
 			color = <LED_COLOR_ID_RED>;
 			function = LED_FUNCTION_STATUS;
 		};
@@ -75,7 +75,7 @@
 		
 		led_status_modem2: modem2 {
 			label = "modem2:status";
-			gpios = <&pio 14 GPIO_ACTIVE_LOW>;
+			gpios = <&pio 13 GPIO_ACTIVE_LOW>;
 			color = <LED_COLOR_ID_BLUE>;
 			function = LED_FUNCTION_USB;
 			function-enumerator = <1>;
