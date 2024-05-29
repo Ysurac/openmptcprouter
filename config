@@ -292,3 +292,4 @@ CONFIG_KERNEL_NF_CONNTRACK_DESTROY_HOOK=y
 # CONFIG_PACKAGE_kmod-leds-gca230718 is not set
 # CONFIG_PACKAGE_libustream-mbedtls is not set
 # CONFIG_PACKAGE_wpad-basic-mbedtls is not set
+# CONFIG_PACKAGE_wpad-basic-wolfssl is not set
