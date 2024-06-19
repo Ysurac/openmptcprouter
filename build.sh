@@ -130,9 +130,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
 	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.7" ]; then
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "4341901f050058aba0f908c775a4d136c311062c"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "f805121318acb6d54fa3b5d80b2ba8d90e40c427"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "08b8b1d0e3bd541d18b66f52b903371dfe38ca95"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "820823198d16f31dd59d88ed0d963eafd103111a"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "2cc7cf3ca0aa6ad2cf5d67a66632ca5a516eb07b"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "5a8917b149c9a248a6b5647e74761f7cc8c2a5c8"
 	fi
 elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
@@ -460,12 +460,21 @@ cd "$OMR_TARGET/${OMR_KERNEL}/source"
 #	echo "Done"
 #fi
 
-echo "Checking if No check patch is set or not"
-if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.patch; then
-	echo "apply..."
-	patch -N -p1 -s < ../../../patches/nocheck.patch
+if [ "$OMR_KERNEL" != "6.6" ]; then
+	echo "Checking if No check patch is set or not"
+	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.patch; then
+		echo "apply..."
+		patch -N -p1 -s < ../../../patches/nocheck.patch
+	fi
+	echo "Done"
+else
+	echo "Checking if No check patch is set or not"
+	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.6.6.patch; then
+		echo "apply..."
+		patch -N -p1 -s < ../../../patches/nocheck.6.6.patch
+	fi
+	echo "Done"
 fi
-echo "Done"
 
 echo "Checking if Nanqinlang patch is set or not"
 if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nanqinlang.patch; then
