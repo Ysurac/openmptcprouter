@@ -1,0 +1,28 @@
+--- a/backport-include/linux/pci.h	2024-07-03 18:45:28.024510047 +0200
++++ b/backport-include/linux/pci.h	2024-07-03 18:46:14.367774516 +0200
+@@ -53,9 +53,11 @@
+ #define PCI_IRQ_LEGACY		(1 << 0) /* Allow legacy interrupts */
+ #define PCI_IRQ_MSI		(1 << 1) /* Allow MSI interrupts */
+ #define PCI_IRQ_MSIX		(1 << 2) /* Allow MSI-X interrupts */
++#ifndef PCI_IRQ_ALL_TYPES
+ #define PCI_IRQ_ALL_TYPES \
+ 	(PCI_IRQ_LEGACY | PCI_IRQ_MSI | PCI_IRQ_MSIX)
+ #endif
++#endif
+ 
+ #if defined(CONFIG_PCI)
+ #if LINUX_VERSION_IS_LESS(5,3,0)
+--- a/net/mac80211/debugfs_netdev.c	2024-07-05 17:33:05.206221266 +0200
++++ b/net/mac80211/debugfs_netdev.c	2024-07-05 17:33:54.873419224 +0200
+@@ -31,9 +31,9 @@
+ 	char buf[200];
+ 	ssize_t ret = -EINVAL;
+ 
+-	read_lock(&dev_base_lock);
++	rcu_read_lock();
+ 	ret = (*format)(data, buf, sizeof(buf));
+-	read_unlock(&dev_base_lock);
++	rcu_read_unlock();
+ 
+ 	if (ret >= 0)
+ 		ret = simple_read_from_buffer(userbuf, count, ppos, buf, ret);

@@ -1,0 +1,11 @@
+--- a/drivers/net/wireless/ath/ath10k/pci.c	2024-07-03 19:28:10.839126997 +0200
++++ b/drivers/net/wireless/ath/ath10k/pci.c	2024-07-03 19:28:29.946816046 +0200
+@@ -3164,7 +3164,7 @@
+ 		 * immediate servicing.
+ 		 */
+ 		if (ath10k_ce_interrupt_summary(ar)) {
+-			napi_reschedule(ctx);
++			napi_schedule(ctx);
+ 			goto out;
+ 		}
+ 		ath10k_pci_enable_legacy_irq(ar);

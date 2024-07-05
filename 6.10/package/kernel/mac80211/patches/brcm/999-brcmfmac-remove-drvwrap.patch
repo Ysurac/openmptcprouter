@@ -1,0 +1,11 @@
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/usb.c	2024-07-03 19:36:03.847429435 +0200
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/usb.c	2024-07-03 19:36:39.742845286 +0200
+@@ -1581,7 +1581,7 @@
+ 
+ void brcmf_usb_exit(void)
+ {
+-	struct device_driver *drv = &brcmf_usbdrvr.drvwrap.driver;
++	struct device_driver *drv = &brcmf_usbdrvr.driver;
+ 	int ret;
+ 
+ 	brcmf_dbg(USB, "Enter\n");

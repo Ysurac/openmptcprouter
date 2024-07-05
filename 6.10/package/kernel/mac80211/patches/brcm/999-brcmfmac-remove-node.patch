@@ -1,0 +1,10 @@
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c	2024-07-03 19:42:56.160718967 +0200
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c	2024-07-03 19:43:12.052460323 +0200
+@@ -2707,7 +2707,6 @@
+ 
+ 
+ static struct pci_driver brcmf_pciedrvr = {
+-	.node = {},
+ 	.name = KBUILD_MODNAME,
+ 	.id_table = brcmf_pcie_devid_table,
+ 	.probe = brcmf_pcie_probe,
