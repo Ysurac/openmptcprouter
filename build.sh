@@ -902,8 +902,7 @@ if [ "$OMR_KERNEL" = "6.10" ]; then
 	rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
 	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
-	#echo 'CONFIG_KERNEL_GIT_REF="7377151edddb46e11f664e5709e594551a414fe3"' >> ".config"
-	echo 'CONFIG_KERNEL_GIT_REF="9c4a82ff89bb16e8ca3cc993345c0122b7d4bfa0"' >> ".config"
+	echo 'CONFIG_KERNEL_GIT_REF="30be9e34452a634aab77a15634890e9c7637812a"' >> ".config"
 fi
 
 #rm -rf feeds/packages/libs/libwebp
