@@ -192,6 +192,10 @@ rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/libs/mbedtls"
 }
 
+# Remove current dwarves directory to replace with fixed package
+rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/tools/dwarves"
+
+
 [ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
 if ([ "$OMR_TARGET" = "rutx" ] || [ "$OMR_TARGET" = "rutx12" ]) && [ "${OMR_KERNEL}" = "5.4" ]; then
 #	cp -rf root/* "$OMR_TARGET/${OMR_KERNEL}/source"
