@@ -263,28 +263,28 @@ endef
 $(eval $(call KernelPackage,fs-f2fs))
 
 
-define KernelPackage/fs-fscache
-  SUBMENU:=$(FS_MENU)
-  TITLE:=General filesystem local cache manager
-  DEPENDS:=+kmod-fs-netfs
-  KCONFIG:=\
-	CONFIG_FSCACHE \
-	CONFIG_FSCACHE_STATS=y \
-	CONFIG_FSCACHE_HISTOGRAM=n \
-	CONFIG_FSCACHE_DEBUG=n \
-	CONFIG_FSCACHE_OBJECT_LIST=n \
-	CONFIG_CACHEFILES \
-	CONFIG_CACHEFILES_DEBUG=n \
-	CONFIG_CACHEFILES_HISTOGRAM=n \
-	CONFIG_CACHEFILES_ERROR_INJECTION=n@ge5.17 \
-	CONFIG_CACHEFILES_ONDEMAND=n@ge5.19
-  FILES:= \
-	$(LINUX_DIR)/fs/fscache/fscache.ko \
-	$(LINUX_DIR)/fs/cachefiles/cachefiles.ko
-  AUTOLOAD:=$(call AutoLoad,29,fscache cachefiles)
-endef
+#define KernelPackage/fs-fscache
+#  SUBMENU:=$(FS_MENU)
+#  TITLE:=General filesystem local cache manager
+#  DEPENDS:=+kmod-fs-netfs
+#  KCONFIG:=\
+#	CONFIG_FSCACHE \
+#	CONFIG_FSCACHE_STATS=y \
+#	CONFIG_FSCACHE_HISTOGRAM=n \
+#	CONFIG_FSCACHE_DEBUG=n \
+#	CONFIG_FSCACHE_OBJECT_LIST=n \
+#	CONFIG_CACHEFILES \
+#	CONFIG_CACHEFILES_DEBUG=n \
+#	CONFIG_CACHEFILES_HISTOGRAM=n \
+#	CONFIG_CACHEFILES_ERROR_INJECTION=n@ge5.17 \
+#	CONFIG_CACHEFILES_ONDEMAND=n@ge5.19
+#  FILES:= \
+#	$(LINUX_DIR)/fs/fscache/fscache.ko \
+#	$(LINUX_DIR)/fs/cachefiles/cachefiles.ko
+#  AUTOLOAD:=$(call AutoLoad,29,fscache cachefiles)
+#endef
 
-$(eval $(call KernelPackage,fs-fscache))
+#$(eval $(call KernelPackage,fs-fscache))
 
 
 define KernelPackage/fs-hfs
