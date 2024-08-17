@@ -130,9 +130,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
 	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ]; then
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "820823198d16f31dd59d88ed0d963eafd103111a"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "2cc7cf3ca0aa6ad2cf5d67a66632ca5a516eb07b"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "5a8917b149c9a248a6b5647e74761f7cc8c2a5c8"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "b72c4b53860ef7a65f486212c7393e2c2b57344b"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "99088284a9ab8b428fe901217e0beaf9cc8009cc"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ca57a08eb9176f51a978cb2adbaa96b6c5dcb470"
 	fi
 elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
@@ -308,12 +308,7 @@ if [ "$DISABLE_FAILSAFE" = "yes" ]; then
 	rm -f "$OMR_TARGET/${OMR_KERNEL}/source/package/base-files/files/lib/preinit/40_run_failsafe_hook"
 fi
 
-if [ "$OMR_PACKAGES" = "full" ]; then
-	echo "CONFIG_PACKAGE_${OMR_DIST}-full=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-fi
-if [ "$OMR_PACKAGES" = "mini" ]; then
-	echo "CONFIG_PACKAGE_${OMR_DIST}-mini=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-fi
+echo "CONFIG_PACKAGE_${OMR_DIST}-${OMR_PACKAGES}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 
 if [ "$SYSLOG" = "busybox-syslogd" ]; then
 	echo "CONFIG_BUSYBOX_CONFIG_FEATURE_SYSLOG=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
@@ -894,6 +889,14 @@ if [ "$OMR_KERNEL" = "6.10" ]; then
 	echo "# CONFIG_PACKAGE_464xlat is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-nat46 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers is not set" >> ".config"
+	echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
+	echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
+	echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES=y" >> ".config"
+	echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> ".config"
+	echo "CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH=y" >> ".config"
 	# Remove for now packages that doesn't compile
 	rm -rf package/kernel/mt76
 	rm -rf package/kernel/rtl8812au-ct
@@ -917,9 +920,9 @@ if [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ]; then
 	rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
 elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ]; then
 	cd feeds/${OMR_KERNEL}
-	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-6.6.patch; then
-		patch -N -p1 -s < ../../patches/luci-syslog-6.6.patch
-	fi
+	#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-6.6.patch; then
+	#	patch -N -p1 -s < ../../patches/luci-syslog-6.6.patch
+	#fi
 	cd -
 else
 	cd feeds/${OMR_KERNEL}
