@@ -923,6 +923,9 @@ elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ]; then
 	#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-6.6.patch; then
 	#	patch -N -p1 -s < ../../patches/luci-syslog-6.6.patch
 	#fi
+	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-6.10.patch; then
+		patch -N -p1 -s < ../../patches/luci-syslog-6.10.patch
+	fi
 	cd -
 else
 	cd feeds/${OMR_KERNEL}
