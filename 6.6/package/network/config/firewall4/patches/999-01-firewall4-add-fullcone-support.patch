@@ -215,7 +215,7 @@ index 1b4764c..c5716da 100644
  		}
  
 +		if (this.state.defaults && !this.state.defaults.fullcone) {
-+			this.warn_section(data, "fullcone in defaults not enabled, ignore zone fullcone settings");
++			//this.warn_section(data, "fullcone in defaults not enabled, ignore zone fullcone settings");
 +			zone.fullcone4 = false;
 +			zone.fullcone6 = false;
 +		}
