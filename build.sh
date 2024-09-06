@@ -848,7 +848,7 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	#echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
 	#echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
-	if [ "$OMR_TARGET" != "ubnt-erx" ]; then
+	if [ "$OMR_TARGET" != "ubnt-erx" ] && [ "$OMR_TARGET" != "r7800" ]; then
 		echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
 		echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
 		echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
