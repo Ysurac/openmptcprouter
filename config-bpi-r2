@@ -22,3 +22,19 @@ CONFIG_PACKAGE_mkf2fs=y
 CONFIG_KERNEL_ARM_MODULE_PLTS=y
 # CONFIG_PACKAGE_kmod-r8125 is not set
 # CONFIG_PACKAGE_kmod-r8168 is not set
+# CONFIG_PACKAGE_kmod-scsi-cdrom is not set
+# CONFIG_PACKAGE_kmod-scsi-generic is not set
+# CONFIG_PACKAGE_kmod-scsi-tape is not set
+# CONFIG_PACKAGE_kmod-iscsi-initiator is not set
+# CONFIG_PACKAGE_kmod-atlantic is not set
+# CONFIG_PACKAGE_kmod-dm9000 is not set
+# CONFIG_PACKAGE_kmod-vmxnet3 is not set
+# CONFIG_PACKAGE_kmod-spi-ks8995 is not set
+# CONFIG_PACKAGE_kmod-solos-pci is not set
+# CONFIG_PACKAGE_kmod-hfcmulti is not set
+# CONFIG_PACKAGE_kmod-forcedeth is not set
+# CONFIG_PACKAGE_kmod-ethoc is not set
+# CONFIG_PACKAGE_kmod-sctp-diag is not set
+# CONFIG_PACKAGE_kmod-sctp is not set
+# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set
+CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y
