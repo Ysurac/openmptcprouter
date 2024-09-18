@@ -1,0 +1,35 @@
+--- a/drivers/net/wireless/intel/iwlwifi/mvm/tt.c	2024-09-13 10:39:13.578207092 +0200
++++ b/drivers/net/wireless/intel/iwlwifi/mvm/tt.c	2024-09-13 10:44:17.201897544 +0200
+@@ -638,28 +638,22 @@
+ }
+ 
+ static int iwl_mvm_tzone_set_trip_temp(struct thermal_zone_device *device,
+-				       int trip, int temp)
++				       const struct thermal_trip *trip, int temp)
+ {
+ 	struct iwl_mvm *mvm = thermal_zone_device_priv(device);
+-	int ret;
+ 
+ 	mutex_lock(&mvm->mutex);
+ 
+ 	if (!iwl_mvm_firmware_running(mvm) ||
+ 	    mvm->fwrt.cur_fw_img != IWL_UCODE_REGULAR) {
+-		ret = -EIO;
+-		goto out;
++		return -EIO;
+ 	}
+ 
+ 	if ((temp / 1000) > S16_MAX) {
+-		ret = -EINVAL;
+-		goto out;
++		return -EINVAL;
+ 	}
+ 
+-	ret = iwl_mvm_send_temp_report_ths_cmd(mvm);
+-out:
+-	mutex_unlock(&mvm->mutex);
+-	return ret;
++	return iwl_mvm_send_temp_report_ths_cmd(mvm);
+ }
+ 
+ static  struct thermal_zone_device_ops tzone_ops = {

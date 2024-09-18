@@ -1,0 +1,11 @@
+--- a/drivers/net/wireless/ath/ath9k/gpio.c	2024-09-16 14:38:11.938379419 +0200
++++ b/drivers/net/wireless/ath/ath9k/gpio.c	2024-09-16 14:38:30.390115635 +0200
+@@ -111,7 +111,7 @@
+ 	gc->gchip.get = ath9k_gpio_pin_get;
+ 	gc->gchip.set = ath9k_gpio_pin_set;
+ 
+-	if (gpiochip_add(&gc->gchip)) {
++	if (gpiochip_add_data(&gc->gchip, NULL)) {
+ 		kfree(gc);
+ 		return;
+ 	}

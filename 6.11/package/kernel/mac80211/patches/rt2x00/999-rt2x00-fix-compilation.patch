@@ -1,0 +1,8 @@
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h	2024-07-03 20:09:49.622279338 +0200
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h	2024-07-03 20:10:26.157677785 +0200
+@@ -294,4 +294,5 @@
+ 			       unsigned short *rxwi_size);
+ void rt2800_pre_reset_hw(struct rt2x00_dev *rt2x00dev);
+ 
++void rt6352_enable_pa_pin(struct rt2x00_dev *rt2x00dev, int enable);
+ #endif /* RT2800LIB_H */

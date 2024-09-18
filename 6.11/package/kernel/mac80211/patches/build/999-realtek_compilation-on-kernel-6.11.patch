@@ -1,0 +1,22 @@
+--- a/drivers/net/wireless/realtek/rtw88/pci.c	2024-09-13 11:32:08.445153484 +0200
++++ b/drivers/net/wireless/realtek/rtw88/pci.c	2024-09-13 11:32:41.416685911 +0200
+@@ -1612,7 +1612,7 @@
+ 
+ static int rtw_pci_request_irq(struct rtw_dev *rtwdev, struct pci_dev *pdev)
+ {
+-	unsigned int flags = PCI_IRQ_LEGACY;
++	unsigned int flags = PCI_IRQ_INTX;
+ 	int ret;
+ 
+ 	if (!rtw_disable_msi)
+--- a/drivers/net/wireless/realtek/rtw89/pci.c	2024-09-13 11:43:44.919279936 +0200
++++ b/drivers/net/wireless/realtek/rtw89/pci.c	2024-09-13 11:44:14.646858619 +0200
+@@ -3565,7 +3565,7 @@
+ 	unsigned long flags = 0;
+ 	int ret;
+ 
+-	flags |= PCI_IRQ_LEGACY | PCI_IRQ_MSI;
++	flags |= PCI_IRQ_INTX | PCI_IRQ_MSI;
+ 	ret = pci_alloc_irq_vectors(pdev, 1, 1, flags);
+ 	if (ret < 0) {
+ 		rtw89_err(rtwdev, "failed to alloc irq vectors, ret %d\n", ret);

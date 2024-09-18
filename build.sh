@@ -836,6 +836,8 @@ if [ "$OMR_KERNEL" = "6.11" ]; then
 	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8126 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8126-rss is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-trelay is not set" >> ".config"
@@ -861,8 +863,8 @@ if [ "$OMR_KERNEL" = "6.11" ]; then
 	rm -f package/kernel/mac80211/patches/build/250-backport_iwlwifi_thermal.patch
 	rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
 	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
-	echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
-	echo 'CONFIG_KERNEL_GIT_REF="c1b7e5cd24c0db2a6a351cfba33474545022d1f5"' >> ".config"
+	#echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
+	#echo 'CONFIG_KERNEL_GIT_REF="92590173530711151d50d13b145a9621b5e8d239"' >> ".config"
 fi
 
 #rm -rf feeds/packages/libs/libwebp
