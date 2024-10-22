@@ -117,10 +117,10 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "acf40c022e3d8949c7bb1f9c5212eb91512ae8a9"
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
-	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ]; then
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "c7ba5574f52f25334add66c15190b578ac873739"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "1002ba7654b13af4255b0922a941eb6c9e8f4ba3"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "80ac1e43650df3c1faf74c622d82d9a7b7a958aa"
+	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ]; then
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "f9da81d32f3299dc91858c3718c4d61d1073f603"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "d02650250b9e6a28d25da51f154b236169e190e5"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "24bbea6825bc5ae2713270a1c2e206cc0212343e"
 	fi
 elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
@@ -169,7 +169,7 @@ if [ "${OMR_KERNEL}" = "5.4" ]; then
 fi
 echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
-[ "${OMR_KERNEL}" = "6.1" ] || [ "${OMR_KERNEL}" = "6.6" ] || [ "${OMR_KERNEL}" = "6.10" ] || [ "${OMR_KERNEL}" = "6.11" ] && {
+[ "${OMR_KERNEL}" = "6.1" ] || [ "${OMR_KERNEL}" = "6.6" ] || [ "${OMR_KERNEL}" = "6.10" ] || [ "${OMR_KERNEL}" = "6.11" ] || [ "${OMR_KERNEL}" = "6.12" ] && {
 	echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
 	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
 }
@@ -327,7 +327,7 @@ if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET
 #	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "CONFIG_PACKAGE_kmod-r8168=m" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
-if [ "$OMR_KERNEL" = "6.1" ] || [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ]; then
+if [ "$OMR_KERNEL" = "6.1" ] || [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ]; then
 	echo "# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
@@ -448,7 +448,7 @@ cd "$OMR_TARGET/${OMR_KERNEL}/source"
 #	echo "Done"
 #fi
 
-if [ "$OMR_KERNEL" != "6.6" ] && [ "$OMR_KERNEL" != "6.10" ] && [ "$OMR_KERNEL" != "6.11" ]; then
+if [ "$OMR_KERNEL" != "6.6" ] && [ "$OMR_KERNEL" != "6.10" ] && [ "$OMR_KERNEL" != "6.11" ] && [ "$OMR_KERNEL" != "6.12" ]; then
 	echo "Checking if No check patch is set or not"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.patch; then
 		echo "apply..."
@@ -869,6 +869,51 @@ if [ "$OMR_KERNEL" = "6.11" ]; then
 	#echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
 	#echo 'CONFIG_KERNEL_GIT_REF="92590173530711151d50d13b145a9621b5e8d239"' >> ".config"
 fi
+if [ "$OMR_KERNEL" = "6.12" ]; then
+	echo "Set to kernel 6.12 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
+	echo "Done"
+	echo "Set to kernel 6.12 for mediatek"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
+	echo "Done"
+	echo "CONFIG_VERSION_CODE=6.12" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8125-rss is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8126 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8126-rss is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-trelay is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_464xlat is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-nat46 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers is not set" >> ".config"
+	echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
+	echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
+	echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> ".config"
+	echo "CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES=y" >> ".config"
+	echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> ".config"
+	echo "CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH=y" >> ".config"
+	echo 'CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves -fno-plt -Wno-stringop-truncation -Wno-stringop-overread -Wno-calloc-transposed-args"' >> ".config"
+	# Remove for now packages that doesn't compile
+	rm -rf package/kernel/mt76
+	rm -rf package/kernel/rtl8812au-ct
+	# Remove not needed patches
+	rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
+	rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
+	rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
+	rm -f package/kernel/mac80211/patches/build/240-backport_genl_split_ops.patch
+	rm -f package/kernel/mac80211/patches/build/250-backport_iwlwifi_thermal.patch
+	rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
+	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
+	#echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
+	#echo 'CONFIG_KERNEL_GIT_REF="92590173530711151d50d13b145a9621b5e8d239"' >> ".config"
+fi
 
 #rm -rf feeds/packages/libs/libwebp
 cd "../../.."
@@ -876,7 +921,7 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 
 if [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ]; then
 	rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
-elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ]; then
+elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ]; then
 	cd feeds/${OMR_KERNEL}
 	#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-6.6.patch; then
 	#	patch -N -p1 -s < ../../patches/luci-syslog-6.6.patch
