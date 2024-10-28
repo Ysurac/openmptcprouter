@@ -948,6 +948,7 @@ fi
 [ -d ${OMR_FEED}/golang ] && rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
 [ -d ${OMR_FEED}/openvpn ] && rm -rf feeds/${OMR_KERNEL}/packages/net/openvpn
 [ -d ${OMR_FEED}/iproute2 ] && rm -rf feeds/${OMR_KERNEL}/packages/network/utils/iproute2
+[ -d ${CUSTOM_FEED}/syslog-ng ] && rm -rf feeds/${OMR_KERNEL}/packages/admin/syslog-ng
 ([ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ]) && [ -d ${OMR_FEED}/xtables-addons ] && rm -rf feeds/${OMR_KERNEL}/packages/net/xtables-addons
 
 echo "Add Occitan translation support"
