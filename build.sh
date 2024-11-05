@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Copyright (C) 2017 OVH OverTheBox
-# Copyright (C) 2017-2023 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter project
+# Copyright (C) 2017-2024 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter project
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
@@ -118,9 +118,9 @@ if [ "$OMR_OPENWRT" = "default" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
 		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
 	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ]; then
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "f9da81d32f3299dc91858c3718c4d61d1073f603"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "d02650250b9e6a28d25da51f154b236169e190e5"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "24bbea6825bc5ae2713270a1c2e206cc0212343e"
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "48028cd102cb709cc2d9a06cb45b53b7c2335a69"
+		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "c477c0b20660bf58f0fba405724478b30892fa5d"
+		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "d90728d2c05da46fe5c2a1a1100a93f9a55730d7"
 	fi
 elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
