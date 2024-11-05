@@ -83,6 +83,10 @@ define Build/append-gl-metadata
 	}
 endef
 
+define Build/append-openwrt-one-eeprom
+	dd if=$(STAGING_DIR_IMAGE)/mt7981_eeprom_mt7976_dbdc.bin >> $@
+endef
+
 define Build/zyxel-nwa-fit-filogic
 	$(TOPDIR)/scripts/mkits-zyxel-fit-filogic.sh \
 		$@.its $@ "80 e1 ff ff ff ff ff ff ff ff"
@@ -204,23 +208,23 @@ define Device/smartrg_sdg-8733
 $(call Device/adtran_smartrg)
   DEVICE_MODEL := SDG-8733
   DEVICE_DTS := mt7988a-smartrg-SDG-8733
-  DEVICE_PACKAGES += kmod-mt7996-firmware kmod-phy-aquantia kmod-usb3
+  DEVICE_PACKAGES += kmod-mt7996-firmware kmod-phy-aquantia kmod-usb3 mt7988-wo-firmware
 endef
 TARGET_DEVICES += smartrg_sdg-8733
 
-#define Device/smartrg_sdg-8733a
-#$(call Device/adtran_smartrg)
-#  DEVICE_MODEL := SDG-8733A
-#  DEVICE_DTS := mt7988d-smartrg-SDG-8733A
-#  DEVICE_PACKAGES += mt7988-2p5g-phy-firmware kmod-mt7996-firmware kmod-phy-aquantia
-#endef
-#TARGET_DEVICES += smartrg_sdg-8733a
+define Device/smartrg_sdg-8733a
+$(call Device/adtran_smartrg)
+  DEVICE_MODEL := SDG-8733A
+  DEVICE_DTS := mt7988d-smartrg-SDG-8733A
+  DEVICE_PACKAGES += mt7988-2p5g-phy-firmware kmod-mt7996-233-firmware kmod-phy-aquantia mt7988-wo-firmware
+endef
+TARGET_DEVICES += smartrg_sdg-8733a
 
 define Device/smartrg_sdg-8734
 $(call Device/adtran_smartrg)
   DEVICE_MODEL := SDG-8734
   DEVICE_DTS := mt7988a-smartrg-SDG-8734
-  DEVICE_PACKAGES += kmod-mt7996-firmware kmod-phy-aquantia kmod-sfp kmod-usb3
+  DEVICE_PACKAGES += kmod-mt7996-firmware kmod-phy-aquantia kmod-sfp kmod-usb3 mt7988-wo-firmware
 endef
 TARGET_DEVICES += smartrg_sdg-8734
 
@@ -249,6 +253,30 @@ define Device/asus_tuf-ax4200
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += asus_tuf-ax4200
+
+define Device/arcadyan_mozart
+  DEVICE_VENDOR := Arcadyan
+  DEVICE_MODEL := Mozart
+  DEVICE_DTS := mt7988a-arcadyan-mozart
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTC_FLAGS := --pad 4096
+  DEVICE_DTS_LOADADDR := 0x45f00000
+  DEVICE_PACKAGES := kmod-hwmon-pwmfan e2fsprogs f2fsck mkf2fs kmod-mt7996-firmware
+  KERNEL_LOADADDR := 0x46000000
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+        fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  KERNEL_INITRAMFS_SUFFIX := .itb
+  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
+  IMAGES := sysupgrade.itb
+  IMAGE/sysupgrade.itb := append-kernel | fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-with-rootfs | pad-rootfs | append-metadata
+  ARTIFACTS := emmc-preloader.bin emmc-bl31-uboot.fip emmc-gpt.bin
+  ARTIFACT/emmc-gpt.bin := mt798x-gpt emmc
+  ARTIFACT/emmc-preloader.bin	:= mt7988-bl2 emmc-comb
+  ARTIFACT/emmc-bl31-uboot.fip	:= mt7988-bl31-uboot arcadyan_mozart
+  SUPPORTED_DEVICES += arcadyan,mozart
+endef
+TARGET_DEVICES += arcadyan_mozart
 
 define Device/asus_tuf-ax6000
   DEVICE_VENDOR := ASUS
@@ -373,8 +401,8 @@ define Device/bananapi_bpi-r4-common
   DEVICE_DTS_LOADADDR := 0x45f00000
   DEVICE_DTS_OVERLAY:= mt7988a-bananapi-bpi-r4-emmc mt7988a-bananapi-bpi-r4-rtc mt7988a-bananapi-bpi-r4-sd mt7988a-bananapi-bpi-r4-wifi-mt7996a
   DEVICE_DTC_FLAGS := --pad 4096
-  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-i2c-mux-pca954x kmod-eeprom-at24 kmod-mt7996-firmware \
-		     kmod-rtc-pcf8563 kmod-sfp kmod-usb3 e2fsprogs f2fsck mkf2fs
+  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-i2c-mux-pca954x kmod-eeprom-at24 kmod-mt7996-firmware kmod-mt7996-233-firmware \
+		     kmod-rtc-pcf8563 kmod-sfp kmod-usb3 e2fsprogs f2fsck mkf2fs mt7988-wo-firmware
   IMAGES := sysupgrade.itb
   KERNEL_LOADADDR := 0x46000000
   KERNEL_INITRAMFS_SUFFIX := -recovery.itb
@@ -1047,10 +1075,6 @@ define Device/openembed_som7981
 endef
 TARGET_DEVICES += openembed_som7981
 
-define Build/append-openwrt-one-eeprom
-        dd if=$(STAGING_DIR_IMAGE)/mt7981_eeprom_mt7976_dbdc.bin >> $@
-endef
-
 define Device/openwrt_one
   DEVICE_VENDOR := OpenWrt
   DEVICE_MODEL := One
@@ -1090,7 +1114,9 @@ define Device/openwrt_one
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
-  UBINIZE_PARTS := fip=:$(STAGING_DIR_IMAGE)/mt7981_openwrt_one-snand-u-boot.fip recovery=:$(KDIR)/tmp/openwrt-mediatek-filogic-openwrt_one-initramfs.itb \
+  UBINIZE_PARTS := fip=:$(STAGING_DIR_IMAGE)/mt7981_openwrt_one-snand-u-boot.fip \
+		   $(if $(IB),recovery=:$(STAGING_DIR_IMAGE)/mediatek-filogic-openwrt_one-initramfs.itb,\
+			      recovery=:$(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE)) \
 		   $(if $(wildcard $(TOPDIR)/openwrt-mediatek-filogic-openwrt_one-calibration.itb), calibration=:$(TOPDIR)/openwrt-mediatek-filogic-openwrt_one-calibration.itb)
 endef
 TARGET_DEVICES += openwrt_one
@@ -1403,7 +1429,6 @@ define Device/yuncore_ax835
   DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
 endef
 TARGET_DEVICES += yuncore_ax835
-
 
 define Device/zbtlink_zbt-z8102ax
   DEVICE_VENDOR := Zbtlink
