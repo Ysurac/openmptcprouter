@@ -1,0 +1,541 @@
+--- a/net/wireless/trace.h	2024-09-13 13:11:10.145025393 +0200
++++ b/net/wireless/trace.h	2024-09-13 13:14:21.774308452 +0200
+@@ -372,7 +372,7 @@
+ 	),
+ 	TP_fast_assign(
+ 		WIPHY_ASSIGN;
+-		__assign_str(vir_intf_name, name ? name : "<noname>");
++		__assign_str(vir_intf_name);
+ 		__entry->type = type;
+ 	),
+ 	TP_printk(WIPHY_PR_FMT ", virtual intf name: %s, type: %d",
+--- a/net/mac80211/trace.h	2024-09-13 13:27:20.887264216 +0200
++++ b/net/mac80211/trace.h	2024-09-13 13:29:33.057391014 +0200
+@@ -33,7 +33,7 @@
+ 			__string(vif_name, sdata->name)
+ #define VIF_ASSIGN	__entry->vif_type = sdata->vif.type; __entry->sdata = sdata;	\
+ 			__entry->p2p = sdata->vif.p2p;					\
+-			__assign_str(vif_name, sdata->name)
++			__assign_str(vif_name)
+ #define VIF_PR_FMT	" vif:%s(%d%s)"
+ #define VIF_PR_ARG	__get_str(vif_name), __entry->vif_type, __entry->p2p ? "/p2p" : ""
+ 
+--- a/drivers/bus/mhi/host/trace.h	2024-09-13 13:31:32.207702337 +0200
++++ b/drivers/bus/mhi/host/trace.h	2024-09-13 13:32:22.330991957 +0200
+@@ -103,7 +103,7 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(name, mhi_cntrl->mhi_dev->name);
++		__assign_str(name);
+ 		__entry->ch_num = mhi_chan->chan;
+ 		__entry->wp = mhi_tre;
+ 		__entry->tre_ptr = mhi_tre->ptr;
+@@ -131,7 +131,7 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(name, mhi_cntrl->mhi_dev->name);
++		__assign_str(name);
+ 		__entry->local_ee = mhi_cntrl->ee;
+ 		__entry->state = mhi_cntrl->dev_state;
+ 		__entry->dev_ee = dev_ee;
+@@ -158,7 +158,7 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(name, mhi_cntrl->mhi_dev->name);
++		__assign_str(name);
+ 		if (pm_state)
+ 			pm_state = __fls(pm_state);
+ 		__entry->pm_state = pm_state;
+@@ -184,7 +184,7 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(name, mhi_cntrl->mhi_dev->name);
++		__assign_str(name);
+ 		__entry->rp = rp;
+ 		__entry->ptr = rp->ptr;
+ 		__entry->dword0 = rp->dword[0];
+@@ -226,7 +226,7 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(name, mhi_cntrl->mhi_dev->name);
++		__assign_str(name);
+ 		__entry->ch_num = mhi_chan->chan;
+ 		__entry->state = state;
+ 		__entry->reason = reason;
+@@ -265,7 +265,7 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(name, mhi_cntrl->mhi_dev->name);
++		__assign_str(name);
+ 		__entry->state = state;
+ 	),
+ 
+--- a/drivers/net/wireless/ath/ath10k/trace.h	2024-09-13 13:31:32.087704038 +0200
++++ b/drivers/net/wireless/ath/ath10k/trace.h	2024-09-13 13:35:37.760222205 +0200
+@@ -55,8 +55,8 @@
+ 		__vstring(msg, vaf->fmt, vaf->va)
+ 	),
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__assign_vstr(msg, vaf->fmt, vaf->va);
+ 	),
+ 	TP_printk(
+@@ -92,8 +92,8 @@
+ 		__vstring(msg, vaf->fmt, vaf->va)
+ 	),
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->level = level;
+ 		__assign_vstr(msg, vaf->fmt, vaf->va);
+ 	),
+@@ -121,10 +121,10 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
+-		__assign_str(msg, msg);
+-		__assign_str(prefix, prefix);
++		__assign_str(device);
++		__assign_str(driver);
++		__assign_str(msg);
++		__assign_str(prefix);
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+ 	),
+@@ -152,8 +152,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->id = id;
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+@@ -182,8 +182,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->id = id;
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+@@ -211,8 +211,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+ 	),
+@@ -239,8 +239,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->hw_type = ar->hw_rev;
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+@@ -269,8 +269,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->hw_type = ar->hw_rev;
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(pktlog), buf, buf_len);
+@@ -301,8 +301,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->msdu_id = msdu_id;
+ 		__entry->msdu_len = msdu_len;
+ 		__entry->vdev_id = vdev_id;
+@@ -332,8 +332,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->msdu_id = msdu_id;
+ 	),
+ 
+@@ -358,8 +358,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = ath10k_frm_hdr_len(data, len);
+ 		memcpy(__get_dynamic_array(data), data, __entry->len);
+ 	),
+@@ -386,8 +386,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = len - ath10k_frm_hdr_len(data, len);
+ 		memcpy(__get_dynamic_array(payload),
+ 		       data + ath10k_frm_hdr_len(data, len), __entry->len);
+@@ -435,8 +435,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->hw_type = ar->hw_rev;
+ 		__entry->len = len;
+ 		memcpy(__get_dynamic_array(rxdesc), data, len);
+@@ -472,8 +472,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->type = type;
+ 		__entry->timestamp = timestamp;
+ 		__entry->code = code;
+@@ -505,8 +505,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->dev));
+-		__assign_str(driver, dev_driver_string(ar->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = len;
+ 		memcpy(__get_dynamic_array(data), data, len);
+ 	),
+--- a/drivers/net/wireless/ath/ath11k/trace.h	2024-09-13 13:31:32.047704605 +0200
++++ b/drivers/net/wireless/ath/ath11k/trace.h	2024-09-13 13:37:29.026645264 +0200
+@@ -48,8 +48,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->ab->dev));
+-		__assign_str(driver, dev_driver_string(ar->ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->buf_len = buf_len;
+ 		__entry->pktlog_checksum = pktlog_checksum;
+ 		memcpy(__get_dynamic_array(pktlog), buf, buf_len);
+@@ -77,8 +77,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->ab->dev));
+-		__assign_str(driver, dev_driver_string(ar->ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = len;
+ 		memcpy(__get_dynamic_array(ppdu), data, len);
+ 	),
+@@ -105,8 +105,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->ab->dev));
+-		__assign_str(driver, dev_driver_string(ar->ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = len;
+ 		__entry->log_type = log_type;
+ 		memcpy(__get_dynamic_array(rxdesc), data, len);
+@@ -130,8 +130,8 @@
+ 		__vstring(msg, vaf->fmt, vaf->va)
+ 	),
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ab->dev));
+-		__assign_str(driver, dev_driver_string(ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__assign_vstr(msg, vaf->fmt, vaf->va);
+ 	),
+ 	TP_printk(
+@@ -171,8 +171,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ab->dev));
+-		__assign_str(driver, dev_driver_string(ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->id = id;
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+@@ -201,8 +201,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ab->dev));
+-		__assign_str(driver, dev_driver_string(ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->id = id;
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+@@ -230,8 +230,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ab->dev));
+-		__assign_str(driver, dev_driver_string(ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->level = level;
+ 		WARN_ON_ONCE(vsnprintf(__get_dynamic_array(msg),
+ 				       ATH11K_MSG_MAX, vaf->fmt,
+@@ -262,10 +262,10 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ab->dev));
+-		__assign_str(driver, dev_driver_string(ab->dev));
+-		__assign_str(msg, msg);
+-		__assign_str(prefix, prefix);
++		__assign_str(device);
++		__assign_str(driver);
++		__assign_str(msg);
++		__assign_str(prefix);
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+ 	),
+@@ -292,8 +292,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ab->dev));
+-		__assign_str(driver, dev_driver_string(ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = len;
+ 		memcpy(__get_dynamic_array(data), data, len);
+ 	),
+@@ -318,8 +318,8 @@
+ 			 __field(u32, peer_ps_timestamp)
+ 	),
+ 
+-	TP_fast_assign(__assign_str(device, dev_name(ar->ab->dev));
+-		       __assign_str(driver, dev_driver_string(ar->ab->dev));
++	TP_fast_assign(__assign_str(device);
++		       __assign_str(driver);
+ 		       memcpy(__get_dynamic_array(peer_addr), peer_addr,
+ 			      ETH_ALEN);
+ 		       __entry->peer_ps_state = peer_ps_state;
+--- a/drivers/net/wireless/ath/ath12k/trace.h	2024-09-13 13:31:32.071704265 +0200
++++ b/drivers/net/wireless/ath/ath12k/trace.h	2024-09-13 13:38:04.682139931 +0200
+@@ -36,8 +36,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->ab->dev));
+-		__assign_str(driver, dev_driver_string(ar->ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->buf_len = buf_len;
+ 		__entry->pktlog_checksum = pktlog_checksum;
+ 		memcpy(__get_dynamic_array(pktlog), buf, buf_len);
+@@ -73,8 +73,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->ab->dev));
+-		__assign_str(driver, dev_driver_string(ar->ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = len;
+ 		__entry->info = ar->pdev->timestamp.info;
+ 		__entry->sync_tstmp_lo_us = ar->pdev->timestamp.sync_timestamp_hi_us;
+@@ -117,8 +117,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ar->ab->dev));
+-		__assign_str(driver, dev_driver_string(ar->ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = len;
+ 		__entry->type = type;
+ 		__entry->info = ar->pdev->timestamp.info;
+@@ -153,8 +153,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(device, dev_name(ab->dev));
+-		__assign_str(driver, dev_driver_string(ab->dev));
++		__assign_str(device);
++		__assign_str(driver);
+ 		__entry->len = len;
+ 		memcpy(__get_dynamic_array(data), data, len);
+ 	),
+--- a/drivers/net/wireless/ath/ath6kl/trace.h	2024-09-13 13:31:32.079704151 +0200
++++ b/drivers/net/wireless/ath/ath6kl/trace.h	2024-09-13 13:33:01.462437360 +0200
+@@ -304,8 +304,8 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(msg, msg);
+-		__assign_str(prefix, prefix);
++		__assign_str(msg);
++		__assign_str(prefix);
+ 		__entry->buf_len = buf_len;
+ 		memcpy(__get_dynamic_array(buf), buf, buf_len);
+ 	),
+--- a/drivers/net/wireless/ath/trace.h	2024-09-13 13:31:32.043704662 +0200
++++ b/drivers/net/wireless/ath/trace.h	2024-09-13 13:44:05.849032491 +0200
+@@ -44,8 +44,8 @@
+ 	    ),
+ 
+ 	    TP_fast_assign(
+-		    __assign_str(device, wiphy_name(wiphy));
+-		    __assign_str(driver, KBUILD_MODNAME);
++		    __assign_str(device);
++		    __assign_str(driver);
+ 		    __assign_vstr(msg, vaf->fmt, vaf->va);
+ 	    ),
+ 
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/tracepoint.h	2024-09-13 13:31:31.999705285 +0200
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/tracepoint.h	2024-09-13 13:42:28.746405624 +0200
+@@ -41,7 +41,7 @@
+ 		__vstring(msg, vaf->fmt, vaf->va)
+ 	),
+ 	TP_fast_assign(
+-		__assign_str(func, func);
++		__assign_str(func);
+ 		__assign_vstr(msg, vaf->fmt, vaf->va);
+ 	),
+ 	TP_printk("%s: %s", __get_str(func), __get_str(msg))
+@@ -57,7 +57,7 @@
+ 	),
+ 	TP_fast_assign(
+ 		__entry->level = level;
+-		__assign_str(func, func);
++		__assign_str(func);
+ 		__assign_vstr(msg, vaf->fmt, vaf->va);
+ 	),
+ 	TP_printk("%s: %s", __get_str(func), __get_str(msg))
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/brcms_trace_brcmsmac.h	2024-09-13 13:31:32.011705114 +0200
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/brcms_trace_brcmsmac.h	2024-09-13 13:42:44.218186836 +0200
+@@ -81,7 +81,7 @@
+ 		__field(u32, mask)
+ 	),
+ 	TP_fast_assign(
+-		__assign_str(dev, dev_name(dev));
++		__assign_str(dev);
+ 		__entry->in_isr = in_isr;
+ 		__entry->macintstatus = macintstatus;
+ 		__entry->mask = mask;
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/brcms_trace_brcmsmac_msg.h	2024-09-13 13:31:32.011705114 +0200
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/brcms_trace_brcmsmac_msg.h	2024-09-13 13:42:52.242073370 +0200
+@@ -71,7 +71,7 @@
+ 	),
+ 	TP_fast_assign(
+ 		__entry->level = level;
+-		__assign_str(func, func);
++		__assign_str(func);
+ 		__assign_vstr(msg, vaf->fmt, vaf->va);
+ 	),
+ 	TP_printk("%s: %s", __get_str(func), __get_str(msg))
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/brcms_trace_brcmsmac_tx.h	2024-09-13 13:31:32.011705114 +0200
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/brcms_trace_brcmsmac_tx.h	2024-09-13 13:43:12.721783766 +0200
+@@ -31,7 +31,7 @@
+ 		__dynamic_array(u8, txh, txh_len)
+ 	),
+ 	TP_fast_assign(
+-		__assign_str(dev, dev_name(dev));
++		__assign_str(dev);
+ 		memcpy(__get_dynamic_array(txh), txh, txh_len);
+ 	),
+ 	TP_printk("[%s] txdesc", __get_str(dev))
+@@ -54,7 +54,7 @@
+ 		__field(u16, ackphyrxsh)
+ 	),
+ 	TP_fast_assign(
+-		__assign_str(dev, dev_name(dev));
++		__assign_str(dev);
+ 		__entry->framelen = framelen;
+ 		__entry->frameid = frameid;
+ 		__entry->status = status;
+@@ -85,7 +85,7 @@
+ 		__field(u16, dma_len)
+ 	),
+ 	TP_fast_assign(
+-		__assign_str(dev, dev_name(dev));
++		__assign_str(dev);
+ 		__entry->max_ampdu_len = max_ampdu_len;
+ 		__entry->max_ampdu_frames = max_ampdu_frames;
+ 		__entry->ampdu_len = ampdu_len;
+--- a/drivers/net/wireless/intel/iwlwifi/iwl-devtrace.h	2024-09-13 13:31:31.915706475 +0200
++++ b/drivers/net/wireless/intel/iwlwifi/iwl-devtrace.h	2024-09-13 13:41:47.314991509 +0200
+@@ -87,7 +87,7 @@
+ #endif
+ 
+ #define DEV_ENTRY	__string(dev, dev_name(dev))
+-#define DEV_ASSIGN	__assign_str(dev, dev_name(dev))
++#define DEV_ASSIGN	__assign_str(dev)
+ 
+ #include "iwl-devtrace-io.h"
+ #include "iwl-devtrace-ucode.h"
+--- a/drivers/net/wireless/intel/iwlwifi/iwl-devtrace-msg.h	2024-09-13 13:31:31.915706475 +0200
++++ b/drivers/net/wireless/intel/iwlwifi/iwl-devtrace-msg.h	2024-09-13 13:41:36.363146379 +0200
+@@ -57,7 +57,7 @@
+ 	),
+ 	TP_fast_assign(
+ 		__entry->level = level;
+-		__assign_str(function, function);
++		__assign_str(function);
+ 		__assign_vstr(msg, vaf->fmt, vaf->va);
+ 	),
+ 	TP_printk("%s", __get_str(msg))
+--- a/include/trace/events/qrtr.h	2024-09-13 13:31:32.207702337 +0200
++++ b/include/trace/events/qrtr.h	2024-09-13 13:39:51.068635354 +0200
+@@ -102,7 +102,7 @@
+ 	),
+ 
+ 	TP_fast_assign(
+-		__assign_str(ctrl_pkt_str, ctrl_pkt_str);
++		__assign_str(ctrl_pkt_str);
+ 		__entry->sq_node = sq_node;
+ 		__entry->sq_port = sq_port;
+ 	),

@@ -1,0 +1,24 @@
+--- a/tests/include/test/macros.h
++++ b/tests/include/test/macros.h
+@@ -135,8 +135,8 @@
+     do {                                                    \
+         TEST_ASSERT((pointer) == NULL);                     \
+         if ((item_count) != 0) {                            \
+-            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
+-                                       (item_count));       \
++            (pointer) = mbedtls_calloc((item_count),        \
++                                       sizeof(*(pointer))); \
+             TEST_ASSERT((pointer) != NULL);                 \
+         }                                                   \
+     } while (0)
+@@ -153,8 +153,8 @@
+     do {                                                    \
+         TEST_ASSERT((pointer) == NULL);                     \
+         if ((item_count) != 0) {                            \
+-            (pointer) = mbedtls_calloc(sizeof(*(pointer)),  \
+-                                       (item_count));       \
++            (pointer) = mbedtls_calloc((item_count),        \
++                                       sizeof(*(pointer))); \
+             TEST_ASSUME((pointer) != NULL);                 \
+         }                                                   \
+     } while (0)

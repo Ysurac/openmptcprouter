@@ -1,0 +1,99 @@
+--- a/nat46/modules/nat46-netdev.c	2024-08-14 16:36:59.249437588 +0200
++++ b/nat46/modules/nat46-netdev.c	2024-08-14 16:39:28.523016026 +0200
+@@ -193,7 +193,6 @@
+ 		return NULL;
+ 	}
+ 
+-	read_lock(&dev_base_lock);
+ 	dev = first_net_device(net);
+ 	while (dev) {
+ 		if((0 == strcmp(dev->name, name)) && is_nat46(dev)) {
+@@ -205,7 +204,6 @@
+ 		}
+ 		dev = next_net_device(dev);
+ 	}
+-	read_unlock(&dev_base_lock);
+ 	return out;
+ }
+ 
+@@ -300,7 +298,6 @@
+ 
+ void nat64_show_all_configs(struct net *net, struct seq_file *m) {
+         struct net_device *dev;
+-	read_lock(&dev_base_lock);
+ 	dev = first_net_device(net);
+ 	while (dev) {
+ 		if(is_nat46(dev)) {
+@@ -323,7 +320,6 @@
+ 		}
+ 		dev = next_net_device(dev);
+ 	}
+-	read_unlock(&dev_base_lock);
+ 
+ }
+ 
+@@ -331,7 +327,6 @@
+         struct net_device *dev;
+         struct net_device *nat46dev;
+ 	do {
+-		read_lock(&dev_base_lock);
+ 		nat46dev = NULL;
+ 		dev = first_net_device(net);
+ 		while (dev) {
+@@ -340,7 +335,6 @@
+ 			}
+ 			dev = next_net_device(dev);
+ 		}
+-		read_unlock(&dev_base_lock);
+ 		if(nat46dev) {
+ 			nat46_netdev_destroy(nat46dev);
+ 		}
+--- a/nat46/modules/nat46-netdev.h	2024-08-14 16:39:50.726655831 +0200
++++ b/nat46/modules/nat46-netdev.h	2024-08-14 16:40:25.954084361 +0200
+@@ -25,4 +25,5 @@
+ void nat64_show_all_configs(struct net *net, struct seq_file *m);
+ void nat46_netdev_count_xmit(struct sk_buff *skb, struct net_device *dev);
+ void *netdev_nat46_instance(struct net_device *dev);
+-
++int nat46_netdev_create(struct net *net, char *basename, struct net_device **dev);
++void nat46_netdev_destroy(struct net_device *dev);
+--- a/nat46/modules/nat46-core.h	2024-08-14 16:44:24.686211571 +0200
++++ b/nat46/modules/nat46-core.h	2024-08-14 16:50:42.464086457 +0200
+@@ -82,4 +82,37 @@
+ nat46_instance_t *alloc_nat46_instance(int npairs, nat46_instance_t *old, int from_ipair, int to_ipair, int remove_ipair);
+ void release_nat46_instance(nat46_instance_t *nat46);
+ 
++void nat46debug_dump(nat46_instance_t *nat46, int level, void *addr, int len);
++int try_parse_ipv6_prefix(struct in6_addr *pref, int *pref_len, char *arg);
++int try_parse_ipv4_prefix(u32 *v4addr, int *pref_len, char *arg);
++int try_parse_rule_arg(nat46_xlate_rule_t *rule, char *arg_name, char **ptail);
++char *xlate_style_to_string(nat46_xlate_style_t style);
++void xlate_v4_to_nat64(nat46_instance_t *nat46, nat46_xlate_rule_t *rule, void *pipv4, void *pipv6);
++int xlate_nat64_to_v4(nat46_instance_t *nat46, nat46_xlate_rule_t *rule, void *pipv6, void *pipv4);
++int xlate_map_v4_to_v6(nat46_instance_t *nat46, nat46_xlate_rule_t *rule, void *pipv4, void *pipv6, uint16_t *pl4id, int map_version);
++int xlate_map_v6_to_v4(nat46_instance_t *nat46, nat46_xlate_rule_t *rule, void *pipv6, void *pipv4, int version);
++int xlate_v4_to_v6(nat46_instance_t *nat46, nat46_xlate_rule_t *rule, void *pipv4, void *pipv6, uint16_t *pl4id);
++int xlate_v6_to_v4(nat46_instance_t *nat46, nat46_xlate_rule_t *rule, void *pipv6, void *pipv4);
++__sum16 csum16_upd(__sum16 csum, u16 old, u16 new);
++__sum16 csum_tcpudp_remagic(__be32 saddr, __be32 daddr, u32 len, unsigned char proto, u16 csum);
++__sum16 csum_ipv6_unmagic(nat46_instance_t *nat46, const struct in6_addr *saddr, const struct in6_addr *daddr, __u32 len, unsigned short proto, __sum16 csum);
++void update_icmp6_type_code(nat46_instance_t *nat46, struct icmp6hdr *icmp6h, u8 type, u8 code);
++u16 get_next_ip_id(void);
++u16 fold_ipv6_frag_id(u32 v6id);
++void *add_offset(void *ptr, u16 offset);
++void *get_next_header_ptr6(void *pv6, int v6_len);
++void fill_v4hdr_from_v6hdr(struct iphdr * iph, struct ipv6hdr *ip6h, __u32 v4saddr, __u32 v4daddr, __u16 id, __u16 frag_off, __u16 proto, int l3_payload_len);
++u16 unchecksum16(void *p, int count, u16 csum);
++u16 rechecksum16(void *p, int count, u16 csum);
++int is_last_pair_in_group(nat46_xlate_rulepair_t *apair);
++void pairs_xlate_v6_to_v4_inner(nat46_instance_t *nat46, struct ipv6hdr *ip6h, __u32 *pv4saddr, __u32 *pv4daddr);
++int xlate_payload6_to4(nat46_instance_t *nat46, void *pv6, void *ptrans_hdr, int v6_len, u16 *ul_sum, int *ptailTruncSize);
++u8 *icmp_parameter_ptr(struct icmphdr *icmph);
++u32 *icmp6_parameter_ptr(struct icmp6hdr *icmp6h);
++int ip6_input_not_interested(nat46_instance_t *nat46, struct ipv6hdr *ip6h, struct sk_buff *old_skb);
++int pairs_xlate_v6_to_v4_outer(nat46_instance_t *nat46, struct ipv6hdr *ip6h, uint16_t proto, __u32 *pv4saddr, __u32 *pv4daddr);
++void ip6_update_csum(struct sk_buff * skb, struct ipv6hdr * ip6hdr, int do_atomic_frag);
++int ip4_input_not_interested(nat46_instance_t *nat46, struct iphdr *iph, struct sk_buff *old_skb);
++int pairs_xlate_v4_to_v6_outer(nat46_instance_t *nat46, struct iphdr *hdr4, uint16_t *sport, uint16_t *dport, void *v6saddr, void *v6daddr);
++int is_valid_nat46(nat46_instance_t *nat46);
+ #endif

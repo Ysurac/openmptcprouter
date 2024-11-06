@@ -1,0 +1,19 @@
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h	2024-07-03 20:09:49.622279338 +0200
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h	2024-07-03 20:10:26.157677785 +0200
+@@ -294,4 +294,5 @@
+ 			       unsigned short *rxwi_size);
+ void rt2800_pre_reset_hw(struct rt2x00_dev *rt2x00dev);
+ 
++void rt6352_enable_pa_pin(struct rt2x00_dev *rt2x00dev, int enable);
+ #endif /* RT2800LIB_H */
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h	2024-11-05 16:54:09.625006944 +0100
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h	2024-11-05 16:54:26.280764117 +0100
+@@ -1504,6 +1504,8 @@
+ 			     u32 *tx, u32 *tx_max, u32 *rx, u32 *rx_max);
+ bool rt2x00mac_tx_frames_pending(struct ieee80211_hw *hw);
+ 
++int rt2x00lib_read_eeprom(struct rt2x00_dev *rt2x00dev);
++
+ /*
+  * Driver allocation handlers.
+  */

@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt	2024-10-08 08:04:55.220966217 +0200
++++ b/CMakeLists.txt	2024-10-08 08:09:03.593429433 +0200
+@@ -350,7 +350,7 @@
+     if(NOT ${CMAKE_C_COMPILER} MATCHES "clang*")
+         set(C_ADDITIONAL_FLAGS "${C_ADDITIONAL_FLAGS} /utf-8")
+     endif(NOT ${CMAKE_C_COMPILER} MATCHES "clang*")
+-else(MSVC)
++elseif(FALSE)
+     #
+     # For checking if a compiler flag works, failing if it doesn't,
+     # and adding it otherwise.

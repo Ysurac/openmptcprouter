@@ -1,0 +1,17 @@
+--- a/root/usr/share/firewall4/templates/ruleset.uc.old
++++ b/root/usr/share/firewall4/templates/ruleset.uc
+@@ -181,7 +181,14 @@
+ 
+ 	chain prerouting {
+ 		type filter hook prerouting priority filter; policy accept;
++{% for (let rule in fw4.rules("forward")): %}
++		{%+ include("rule.uc", { fw4, zone: (rule.src?.zone?.log_limit ? rule.src.zone : rule.dest?.zone), rule }) %}
++{% endfor %}
++
+ {% for (let zone in fw4.zones()): %}
++{%  for (let rule in fw4.rules(`forward_${zone.name}`)): %}
++		{%+ include("rule.uc", { fw4, zone, rule }) %}
++{%  endfor %}
+ {%  if (zone.dflags.helper): %}
+ {%   for (let rule in zone.match_rules): %}
+ {%    let devices_pos = fw4.filter_loopback_devs(rule.devices_pos, false); %}

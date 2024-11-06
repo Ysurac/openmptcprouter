@@ -1,0 +1,38 @@
+--- a/debugfs.c	2024-09-06 11:08:19.656939190 +0200
++++ b/debugfs.c	2024-09-06 11:09:04.772324072 +0200
+@@ -331,15 +331,19 @@
+ 				     size_t count, loff_t *ppos)
+ {
+ 	struct mwl_priv *priv = (struct mwl_priv *)file->private_data;
++#if defined AARCH64
+ 	struct pcie_priv *pcie_priv = priv->hif.priv;
+ 	unsigned long flags;
++#endif
+ 	unsigned long page = get_zeroed_page(GFP_KERNEL);
+ 	int tx_num = 4, rx_num = 4;
+ 	char *p = (char *)page;
+ 	int len = 0, size = PAGE_SIZE;
+ 	ssize_t ret;
+ 	const struct hostcmd_get_hw_spec *get_hw_spec;
++#if defined AARCH64
+ 	int i;
++#endif
+ 
+ 	if (!p)
+ 		return -ENOMEM;
+@@ -359,6 +359,7 @@
+ 	len += scnprintf(p + len, size - len,
+ 			 "num_wcb: %d\n", le32_to_cpu(get_hw_spec->num_wcb));
+ 
++#if defined AARCH64
+ 	if (priv->chip_type == MWL8864) {
+ 		len += scnprintf(p + len, size - len,
+ 			 "-----------------------=>  address| address|qlen|fw_desc_cnt\n");
+@@ -370,6 +371,7 @@
+ 				"wcb_base[%2d]: %x => %8x|%8p|%4d|%d\n", i, get_hw_spec->wcb_base[i], *((unsigned int *)le32_to_cpu(get_hw_spec->wcb_base[i])),(void *)*((unsigned int *)le32_to_cpu(get_hw_spec->wcb_base[i])),skb_queue_len(&pcie_priv->txq[i + 1]),pcie_priv->fw_desc_cnt[i + 1]);
+ 		spin_unlock_irqrestore(&pcie_priv->tx_desc_lock, flags);
+ 	}
++#endif
+ 
+ 	len += scnprintf(p + len, size - len,
+ 			 "num_mcast_addr: %X\n", le16_to_cpu(get_hw_spec->num_mcast_addr));
