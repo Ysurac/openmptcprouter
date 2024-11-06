@@ -90,7 +90,9 @@ elif [ "$OMR_TARGET" = "bpi-r64" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "espressobin" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
-elif [ "$OMR_TARGET" = "z8102ax_128m" ] || [ "$OMR_TARGET" = "z8102ax_648m" ]; then
+elif [ "$OMR_TARGET" = "z8102ax_128m" ] || [ "$OMR_TARGET" = "z8102ax_64m" ]; then
+	OMR_REAL_TARGET="aarch64_cortex-a53"
+elif [ "$OMR_TARGET" = "bpi-r4" ] || [ "$OMR_TARGET" = "bpi-r4-poe" ] || [ "$OMR_TARGET" = "bpi-r3" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a53"
 elif [ "$OMR_TARGET" = "x86" ]; then
 	OMR_REAL_TARGET="i386_pentium4"
@@ -638,7 +640,7 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 		NOT_SUPPORTED="1"
 		exit 1
 	fi
-	if ([ "$OMR_TARGET" = "bpi-r4" ] || [ "$OMR_TARGET" = "bpi-r4-poe" ]); then
+	if ([ "$OMR_TARGET" = "bpi-r3" ] || [ "$OMR_TARGET" = "bpi-r4" ] || [ "$OMR_TARGET" = "bpi-r4-poe" ]); then
 		echo "Sorry but kernel 5.4 is not supported on your arch"
 		NOT_SUPPORTED="1"
 		exit 1
