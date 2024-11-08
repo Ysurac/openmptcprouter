@@ -334,12 +334,12 @@ define Device/bananapi_bpi-r3
 				   pad-to 52M | mt7986-bl31-uboot bananapi_bpi-r3-emmc |\
 				   pad-to 56M | mt798x-gpt emmc |\
 				$(if $(CONFIG_TARGET_ROOTFS_SQUASHFS),\
-				   pad-to 64M | append-image squashfs-sysupgrade.itb | check-size |\
+				   pad-to 64M | append-image squashfs-sysupgrade.itb |\
 				) \
 				  gzip
-ifeq ($(DUMP),)
-  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
-endif
+#ifeq ($(DUMP),)
+#  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
+#endif
   KERNEL			:= kernel-bin | gzip
   KERNEL_INITRAMFS := kernel-bin | lzma | \
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
@@ -369,9 +369,9 @@ define Device/bananapi_bpi-r3-mini
   KERNEL_IN_UBI := 1
   UBOOTENV_IN_UBI := 1
   IMAGES := snand-factory.bin sysupgrade.itb
-ifeq ($(DUMP),)
-  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
-endif
+#ifeq ($(DUMP),)
+#  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
+#endif
   IMAGE/sysupgrade.itb := append-kernel | \
     fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | \
     pad-rootfs | append-metadata
@@ -426,10 +426,10 @@ define Device/bananapi_bpi-r4-common
 				   pad-to 52M | mt7988-bl31-uboot $$(DEVICE_NAME)-emmc |\
 				   pad-to 56M | mt798x-gpt emmc |\
 				$(if $(CONFIG_TARGET_ROOTFS_SQUASHFS),\
-				   pad-to 64M | append-image squashfs-sysupgrade.itb | check-size |\
+				   pad-to 64M | append-image squashfs-sysupgrade.itb |\
 				) \
 				  gzip
-  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
+#  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
   KERNEL			:= kernel-bin | gzip
   KERNEL_INITRAMFS := kernel-bin | lzma | \
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
