@@ -142,16 +142,16 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 		_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "${OMR_OPENWRT}"
 		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "${OMR_OPENWRT}"
 	fi
+fi
 
-	if [ -z "$OMR_FEED" ]; then
-		OMR_FEED=feeds/openmptcprouter
-		_get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
-	fi
+if [ -z "$OMR_FEED" ]; then
+	OMR_FEED=feeds/openmptcprouter
+	[ "$ONLY_PREPARE" != "yes" ] && _get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
+fi
 
-	if [ -n "$CUSTOM_FEED_URL" ] && [ -z "$CUSTOM_FEED" ]; then
-		CUSTOM_FEED=feeds/${OMR_KERNEL}/${OMR_DIST}
-		_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "$CUSTOM_FEED_URL_BRANCH"
-	fi
+if [ -n "$CUSTOM_FEED_URL" ] && [ -z "$CUSTOM_FEED" ]; then
+	CUSTOM_FEED=feeds/${OMR_KERNEL}/${OMR_DIST}
+	[ "$ONLY_PREPARE" != "yes" ] && _get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "$CUSTOM_FEED_URL_BRANCH"
 fi
 
 if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
