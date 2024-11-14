@@ -53,7 +53,7 @@ CUSTOM_FEED_URL="${CUSTOM_FEED_URL}"
 CUSTOM_FEED_URL_BRANCH="${CUSTOM_FEED_URL_BRANCH:-main}"
 
 OMR_OPENWRT=${OMR_OPENWRT:-default}
-
+OMR_OPENWRT_GIT=${OMR_OPENWRT_GIT:-https://github.com}
 OMR_FORCE_DSA=${OMR_FORCE_DSA:-0}
 
 
@@ -108,48 +108,50 @@ else
 	OMR_REAL_TARGET=${OMR_TARGET}
 fi
 
-#_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
-if [ "$OMR_OPENWRT" = "default" ]; then
-	if [ "$OMR_KERNEL" = "5.4" ]; then
-		# Use OpenWrt 21.02 for 5.4 kernel
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "170d9e447df0f52882a8b7a61bf940b062b2cacc"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "b3a6bb839059546a52df00af3e1aa97dba75de22"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "e4c46338b196e486a88b1a75b78e283708c82bc4"
-	elif [ "$OMR_KERNEL" = "6.1" ]; then
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "acf40c022e3d8949c7bb1f9c5212eb91512ae8a9"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
-	elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ]; then
-		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "48028cd102cb709cc2d9a06cb45b53b7c2335a69"
-		_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "c477c0b20660bf58f0fba405724478b30892fa5d"
-		_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "d90728d2c05da46fe5c2a1a1100a93f9a55730d7"
+if [ "$ONLY_PREPARE" != "yes" ]; then
+	#_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
+	if [ "$OMR_OPENWRT" = "default" ]; then
+		if [ "$OMR_KERNEL" = "5.4" ]; then
+			# Use OpenWrt 21.02 for 5.4 kernel
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "170d9e447df0f52882a8b7a61bf940b062b2cacc"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "b3a6bb839059546a52df00af3e1aa97dba75de22"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "e4c46338b196e486a88b1a75b78e283708c82bc4"
+		elif [ "$OMR_KERNEL" = "6.1" ]; then
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "acf40c022e3d8949c7bb1f9c5212eb91512ae8a9"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
+		elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ]; then
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "48028cd102cb709cc2d9a06cb45b53b7c2335a69"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "c477c0b20660bf58f0fba405724478b30892fa5d"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "d90728d2c05da46fe5c2a1a1100a93f9a55730d7"
+		fi
+	elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/coolsnowwolf/lede.git "master"
+		_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "master"
+		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "master"
+	elif [ "$OMR_OPENWRT" = "coolsnowwolf" ]; then
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/coolsnowwolf/lede.git "master"
+		_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/coolsnowwolf/packages "master"
+		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/coolsnowwolf/luci "master"
+	elif [ "$OMR_OPENWRT" = "master" ]; then
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "main"
+		_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "main"
+		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "main"
+	else
+		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "${OMR_OPENWRT}"
+		_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "${OMR_OPENWRT}"
+		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "${OMR_OPENWRT}"
 	fi
-elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
-	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
-	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "master"
-	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "master"
-elif [ "$OMR_OPENWRT" = "coolsnowwolf" ]; then
-	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/coolsnowwolf/lede.git "master"
-	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/coolsnowwolf/packages "master"
-	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/coolsnowwolf/luci "master"
-elif [ "$OMR_OPENWRT" = "master" ]; then
-	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "main"
-	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "main"
-	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "main"
-else
-	_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" https://github.com/openwrt/openwrt "${OMR_OPENWRT}"
-	_get_repo feeds/${OMR_KERNEL}/packages https://github.com/openwrt/packages "${OMR_OPENWRT}"
-	_get_repo feeds/${OMR_KERNEL}/luci https://github.com/openwrt/luci "${OMR_OPENWRT}"
-fi
 
-if [ -z "$OMR_FEED" ]; then
-	OMR_FEED=feeds/openmptcprouter
-	_get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
-fi
+	if [ -z "$OMR_FEED" ]; then
+		OMR_FEED=feeds/openmptcprouter
+		_get_repo "$OMR_FEED" "$OMR_FEED_URL" "$OMR_FEED_SRC"
+	fi
 
-if [ -n "$CUSTOM_FEED_URL" ] && [ -z "$CUSTOM_FEED" ]; then
-	CUSTOM_FEED=feeds/${OMR_KERNEL}/${OMR_DIST}
-	_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "$CUSTOM_FEED_URL_BRANCH"
+	if [ -n "$CUSTOM_FEED_URL" ] && [ -z "$CUSTOM_FEED" ]; then
+		CUSTOM_FEED=feeds/${OMR_KERNEL}/${OMR_DIST}
+		_get_repo "$CUSTOM_FEED" "$CUSTOM_FEED_URL" "$CUSTOM_FEED_URL_BRANCH"
+	fi
 fi
 
 if [ -n "$1" ] && [ -f "$OMR_FEED/$1/Makefile" ]; then
@@ -159,6 +161,9 @@ fi
 
 if [ "$OMR_KEEPBIN" = "no" ]; then 
 	rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/bin"
+fi
+if [ "$ONLY_GET_REPO" = "yes" ]; then
+	exit 0
 fi
 rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/source/tmp"
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/mediatek/patches-4.14"
@@ -1025,7 +1030,7 @@ if [ ! -f "../../../$OMR_TARGET_CONFIG" ] || [ "$NOT_SUPPORTED" = "1" ]; then
 	echo "Target $OMR_TARGET not found ! You have to configure and compile your kernel manually."
 	exit 1
 fi
-
+[ "$ONLY_PREPARE" = "yes" ] && exit 0
 echo "Building $OMR_DIST for the target $OMR_TARGET with kernel ${OMR_KERNEL}"
 make defconfig
 make IGNORE_ERRORS=m "$@"
