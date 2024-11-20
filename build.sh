@@ -957,7 +957,10 @@ fi
 #fi
 [ -d ${OMR_FEED}/libgpiod ] && rm -rf feeds/${OMR_KERNEL}/packages/libs/libgpiod
 [ -d ${OMR_FEED}/iperf3 ] && rm -rf feeds/${OMR_KERNEL}/packages/net/iperf3
-[ -d ${OMR_FEED}/golang ] && rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
+[ -d ${OMR_FEED}/golang ] && {
+	rm -rf feeds/${OMR_KERNEL}/packages/lang/golang
+	cp -r ${OMR_FEED}/golang feeds/${OMR_KERNEL}/packages/lang/
+}
 [ -d ${OMR_FEED}/openvpn ] && rm -rf feeds/${OMR_KERNEL}/packages/net/openvpn
 [ -d ${OMR_FEED}/iproute2 ] && rm -rf feeds/${OMR_KERNEL}/packages/network/utils/iproute2
 [ -d ${CUSTOM_FEED}/syslog-ng ] && rm -rf feeds/${OMR_KERNEL}/packages/admin/syslog-ng
