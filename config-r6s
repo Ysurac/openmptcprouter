@@ -1,6 +1,6 @@
 CONFIG_TARGET_rockchip=y
 CONFIG_TARGET_rockchip_armv8=y
-CONFIG_TARGET_rockchip_armv8_DEVICE_friendlyarm_nanopi-r5s=y
+CONFIG_TARGET_rockchip_armv8_DEVICE_friendlyarm_nanopi-r6s=y
 CONFIG_PACKAGE_kmod-6lowpan=y
 CONFIG_KERNEL_ARM64_MODULE_PLTS=y
 CONFIG_KERNEL_TCP_CONG_BBR2=y
@@ -22,3 +22,4 @@ CONFIG_PACKAGE_rtl8821ce-firmware=y
 CONFIG_PACKAGE_kmod-r8169=y
 CONFIG_PACKAGE_kmod-phy-realtek=y
 CONFIG_PACKAGE_r8169-firmware=y
+CONFIG_MODULE_DEFAULT_kmod-r8169=y
