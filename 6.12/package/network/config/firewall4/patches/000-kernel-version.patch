@@ -1,0 +1,34 @@
+From e10fccfeb45e49cbad3a1d05f3029504b742f514 Mon Sep 17 00:00:00 2001
+From: Mieczyslaw Nalewaj <namiltd@yahoo.com>
+Date: Wed, 20 Nov 2024 18:16:08 +0100
+Subject: [PATCH] firewall4: fix reading kernel version
+
+Fix reading kernel version for kernels with revision 0 e.g. 6.12
+Repair incorrect shift of the revision number causing incorrect value for > 256.
+
+Signed-off-by: Mieczyslaw Nalewaj <namiltd@yahoo.com>
+---
+ .../firewall4/patches/000-kernel-version.patch     | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 package/network/config/firewall4/patches/000-kernel-version.patch
+
+diff --git a/package/network/config/firewall4/patches/000-kernel-version.patch b/package/network/config/firewall4/patches/000-kernel-version.patch
+new file mode 100644
+index 00000000000000..e997f693f0bc2e
+--- /dev/null
++++ b/package/network/config/firewall4/patches/000-kernel-version.patch
+@@ -0,0 +1,14 @@
++--- a/root/usr/share/ucode/fw4.uc
+++++ b/root/usr/share/ucode/fw4.uc
++@@ -496,9 +496,9 @@ return {
++ 		    v = 0;
++ 
++ 		if (fd) {
++-		    let m = match(fd.read("line"), /^Linux version ([0-9]+)\.([0-9]+)\.([0-9]+)/);
+++		    let m = match(fd.read("line"), /^Linux version ([0-9]+)\.([0-9]+)(\.([0-9]+))?/);
++ 
++-		    v = m ? (+m[1] << 24) | (+m[2] << 16) | (+m[3] << 8) : 0;
+++		    v = m ? (+m[1] << 24) | (+m[2] << 16) | (+m[4]) : 0;
++ 		    fd.close();
++ 		}
++ 
