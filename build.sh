@@ -251,12 +251,20 @@ elif [ -n "$OMR_PACKAGES_URL" ]; then
 	src/gz openwrt_telephony ${OMR_PACKAGES_URL}/${OMR_RELEASE}/${OMR_REAL_TARGET}/telephony
 	EOF
 else
+#	cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<-EOF
+#	src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
+#	src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
+#	src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
+#	src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
+#	src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
+#	EOF
+	# Force use of opkg ipk packages
 	cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<-EOF
-	src/gz openwrt_luci http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/luci
-	src/gz openwrt_packages http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/packages
-	src/gz openwrt_base http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/base
-	src/gz openwrt_routing http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/routing
-	src/gz openwrt_telephony http://downloads.openwrt.org/snapshots/packages/${OMR_REAL_TARGET}/telephony
+	src/gz openwrt_luci http://downloads.openwrt.org/releases/packages-24.10/${OMR_REAL_TARGET}/luci
+	src/gz openwrt_packages http://downloads.openwrt.org/releases/packages-24.10/${OMR_REAL_TARGET}/packages
+	src/gz openwrt_base http://downloads.openwrt.org/releases/packages-24.10/${OMR_REAL_TARGET}/base
+	src/gz openwrt_routing http://downloads.openwrt.org/releases/packages-24.10/${OMR_REAL_TARGET}/routing
+	src/gz openwrt_telephony http://downloads.openwrt.org/releases/packages-24.10/${OMR_REAL_TARGET}/telephony
 	EOF
 fi
 #cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<EOF
