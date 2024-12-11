@@ -120,10 +120,17 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "acf40c022e3d8949c7bb1f9c5212eb91512ae8a9"
 			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
-		elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ]; then
+		elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ]; then
+			# Use OpenWRT 24.01 for 6.6 kernel
 			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "48028cd102cb709cc2d9a06cb45b53b7c2335a69"
 			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "c477c0b20660bf58f0fba405724478b30892fa5d"
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "d90728d2c05da46fe5c2a1a1100a93f9a55730d7"
+			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "3f15699240c076d5ee9ed697fa5ef45355423f6f"
+		elif [ "$OMR_KERNEL" = "6.12" ]; then
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "3ba6737f2f4750e4f7c2b921ff023a99b9a27318"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "2b999558db0711124f7b5cf4afa201557352f694"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "e76155d09484602e2b02e84bb8ffafa4848798f0"
+			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "0209a1f3be5d0d227c34c7e73ff779ef7dcc533e"
 		fi
 	elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/coolsnowwolf/lede.git "master"
@@ -137,10 +144,12 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "main"
 		_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "main"
 		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "main"
+		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/routing "main"
 	else
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "${OMR_OPENWRT}"
 		_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "${OMR_OPENWRT}"
 		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "${OMR_OPENWRT}"
+		_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/routing "${OMR_OPENWRT}"
 	fi
 fi
 
@@ -957,6 +966,13 @@ else
 	fi
 	cd -
 fi
+
+cd feeds/${OMR_KERNEL}
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-unbound-logread.patch; then
+	patch -N -p1 -s < ../../patches/luci-unbound-logread.patch
+fi
+cd -
+
 
 [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-app-statistics ] && rm -rf feeds/${OMR_KERNEL}/luci/applications/luci-app-statistics
 [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-proto-modemmanager ] && rm -rf feeds/${OMR_KERNEL}/luci/protocols/luci-proto-modemmanager
