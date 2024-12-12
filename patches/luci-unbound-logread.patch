@@ -1,0 +1,11 @@
+--- a/luci/applications/luci-app-unbound/luasrc/controller/unbound.lua	2024-12-05 17:50:53.928401368 +0100
++++ b/luci/applications/luci-app-unbound/luasrc/controller/unbound.lua	2024-12-05 17:51:23.255945317 +0100
+@@ -110,7 +110,7 @@
+ 
+ 
+ function QuerySysLog()
+-    local lcldata = luci.util.exec("logread -e 'unbound'")
++    local lcldata = luci.util.exec("logread -e 'unbound' || logread | grep 'unbound:'")
+     local lcldesc = luci.i18n.translate(
+         "This shows syslog filtered for events involving Unbound.")
+ 
