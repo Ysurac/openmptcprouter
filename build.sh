@@ -927,6 +927,9 @@ if [ "$OMR_KERNEL" = "6.12" ]; then
 	echo "Set to kernel 6.12 for mediatek"
 	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
 	echo "Done"
+	echo "Set to kernel 6.12 for bcm27xx"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
+	echo "Done"
 	echo "CONFIG_VERSION_CODE=6.12" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
