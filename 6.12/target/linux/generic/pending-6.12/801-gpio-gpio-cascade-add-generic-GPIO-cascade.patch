@@ -70,7 +70,7 @@ v1 -> v2:
 
 --- a/drivers/gpio/Kconfig
 +++ b/drivers/gpio/Kconfig
-@@ -1820,4 +1820,19 @@ config GPIO_SIM
+@@ -1929,4 +1929,19 @@ config GPIO_VIRTUSER
  
  endmenu
  
@@ -92,17 +92,17 @@ v1 -> v2:
  endif
 --- a/drivers/gpio/Makefile
 +++ b/drivers/gpio/Makefile
-@@ -44,6 +44,7 @@ obj-$(CONFIG_GPIO_BD9571MWV)		+= gpio-bd
+@@ -45,6 +45,7 @@ obj-$(CONFIG_GPIO_BD9571MWV)		+= gpio-bd
  obj-$(CONFIG_GPIO_BRCMSTB)		+= gpio-brcmstb.o
  obj-$(CONFIG_GPIO_BT8XX)		+= gpio-bt8xx.o
  obj-$(CONFIG_GPIO_CADENCE)		+= gpio-cadence.o
 +obj-$(CONFIG_GPIO_CASCADE)		+= gpio-cascade.o
  obj-$(CONFIG_GPIO_CLPS711X)		+= gpio-clps711x.o
  obj-$(CONFIG_GPIO_SNPS_CREG)		+= gpio-creg-snps.o
- obj-$(CONFIG_GPIO_CRYSTAL_COVE)		+= gpio-crystalcove.o
+ obj-$(CONFIG_GPIO_CROS_EC)		+= gpio-cros-ec.o
 --- /dev/null
 +++ b/drivers/gpio/gpio-cascade.c
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,112 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + *  A generic GPIO cascade driver
@@ -141,11 +141,6 @@ v1 -> v2:
 +	struct gpio_desc	*upstream_line;
 +};
 +
-+static struct gpio_cascade *chip_to_cascade(struct gpio_chip *gc)
-+{
-+	return container_of(gc, struct gpio_cascade, gpio_chip);
-+}
-+
 +static int gpio_cascade_get_direction(struct gpio_chip *gc, unsigned int offset)
 +{
 +	return GPIO_LINE_DIRECTION_IN;
@@ -153,7 +148,7 @@ v1 -> v2:
 +
 +static int gpio_cascade_get_value(struct gpio_chip *gc, unsigned int offset)
 +{
-+	struct gpio_cascade *cas = chip_to_cascade(gc);
++	struct gpio_cascade *cas = gpiochip_get_data(gc);
 +	int ret;
 +
 +	ret = mux_control_select(cas->mux_control, offset);
@@ -199,7 +194,7 @@ v1 -> v2:
 +	gc->owner = THIS_MODULE;
 +
 +	platform_set_drvdata(pdev, cas);
-+	return devm_gpiochip_add_data(dev, &cas->gpio_chip, NULL);
++	return devm_gpiochip_add_data(dev, &cas->gpio_chip, cas);
 +}
 +
 +static const struct of_device_id gpio_cascade_id[] = {

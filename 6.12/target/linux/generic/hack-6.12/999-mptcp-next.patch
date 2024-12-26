@@ -1,0 +1,2043 @@
+From 29913eae8451264716a71485652e9230508cfde6 Mon Sep 17 00:00:00 2001
+From: "Matthieu Baerts (NGI0)" <matttbe@kernel.org>
+Date: Mon, 16 Sep 2024 05:52:07 +0000
+Subject: [PATCH 08/28] mptcp: pm: send ACK on non stale subflows
+
+If the subflow is considered as "staled", it is better to avoid it to
+send an ACK carrying an ADD_ADDR or RM_ADDR. Another subflow, if any,
+will then be selected.
+
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+---
+ net/mptcp/pm_netlink.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/net/mptcp/pm_netlink.c b/net/mptcp/pm_netlink.c
+index 64fe0e7d87d7..fe34297ea6dc 100644
+--- a/net/mptcp/pm_netlink.c
++++ b/net/mptcp/pm_netlink.c
+@@ -781,7 +781,7 @@ bool mptcp_pm_nl_is_init_remote_addr(struct mptcp_sock *msk,
+ 
+ void mptcp_pm_nl_addr_send_ack(struct mptcp_sock *msk)
+ {
+-	struct mptcp_subflow_context *subflow;
++	struct mptcp_subflow_context *subflow, *alt = NULL;
+ 
+ 	msk_owned_by_me(msk);
+ 	lockdep_assert_held(&msk->pm.lock);
+@@ -792,10 +792,18 @@ void mptcp_pm_nl_addr_send_ack(struct mptcp_sock *msk)
+ 
+ 	mptcp_for_each_subflow(msk, subflow) {
+ 		if (__mptcp_subflow_active(subflow)) {
+-			mptcp_pm_send_ack(msk, subflow, false, false);
+-			break;
++			if (!subflow->stale) {
++				mptcp_pm_send_ack(msk, subflow, false, false);
++				return;
++			}
++
++			if (!alt)
++				alt = subflow;
+ 		}
+ 	}
++
++	if (alt)
++		mptcp_pm_send_ack(msk, alt, false, false);
+ }
+ 
+ int mptcp_pm_nl_mp_prio_send_ack(struct mptcp_sock *msk,
+-- 
+2.46.0
+
+From 2ef0370d529d8d17e63fb196ba097b684535b5c4 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:09 +0000
+Subject: [PATCH 10/28] mptcp: implement mptcp_pm_connection_closed
+
+The MPTCP path manager event handler mptcp_pm_connection_closed
+interface has been added in the commit 1b1c7a0ef7f3 ("mptcp: Add path
+manager interface") but it was an empty function from then on.
+
+With such name, it sounds good to invoke mptcp_event with the
+MPTCP_EVENT_CLOSED event type from it. It also removes a bit of
+duplicated code.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+---
+ net/mptcp/pm.c       | 3 +++
+ net/mptcp/protocol.c | 6 ++----
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/net/mptcp/pm.c b/net/mptcp/pm.c
+index 620264c75dc2..16c336c51940 100644
+--- a/net/mptcp/pm.c
++++ b/net/mptcp/pm.c
+@@ -154,6 +154,9 @@ void mptcp_pm_fully_established(struct mptcp_sock *msk, const struct sock *ssk)
+ void mptcp_pm_connection_closed(struct mptcp_sock *msk)
+ {
+ 	pr_debug("msk=%p\n", msk);
++
++	if (msk->token)
++		mptcp_event(MPTCP_EVENT_CLOSED, msk, NULL, GFP_KERNEL);
+ }
+ 
+ void mptcp_pm_subflow_established(struct mptcp_sock *msk)
+diff --git a/net/mptcp/protocol.c b/net/mptcp/protocol.c
+index 833fb28d8936..7cc8d81ee605 100644
+--- a/net/mptcp/protocol.c
++++ b/net/mptcp/protocol.c
+@@ -3121,8 +3121,7 @@ bool __mptcp_close(struct sock *sk, long timeout)
+ 
+ 	sock_hold(sk);
+ 	pr_debug("msk=%p state=%d\n", sk, sk->sk_state);
+-	if (msk->token)
+-		mptcp_event(MPTCP_EVENT_CLOSED, msk, NULL, GFP_KERNEL);
++	mptcp_pm_connection_closed(msk);
+ 
+ 	if (sk->sk_state == TCP_CLOSE) {
+ 		__mptcp_destroy_sock(sk);
+@@ -3188,8 +3187,7 @@ static int mptcp_disconnect(struct sock *sk, int flags)
+ 	mptcp_stop_rtx_timer(sk);
+ 	mptcp_stop_tout_timer(sk);
+ 
+-	if (msk->token)
+-		mptcp_event(MPTCP_EVENT_CLOSED, msk, NULL, GFP_KERNEL);
++	mptcp_pm_connection_closed(msk);
+ 
+ 	/* msk->subflow is still intact, the following will not free the first
+ 	 * subflow
+-- 
+2.46.0
+
+From cc4cbde1802daaac692d1bc6f15fd470c51f987b Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:12 +0000
+Subject: [PATCH 13/28] mptcp: add sched_data helpers
+
+Add a new helper mptcp_sched_data_set_contexts() to set the subflow
+pointers array in struct mptcp_sched_data. Add a new helper
+mptcp_subflow_ctx_by_pos() to get the given pos subflow from the
+contexts array in struct mptcp_sched_data. They will be invoked by
+the BPF schedulers to export the subflow pointers to the BPF contexts.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+---
+ net/mptcp/bpf.c      | 14 ++++++++++++++
+ net/mptcp/protocol.h |  2 ++
+ net/mptcp/sched.c    | 22 ++++++++++++++++++++++
+ 3 files changed, 38 insertions(+)
+
+diff --git a/net/mptcp/bpf.c b/net/mptcp/bpf.c
+index 8a16672b94e2..c3d62535eb0c 100644
+--- a/net/mptcp/bpf.c
++++ b/net/mptcp/bpf.c
+@@ -29,6 +29,20 @@ static const struct btf_kfunc_id_set bpf_mptcp_fmodret_set = {
+ 	.set   = &bpf_mptcp_fmodret_ids,
+ };
+ 
++__diag_push();
++__diag_ignore_all("-Wmissing-prototypes",
++		  "kfuncs which will be used in BPF programs");
++
++__bpf_kfunc struct mptcp_subflow_context *
++bpf_mptcp_subflow_ctx_by_pos(const struct mptcp_sched_data *data, unsigned int pos)
++{
++	if (pos >= MPTCP_SUBFLOWS_MAX)
++		return NULL;
++	return data->contexts[pos];
++}
++
++__diag_pop();
++
+ static int __init bpf_mptcp_kfunc_init(void)
+ {
+ 	return register_btf_fmodret_id_set(&bpf_mptcp_fmodret_set);
+diff --git a/net/mptcp/protocol.h b/net/mptcp/protocol.h
+index bbbf200b0c94..a1d06e7e3544 100644
+--- a/net/mptcp/protocol.h
++++ b/net/mptcp/protocol.h
+@@ -719,6 +719,8 @@ void __mptcp_subflow_send_ack(struct sock *ssk);
+ void mptcp_subflow_reset(struct sock *ssk);
+ void mptcp_subflow_queue_clean(struct sock *sk, struct sock *ssk);
+ void mptcp_sock_graft(struct sock *sk, struct socket *parent);
++struct mptcp_subflow_context *
++bpf_mptcp_subflow_ctx_by_pos(const struct mptcp_sched_data *data, unsigned int pos);
+ struct sock *__mptcp_nmpc_sk(struct mptcp_sock *msk);
+ bool __mptcp_close(struct sock *sk, long timeout);
+ void mptcp_cancel_work(struct sock *sk);
+diff --git a/net/mptcp/sched.c b/net/mptcp/sched.c
+index 78ed508ebc1b..5257bc6c8cd6 100644
+--- a/net/mptcp/sched.c
++++ b/net/mptcp/sched.c
+@@ -143,6 +143,26 @@ void mptcp_subflow_set_scheduled(struct mptcp_subflow_context *subflow,
+ 	WRITE_ONCE(subflow->scheduled, scheduled);
+ }
+ 
++static void mptcp_sched_data_set_contexts(const struct mptcp_sock *msk,
++					  struct mptcp_sched_data *data)
++{
++	struct mptcp_subflow_context *subflow;
++	int i = 0;
++
++	mptcp_for_each_subflow(msk, subflow) {
++		if (i == MPTCP_SUBFLOWS_MAX) {
++			pr_warn_once("too many subflows");
++			break;
++		}
++		mptcp_subflow_set_scheduled(subflow, false);
++		data->contexts[i++] = subflow;
++	}
++	data->subflows = i;
++
++	for (; i < MPTCP_SUBFLOWS_MAX; i++)
++		data->contexts[i] = NULL;
++}
++
+ int mptcp_sched_get_send(struct mptcp_sock *msk)
+ {
+ 	struct mptcp_subflow_context *subflow;
+@@ -169,6 +189,7 @@ int mptcp_sched_get_send(struct mptcp_sock *msk)
+ 	data.reinject = false;
+ 	if (msk->sched == &mptcp_sched_default || !msk->sched)
+ 		return mptcp_sched_default_get_subflow(msk, &data);
++	mptcp_sched_data_set_contexts(msk, &data);
+ 	return msk->sched->get_subflow(msk, &data);
+ }
+ 
+@@ -191,5 +212,6 @@ int mptcp_sched_get_retrans(struct mptcp_sock *msk)
+ 	data.reinject = true;
+ 	if (msk->sched == &mptcp_sched_default || !msk->sched)
+ 		return mptcp_sched_default_get_subflow(msk, &data);
++	mptcp_sched_data_set_contexts(msk, &data);
+ 	return msk->sched->get_subflow(msk, &data);
+ }
+-- 
+2.46.0
+
+From a6f63a6b7b8076b59098b684577327a32bf0f5a8 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:13 +0000
+Subject: [PATCH 14/28] bpf: Add bpf_mptcp_sched_ops
+
+This patch implements a new struct bpf_struct_ops: bpf_mptcp_sched_ops.
+Register and unregister the bpf scheduler in .reg and .unreg.
+
+Add write access for the scheduled flag of struct mptcp_subflow_context
+in .btf_struct_access.
+
+This MPTCP BPF scheduler implementation is similar to BPF TCP CC. And
+net/ipv4/bpf_tcp_ca.c is a frame of reference for this patch.
+
+Acked-by: Paolo Abeni <pabeni@redhat.com>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Co-developed-by: Matthieu Baerts <matttbe@kernel.org>
+Signed-off-by: Matthieu Baerts <matttbe@kernel.org>
+Co-developed-by: Gregory Detal <gregory.detal@gmail.com>
+Signed-off-by: Gregory Detal <gregory.detal@gmail.com>
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+---
+ net/mptcp/bpf.c | 181 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 180 insertions(+), 1 deletion(-)
+
+diff --git a/net/mptcp/bpf.c b/net/mptcp/bpf.c
+index c3d62535eb0c..89b69ab1cf8e 100644
+--- a/net/mptcp/bpf.c
++++ b/net/mptcp/bpf.c
+@@ -10,8 +10,180 @@
+ #define pr_fmt(fmt) "MPTCP: " fmt
+ 
+ #include <linux/bpf.h>
++#include <linux/bpf_verifier.h>
++#include <linux/btf.h>
++#include <linux/btf_ids.h>
++#include <net/bpf_sk_storage.h>
+ #include "protocol.h"
+ 
++#ifdef CONFIG_BPF_JIT
++static struct bpf_struct_ops bpf_mptcp_sched_ops;
++static const struct btf_type *mptcp_sock_type, *mptcp_subflow_type __read_mostly;
++static u32 mptcp_sock_id, mptcp_subflow_id;
++
++static const struct bpf_func_proto *
++bpf_mptcp_sched_get_func_proto(enum bpf_func_id func_id,
++			       const struct bpf_prog *prog)
++{
++	switch (func_id) {
++	case BPF_FUNC_sk_storage_get:
++		return &bpf_sk_storage_get_proto;
++	case BPF_FUNC_sk_storage_delete:
++		return &bpf_sk_storage_delete_proto;
++	case BPF_FUNC_skc_to_tcp6_sock:
++		return &bpf_skc_to_tcp6_sock_proto;
++	case BPF_FUNC_skc_to_tcp_sock:
++		return &bpf_skc_to_tcp_sock_proto;
++	default:
++		return bpf_base_func_proto(func_id, prog);
++	}
++}
++
++static int bpf_mptcp_sched_btf_struct_access(struct bpf_verifier_log *log,
++					     const struct bpf_reg_state *reg,
++					     int off, int size)
++{
++	const struct btf_type *t;
++	size_t end;
++
++	t = btf_type_by_id(reg->btf, reg->btf_id);
++
++	if (t == mptcp_sock_type) {
++		switch (off) {
++		case offsetof(struct mptcp_sock, snd_burst):
++			end = offsetofend(struct mptcp_sock, snd_burst);
++			break;
++		default:
++			bpf_log(log, "no write support to mptcp_sock at off %d\n",
++				off);
++			return -EACCES;
++		}
++	} else if (t == mptcp_subflow_type) {
++		switch (off) {
++		case offsetof(struct mptcp_subflow_context, avg_pacing_rate):
++			end = offsetofend(struct mptcp_subflow_context, avg_pacing_rate);
++			break;
++		default:
++			bpf_log(log, "no write support to mptcp_subflow_context at off %d\n",
++				off);
++			return -EACCES;
++		}
++	} else {
++		bpf_log(log, "only access to mptcp sock or subflow is supported\n");
++		return -EACCES;
++	}
++
++	if (off + size > end) {
++		bpf_log(log, "access beyond %s at off %u size %u ended at %zu",
++			t == mptcp_sock_type ? "mptcp_sock" : "mptcp_subflow_context",
++			off, size, end);
++		return -EACCES;
++	}
++
++	return NOT_INIT;
++}
++
++static const struct bpf_verifier_ops bpf_mptcp_sched_verifier_ops = {
++	.get_func_proto		= bpf_mptcp_sched_get_func_proto,
++	.is_valid_access	= bpf_tracing_btf_ctx_access,
++	.btf_struct_access	= bpf_mptcp_sched_btf_struct_access,
++};
++
++static int bpf_mptcp_sched_reg(void *kdata, struct bpf_link *link)
++{
++	return mptcp_register_scheduler(kdata);
++}
++
++static void bpf_mptcp_sched_unreg(void *kdata, struct bpf_link *link)
++{
++	mptcp_unregister_scheduler(kdata);
++}
++
++static int bpf_mptcp_sched_check_member(const struct btf_type *t,
++					const struct btf_member *member,
++					const struct bpf_prog *prog)
++{
++	return 0;
++}
++
++static int bpf_mptcp_sched_init_member(const struct btf_type *t,
++				       const struct btf_member *member,
++				       void *kdata, const void *udata)
++{
++	const struct mptcp_sched_ops *usched;
++	struct mptcp_sched_ops *sched;
++	u32 moff;
++
++	usched = (const struct mptcp_sched_ops *)udata;
++	sched = (struct mptcp_sched_ops *)kdata;
++
++	moff = __btf_member_bit_offset(t, member) / 8;
++	switch (moff) {
++	case offsetof(struct mptcp_sched_ops, name):
++		if (bpf_obj_name_cpy(sched->name, usched->name,
++				     sizeof(sched->name)) <= 0)
++			return -EINVAL;
++		if (mptcp_sched_find(usched->name))
++			return -EEXIST;
++		return 1;
++	}
++
++	return 0;
++}
++
++static int bpf_mptcp_sched_init(struct btf *btf)
++{
++	s32 type_id;
++
++	type_id = btf_find_by_name_kind(btf, "mptcp_sock",
++					BTF_KIND_STRUCT);
++	if (type_id < 0)
++		return -EINVAL;
++	mptcp_sock_id = type_id;
++	mptcp_sock_type = btf_type_by_id(btf, mptcp_sock_id);
++
++	type_id = btf_find_by_name_kind(btf, "mptcp_subflow_context",
++					BTF_KIND_STRUCT);
++	if (type_id < 0)
++		return -EINVAL;
++	mptcp_subflow_id = type_id;
++	mptcp_subflow_type = btf_type_by_id(btf, mptcp_subflow_id);
++
++	return 0;
++}
++
++static int __bpf_mptcp_sched_get_subflow(struct mptcp_sock *msk,
++					 struct mptcp_sched_data *data)
++{
++	return 0;
++}
++
++static void __bpf_mptcp_sched_init(struct mptcp_sock *msk)
++{
++}
++
++static void __bpf_mptcp_sched_release(struct mptcp_sock *msk)
++{
++}
++
++static struct mptcp_sched_ops __bpf_mptcp_sched_ops = {
++	.get_subflow	= __bpf_mptcp_sched_get_subflow,
++	.init		= __bpf_mptcp_sched_init,
++	.release	= __bpf_mptcp_sched_release,
++};
++
++static struct bpf_struct_ops bpf_mptcp_sched_ops = {
++	.verifier_ops	= &bpf_mptcp_sched_verifier_ops,
++	.reg		= bpf_mptcp_sched_reg,
++	.unreg		= bpf_mptcp_sched_unreg,
++	.check_member	= bpf_mptcp_sched_check_member,
++	.init_member	= bpf_mptcp_sched_init_member,
++	.init		= bpf_mptcp_sched_init,
++	.name		= "mptcp_sched_ops",
++	.cfi_stubs	= &__bpf_mptcp_sched_ops,
++};
++#endif /* CONFIG_BPF_JIT */
++
+ struct mptcp_sock *bpf_mptcp_sock_from_subflow(struct sock *sk)
+ {
+ 	if (sk && sk_fullsock(sk) && sk->sk_protocol == IPPROTO_TCP && sk_is_mptcp(sk))
+@@ -45,6 +217,13 @@ __diag_pop();
+ 
+ static int __init bpf_mptcp_kfunc_init(void)
+ {
+-	return register_btf_fmodret_id_set(&bpf_mptcp_fmodret_set);
++	int ret;
++
++	ret = register_btf_fmodret_id_set(&bpf_mptcp_fmodret_set);
++#ifdef CONFIG_BPF_JIT
++	ret = ret ?: register_bpf_struct_ops(&bpf_mptcp_sched_ops, mptcp_sched_ops);
++#endif
++
++	return ret;
+ }
+ late_initcall(bpf_mptcp_kfunc_init);
+-- 
+2.46.0
+
+From 6e68551820459adac18dd50d189e8bb56f70b5aa Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:14 +0000
+Subject: [PATCH 15/28] bpf: Add bpf_mptcp_sched_kfunc_set
+
+This patch adds a new struct btf_kfunc_id_set for MPTCP scheduler. Add
+mptcp_subflow_set_scheduled() and mptcp_sched_data_set_contexts() helpers
+into this id_set, and register it in bpf_mptcp_kfunc_init() to make sure
+these helpers can be accessed from the BPF context.
+
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+---
+ net/mptcp/bpf.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/net/mptcp/bpf.c b/net/mptcp/bpf.c
+index 89b69ab1cf8e..2c0fb9bddb9d 100644
+--- a/net/mptcp/bpf.c
++++ b/net/mptcp/bpf.c
+@@ -215,11 +215,23 @@ bpf_mptcp_subflow_ctx_by_pos(const struct mptcp_sched_data *data, unsigned int p
+ 
+ __diag_pop();
+ 
++BTF_KFUNCS_START(bpf_mptcp_sched_kfunc_ids)
++BTF_ID_FLAGS(func, mptcp_subflow_set_scheduled)
++BTF_ID_FLAGS(func, bpf_mptcp_subflow_ctx_by_pos)
++BTF_KFUNCS_END(bpf_mptcp_sched_kfunc_ids)
++
++static const struct btf_kfunc_id_set bpf_mptcp_sched_kfunc_set = {
++	.owner	= THIS_MODULE,
++	.set	= &bpf_mptcp_sched_kfunc_ids,
++};
++
+ static int __init bpf_mptcp_kfunc_init(void)
+ {
+ 	int ret;
+ 
+ 	ret = register_btf_fmodret_id_set(&bpf_mptcp_fmodret_set);
++	ret = ret ?: register_btf_kfunc_id_set(BPF_PROG_TYPE_STRUCT_OPS,
++					       &bpf_mptcp_sched_kfunc_set);
+ #ifdef CONFIG_BPF_JIT
+ 	ret = ret ?: register_bpf_struct_ops(&bpf_mptcp_sched_ops, mptcp_sched_ops);
+ #endif
+-- 
+2.46.0
+
+From 53d163b4553529381a7a50e06eabe7b1e70d27d0 Mon Sep 17 00:00:00 2001
+From: Nicolas Rybowski <nicolas.rybowski@tessares.net>
+Date: Mon, 16 Sep 2024 05:52:15 +0000
+Subject: [PATCH 16/28] selftests/bpf: Add mptcp subflow example
+
+Move Nicolas' patch into bpf selftests directory. This example adds a
+different mark (SO_MARK) on each subflow, and changes the TCP CC only on
+the first subflow.
+
+From the userspace, an application can do a setsockopt() on an MPTCP
+socket, and typically the same value will be propagated to all subflows
+(paths). If someone wants to have different values per subflow, the
+recommended way is to use BPF. So it is good to add such example here,
+and make sure there is no regressions.
+
+This example shows how it is possible to:
+
+    Identify the parent msk of an MPTCP subflow.
+    Put different sockopt for each subflow of a same MPTCP connection.
+
+Here especially, two different behaviours are implemented:
+
+    A socket mark (SOL_SOCKET SO_MARK) is put on each subflow of a same
+    MPTCP connection. The order of creation of the current subflow defines
+    its mark. The TCP CC algorithm of the very first subflow of an MPTCP
+    connection is set to "reno".
+
+This is just to show it is possible to identify an MPTCP connection, and
+set socket options, from different SOL levels, per subflow. It is easy
+to verify with 'ss' that these modifications have been applied
+correctly. That's what the next patch is going to do.
+
+Nicolas' code comes from:
+
+    commit 4d120186e4d6 ("bpf:examples: update mptcp_set_mark_kern.c")
+
+from the MPTCP repo https://github.com/multipath-tcp/mptcp_net-next (the
+"scripts" branch), and it has been adapted by Geliang.
+
+Closes: https://github.com/multipath-tcp/mptcp_net-next/issues/76
+Co-developed-by: Geliang Tang <tanggeliang@kylinos.cn>
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Signed-off-by: Nicolas Rybowski <nicolas.rybowski@tessares.net>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+---
+ .../selftests/bpf/progs/mptcp_subflow.c       | 59 +++++++++++++++++++
+ 1 file changed, 59 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/progs/mptcp_subflow.c
+
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_subflow.c b/tools/testing/selftests/bpf/progs/mptcp_subflow.c
+new file mode 100644
+index 000000000000..2e28f4a215b5
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/mptcp_subflow.c
+@@ -0,0 +1,59 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (c) 2020, Tessares SA. */
++/* Copyright (c) 2024, Kylin Software */
++
++/* vmlinux.h, bpf_helpers.h and other 'define' */
++#include "bpf_tracing_net.h"
++
++char _license[] SEC("license") = "GPL";
++
++char cc[TCP_CA_NAME_MAX] = "reno";
++
++/* Associate a subflow counter to each token */
++struct {
++	__uint(type, BPF_MAP_TYPE_HASH);
++	__uint(key_size, sizeof(__u32));
++	__uint(value_size, sizeof(__u32));
++	__uint(max_entries, 100);
++} mptcp_sf SEC(".maps");
++
++SEC("sockops")
++int mptcp_subflow(struct bpf_sock_ops *skops)
++{
++	__u32 init = 1, key, mark, *cnt;
++	struct mptcp_sock *msk;
++	struct bpf_sock *sk;
++	int err;
++
++	if (skops->op != BPF_SOCK_OPS_TCP_CONNECT_CB)
++		return 1;
++
++	sk = skops->sk;
++	if (!sk)
++		return 1;
++
++	msk = bpf_skc_to_mptcp_sock(sk);
++	if (!msk)
++		return 1;
++
++	key = msk->token;
++	cnt = bpf_map_lookup_elem(&mptcp_sf, &key);
++	if (cnt) {
++		/* A new subflow is added to an existing MPTCP connection */
++		__sync_fetch_and_add(cnt, 1);
++		mark = *cnt;
++	} else {
++		/* A new MPTCP connection is just initiated and this is its primary subflow */
++		bpf_map_update_elem(&mptcp_sf, &key, &init, BPF_ANY);
++		mark = init;
++	}
++
++	/* Set the mark of the subflow's socket based on appearance order */
++	err = bpf_setsockopt(skops, SOL_SOCKET, SO_MARK, &mark, sizeof(mark));
++	if (err < 0)
++		return 1;
++	if (mark == 2)
++		err = bpf_setsockopt(skops, SOL_TCP, TCP_CONGESTION, cc, TCP_CA_NAME_MAX);
++
++	return 1;
++}
+-- 
+2.46.0
+
+From 6cda8081edf4e3ac7f8ed4353c666db7a09446a8 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:16 +0000
+Subject: [PATCH 17/28] selftests/bpf: Add getsockopt to inspect mptcp subflow
+
+This patch adds a "cgroup/getsockopt" way to inspect the subflows of an
+mptcp socket. That will be used by the next commit to verify the socket
+options set on each subflow.
+
+This extra "cgroup/getsockopt" prog walks the msk->conn_list and use
+bpf_core_cast to cast a pointer for readonly. It allows to inspect all
+the fields of a structure.
+
+mptcp_subflow_tcp_sock(), mptcp_for_each_stubflow() and other helpers
+related to list_entry have been added into a new progs/mptcp_bpf.h file.
+
+Suggested-by: Martin KaFai Lau <martin.lau@kernel.org>
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+---
+ MAINTAINERS                                   |  2 +-
+ tools/testing/selftests/bpf/progs/mptcp_bpf.h | 42 +++++++++++
+ .../selftests/bpf/progs/mptcp_subflow.c       | 69 +++++++++++++++++++
+ 3 files changed, 112 insertions(+), 1 deletion(-)
+ create mode 100644 tools/testing/selftests/bpf/progs/mptcp_bpf.h
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 77fcd6f802a5..93d705098220 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -16097,7 +16097,7 @@ F:	include/net/mptcp.h
+ F:	include/trace/events/mptcp.h
+ F:	include/uapi/linux/mptcp*.h
+ F:	net/mptcp/
+-F:	tools/testing/selftests/bpf/*/*mptcp*.c
++F:	tools/testing/selftests/bpf/*/*mptcp*.[ch]
+ F:	tools/testing/selftests/net/mptcp/
+ 
+ NETWORKING [TCP]
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_bpf.h b/tools/testing/selftests/bpf/progs/mptcp_bpf.h
+new file mode 100644
+index 000000000000..179b74c1205f
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/mptcp_bpf.h
+@@ -0,0 +1,42 @@
++/* SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause) */
++#ifndef __MPTCP_BPF_H__
++#define __MPTCP_BPF_H__
++
++#include "bpf_experimental.h"
++
++/* list helpers from include/linux/list.h */
++static inline int list_is_head(const struct list_head *list,
++			       const struct list_head *head)
++{
++	return list == head;
++}
++
++#define list_entry(ptr, type, member)					\
++	container_of(ptr, type, member)
++
++#define list_first_entry(ptr, type, member)				\
++	list_entry((ptr)->next, type, member)
++
++#define list_next_entry(pos, member)					\
++	list_entry((pos)->member.next, typeof(*(pos)), member)
++
++#define list_entry_is_head(pos, head, member)				\
++	list_is_head(&pos->member, (head))
++
++/* small difference: 'cond_break' has been added in the conditions */
++#define list_for_each_entry(pos, head, member)				\
++	for (pos = list_first_entry(head, typeof(*pos), member);	\
++	     cond_break, !list_entry_is_head(pos, head, member);	\
++	     pos = list_next_entry(pos, member))
++
++/* mptcp helpers from protocol.h */
++#define mptcp_for_each_subflow(__msk, __subflow)			\
++	list_for_each_entry(__subflow, &((__msk)->conn_list), node)
++
++static __always_inline struct sock *
++mptcp_subflow_tcp_sock(const struct mptcp_subflow_context *subflow)
++{
++	return subflow->tcp_sock;
++}
++
++#endif
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_subflow.c b/tools/testing/selftests/bpf/progs/mptcp_subflow.c
+index 2e28f4a215b5..70302477e326 100644
+--- a/tools/testing/selftests/bpf/progs/mptcp_subflow.c
++++ b/tools/testing/selftests/bpf/progs/mptcp_subflow.c
+@@ -4,10 +4,12 @@
+ 
+ /* vmlinux.h, bpf_helpers.h and other 'define' */
+ #include "bpf_tracing_net.h"
++#include "mptcp_bpf.h"
+ 
+ char _license[] SEC("license") = "GPL";
+ 
+ char cc[TCP_CA_NAME_MAX] = "reno";
++int pid;
+ 
+ /* Associate a subflow counter to each token */
+ struct {
+@@ -57,3 +59,70 @@ int mptcp_subflow(struct bpf_sock_ops *skops)
+ 
+ 	return 1;
+ }
++
++static int _check_getsockopt_subflow_mark(struct mptcp_sock *msk, struct bpf_sockopt *ctx)
++{
++	struct mptcp_subflow_context *subflow;
++	int i = 0;
++
++	mptcp_for_each_subflow(msk, subflow) {
++		struct sock *ssk;
++
++		ssk = mptcp_subflow_tcp_sock(bpf_core_cast(subflow,
++							   struct mptcp_subflow_context));
++
++		if (ssk->sk_mark != ++i) {
++			ctx->retval = -2;
++			break;
++		}
++	}
++
++	return 1;
++}
++
++static int _check_getsockopt_subflow_cc(struct mptcp_sock *msk, struct bpf_sockopt *ctx)
++{
++	struct mptcp_subflow_context *subflow;
++
++	mptcp_for_each_subflow(msk, subflow) {
++		struct inet_connection_sock *icsk;
++		struct sock *ssk;
++
++		ssk = mptcp_subflow_tcp_sock(bpf_core_cast(subflow,
++							   struct mptcp_subflow_context));
++		icsk = bpf_core_cast(ssk, struct inet_connection_sock);
++
++		if (ssk->sk_mark == 2 &&
++		    __builtin_memcmp(icsk->icsk_ca_ops->name, cc, TCP_CA_NAME_MAX)) {
++			ctx->retval = -2;
++			break;
++		}
++	}
++
++	return 1;
++}
++
++SEC("cgroup/getsockopt")
++int _getsockopt_subflow(struct bpf_sockopt *ctx)
++{
++	struct bpf_sock *sk = ctx->sk;
++	struct mptcp_sock *msk;
++
++	if (bpf_get_current_pid_tgid() >> 32 != pid)
++		return 1;
++
++	if (!sk || sk->protocol != IPPROTO_MPTCP ||
++	    (!(ctx->level == SOL_SOCKET && ctx->optname == SO_MARK) &&
++	     !(ctx->level == SOL_TCP && ctx->optname == TCP_CONGESTION)))
++		return 1;
++
++	msk = bpf_core_cast(sk, struct mptcp_sock);
++	if (msk->pm.subflows != 1) {
++		ctx->retval = -1;
++		return 1;
++	}
++
++	if (ctx->optname == SO_MARK)
++		return _check_getsockopt_subflow_mark(msk, ctx);
++	return _check_getsockopt_subflow_cc(msk, ctx);
++}
+-- 
+2.46.0
+
+From 88c9717cb6d32d931aabf69eee0d7fea30118466 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:17 +0000
+Subject: [PATCH 18/28] selftests/bpf: Add mptcp subflow subtest
+
+This patch adds a subtest named test_subflow to load and verify the newly
+added mptcp subflow example in test_mptcp. Add a helper endpoint_init()
+to add a new subflow endpoint. Add another helper ss_search() to verify the
+fwmark and congestion values set by mptcp_subflow prog using setsockopts.
+
+Closes: https://github.com/multipath-tcp/mptcp_net-next/issues/76
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+---
+ .../testing/selftests/bpf/prog_tests/mptcp.c  | 127 ++++++++++++++++++
+ 1 file changed, 127 insertions(+)
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/mptcp.c b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+index d2ca32fa3b21..c76a0d8c8f93 100644
+--- a/tools/testing/selftests/bpf/prog_tests/mptcp.c
++++ b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+@@ -5,12 +5,17 @@
+ #include <linux/const.h>
+ #include <netinet/in.h>
+ #include <test_progs.h>
++#include <unistd.h>
+ #include "cgroup_helpers.h"
+ #include "network_helpers.h"
+ #include "mptcp_sock.skel.h"
+ #include "mptcpify.skel.h"
++#include "mptcp_subflow.skel.h"
+ 
+ #define NS_TEST "mptcp_ns"
++#define ADDR_1	"10.0.1.1"
++#define ADDR_2	"10.0.1.2"
++#define PORT_1	10001
+ 
+ #ifndef IPPROTO_MPTCP
+ #define IPPROTO_MPTCP 262
+@@ -335,10 +340,132 @@ static void test_mptcpify(void)
+ 	close(cgroup_fd);
+ }
+ 
++static int endpoint_init(char *flags)
++{
++	SYS(fail, "ip -net %s link add veth1 type veth peer name veth2", NS_TEST);
++	SYS(fail, "ip -net %s addr add %s/24 dev veth1", NS_TEST, ADDR_1);
++	SYS(fail, "ip -net %s link set dev veth1 up", NS_TEST);
++	SYS(fail, "ip -net %s addr add %s/24 dev veth2", NS_TEST, ADDR_2);
++	SYS(fail, "ip -net %s link set dev veth2 up", NS_TEST);
++	if (SYS_NOFAIL("ip -net %s mptcp endpoint add %s %s", NS_TEST, ADDR_2, flags)) {
++		printf("'ip mptcp' not supported, skip this test.\n");
++		test__skip();
++		goto fail;
++	}
++
++	return 0;
++fail:
++	return -1;
++}
++
++static void wait_for_new_subflows(int fd)
++{
++	socklen_t len;
++	u8 subflows;
++	int err, i;
++
++	len = sizeof(subflows);
++	/* Wait max 1 sec for new subflows to be created */
++	for (i = 0; i < 10; i++) {
++		err = getsockopt(fd, SOL_MPTCP, MPTCP_INFO, &subflows, &len);
++		if (!err && subflows > 0)
++			break;
++
++		usleep(100000); /* 0.1s */
++	}
++}
++
++static void run_subflow(void)
++{
++	int server_fd, client_fd, err;
++	char new[TCP_CA_NAME_MAX];
++	char cc[TCP_CA_NAME_MAX];
++	unsigned int mark;
++	socklen_t len;
++
++	server_fd = start_mptcp_server(AF_INET, ADDR_1, PORT_1, 0);
++	if (!ASSERT_OK_FD(server_fd, "start_mptcp_server"))
++		return;
++
++	client_fd = connect_to_fd(server_fd, 0);
++	if (!ASSERT_OK_FD(client_fd, "connect_to_fd"))
++		goto close_server;
++
++	send_byte(client_fd);
++	wait_for_new_subflows(client_fd);
++
++	len = sizeof(mark);
++	err = getsockopt(client_fd, SOL_SOCKET, SO_MARK, &mark, &len);
++	if (ASSERT_OK(err, "getsockopt(client_fd, SO_MARK)"))
++		ASSERT_EQ(mark, 0, "mark");
++
++	len = sizeof(new);
++	err = getsockopt(client_fd, SOL_TCP, TCP_CONGESTION, new, &len);
++	if (ASSERT_OK(err, "getsockopt(client_fd, TCP_CONGESTION)")) {
++		get_msk_ca_name(cc);
++		ASSERT_STREQ(new, cc, "cc");
++	}
++
++	close(client_fd);
++close_server:
++	close(server_fd);
++}
++
++static void test_subflow(void)
++{
++	int cgroup_fd, prog_fd, err;
++	struct mptcp_subflow *skel;
++	struct nstoken *nstoken;
++	struct bpf_link *link;
++
++	cgroup_fd = test__join_cgroup("/mptcp_subflow");
++	if (!ASSERT_OK_FD(cgroup_fd, "join_cgroup: mptcp_subflow"))
++		return;
++
++	skel = mptcp_subflow__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "skel_open_load: mptcp_subflow"))
++		goto close_cgroup;
++
++	skel->bss->pid = getpid();
++
++	err = mptcp_subflow__attach(skel);
++	if (!ASSERT_OK(err, "skel_attach: mptcp_subflow"))
++		goto skel_destroy;
++
++	prog_fd = bpf_program__fd(skel->progs.mptcp_subflow);
++	err = bpf_prog_attach(prog_fd, cgroup_fd, BPF_CGROUP_SOCK_OPS, 0);
++	if (!ASSERT_OK(err, "prog_attach"))
++		goto skel_destroy;
++
++	nstoken = create_netns();
++	if (!ASSERT_OK_PTR(nstoken, "create_netns: mptcp_subflow"))
++		goto skel_destroy;
++
++	if (endpoint_init("subflow") < 0)
++		goto close_netns;
++
++	link = bpf_program__attach_cgroup(skel->progs._getsockopt_subflow,
++					  cgroup_fd);
++	if (!ASSERT_OK_PTR(link, "getsockopt prog"))
++		goto close_netns;
++
++	run_subflow();
++
++	bpf_link__destroy(link);
++close_netns:
++	cleanup_netns(nstoken);
++skel_destroy:
++	mptcp_subflow__destroy(skel);
++close_cgroup:
++	close(cgroup_fd);
++}
++
+ void test_mptcp(void)
+ {
+ 	if (test__start_subtest("base"))
+ 		test_base();
+ 	if (test__start_subtest("mptcpify"))
+ 		test_mptcpify();
++	if (test__start_subtest("subflow"))
++		test_subflow();
+ }
+-- 
+2.46.0
+
+From e80fa7af7531ac183afe0d2ccd248faab335892b Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:18 +0000
+Subject: [PATCH 19/28] selftests/bpf: Add bpf scheduler test
+
+This patch extends the MPTCP test base to support MPTCP packet scheduler
+tests. Add a new test to use the default in-kernel scheduler.
+
+In the new helper sched_init(), add two veth net devices to simulate the
+multiple addresses case. Use 'ip mptcp endpoint' command to add the new
+endpoint ADDR_2 to PM netlink. Use sysctl to set net.mptcp.scheduler to
+use the given sched.
+
+Invoke start_mptcp_server() to start the server on ADDR_1, and invoke
+connect_to_fd() to connect with the server from the client. Then invoke
+send_data() to send data.
+
+Some code in send_data() is from prog_tests/bpf_tcp_ca.c.
+
+Add time metrics for BPF tests to compare the performance of each
+schedulers. Run prog_tests with '-v' option can print out the running
+time of each test.
+
+Use the new helper has_bytes_sent() to check the bytes_sent filed of 'ss'
+output after send_data() to make sure no data has been sent on ADDR_2.
+All data has been sent on the first subflow.
+
+Invoke the new helper sched_cleanup() to set back net.mptcp.scheduler to
+default, flush all mptcp endpoints, and delete the veth net devices.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+---
+ .../testing/selftests/bpf/prog_tests/mptcp.c  | 92 +++++++++++++++++++
+ 1 file changed, 92 insertions(+)
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/mptcp.c b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+index c76a0d8c8f93..aff6986f84ac 100644
+--- a/tools/testing/selftests/bpf/prog_tests/mptcp.c
++++ b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+@@ -16,6 +16,8 @@
+ #define ADDR_1	"10.0.1.1"
+ #define ADDR_2	"10.0.1.2"
+ #define PORT_1	10001
++#define WITH_DATA	true
++#define WITHOUT_DATA	false
+ 
+ #ifndef IPPROTO_MPTCP
+ #define IPPROTO_MPTCP 262
+@@ -38,6 +40,9 @@
+ #define TCP_CA_NAME_MAX	16
+ #endif
+ 
++static const unsigned int total_bytes = 10 * 1024 * 1024;
++static int duration;
++
+ struct __mptcp_info {
+ 	__u8	mptcpi_subflows;
+ 	__u8	mptcpi_add_addr_signal;
+@@ -460,6 +465,91 @@ static void test_subflow(void)
+ 	close(cgroup_fd);
+ }
+ 
++static struct nstoken *sched_init(char *flags, char *sched)
++{
++	struct nstoken *nstoken;
++
++	nstoken = create_netns();
++	if (!ASSERT_OK_PTR(nstoken, "create_netns"))
++		return NULL;
++
++	if (endpoint_init("subflow") < 0)
++		goto fail;
++
++	SYS(fail, "ip netns exec %s sysctl -qw net.mptcp.scheduler=%s", NS_TEST, sched);
++
++	return nstoken;
++fail:
++	cleanup_netns(nstoken);
++	return NULL;
++}
++
++static int ss_search(char *src, char *dst, char *port, char *keyword)
++{
++	return SYS_NOFAIL("ip netns exec %s ss -enita src %s dst %s %s %d | grep -q '%s'",
++			  NS_TEST, src, dst, port, PORT_1, keyword);
++}
++
++static int has_bytes_sent(char *dst)
++{
++	return ss_search(ADDR_1, dst, "sport", "bytes_sent:");
++}
++
++static void send_data_and_verify(char *sched, bool addr1, bool addr2)
++{
++	struct timespec start, end;
++	int server_fd, client_fd;
++	unsigned int delta_ms;
++
++	server_fd = start_mptcp_server(AF_INET, ADDR_1, PORT_1, 0);
++	if (!ASSERT_OK_FD(server_fd, "start_mptcp_server"))
++		return;
++
++	client_fd = connect_to_fd(server_fd, 0);
++	if (!ASSERT_OK_FD(client_fd, "connect_to_fd"))
++		goto fail;
++
++	if (clock_gettime(CLOCK_MONOTONIC, &start) < 0)
++		goto fail;
++
++	if (!ASSERT_OK(send_recv_data(server_fd, client_fd, total_bytes),
++		       "send_recv_data"))
++		goto fail;
++
++	if (clock_gettime(CLOCK_MONOTONIC, &end) < 0)
++		goto fail;
++
++	delta_ms = (end.tv_sec - start.tv_sec) * 1000 + (end.tv_nsec - start.tv_nsec) / 1000000;
++	printf("%s: %u ms\n", sched, delta_ms);
++
++	if (addr1)
++		CHECK(has_bytes_sent(ADDR_1), sched, "should have bytes_sent on addr1\n");
++	else
++		CHECK(!has_bytes_sent(ADDR_1), sched, "shouldn't have bytes_sent on addr1\n");
++	if (addr2)
++		CHECK(has_bytes_sent(ADDR_2), sched, "should have bytes_sent on addr2\n");
++	else
++		CHECK(!has_bytes_sent(ADDR_2), sched, "shouldn't have bytes_sent on addr2\n");
++
++	close(client_fd);
++fail:
++	close(server_fd);
++}
++
++static void test_default(void)
++{
++	struct nstoken *nstoken;
++
++	nstoken = sched_init("subflow", "default");
++	if (!nstoken)
++		goto fail;
++
++	send_data_and_verify("default", WITH_DATA, WITH_DATA);
++
++fail:
++	cleanup_netns(nstoken);
++}
++
+ void test_mptcp(void)
+ {
+ 	if (test__start_subtest("base"))
+@@ -468,4 +558,6 @@ void test_mptcp(void)
+ 		test_mptcpify();
+ 	if (test__start_subtest("subflow"))
+ 		test_subflow();
++	if (test__start_subtest("default"))
++		test_default();
+ }
+-- 
+2.46.0
+
+From 98a4df409f3862b6bb7b5f246752b05e3ccc55af Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:19 +0000
+Subject: [PATCH 20/28] selftests/bpf: Add bpf_first scheduler & test
+
+This patch implements the simplest MPTCP scheduler, named bpf_first,
+which always picks the first subflow to send data. It's a sample of
+MPTCP BPF scheduler implementations.
+
+This patch defines MPTCP_SCHED_TEST macro, a template for all scheduler
+tests. Every scheduler is identified by argument name, and use sysctl
+to set net.mptcp.scheduler as "bpf_name" to use this sched. Add two
+veth net devices to simulate the multiple addresses case. Use 'ip mptcp
+endpoint' command to add the new endpoint ADDR2 to PM netlink. Arguments
+addr1/add2 means whether the data has been sent on the first/second
+subflow or not. Send data and check bytes_sent of 'ss' output after it
+using send_data_and_verify().
+
+Using MPTCP_SCHED_TEST macro to add a new test for this bpf_first
+scheduler, the arguments "1 0" means data has been only sent on the
+first subflow ADDR1. Run this test by RUN_MPTCP_TEST macro.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Acked-by: Paolo Abeni <pabeni@redhat.com>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+---
+ .../testing/selftests/bpf/prog_tests/mptcp.c  | 44 +++++++++++++++++++
+ tools/testing/selftests/bpf/progs/mptcp_bpf.h |  7 +++
+ .../selftests/bpf/progs/mptcp_bpf_first.c     | 33 ++++++++++++++
+ 3 files changed, 84 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/progs/mptcp_bpf_first.c
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/mptcp.c b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+index aff6986f84ac..ee3fab606855 100644
+--- a/tools/testing/selftests/bpf/prog_tests/mptcp.c
++++ b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+@@ -11,6 +11,7 @@
+ #include "mptcp_sock.skel.h"
+ #include "mptcpify.skel.h"
+ #include "mptcp_subflow.skel.h"
++#include "mptcp_bpf_first.skel.h"
+ 
+ #define NS_TEST "mptcp_ns"
+ #define ADDR_1	"10.0.1.1"
+@@ -39,6 +40,7 @@
+ #ifndef TCP_CA_NAME_MAX
+ #define TCP_CA_NAME_MAX	16
+ #endif
++#define MPTCP_SCHED_NAME_MAX	16
+ 
+ static const unsigned int total_bytes = 10 * 1024 * 1024;
+ static int duration;
+@@ -550,6 +552,46 @@ static void test_default(void)
+ 	cleanup_netns(nstoken);
+ }
+ 
++static void test_bpf_sched(struct bpf_object *obj, char *sched,
++			   bool addr1, bool addr2)
++{
++	char bpf_sched[MPTCP_SCHED_NAME_MAX] = "bpf_";
++	struct nstoken *nstoken;
++	struct bpf_link *link;
++	struct bpf_map *map;
++
++	if (!ASSERT_LT(strlen(bpf_sched) + strlen(sched),
++		       MPTCP_SCHED_NAME_MAX, "Scheduler name too long"))
++		return;
++
++	map = bpf_object__find_map_by_name(obj, sched);
++	link = bpf_map__attach_struct_ops(map);
++	if (CHECK(!link, sched, "attach_struct_ops: %d\n", errno))
++		return;
++
++	nstoken = sched_init("subflow", strcat(bpf_sched, sched));
++	if (!nstoken)
++		goto fail;
++
++	send_data_and_verify(sched, addr1, addr2);
++
++fail:
++	cleanup_netns(nstoken);
++	bpf_link__destroy(link);
++}
++
++static void test_first(void)
++{
++	struct mptcp_bpf_first *skel;
++
++	skel = mptcp_bpf_first__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "open_and_load: first"))
++		return;
++
++	test_bpf_sched(skel->obj, "first", WITH_DATA, WITHOUT_DATA);
++	mptcp_bpf_first__destroy(skel);
++}
++
+ void test_mptcp(void)
+ {
+ 	if (test__start_subtest("base"))
+@@ -560,4 +602,6 @@ void test_mptcp(void)
+ 		test_subflow();
+ 	if (test__start_subtest("default"))
+ 		test_default();
++	if (test__start_subtest("first"))
++		test_first();
+ }
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_bpf.h b/tools/testing/selftests/bpf/progs/mptcp_bpf.h
+index 179b74c1205f..95449963c1d3 100644
+--- a/tools/testing/selftests/bpf/progs/mptcp_bpf.h
++++ b/tools/testing/selftests/bpf/progs/mptcp_bpf.h
+@@ -39,4 +39,11 @@ mptcp_subflow_tcp_sock(const struct mptcp_subflow_context *subflow)
+ 	return subflow->tcp_sock;
+ }
+ 
++/* ksym */
++extern void mptcp_subflow_set_scheduled(struct mptcp_subflow_context *subflow,
++					bool scheduled) __ksym;
++
++extern struct mptcp_subflow_context *
++bpf_mptcp_subflow_ctx_by_pos(const struct mptcp_sched_data *data, unsigned int pos) __ksym;
++
+ #endif
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_bpf_first.c b/tools/testing/selftests/bpf/progs/mptcp_bpf_first.c
+new file mode 100644
+index 000000000000..d57399b407a7
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/mptcp_bpf_first.c
+@@ -0,0 +1,33 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (c) 2022, SUSE. */
++
++#include "mptcp_bpf.h"
++#include <bpf/bpf_tracing.h>
++
++char _license[] SEC("license") = "GPL";
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_first_init, struct mptcp_sock *msk)
++{
++}
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_first_release, struct mptcp_sock *msk)
++{
++}
++
++SEC("struct_ops")
++int BPF_PROG(bpf_first_get_subflow, struct mptcp_sock *msk,
++	     struct mptcp_sched_data *data)
++{
++	mptcp_subflow_set_scheduled(bpf_mptcp_subflow_ctx_by_pos(data, 0), true);
++	return 0;
++}
++
++SEC(".struct_ops")
++struct mptcp_sched_ops first = {
++	.init		= (void *)mptcp_sched_first_init,
++	.release	= (void *)mptcp_sched_first_release,
++	.get_subflow	= (void *)bpf_first_get_subflow,
++	.name		= "bpf_first",
++};
+-- 
+2.46.0
+
+From 156161b367e8fea9b012e0d2da4b816670bd3a3f Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:20 +0000
+Subject: [PATCH 21/28] selftests/bpf: Add bpf_bkup scheduler & test
+
+This patch implements the backup flag test scheduler, named bpf_bkup,
+which picks the first non-backup subflow to send data.
+
+Using MPTCP_SCHED_TEST macro to add a new test for this bpf_bkup
+scheduler, the arguments "1 0" means data has been only sent on the
+first subflow ADDR1. Run this test by RUN_MPTCP_TEST macro.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+---
+ .../testing/selftests/bpf/prog_tests/mptcp.c  | 15 ++++++
+ tools/testing/selftests/bpf/progs/mptcp_bpf.h |  3 ++
+ .../selftests/bpf/progs/mptcp_bpf_bkup.c      | 52 +++++++++++++++++++
+ 3 files changed, 70 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/progs/mptcp_bpf_bkup.c
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/mptcp.c b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+index ee3fab606855..4a760efc2ede 100644
+--- a/tools/testing/selftests/bpf/prog_tests/mptcp.c
++++ b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+@@ -12,6 +12,7 @@
+ #include "mptcpify.skel.h"
+ #include "mptcp_subflow.skel.h"
+ #include "mptcp_bpf_first.skel.h"
++#include "mptcp_bpf_bkup.skel.h"
+ 
+ #define NS_TEST "mptcp_ns"
+ #define ADDR_1	"10.0.1.1"
+@@ -592,6 +593,18 @@ static void test_first(void)
+ 	mptcp_bpf_first__destroy(skel);
+ }
+ 
++static void test_bkup(void)
++{
++	struct mptcp_bpf_bkup *skel;
++
++	skel = mptcp_bpf_bkup__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "open_and_load: bkup"))
++		return;
++
++	test_bpf_sched(skel->obj, "bkup", WITH_DATA, WITHOUT_DATA);
++	mptcp_bpf_bkup__destroy(skel);
++}
++
+ void test_mptcp(void)
+ {
+ 	if (test__start_subtest("base"))
+@@ -604,4 +617,6 @@ void test_mptcp(void)
+ 		test_default();
+ 	if (test__start_subtest("first"))
+ 		test_first();
++	if (test__start_subtest("bkup"))
++		test_bkup();
+ }
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_bpf.h b/tools/testing/selftests/bpf/progs/mptcp_bpf.h
+index 95449963c1d3..928a1e5ad8db 100644
+--- a/tools/testing/selftests/bpf/progs/mptcp_bpf.h
++++ b/tools/testing/selftests/bpf/progs/mptcp_bpf.h
+@@ -4,6 +4,9 @@
+ 
+ #include "bpf_experimental.h"
+ 
++/* mptcp helpers from include/net/mptcp.h */
++#define MPTCP_SUBFLOWS_MAX 8
++
+ /* list helpers from include/linux/list.h */
+ static inline int list_is_head(const struct list_head *list,
+ 			       const struct list_head *head)
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_bpf_bkup.c b/tools/testing/selftests/bpf/progs/mptcp_bpf_bkup.c
+new file mode 100644
+index 000000000000..296f0318d843
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/mptcp_bpf_bkup.c
+@@ -0,0 +1,52 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (c) 2022, SUSE. */
++
++#include "mptcp_bpf.h"
++#include <bpf/bpf_tracing.h>
++
++char _license[] SEC("license") = "GPL";
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_bkup_init, struct mptcp_sock *msk)
++{
++}
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_bkup_release, struct mptcp_sock *msk)
++{
++}
++
++SEC("struct_ops")
++int BPF_PROG(bpf_bkup_get_subflow, struct mptcp_sock *msk,
++	     struct mptcp_sched_data *data)
++{
++	int nr = -1;
++
++	for (int i = 0; i < data->subflows && i < MPTCP_SUBFLOWS_MAX; i++) {
++		struct mptcp_subflow_context *subflow;
++
++		subflow = bpf_mptcp_subflow_ctx_by_pos(data, i);
++		if (!subflow)
++			break;
++
++		if (!BPF_CORE_READ_BITFIELD_PROBED(subflow, backup) ||
++		    !BPF_CORE_READ_BITFIELD_PROBED(subflow, request_bkup)) {
++			nr = i;
++			break;
++		}
++	}
++
++	if (nr != -1) {
++		mptcp_subflow_set_scheduled(bpf_mptcp_subflow_ctx_by_pos(data, nr), true);
++		return -1;
++	}
++	return 0;
++}
++
++SEC(".struct_ops")
++struct mptcp_sched_ops bkup = {
++	.init		= (void *)mptcp_sched_bkup_init,
++	.release	= (void *)mptcp_sched_bkup_release,
++	.get_subflow	= (void *)bpf_bkup_get_subflow,
++	.name		= "bpf_bkup",
++};
+-- 
+2.46.0
+
+From 23be357908c466769030c111270c4438cac3e0f3 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:21 +0000
+Subject: [PATCH 22/28] selftests/bpf: Add bpf_rr scheduler & test
+
+This patch implements the round-robin BPF MPTCP scheduler, named bpf_rr,
+which always picks the next available subflow to send data. If no such
+next subflow available, picks the first one.
+
+Using MPTCP_SCHED_TEST macro to add a new test for this bpf_rr
+scheduler, the arguments "1 1" means data has been sent on both net
+devices. Run this test by RUN_MPTCP_TEST macro.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+---
+ .../testing/selftests/bpf/prog_tests/mptcp.c  | 15 ++++
+ .../selftests/bpf/progs/mptcp_bpf_rr.c        | 78 +++++++++++++++++++
+ 2 files changed, 93 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/progs/mptcp_bpf_rr.c
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/mptcp.c b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+index 4a760efc2ede..d4e07c24806c 100644
+--- a/tools/testing/selftests/bpf/prog_tests/mptcp.c
++++ b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+@@ -13,6 +13,7 @@
+ #include "mptcp_subflow.skel.h"
+ #include "mptcp_bpf_first.skel.h"
+ #include "mptcp_bpf_bkup.skel.h"
++#include "mptcp_bpf_rr.skel.h"
+ 
+ #define NS_TEST "mptcp_ns"
+ #define ADDR_1	"10.0.1.1"
+@@ -605,6 +606,18 @@ static void test_bkup(void)
+ 	mptcp_bpf_bkup__destroy(skel);
+ }
+ 
++static void test_rr(void)
++{
++	struct mptcp_bpf_rr *skel;
++
++	skel = mptcp_bpf_rr__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "open_and_load: rr"))
++		return;
++
++	test_bpf_sched(skel->obj, "rr", WITH_DATA, WITH_DATA);
++	mptcp_bpf_rr__destroy(skel);
++}
++
+ void test_mptcp(void)
+ {
+ 	if (test__start_subtest("base"))
+@@ -619,4 +632,6 @@ void test_mptcp(void)
+ 		test_first();
+ 	if (test__start_subtest("bkup"))
+ 		test_bkup();
++	if (test__start_subtest("rr"))
++		test_rr();
+ }
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_bpf_rr.c b/tools/testing/selftests/bpf/progs/mptcp_bpf_rr.c
+new file mode 100644
+index 000000000000..638ea6aa63b7
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/mptcp_bpf_rr.c
+@@ -0,0 +1,78 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (c) 2022, SUSE. */
++
++#include "mptcp_bpf.h"
++#include <bpf/bpf_tracing.h>
++
++char _license[] SEC("license") = "GPL";
++
++struct mptcp_rr_storage {
++	struct sock *last_snd;
++};
++
++struct {
++	__uint(type, BPF_MAP_TYPE_SK_STORAGE);
++	__uint(map_flags, BPF_F_NO_PREALLOC);
++	__type(key, int);
++	__type(value, struct mptcp_rr_storage);
++} mptcp_rr_map SEC(".maps");
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_rr_init, struct mptcp_sock *msk)
++{
++	bpf_sk_storage_get(&mptcp_rr_map, msk, 0,
++			   BPF_LOCAL_STORAGE_GET_F_CREATE);
++}
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_rr_release, struct mptcp_sock *msk)
++{
++	bpf_sk_storage_delete(&mptcp_rr_map, msk);
++}
++
++SEC("struct_ops")
++int BPF_PROG(bpf_rr_get_subflow, struct mptcp_sock *msk,
++	     struct mptcp_sched_data *data)
++{
++	struct mptcp_subflow_context *subflow;
++	struct mptcp_rr_storage *ptr;
++	struct sock *last_snd = NULL;
++	int nr = 0;
++
++	ptr = bpf_sk_storage_get(&mptcp_rr_map, msk, 0,
++				 BPF_LOCAL_STORAGE_GET_F_CREATE);
++	if (!ptr)
++		return -1;
++
++	last_snd = ptr->last_snd;
++
++	for (int i = 0; i < data->subflows && i < MPTCP_SUBFLOWS_MAX; i++) {
++		subflow = bpf_mptcp_subflow_ctx_by_pos(data, i);
++		if (!last_snd || !subflow)
++			break;
++
++		if (mptcp_subflow_tcp_sock(subflow) == last_snd) {
++			if (i + 1 == MPTCP_SUBFLOWS_MAX ||
++			    !bpf_mptcp_subflow_ctx_by_pos(data, i + 1))
++				break;
++
++			nr = i + 1;
++			break;
++		}
++	}
++
++	subflow = bpf_mptcp_subflow_ctx_by_pos(data, nr);
++	if (!subflow)
++		return -1;
++	mptcp_subflow_set_scheduled(subflow, true);
++	ptr->last_snd = mptcp_subflow_tcp_sock(subflow);
++	return 0;
++}
++
++SEC(".struct_ops")
++struct mptcp_sched_ops rr = {
++	.init		= (void *)mptcp_sched_rr_init,
++	.release	= (void *)mptcp_sched_rr_release,
++	.get_subflow	= (void *)bpf_rr_get_subflow,
++	.name		= "bpf_rr",
++};
+-- 
+2.46.0
+
+From 24f9dc216230966e8e7301d7ac82af04d8583566 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:22 +0000
+Subject: [PATCH 23/28] selftests/bpf: Add bpf_red scheduler & test
+
+This patch implements the redundant BPF MPTCP scheduler, named bpf_red,
+which sends all packets redundantly on all available subflows.
+
+Using MPTCP_SCHED_TEST macro to add a new test for this bpf_red
+scheduler, the arguments "1 1" means data has been sent on both
+net devices. Run this test by RUN_MPTCP_TEST macro.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+---
+ .../testing/selftests/bpf/prog_tests/mptcp.c  | 15 +++++++
+ .../selftests/bpf/progs/mptcp_bpf_red.c       | 39 +++++++++++++++++++
+ 2 files changed, 54 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/progs/mptcp_bpf_red.c
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/mptcp.c b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+index d4e07c24806c..ede2d1ff9f6b 100644
+--- a/tools/testing/selftests/bpf/prog_tests/mptcp.c
++++ b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+@@ -14,6 +14,7 @@
+ #include "mptcp_bpf_first.skel.h"
+ #include "mptcp_bpf_bkup.skel.h"
+ #include "mptcp_bpf_rr.skel.h"
++#include "mptcp_bpf_red.skel.h"
+ 
+ #define NS_TEST "mptcp_ns"
+ #define ADDR_1	"10.0.1.1"
+@@ -618,6 +619,18 @@ static void test_rr(void)
+ 	mptcp_bpf_rr__destroy(skel);
+ }
+ 
++static void test_red(void)
++{
++	struct mptcp_bpf_red *skel;
++
++	skel = mptcp_bpf_red__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "open_and_load: red"))
++		return;
++
++	test_bpf_sched(skel->obj, "red", WITH_DATA, WITH_DATA);
++	mptcp_bpf_red__destroy(skel);
++}
++
+ void test_mptcp(void)
+ {
+ 	if (test__start_subtest("base"))
+@@ -634,4 +647,6 @@ void test_mptcp(void)
+ 		test_bkup();
+ 	if (test__start_subtest("rr"))
+ 		test_rr();
++	if (test__start_subtest("red"))
++		test_red();
+ }
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_bpf_red.c b/tools/testing/selftests/bpf/progs/mptcp_bpf_red.c
+new file mode 100644
+index 000000000000..cc0aab732fc4
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/mptcp_bpf_red.c
+@@ -0,0 +1,39 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (c) 2022, SUSE. */
++
++#include "mptcp_bpf.h"
++#include <bpf/bpf_tracing.h>
++
++char _license[] SEC("license") = "GPL";
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_red_init, struct mptcp_sock *msk)
++{
++}
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_red_release, struct mptcp_sock *msk)
++{
++}
++
++SEC("struct_ops")
++int BPF_PROG(bpf_red_get_subflow, struct mptcp_sock *msk,
++	     struct mptcp_sched_data *data)
++{
++	for (int i = 0; i < data->subflows && i < MPTCP_SUBFLOWS_MAX; i++) {
++		if (!bpf_mptcp_subflow_ctx_by_pos(data, i))
++			break;
++
++		mptcp_subflow_set_scheduled(bpf_mptcp_subflow_ctx_by_pos(data, i), true);
++	}
++
++	return 0;
++}
++
++SEC(".struct_ops")
++struct mptcp_sched_ops red = {
++	.init		= (void *)mptcp_sched_red_init,
++	.release	= (void *)mptcp_sched_red_release,
++	.get_subflow	= (void *)bpf_red_get_subflow,
++	.name		= "bpf_red",
++};
+-- 
+2.46.0
+
+From de732279a1cfc454c4d355a7dc31bfc2766383e0 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:23 +0000
+Subject: [PATCH 24/28] bpf: Export more bpf_burst related functions
+
+sk_stream_memory_free() and tcp_rtx_and_write_queues_empty() are needed
+to export into the BPF context for bpf_burst scheduler. But these two
+functions are inline ones. So this patch added two wrappers for them,
+and export the wrappers in the BPF context.
+
+Add more bpf_burst related functions into bpf_mptcp_sched_kfunc_set to make
+sure these helpers can be accessed from the BPF context.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+---
+ net/mptcp/bpf.c      | 11 +++++++++++
+ net/mptcp/protocol.c |  4 ++--
+ net/mptcp/protocol.h |  3 +++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/net/mptcp/bpf.c b/net/mptcp/bpf.c
+index 2c0fb9bddb9d..6414824402e6 100644
+--- a/net/mptcp/bpf.c
++++ b/net/mptcp/bpf.c
+@@ -213,11 +213,22 @@ bpf_mptcp_subflow_ctx_by_pos(const struct mptcp_sched_data *data, unsigned int p
+ 	return data->contexts[pos];
+ }
+ 
++__bpf_kfunc bool bpf_mptcp_subflow_queues_empty(struct sock *sk)
++{
++	return tcp_rtx_queue_empty(sk);
++}
++
+ __diag_pop();
+ 
+ BTF_KFUNCS_START(bpf_mptcp_sched_kfunc_ids)
+ BTF_ID_FLAGS(func, mptcp_subflow_set_scheduled)
+ BTF_ID_FLAGS(func, bpf_mptcp_subflow_ctx_by_pos)
++BTF_ID_FLAGS(func, mptcp_subflow_active)
++BTF_ID_FLAGS(func, mptcp_set_timeout)
++BTF_ID_FLAGS(func, mptcp_wnd_end)
++BTF_ID_FLAGS(func, tcp_stream_memory_free)
++BTF_ID_FLAGS(func, bpf_mptcp_subflow_queues_empty)
++BTF_ID_FLAGS(func, mptcp_pm_subflow_chk_stale)
+ BTF_KFUNCS_END(bpf_mptcp_sched_kfunc_ids)
+ 
+ static const struct btf_kfunc_id_set bpf_mptcp_sched_kfunc_set = {
+diff --git a/net/mptcp/protocol.c b/net/mptcp/protocol.c
+index 7cc8d81ee605..3b837765c84b 100644
+--- a/net/mptcp/protocol.c
++++ b/net/mptcp/protocol.c
+@@ -50,7 +50,7 @@ DEFINE_PER_CPU(struct mptcp_delegated_action, mptcp_delegated_actions);
+ static struct net_device mptcp_napi_dev;
+ 
+ /* Returns end sequence number of the receiver's advertised window */
+-static u64 mptcp_wnd_end(const struct mptcp_sock *msk)
++u64 mptcp_wnd_end(const struct mptcp_sock *msk)
+ {
+ 	return READ_ONCE(msk->wnd_end);
+ }
+@@ -489,7 +489,7 @@ static long mptcp_timeout_from_subflow(const struct mptcp_subflow_context *subfl
+ 	       inet_csk(ssk)->icsk_timeout - jiffies : 0;
+ }
+ 
+-static void mptcp_set_timeout(struct sock *sk)
++void mptcp_set_timeout(struct sock *sk)
+ {
+ 	struct mptcp_subflow_context *subflow;
+ 	long tout = 0;
+diff --git a/net/mptcp/protocol.h b/net/mptcp/protocol.h
+index a1d06e7e3544..c3942416fa3a 100644
+--- a/net/mptcp/protocol.h
++++ b/net/mptcp/protocol.h
+@@ -719,6 +719,9 @@ void __mptcp_subflow_send_ack(struct sock *ssk);
+ void mptcp_subflow_reset(struct sock *ssk);
+ void mptcp_subflow_queue_clean(struct sock *sk, struct sock *ssk);
+ void mptcp_sock_graft(struct sock *sk, struct socket *parent);
++u64 mptcp_wnd_end(const struct mptcp_sock *msk);
++void mptcp_set_timeout(struct sock *sk);
++bool bpf_mptcp_subflow_queues_empty(struct sock *sk);
+ struct mptcp_subflow_context *
+ bpf_mptcp_subflow_ctx_by_pos(const struct mptcp_sched_data *data, unsigned int pos);
+ struct sock *__mptcp_nmpc_sk(struct mptcp_sock *msk);
+-- 
+2.46.0
+
+From 9f1d0166bff9923c5889a0db70e189f147efee50 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Mon, 16 Sep 2024 05:52:24 +0000
+Subject: [PATCH 25/28] selftests/bpf: Add bpf_burst scheduler & test
+
+This patch implements the burst BPF MPTCP scheduler, named bpf_burst,
+which is the default scheduler in protocol.c. bpf_burst_get_send() uses
+the same logic as mptcp_subflow_get_send() and bpf_burst_get_retrans
+uses the same logic as mptcp_subflow_get_retrans().
+
+Using MPTCP_SCHED_TEST macro to add a new test for this bpf_burst
+scheduler, the arguments "1 1" means data has been sent on both net
+devices. Run this test by RUN_MPTCP_TEST macro.
+
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+---
+ .../testing/selftests/bpf/prog_tests/mptcp.c  |  15 ++
+ .../selftests/bpf/progs/mptcp_bpf_burst.c     | 207 ++++++++++++++++++
+ 2 files changed, 222 insertions(+)
+ create mode 100644 tools/testing/selftests/bpf/progs/mptcp_bpf_burst.c
+
+diff --git a/tools/testing/selftests/bpf/prog_tests/mptcp.c b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+index ede2d1ff9f6b..a3e68bc6afa3 100644
+--- a/tools/testing/selftests/bpf/prog_tests/mptcp.c
++++ b/tools/testing/selftests/bpf/prog_tests/mptcp.c
+@@ -15,6 +15,7 @@
+ #include "mptcp_bpf_bkup.skel.h"
+ #include "mptcp_bpf_rr.skel.h"
+ #include "mptcp_bpf_red.skel.h"
++#include "mptcp_bpf_burst.skel.h"
+ 
+ #define NS_TEST "mptcp_ns"
+ #define ADDR_1	"10.0.1.1"
+@@ -631,6 +632,18 @@ static void test_red(void)
+ 	mptcp_bpf_red__destroy(skel);
+ }
+ 
++static void test_burst(void)
++{
++	struct mptcp_bpf_burst *skel;
++
++	skel = mptcp_bpf_burst__open_and_load();
++	if (!ASSERT_OK_PTR(skel, "open_and_load: burst"))
++		return;
++
++	test_bpf_sched(skel->obj, "burst", WITH_DATA, WITH_DATA);
++	mptcp_bpf_burst__destroy(skel);
++}
++
+ void test_mptcp(void)
+ {
+ 	if (test__start_subtest("base"))
+@@ -649,4 +662,6 @@ void test_mptcp(void)
+ 		test_rr();
+ 	if (test__start_subtest("red"))
+ 		test_red();
++	if (test__start_subtest("burst"))
++		test_burst();
+ }
+diff --git a/tools/testing/selftests/bpf/progs/mptcp_bpf_burst.c b/tools/testing/selftests/bpf/progs/mptcp_bpf_burst.c
+new file mode 100644
+index 000000000000..eb21119aa8f7
+--- /dev/null
++++ b/tools/testing/selftests/bpf/progs/mptcp_bpf_burst.c
+@@ -0,0 +1,207 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (c) 2023, SUSE. */
++
++#include "mptcp_bpf.h"
++#include <bpf/bpf_tracing.h>
++#include <limits.h>
++
++char _license[] SEC("license") = "GPL";
++
++#define MPTCP_SEND_BURST_SIZE	65428
++
++#define min(a, b) ((a) < (b) ? (a) : (b))
++
++struct bpf_subflow_send_info {
++	__u8 subflow_id;
++	__u64 linger_time;
++};
++
++extern bool mptcp_subflow_active(struct mptcp_subflow_context *subflow) __ksym;
++extern void mptcp_set_timeout(struct sock *sk) __ksym;
++extern __u64 mptcp_wnd_end(const struct mptcp_sock *msk) __ksym;
++extern bool tcp_stream_memory_free(const struct sock *sk, int wake) __ksym;
++extern bool bpf_mptcp_subflow_queues_empty(struct sock *sk) __ksym;
++extern void mptcp_pm_subflow_chk_stale(const struct mptcp_sock *msk, struct sock *ssk) __ksym;
++
++#define SSK_MODE_ACTIVE	0
++#define SSK_MODE_BACKUP	1
++#define SSK_MODE_MAX	2
++
++static __always_inline __u64 div_u64(__u64 dividend, __u32 divisor)
++{
++	return dividend / divisor;
++}
++
++static __always_inline bool tcp_write_queue_empty(struct sock *sk)
++{
++	const struct tcp_sock *tp = bpf_skc_to_tcp_sock(sk);
++
++	return tp ? tp->write_seq == tp->snd_nxt : true;
++}
++
++static __always_inline bool tcp_rtx_and_write_queues_empty(struct sock *sk)
++{
++	return bpf_mptcp_subflow_queues_empty(sk) && tcp_write_queue_empty(sk);
++}
++
++static __always_inline bool __sk_stream_memory_free(const struct sock *sk, int wake)
++{
++	if (sk->sk_wmem_queued >= sk->sk_sndbuf)
++		return false;
++
++	return tcp_stream_memory_free(sk, wake);
++}
++
++static __always_inline bool sk_stream_memory_free(const struct sock *sk)
++{
++	return __sk_stream_memory_free(sk, 0);
++}
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_burst_init, struct mptcp_sock *msk)
++{
++}
++
++SEC("struct_ops")
++void BPF_PROG(mptcp_sched_burst_release, struct mptcp_sock *msk)
++{
++}
++
++static int bpf_burst_get_send(struct mptcp_sock *msk,
++			      struct mptcp_sched_data *data)
++{
++	struct bpf_subflow_send_info send_info[SSK_MODE_MAX];
++	struct mptcp_subflow_context *subflow;
++	struct sock *sk = (struct sock *)msk;
++	__u32 pace, burst, wmem;
++	int i, nr_active = 0;
++	__u64 linger_time;
++	struct sock *ssk;
++
++	/* pick the subflow with the lower wmem/wspace ratio */
++	for (i = 0; i < SSK_MODE_MAX; ++i) {
++		send_info[i].subflow_id = MPTCP_SUBFLOWS_MAX;
++		send_info[i].linger_time = -1;
++	}
++
++	for (i = 0; i < data->subflows && i < MPTCP_SUBFLOWS_MAX; i++) {
++		bool backup;
++
++		subflow = bpf_mptcp_subflow_ctx_by_pos(data, i);
++		if (!subflow)
++			break;
++
++		backup = subflow->backup || subflow->request_bkup;
++
++		ssk = mptcp_subflow_tcp_sock(subflow);
++		if (!mptcp_subflow_active(subflow))
++			continue;
++
++		nr_active += !backup;
++		pace = subflow->avg_pacing_rate;
++		if (!pace) {
++			/* init pacing rate from socket */
++			subflow->avg_pacing_rate = ssk->sk_pacing_rate;
++			pace = subflow->avg_pacing_rate;
++			if (!pace)
++				continue;
++		}
++
++		linger_time = div_u64((__u64)ssk->sk_wmem_queued << 32, pace);
++		if (linger_time < send_info[backup].linger_time) {
++			send_info[backup].subflow_id = i;
++			send_info[backup].linger_time = linger_time;
++		}
++	}
++	mptcp_set_timeout(sk);
++
++	/* pick the best backup if no other subflow is active */
++	if (!nr_active)
++		send_info[SSK_MODE_ACTIVE].subflow_id = send_info[SSK_MODE_BACKUP].subflow_id;
++
++	subflow = bpf_mptcp_subflow_ctx_by_pos(data, send_info[SSK_MODE_ACTIVE].subflow_id);
++	if (!subflow)
++		return -1;
++	ssk = mptcp_subflow_tcp_sock(subflow);
++	if (!ssk || !sk_stream_memory_free(ssk))
++		return -1;
++
++	burst = min(MPTCP_SEND_BURST_SIZE, mptcp_wnd_end(msk) - msk->snd_nxt);
++	wmem = ssk->sk_wmem_queued;
++	if (!burst)
++		goto out;
++
++	subflow->avg_pacing_rate = div_u64((__u64)subflow->avg_pacing_rate * wmem +
++					   ssk->sk_pacing_rate * burst,
++					   burst + wmem);
++	msk->snd_burst = burst;
++
++out:
++	mptcp_subflow_set_scheduled(subflow, true);
++	return 0;
++}
++
++static int bpf_burst_get_retrans(struct mptcp_sock *msk,
++				 struct mptcp_sched_data *data)
++{
++	int backup = MPTCP_SUBFLOWS_MAX, pick = MPTCP_SUBFLOWS_MAX, subflow_id;
++	struct mptcp_subflow_context *subflow;
++	int min_stale_count = INT_MAX;
++	struct sock *ssk;
++
++	for (int i = 0; i < data->subflows && i < MPTCP_SUBFLOWS_MAX; i++) {
++		subflow = bpf_mptcp_subflow_ctx_by_pos(data, i);
++		if (!subflow)
++			break;
++
++		if (!mptcp_subflow_active(subflow))
++			continue;
++
++		ssk = mptcp_subflow_tcp_sock(subflow);
++		/* still data outstanding at TCP level? skip this */
++		if (!tcp_rtx_and_write_queues_empty(ssk)) {
++			mptcp_pm_subflow_chk_stale(msk, ssk);
++			min_stale_count = min(min_stale_count, subflow->stale_count);
++			continue;
++		}
++
++		if (subflow->backup || subflow->request_bkup) {
++			if (backup == MPTCP_SUBFLOWS_MAX)
++				backup = i;
++			continue;
++		}
++
++		if (pick == MPTCP_SUBFLOWS_MAX)
++			pick = i;
++	}
++
++	if (pick < MPTCP_SUBFLOWS_MAX) {
++		subflow_id = pick;
++		goto out;
++	}
++	subflow_id = min_stale_count > 1 ? backup : MPTCP_SUBFLOWS_MAX;
++
++out:
++	subflow = bpf_mptcp_subflow_ctx_by_pos(data, subflow_id);
++	if (!subflow)
++		return -1;
++	mptcp_subflow_set_scheduled(subflow, true);
++	return 0;
++}
++
++SEC("struct_ops")
++int BPF_PROG(bpf_burst_get_subflow, struct mptcp_sock *msk,
++	     struct mptcp_sched_data *data)
++{
++	if (data->reinject)
++		return bpf_burst_get_retrans(msk, data);
++	return bpf_burst_get_send(msk, data);
++}
++
++SEC(".struct_ops")
++struct mptcp_sched_ops burst = {
++	.init		= (void *)mptcp_sched_burst_init,
++	.release	= (void *)mptcp_sched_burst_release,
++	.get_subflow	= (void *)bpf_burst_get_subflow,
++	.name		= "bpf_burst",
++};
+-- 
+2.46.0
+
