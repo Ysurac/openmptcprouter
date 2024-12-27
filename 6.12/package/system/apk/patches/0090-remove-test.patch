@@ -1,0 +1,7 @@
+--- a/meson.build	2024-12-06 09:22:04.231554103 +0100
++++ b/meson.build	2024-12-06 09:22:10.239461416 +0100
+@@ -45,4 +45,3 @@
+ if(lua_dep.found())
+ 	subdir('lua')
+ endif
+-subdir('test')
