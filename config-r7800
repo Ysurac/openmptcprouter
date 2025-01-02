@@ -19,3 +19,6 @@ CONFIG_KERNEL_GPIO_SYSFS=y
 # CONFIG_KERNEL_KPROBES is not set
 # CONFIG_KERNEL_FTRACE is not set
 # CONFIG_KERNEL_KALLSYMS is not set
+CONFIG_PACKAGE_kmod-switch-ar8xxx=y
+CONFIG_PACKAGE_ath10k-firmware-qca9984-ct=y
+CONFIG_PACKAGE_kmod-ramoops=y
