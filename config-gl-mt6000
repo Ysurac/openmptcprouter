@@ -1,0 +1,5 @@
+CONFIG_TARGET_mediatek=y
+CONFIG_TARGET_mediatek_filogic=y
+CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y
+CONFIG_KERNEL_ARM64_MODULE_PLTS=y
+CONFIG_KERNEL_TCP_CONG_BBR2=y
