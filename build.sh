@@ -968,6 +968,10 @@ if [ "$OMR_KERNEL" = "6.12" ]; then
 	#echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
 	#echo 'CONFIG_KERNEL_GIT_REF="92590173530711151d50d13b145a9621b5e8d239"' >> ".config"
 	echo 'CONFIG_PACKAGE_apk-openssl=y' >> ".config"
+	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-6.12 ]; then
+		echo "Sorry but kernel 6.12 is not supported on your arch yet"
+		NOT_SUPPORTED="1"
+	fi
 fi
 
 #rm -rf feeds/packages/libs/libwebp
