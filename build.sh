@@ -192,9 +192,12 @@ rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 [ "${OMR_KERNEL}" = "6.1" ] && {
 	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/target/linux/bcm27xx/patches-6.1"
 }
-[ "${OMR_KERNEL}" = "6.6" ] && {
-	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/libs/mbedtls"
-}
+#[ "${OMR_KERNEL}" = "6.6" ] && {
+#	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/libs/mbedtls"
+#}
+#[ "${OMR_KERNEL}" = "6.12" ] && {
+#	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/libs/mbedtls"
+#}
 
 # Remove current dwarves directory to replace with fixed package
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/tools/dwarves"
