@@ -200,7 +200,7 @@ rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 #}
 
 # Remove current dwarves directory to replace with fixed package
-rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/tools/dwarves"
+#rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/tools/dwarves"
 
 
 [ "${OMR_KERNEL}" = "5.4" ] && rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/tools/firmware-utils"
