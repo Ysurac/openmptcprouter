@@ -1,0 +1,72 @@
+From ef91390278b98b48adf65e6d3b772ddecfc4f6b0 Mon Sep 17 00:00:00 2001
+From: Mantas Pucka <mantas@8devices.com>
+Date: Tue, 10 Dec 2024 13:05:30 +0200
+Subject: [PATCH 7/9] ssdk: replace deprecated strlcpy() with strscpy()
+
+Since linux-6.12 strlcpy() is no longer available
+
+Signed-off-by: Mantas Pucka <mantas@8devices.com>
+---
+ src/shell_lib/shell_io.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+--- a/src/shell_lib/shell_io.c
++++ b/src/shell_lib/shell_io.c
+@@ -951,16 +951,16 @@ cmd_sscanf(const char *buf, const char *
+ 	if(buf[0] == '0' && (buf[1] == 'x' || buf[1] == 'X'))
+ 	{
+ 		if(!fmt)
+-			strlcpy(fmt_tmp, "%x", sizeof(fmt_tmp));
++			strscpy(fmt_tmp, "%x", sizeof(fmt_tmp));
+ 		else
+ 		{
+ 			if(strspn(fmt, "%lLxXhH") != strlen(fmt))
+ 				return SW_BAD_VALUE;
+ 			if(fmt[0] == '%' && ((fmt[1] == 'l' || fmt[1] == 'L') &&
+ 				(fmt[2] == 'l' || fmt[2] == 'L')))
+-				strlcpy(fmt_tmp, "%llx", sizeof(fmt_tmp));
++				strscpy(fmt_tmp, "%llx", sizeof(fmt_tmp));
+ 			else
+-				strlcpy(fmt_tmp, fmt, sizeof(fmt_tmp));
++				strscpy(fmt_tmp, fmt, sizeof(fmt_tmp));
+ 		}
+ 	}
+ 	else
+@@ -968,16 +968,16 @@ cmd_sscanf(const char *buf, const char *
+ 		if(strspn(buf, "1234567890") != strlen(buf))
+ 			return SW_BAD_VALUE;
+ 		if(!fmt)
+-			strlcpy(fmt_tmp, "%d", sizeof(fmt_tmp));
++			strscpy(fmt_tmp, "%d", sizeof(fmt_tmp));
+ 		else
+ 		{
+ 			if(strspn(fmt, "%lLdD") != strlen(fmt))
+ 				return SW_BAD_VALUE;
+ 			if(fmt[0] == '%' && ((fmt[1] == 'l' || fmt[1] == 'L') &&
+ 				(fmt[2] == 'l' || fmt[2] == 'L')))
+-				strlcpy(fmt_tmp, "%lld", sizeof(fmt_tmp));
++				strscpy(fmt_tmp, "%lld", sizeof(fmt_tmp));
+ 			else
+-				strlcpy(fmt_tmp, fmt, sizeof(fmt_tmp));
++				strscpy(fmt_tmp, fmt, sizeof(fmt_tmp));
+ 		}
+ 	}
+ 	if(sscanf(buf, fmt_tmp, arg_val) != 1)
+@@ -2736,7 +2736,7 @@ cmd_data_check_portmap(char *cmdstr, fal
+         return SW_OK;
+     }
+ 
+-    strlcpy(tmp_str, cmdstr, sizeof(tmp_str));
++    strscpy(tmp_str, cmdstr, sizeof(tmp_str));
+     tmp = (void *) strsep(&cmdstr, ",");
+     while (tmp)
+     {
+@@ -12818,7 +12818,7 @@ cmd_data_check_tunnel_encap_entry(char *
+ 						break;
+ 					}
+ 					/* copy 2 chars from cmd */
+-					strlcpy(cmd_byte, cmd, sizeof(cmd_byte));
++					strscpy(cmd_byte, cmd, sizeof(cmd_byte));
+ 					sscanf(cmd_byte, "%hhx",
+ 						&(entry.pkt_header.pkt_header_data[bytes]));
+ 					cmd += 2;

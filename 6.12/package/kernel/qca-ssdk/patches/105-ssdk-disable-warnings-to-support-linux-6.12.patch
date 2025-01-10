@@ -1,0 +1,25 @@
+From 85c328ef31f3da7b2dab82c5a1c8559295620f76 Mon Sep 17 00:00:00 2001
+From: Mantas Pucka <mantas@8devices.com>
+Date: Tue, 10 Dec 2024 13:10:07 +0200
+Subject: [PATCH 8/9] ssdk: disable warnings to support linux-6.12
+
+Linux 6.12 adds these new warnings which become build errors with
+default -Werror.
+
+Signed-off-by: Mantas Pucka <mantas@8devices.com>
+---
+ make/linux_opt.mk | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/make/linux_opt.mk
++++ b/make/linux_opt.mk
+@@ -314,6 +314,9 @@ endif
+ 
+ MODULE_CFLAG += $(OPT_FLAG) -Wall -DVERSION=\"$(VERSION)\" -DBUILD_DATE=\"$(BUILD_DATE)\" -DOS=\"$(OS)\" -D"KBUILD_STR(s)=\#s"
+ 
++# Linux 6.12 compatibility
++MODULE_CFLAG += -Wno-missing-prototypes -Wno-missing-declarations -Wno-discarded-qualifiers
++
+ MODULE_INC += -I$(PRJ_PATH)/include \
+                    -I$(PRJ_PATH)/include/common \
+                    -I$(PRJ_PATH)/include/api \
