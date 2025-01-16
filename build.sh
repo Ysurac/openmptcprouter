@@ -37,8 +37,8 @@ OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 UPSTREAM=${UPSTREAM:-no}
-#SYSLOG=${SYSLOG:-busybox-syslogd}
-SYSLOG=${SYSLOG:-syslog-ng}
+SYSLOG=${SYSLOG:-busybox-syslogd}
+#SYSLOG=${SYSLOG:-syslog-ng}
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 DISABLE_FAILSAFE=${DISABLE_FAILSAFE:-no}
@@ -128,10 +128,10 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "c9cc773449d71d930ed2fd1e4e8a1dd95d91ae25"
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "84d97e684bcb6a63dbfdfbfd9ec7407192861239"
 		elif [ "$OMR_KERNEL" = "6.12" ]; then
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "285bdd29cb55900a2009e26303ab5abb66e165e9"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "73ebd4da5a1e2063571010dd26f75415a2f022d0"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "c9cc773449d71d930ed2fd1e4e8a1dd95d91ae25"
-			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "5998119c5530fbd4ab844edee3c4da0ea4fec924"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "0a7c8ed9d94930ba062c71df79f63c06eeab4543"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "b939b3e79392835b1c20865e61add02e8d9f2054"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "370e2479a77ffc35f095850cd56e3d6b866e990b"
+			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "4a65e359c301d30b70e448e8c25c6edc9c909be5"
 		fi
 	elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/coolsnowwolf/lede.git "master"
