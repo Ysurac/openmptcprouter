@@ -1,0 +1,9 @@
+CONFIG_TARGET_mediatek=y
+CONFIG_TARGET_mediatek_filogic=y
+CONFIG_TARGET_mediatek_filogic_DEVICE_bananapi_bpi-r3-mini=y
+CONFIG_KERNEL_ARM64_MODULE_PLTS=y
+CONFIG_KERNEL_TCP_CONG_BBR2=y
+CONFIG_PACKAGE_kmod-mt76=y
+CONFIG_PACKAGE_kmod-thermal=y
+CONFIG_PACKAGE_kmod-hwmon-core=y
+# CONFIG_TARGET_ROOTFS_INITRAMFS is not set
