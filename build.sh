@@ -1082,10 +1082,10 @@ if [ "$OMR_KERNEL" = "5.4" ]; then
 #	scripts/feeds uninstall rust
 #	scripts/feeds install -p packages rust
 fi
-if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_KERNEL" != "6.1" ]; then
-	scripts/feeds uninstall netifd
-	scripts/feeds install netifd
-fi
+#if [ "$OMR_KERNEL" != "5.4" ] && [ "$OMR_KERNEL" != "6.1" ]; then
+#	scripts/feeds uninstall netifd
+#	scripts/feeds install netifd
+#fi
 cp .config.keep .config
 scripts/feeds install kmod-macremapper
 echo "Done"
