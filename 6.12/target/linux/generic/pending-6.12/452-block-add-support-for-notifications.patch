@@ -156,7 +156,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +device_initcall(blk_notifications_init);
 --- a/include/linux/blkdev.h
 +++ b/include/linux/blkdev.h
-@@ -1689,4 +1689,15 @@ static inline bool bdev_can_atomic_write
+@@ -1690,4 +1690,15 @@ static inline bool bdev_can_atomic_write
  
  #define DEFINE_IO_COMP_BATCH(name)	struct io_comp_batch name = { }
  
