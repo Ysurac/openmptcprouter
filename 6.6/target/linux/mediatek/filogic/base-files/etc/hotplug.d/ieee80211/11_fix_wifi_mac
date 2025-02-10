@@ -118,6 +118,8 @@ case "$board" in
 	zbtlink,zbt-z8102ax|\
 	z8102ax-128m|\
 	z8102ax-64m|\
+	z8109ax-512m|\
+	z8109ax-128m|\
 	zbtlink,zbt-z8103ax|\
 	zyxel,ex5601-t0|\
 	zyxel,ex5601-t0-ubootmod)

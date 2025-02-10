@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT 
+
+#include "mt7981b-zbt-z8109ax.dtsi"
+
+/ {
+	model = "ZBT Z8109AX 512M";
+	compatible = "z8109ax-512m", "z8109ax", "mediatek,mt7981";
+};
+
+&nand_rootfs {
+	reg = <0x0580000 0x20000000>;
+};
+

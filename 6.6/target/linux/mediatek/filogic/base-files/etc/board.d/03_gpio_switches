@@ -20,6 +20,17 @@ z8102ax-128m)
 	ucidef_add_gpio_switch "sim1" "SIM 1" "sim1" "0"
 	ucidef_add_gpio_switch "sim2" "SIM 2" "sim2" "0"
 	;;
+z8109ax-512m|\
+z8109ax-128m)
+	ucidef_add_gpio_switch "modem1" "Power 1st modem" "modem1" "1"
+	ucidef_add_gpio_switch "modem2" "Power 2nd modem" "modem2" "1"
+	ucidef_add_gpio_switch "modem3" "Power 3th modem" "modem3" "1"
+	ucidef_add_gpio_switch "modem4" "Power 4th modem" "modem4" "1"
+	ucidef_add_gpio_switch "sim1" "SIM 1" "sim1" "0"
+	ucidef_add_gpio_switch "sim2" "SIM 2" "sim2" "0"
+	ucidef_add_gpio_switch "sim3" "SIM 3" "sim3" "0"
+	ucidef_add_gpio_switch "sim4" "SIM 4" "sim4" "0"
+	;;
 esac
 
 board_config_flush

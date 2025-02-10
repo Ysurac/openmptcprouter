@@ -1580,3 +1580,36 @@ define Device/z8102ax-128m
   IMAGE_SIZE := 131072k
 endef
 TARGET_DEVICES += z8102ax-128m
+
+define Device/z8109ax
+  DEVICE_VENDOR := ZBT
+  DEVICE_MODEL := Z8109AX
+#  DEVICE_DTS := mt7981b-zbt-z8102ax
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  KERNEL_IN_UBI := 1
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+  ARTIFACTS := initramfs-factory.ubi
+  ARTIFACT/initramfs-factory.ubi := append-image-stage initramfs-kernel.bin | ubinize-kernel
+endif
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+
+define Device/z8109ax-512m
+  $(call Device/z8109ax)
+  DEVICE_VARIANT := 512 NAND
+  DEVICE_DTS := mt7981b-zbt-z8109ax-512m
+  IMAGE_SIZE := 524288k
+endef
+TARGET_DEVICES += z8109ax-512m
+
+define Device/z8109ax-128m
+  $(call Device/z8109ax)
+  DEVICE_VARIANT := 128 NAND
+  DEVICE_DTS := mt7981b-zbt-z8109ax-128m
+  IMAGE_SIZE := 131072k
+endef
+TARGET_DEVICES += z8109ax-128m
