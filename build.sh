@@ -38,7 +38,8 @@ OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 UPSTREAM=${UPSTREAM:-no}
 #SYSLOG=${SYSLOG:-busybox-syslogd}
-SYSLOG=${SYSLOG:-syslog-ng}
+#SYSLOG=${SYSLOG:-syslog-ng}
+SYSLOG=${SYSLOG:-logd}
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 DISABLE_FAILSAFE=${DISABLE_FAILSAFE:-no}
@@ -358,7 +359,11 @@ if [ "$SYSLOG" = "busybox-syslogd" ]; then
 	echo "CONFIG_BUSYBOX_CONFIG_LOGREAD=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "CONFIG_PACKAGE_syslogd=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 elif [ "$SYSLOG" = "syslog-ng" ]; then
+	echo "CONFIG_DEFAULT_syslog-ng=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "CONFIG_PACKAGE_syslog-ng=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+elif [ "$SYSLOG" = "logd" ]; then
+	echo "CONFIG_DEFAULT_logd=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+	echo "CONFIG_PACKAGE_logd=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$SHORTCUT_FE" = "yes" ]; then
