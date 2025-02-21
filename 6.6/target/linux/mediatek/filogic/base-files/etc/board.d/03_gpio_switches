@@ -12,6 +12,7 @@ zbtlink,zbt-z8102ax)
 	ucidef_add_gpio_switch "sim1" "SIM 1" "sim1" "0"
 	ucidef_add_gpio_switch "sim2" "SIM 2" "sim2" "0"
 	;;
+z8102ax-emmc|\
 z8102ax-64m|\
 z8102ax-128m)
 	ucidef_add_gpio_switch "modem1" "Power 1st modem" "modem1" "1"

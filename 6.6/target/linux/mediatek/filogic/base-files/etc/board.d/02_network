@@ -50,6 +50,7 @@ mediatek_setup_interfaces()
 	zbtlink,zbt-z8102ax|\
 	z8102ax-128m|\
 	z8102ax-64m|\
+	z8102ax-emmc|\
 	zyxel,ex5601-t0-stock|\
 	zyxel,ex5601-t0-ubootmod)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
