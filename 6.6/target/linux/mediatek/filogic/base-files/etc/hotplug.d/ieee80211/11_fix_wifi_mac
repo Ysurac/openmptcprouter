@@ -116,6 +116,7 @@ case "$board" in
 		;;
 	routerich,ax3000|\
 	zbtlink,zbt-z8102ax|\
+	z8102ax-emmc|\
 	z8102ax-128m|\
 	z8102ax-64m|\
 	z8109ax-512m|\
