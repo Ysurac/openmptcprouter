@@ -31,6 +31,7 @@ OMR_HOST=${OMR_HOST:-$(curl -sS ifconfig.co)}
 OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
+OMR_LOG=${OMR_LOG:-no}
 #OMR_UEFI=${OMR_UEFI:-yes}
 OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
@@ -318,6 +319,10 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 	echo 'CONFIG_VDI_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo 'CONFIG_VMDK_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo 'CONFIG_VHDX_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
+fi
+
+if [ "$OMR_LOG" = "yes" ]; then 
+	echo 'CONFIG_BUILD_LOG=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
 if [ "$DISABLE_FAILSAFE" = "yes" ]; then
