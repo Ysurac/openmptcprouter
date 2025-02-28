@@ -1,0 +1,11 @@
+--- a/src/nftset.c.old	2025-02-17 16:45:48.299989289 +0100
++++ b/src/nftset.c	2025-02-17 16:46:30.243335631 +0100
+@@ -89,7 +89,7 @@
+ 	  strcpy(err_str, err);
+ 	  if ((nl = strchr(err_str, '\n')))
+ 	    *nl = 0;
+-	  my_syslog(LOG_ERR,  "nftset %s %s", setname, err_str);
++	  /* my_syslog(LOG_ERR,  "nftset %s %s", setname, err_str); */
+ 	  free(err_str);
+ 	}
+     }
