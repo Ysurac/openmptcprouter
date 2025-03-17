@@ -22,3 +22,4 @@ CONFIG_KERNEL_GPIO_SYSFS=y
 CONFIG_PACKAGE_kmod-switch-ar8xxx=y
 CONFIG_PACKAGE_ath10k-firmware-qca9984-ct=y
 CONFIG_PACKAGE_kmod-ramoops=y
+CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers=y
