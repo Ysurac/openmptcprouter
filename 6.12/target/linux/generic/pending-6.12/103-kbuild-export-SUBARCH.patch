@@ -10,9 +10,9 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/Makefile
 +++ b/Makefile
-@@ -583,7 +583,7 @@ endif
- # Allows the usage of unstable features in stable compilers.
- export RUSTC_BOOTSTRAP := 1
+@@ -590,7 +590,7 @@ export RUSTC_BOOTSTRAP := 1
+ # Allows finding `.clippy.toml` in out-of-srctree builds.
+ export CLIPPY_CONF_DIR := $(srctree)
  
 -export ARCH SRCARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS CROSS_COMPILE LD CC HOSTPKG_CONFIG
 +export ARCH SRCARCH SUBARCH CONFIG_SHELL BASH HOSTCC KBUILD_HOSTCFLAGS CROSS_COMPILE LD CC HOSTPKG_CONFIG

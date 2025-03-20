@@ -151,7 +151,21 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}
  
  	check_sec_ref(mod, &info);
-@@ -1886,11 +1888,13 @@ static void add_depends(struct buffer *b
+@@ -1772,11 +1774,13 @@ static void add_header(struct buffer *b,
+ 	buf_printf(b, "\t.arch = MODULE_ARCH_INIT,\n");
+ 	buf_printf(b, "};\n");
+ 
++#ifndef CONFIG_MODULE_STRIPPED
+ 	if (!external_module)
+ 		buf_printf(b, "\nMODULE_INFO(intree, \"Y\");\n");
+ 
+ 	if (strstarts(mod->name, "drivers/staging"))
+ 		buf_printf(b, "\nMODULE_INFO(staging, \"Y\");\n");
++#endif
+ 
+ 	if (strstarts(mod->name, "tools/testing"))
+ 		buf_printf(b, "\nMODULE_INFO(test, \"Y\");\n");
+@@ -1886,11 +1890,13 @@ static void add_depends(struct buffer *b
  
  static void add_srcversion(struct buffer *b, struct module *mod)
  {
@@ -165,7 +179,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  }
  
  static void write_buf(struct buffer *b, const char *fname)
-@@ -1973,7 +1977,9 @@ static void write_mod_c_file(struct modu
+@@ -1973,7 +1979,9 @@ static void write_mod_c_file(struct modu
  	add_exported_symbols(&buf, mod);
  	add_versions(&buf, mod);
  	add_depends(&buf, mod);

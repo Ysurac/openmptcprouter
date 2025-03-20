@@ -235,7 +235,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (!pe)
 --- a/mm/vmalloc.c
 +++ b/mm/vmalloc.c
-@@ -5032,6 +5032,8 @@ static int __init proc_vmalloc_init(void
+@@ -5034,6 +5034,8 @@ static int __init proc_vmalloc_init(void
  {
  	void *priv_data = NULL;
  
@@ -330,7 +330,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -4248,6 +4248,8 @@ static __net_initdata struct pernet_oper
+@@ -4251,6 +4251,8 @@ static __net_initdata struct pernet_oper
  
  static int __init proto_init(void)
  {

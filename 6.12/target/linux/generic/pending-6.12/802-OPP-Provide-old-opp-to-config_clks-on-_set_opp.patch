@@ -33,7 +33,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	return 0;
 --- a/drivers/opp/core.c
 +++ b/drivers/opp/core.c
-@@ -942,7 +942,8 @@ static int _set_opp_voltage(struct devic
+@@ -965,7 +965,8 @@ static int _set_opp_voltage(struct devic
  
  static int
  _opp_config_clk_single(struct device *dev, struct opp_table *opp_table,
@@ -43,7 +43,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  {
  	unsigned long *target = data;
  	unsigned long freq;
-@@ -974,8 +975,8 @@ _opp_config_clk_single(struct device *de
+@@ -997,8 +998,8 @@ _opp_config_clk_single(struct device *de
   * the order in which they are present in the array while scaling up.
   */
  int dev_pm_opp_config_clks_simple(struct device *dev,
@@ -54,7 +54,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  {
  	int ret, i;
  
-@@ -1242,7 +1243,7 @@ static int _set_opp(struct device *dev,
+@@ -1265,7 +1266,7 @@ static int _set_opp(struct device *dev,
  	}
  
  	if (opp_table->config_clks) {
@@ -63,7 +63,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  		if (ret)
  			return ret;
  	}
-@@ -1321,7 +1322,7 @@ int dev_pm_opp_set_rate(struct device *d
+@@ -1344,7 +1345,7 @@ int dev_pm_opp_set_rate(struct device *d
  		 * equivalent to a clk_set_rate()
  		 */
  		if (!_get_opp_count(opp_table)) {
