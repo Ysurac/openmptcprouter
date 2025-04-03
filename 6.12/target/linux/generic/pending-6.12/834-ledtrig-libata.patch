@@ -63,7 +63,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  /**
   *	ata_build_rw_tf - Build ATA taskfile for given read/write request
   *	@qc: Metadata associated with the taskfile to build
-@@ -4728,6 +4739,9 @@ void __ata_qc_complete(struct ata_queued
+@@ -4736,6 +4747,9 @@ void __ata_qc_complete(struct ata_queued
  		link->active_tag = ATA_TAG_POISON;
  		ap->nr_active_links--;
  	}
@@ -73,7 +73,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  
  	/* clear exclusive status */
  	if (unlikely(qc->flags & ATA_QCFLAG_CLEAR_EXCL &&
-@@ -5450,6 +5464,9 @@ struct ata_port *ata_port_alloc(struct a
+@@ -5458,6 +5472,9 @@ struct ata_port *ata_port_alloc(struct a
  	ap->stats.unhandled_irq = 1;
  	ap->stats.idle_irq = 1;
  #endif
@@ -83,7 +83,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	ata_sff_port_init(ap);
  
  	return ap;
-@@ -5464,6 +5481,12 @@ void ata_port_free(struct ata_port *ap)
+@@ -5472,6 +5489,12 @@ void ata_port_free(struct ata_port *ap)
  	kfree(ap->pmp_link);
  	kfree(ap->slave_link);
  	ida_free(&ata_ida, ap->print_id);
@@ -96,7 +96,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  	kfree(ap);
  }
  EXPORT_SYMBOL_GPL(ata_port_free);
-@@ -5868,7 +5891,23 @@ int ata_host_register(struct ata_host *h
+@@ -5876,7 +5899,23 @@ int ata_host_register(struct ata_host *h
  		WARN_ON(1);
  		return -EINVAL;
  	}
@@ -132,7 +132,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  
  /*
   * Define if arch has non-standard setup.  This is a _PCI_ standard
-@@ -726,6 +729,10 @@ struct ata_device {
+@@ -728,6 +731,10 @@ struct ata_device {
  	union acpi_object	*gtf_cache;
  	unsigned int		gtf_filter;
  #endif
