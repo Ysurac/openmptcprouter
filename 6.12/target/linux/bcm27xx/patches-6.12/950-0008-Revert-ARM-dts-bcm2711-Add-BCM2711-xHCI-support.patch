@@ -9,27 +9,9 @@ This reverts commit 522c35e08b53f157ad3e51848caa861b258001e4.
  arch/arm/boot/dts/broadcom/bcm2711.dtsi     | 14 --------------
  2 files changed, 19 deletions(-)
 
---- a/arch/arm/boot/dts/broadcom/bcm2711-rpi.dtsi
-+++ b/arch/arm/boot/dts/broadcom/bcm2711-rpi.dtsi
-@@ -1,7 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0
- #include "bcm2835-rpi.dtsi"
- 
--#include <dt-bindings/power/raspberrypi-power.h>
- #include <dt-bindings/reset/raspberrypi,firmware-reset.h>
- 
- / {
-@@ -101,7 +100,3 @@
- &vchiq {
- 	interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
- };
--
--&xhci {
--	power-domains = <&power RPI_POWER_DOMAIN_USB>;
--};
 --- a/arch/arm/boot/dts/broadcom/bcm2711.dtsi
 +++ b/arch/arm/boot/dts/broadcom/bcm2711.dtsi
-@@ -604,20 +604,6 @@
+@@ -604,21 +604,6 @@
  			};
  		};
  
@@ -39,6 +21,7 @@ This reverts commit 522c35e08b53f157ad3e51848caa861b258001e4.
 -			#address-cells = <1>;
 -			#size-cells = <0>;
 -			interrupts = <GIC_SPI 176 IRQ_TYPE_LEVEL_HIGH>;
+-			power-domains = <&pm BCM2835_POWER_DOMAIN_USB>;
 -			/* DWC2 and this IP block share the same USB PHY,
 -			 * enabling both at the same time results in lockups.
 -			 * So keep this node disabled and let the bootloader
