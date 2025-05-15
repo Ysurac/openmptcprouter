@@ -105,15 +105,15 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
 		elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ]; then
 			# Use OpenWRT 24.10 for 6.6 kernel
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "ba6627394346624be19962cc68121dee493f86d3"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "bff078f3b7418e8ddbee797744d4eea07dbc2897"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "2ff5aaee6ce2500a0b0a3ff0071c08c280d1174a"
-			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "c9b636698881059a3c981032770968f5a98ff201"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "0b392b925fa16c40dccc487753a4412bd054cd63"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "234806df39e38734ce5a3dfe0d94f8811cb57440"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "be769afc62310631509826e41863ec7a71e764a4"
+			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "f2ee837d3714f86e9d636302e9f69612c71029cb"
 		elif [ "$OMR_KERNEL" = "6.12" ]; then
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "3526dbabdc63c6ac8a932333ab989d1f99b6945b"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "97dc4cf820e6a1a6ae9e1093620ab142e90bb967"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "4921920821b31e467d381073db3b7282a663d5e9"
-			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "2fb5af6b55c2132a00fb1d98c6828601333372d7"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "95341cc9c560ff371c06db2a8221d19bb62d0c30"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "d63d5c202ae803d0f8f5952d4c321098f407cf09"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "74eef5c7d99c46c3d5cfcd4be847feef53467c85"
+			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "9eda32a8c96fc184e6b208a54dbf43a1379fa0be"
 		fi
 	elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/coolsnowwolf/lede.git "master"
@@ -964,6 +964,12 @@ if [ "$OMR_KERNEL" = "6.12" ]; then
 	rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 	#echo 'CONFIG_KERNEL_GIT_CLONE_URI="https://github.com/multipath-tcp/mptcp_net-next.git"' >> ".config"
 	#echo 'CONFIG_KERNEL_GIT_REF="92590173530711151d50d13b145a9621b5e8d239"' >> ".config"
+	rm -f target/linux/generic/pending-6.12/510-block-add-uImage.FIT-subimage-block-driver.patch
+	rm -f target/linux/generic/hack-6.12/735-net-phy-realtek-rtl8261n.patch
+	rm -f target/linux/generic/backport-6.12/753-v6.15-net-ethernet-mediatek-add-EEE-support.patch
+	rm -f target/linux/generic/pending-6.12/738-01-net-ethernet-mtk_eth_soc-reduce-rx-ring-size-for-older.patch
+	rm -f target/linux/generic/pending-6.12/454-nvmem-implement-block-NVMEM-provider.patch
+	rm -f toolchain/musl/patches/100-tools-Rework-adding-of-CFI-annotations.patch
 	echo 'CONFIG_PACKAGE_apk-openssl=y' >> ".config"
 	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-6.12 ]; then
 		echo "Sorry but kernel 6.12 is not supported on your arch yet"
