@@ -1,9 +1,0 @@
---- a/include/linux/mtd/spinand.h	2024-09-27 20:38:51.386171481 +0200
-+++ b/include/linux/mtd/spinand.h	2024-09-27 20:39:01.034034861 +0200
-@@ -518,5 +518,5 @@
- 
- int spinand_upd_cfg(struct spinand_device *spinand, u8 mask, u8 val);
- int spinand_select_target(struct spinand_device *spinand, unsigned int target);
--
-+int spinand_cal_read(void *priv, u32 *addr, int addrlen, u8 *buf, int readlen);
- #endif /* __LINUX_MTD_SPINAND_H */
