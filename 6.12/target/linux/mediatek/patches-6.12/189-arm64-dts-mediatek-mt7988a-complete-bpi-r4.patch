@@ -194,7 +194,7 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
  	};
  
  	fan: pwm-fan {
-@@ -50,6 +54,125 @@
+@@ -50,6 +54,141 @@
  		rate-select0-gpios = <&pio 21 GPIO_ACTIVE_LOW>;
  		maximum-power-milliwatt = <3000>;
  	};
@@ -286,6 +286,7 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
 +
 +&gsw_phy0_led0 {
 +	status = "okay";
++	function = LED_FUNCTION_WAN;
 +	color = <LED_COLOR_ID_GREEN>;
 +};
 +
@@ -294,8 +295,13 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
 +	pinctrl-0 = <&gbe1_led0_pins>;
 +};
 +
++&gsw_port1 {
++	label = "lan1";
++};
++
 +&gsw_phy1_led0 {
 +	status = "okay";
++	function = LED_FUNCTION_LAN;
 +	color = <LED_COLOR_ID_GREEN>;
 +};
 +
@@ -304,8 +310,13 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
 +	pinctrl-0 = <&gbe2_led0_pins>;
 +};
 +
++&gsw_port2 {
++	label = "lan2";
++};
++
 +&gsw_phy2_led0 {
 +	status = "okay";
++	function = LED_FUNCTION_LAN;
 +	color = <LED_COLOR_ID_GREEN>;
 +};
 +
@@ -314,13 +325,18 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
 +	pinctrl-0 = <&gbe3_led0_pins>;
 +};
 +
++&gsw_port3 {
++	label = "lan3";
++};
++
 +&gsw_phy3_led0 {
 +	status = "okay";
++	function = LED_FUNCTION_LAN;
 +	color = <LED_COLOR_ID_GREEN>;
  };
  
  &cci {
-@@ -174,6 +297,10 @@
+@@ -174,6 +313,10 @@
  	color = <LED_COLOR_ID_GREEN>;
  };
  
@@ -331,7 +347,7 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
  &i2c0 {
  	pinctrl-names = "default";
  	pinctrl-0 = <&i2c0_pins>;
-@@ -265,6 +392,14 @@
+@@ -265,6 +408,14 @@
  			#size-cells = <0>;
  			reg = <1>;
  		};
@@ -346,7 +362,7 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
  	};
  };
  
-@@ -364,34 +499,6 @@
+@@ -364,34 +515,6 @@
  		};
  	};
  
@@ -381,7 +397,7 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
  	i2p5gbe_led0_pins: 2p5gbe-led0-pins {
  		mux {
  			function = "led";
-@@ -399,13 +506,6 @@
+@@ -399,13 +522,6 @@
  		};
  	};
  
@@ -395,7 +411,7 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
  	mmc0_pins_emmc_45: mmc0-emmc-45-pins {
  		mux {
  			function = "flash";
-@@ -427,40 +527,12 @@
+@@ -427,40 +543,12 @@
  		};
  	};
  
@@ -436,7 +452,7 @@ Subject: [PATCH 32/32] WIP: add BPi-R4
  };
  
  &pwm {
-@@ -500,6 +572,32 @@
+@@ -500,6 +588,32 @@
  			reg = <0x0 0x200000>;
  			read-only;
  		};

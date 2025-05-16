@@ -723,7 +723,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +};
 --- /dev/null
 +++ b/arch/arm64/boot/dts/mediatek/mt7988a-rfb.dts
-@@ -0,0 +1,450 @@
+@@ -0,0 +1,470 @@
 +// SPDX-License-Identifier: (GPL-2.0 OR MIT)
 +/*
 + * Copyright (C) 2022 MediaTek Inc.
@@ -815,7 +815,12 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +
 +&gsw_phy0_led0 {
 +	status = "okay";
++	function = LED_FUNCTION_LAN;
 +	color = <LED_COLOR_ID_GREEN>;
++};
++
++&gsw_port0 {
++	label = "lan0";
 +};
 +
 +&gsw_phy1 {
@@ -825,7 +830,12 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +
 +&gsw_phy1_led0 {
 +	status = "okay";
++	function = LED_FUNCTION_LAN;
 +	color = <LED_COLOR_ID_GREEN>;
++};
++
++&gsw_port1 {
++	label = "lan1";
 +};
 +
 +&gsw_phy2 {
@@ -835,7 +845,12 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +
 +&gsw_phy2_led0 {
 +	status = "okay";
++	function = LED_FUNCTION_LAN;
 +	color = <LED_COLOR_ID_GREEN>;
++};
++
++&gsw_port2 {
++	label = "lan2";
 +};
 +
 +&gsw_phy3 {
@@ -845,7 +860,12 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +
 +&gsw_phy3_led0 {
 +	status = "okay";
++	function = LED_FUNCTION_LAN;
 +	color = <LED_COLOR_ID_GREEN>;
++};
++
++&gsw_port3 {
++	label = "lan3";
 +};
 +
 +&i2c0 {
