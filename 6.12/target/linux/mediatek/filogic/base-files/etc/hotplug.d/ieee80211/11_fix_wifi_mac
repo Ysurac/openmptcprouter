@@ -57,6 +57,8 @@ case "$board" in
 		esac
 		[ "$PHYNBR" = "1" ] && echo "$addr" > /sys${DEVPATH}/macaddress
 		;;
+	cudy,tr3000-v1|\
+	cudy,tr3000-256mb-v1|\
 	cudy,wr3000-v1)
 		addr=$(mtd_get_mac_binary bdinfo 0xde00)
 		# Originally, phy0 is phy1 mac with LA bit set. However, this would conflict
