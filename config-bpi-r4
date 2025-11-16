@@ -3,7 +3,26 @@ CONFIG_TARGET_mediatek_filogic=y
 CONFIG_TARGET_mediatek_filogic_DEVICE_bananapi_bpi-r4=y
 CONFIG_KERNEL_ARM64_MODULE_PLTS=y
 CONFIG_KERNEL_TCP_CONG_BBR2=y
+# WiFi 7 / MT7996 Driver Support
 CONFIG_PACKAGE_kmod-mt76=y
+CONFIG_PACKAGE_kmod-mt7996e=y
+CONFIG_PACKAGE_kmod-mt7996-firmware=y
+CONFIG_PACKAGE_mt7996-eeprom=y
+# Wireless Tools and Firmware
+CONFIG_PACKAGE_wireless-regdb=y
+CONFIG_PACKAGE_iw-full=y
+CONFIG_PACKAGE_iwinfo=y
+CONFIG_PACKAGE_hostapd-common=y
+CONFIG_PACKAGE_wpad-mbedtls=y
+# WiFi Standards Support
+CONFIG_DRIVER_11AC_SUPPORT=y
+CONFIG_DRIVER_11AX_SUPPORT=y
+CONFIG_DRIVER_11BE_SUPPORT=y
+# MAC80211 Framework
+CONFIG_PACKAGE_kmod-mac80211=y
+CONFIG_PACKAGE_MAC80211_DEBUGFS=y
+CONFIG_PACKAGE_MAC80211_MESH=y
+# Thermal and Hardware Monitoring
 CONFIG_PACKAGE_kmod-thermal=y
 CONFIG_PACKAGE_kmod-hwmon-core=y
 # CONFIG_TARGET_ROOTFS_INITRAMFS is not set
