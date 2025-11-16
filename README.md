@@ -1,5 +1,6 @@
-![openmptcprouter](https://github.com/Ysurac/openmptcprouter-feeds/workflows/openmptcprouter/badge.svg)
-![Latest tag](https://img.shields.io/github/tag/ysurac/openmptcprouter-feeds.svg)
+![OpenMPTCProuter Optimized](https://img.shields.io/badge/OpenMPTCProuter-Optimized-blue.svg)
+![Build Status](https://github.com/spotty118/openmptcprouter/workflows/Build%20OpenMPTCProuter%20Optimized%20Images/badge.svg)
+![Latest tag](https://img.shields.io/github/tag/spotty118/openmptcprouter.svg)
 [![Paypal](https://www.openmptcprouter.com/img/donate-PayPal-green.svg)](https://www.paypal.me/ycarus)
 [![Flattr](https://www.openmptcprouter.com/img/donate-flattr-yellow.svg)](https://flattr.com/@ycarus)
 [![Liberapay](https://img.shields.io/liberapay/patrons/Moul.svg?logo=liberapay)](https://liberapay.com/Ycarus/)
@@ -7,9 +8,11 @@
 [![Twitter](https://www.openmptcprouter.com/img/twitter.jpg)](https://twitter.com/OpenMPTCProuter)
 [![Atom](https://www.openmptcprouter.com/img/feed.png)](https://www.openmptcprouter.com/atom)
 
-# OpenMPTCProuter
+# OpenMPTCProuter Optimized
 
-OpenMPTCProuter is an open source solution to aggregate and encrypt multiple internet connections and terminates it over any VPS which make clients benefit security, reliability, net neutrality, as well as dedicated public IP.
+> **Note:** This is an optimized fork of [OpenMPTCProuter](https://github.com/Ysurac/openmptcprouter) with enhanced features, updated patches, and driver optimizations.
+
+OpenMPTCProuter Optimized is an optimized fork of the open source solution to aggregate and encrypt multiple internet connections and terminates it over any VPS which make clients benefit security, reliability, net neutrality, as well as dedicated public IP.
 
 The aggregation is based on Multipath TCP (MPTCP), which is ISP, WAN type, and latency independent "whether it was Fiber, VDSL, SHDSL, ADSL, 4G or even 5G", different scenarios can be configured to have either aggregation or failover based on MPTCP.
 
@@ -20,32 +23,99 @@ The solution takes advantage of the OpenWRT/LEDE system, which is user friendly 
 
 Main website: [https://www.openmptcprouter.com/](https://www.openmptcprouter.com/)
 
-Packages made for OpenMPTCProuter are available here: [https://github.com/Ysurac/openmptcprouter-feeds](https://github.com/Ysurac/openmptcprouter-feeds)
+Packages made for OpenMPTCProuter Optimized are based on the upstream: [https://github.com/Ysurac/openmptcprouter-feeds](https://github.com/Ysurac/openmptcprouter-feeds)
 
-OpenMPTCProuter VPS script part: [https://github.com/Ysurac/openmptcprouter-vps](https://github.com/Ysurac/openmptcprouter-vps)
+OpenMPTCProuter Optimized VPS configuration is based on: [https://github.com/Ysurac/openmptcprouter-vps](https://github.com/Ysurac/openmptcprouter-vps)
 
+
+## 🚀 Quick Start - Super Easy Setup!
+
+### Complete Zero-Configuration Setup!
+
+**Just flash and go!** When you first boot your OpenMPTCProuter Optimized router:
+
+1. **Flash the image** to your device
+2. **Connect** to the router (WiFi or Ethernet)
+3. **Open browser** - automatic wizard appears!
+4. **Choose setup method:**
+   - 🔗 **Pairing Code** - Paste code from VPS (easiest!)
+   - 🔍 **Auto-Discovery** - Enter VPS IP, auto-configures
+   - ⚙️ **Manual** - Enter details manually
+5. **Done!** Router configures itself automatically!
+
+**No SSH needed! No command line! No technical knowledge!**
+
+---
+
+### Traditional VPS Setup (if needed)
+
+#### Step 1: Set Up Your VPS (1 command - 2 minutes)
+
+**Method 1: Auto-Pairing (Get pairing code for router)**
+```bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/auto-pair.sh | sudo bash
+```
+Output: Pairing code to use in router wizard
+
+**Method 2: Standard Setup (Web interface)**
+```bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+```
+Output: Web page at http://VPS_IP:8080
+
+#### Step 2: Configure Your Router 
+
+**Automatic (First Boot Wizard):**
+- Just flash and boot - wizard appears automatically!
+
+**Manual (if wizard skipped):**
+```bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/client-auto-setup.sh | sh -s VPS_IP PASSWORD
+```
+
+**Web Interface:**
+1. Go to http://192.168.100.1
+2. Navigate to Services → OpenMPTCProuter
+3. Enter VPS details from setup page
+4. Save & Apply
+
+---
+
+### 🎯 Setup Methods Comparison
+
+| Method | Time | Difficulty | Steps |
+|--------|------|-----------|-------|
+| **First Boot Wizard** 🆕 | 1 min | Zero! | 0 (automatic) |
+| **Auto-Pairing** | 2 min | Easiest | 2 commands |
+| **Auto-Discovery** | 3 min | Easy | Enter VPS IP |
+| **Manual Setup** | 5 min | Moderate | Copy/paste settings |
+
+---
+
+📖 **Detailed Guide:** [Complete Setup Guide](SETUP_GUIDE.md)
+🎥 **Need Help?** [Setup Scripts README](scripts/README.md)
 
 ## Install from pre-compiled images
 
-You can download precompiled images from [https://www.openmptcprouter.com/](https://www.openmptcprouter.com/)
+Pre-compiled images will be available from [Releases](https://github.com/spotty118/openmptcprouter/releases)
 
-Then copy it to a sdcard:
+Flash to SD card:
 
 ```sh
 gunzip omr-*.img.gz
 dd bs=4M if=omr-*.img of=/dev/sdX conv=fsync
 ```
 
-## Install from source
+## Build from source
 
-[Create image](https://github.com/Ysurac/openmptcprouter/wiki/Create-image-for-unsupported-platform)
+See the [build documentation](https://github.com/Ysurac/openmptcprouter/wiki/Create-image-for-unsupported-platform) or use our automated build workflow
 
 
 ## Features and Optimizations
 
 ### Hardware Support
 
-OpenMPTCProuter supports a wide range of hardware platforms with optimized configurations:
+OpenMPTCProuter Optimized supports a wide range of hardware platforms with optimized configurations:
 
 #### Banana Pi R4 - Enhanced Support
 The Banana Pi R4 receives special attention with comprehensive optimizations:
@@ -121,3 +191,86 @@ Our solution is mainly based on:
 * [MultiPath TCP (MPTCP)](https://multipath-tcp.org)
 * [Shadowsocks](https://shadowsocks.org)
 * [Glorytun](https://github.com/angt/glorytun)
+
+**Special Thanks:**
+* Original OpenMPTCProuter by [Ysurac](https://github.com/Ysurac/openmptcprouter)
+
+## What's Different in the Optimized Version?
+
+### 🎯 Ease of Use
+- ✅ **One-command installation** - No complex setup required
+- ✅ **Web-based configuration** - Visual setup guide at http://VPS_IP:8080
+- ✅ **Automated everything** - Firewall, networking, VPN all configured automatically
+- ✅ **Copy-paste ready** - All credentials ready to use
+- ❌ Original: Multiple manual steps, easy to make mistakes
+
+### 🎨 Modern Interface
+- ✅ **Clean, modern LuCI theme** - Professional gradient design
+- ✅ **Simplified menus** - Hide advanced options (unhide if needed)
+- ✅ **Responsive design** - Works on mobile and desktop
+- ✅ **Dark mode support** - Easy on the eyes
+- ❌ Original: Dated interface, cluttered menus
+
+### ⚡ Latest Everything
+- ✅ **Updated kernel commits** - Latest 6.12, 6.6, 6.1, 5.4 kernels
+- ✅ **Current patches** - BBR2, MT76 WiFi7, all optimizations
+- ✅ **Modern protocols** - Shadowsocks, WireGuard, MPTCP ready
+- ✅ **Continuous updates** - GitHub Actions automated builds
+- ❌ Original: Older commits, manual updates
+
+### 📚 Documentation
+- ✅ **Complete setup guide** - Step-by-step with screenshots
+- ✅ **Troubleshooting section** - Common issues resolved
+- ✅ **Video-ready instructions** - Clear, beginner-friendly
+- ❌ Original: Scattered docs, technical jargon
+
+## Repository Structure
+
+```
+openmptcprouter/
+├── scripts/                    # Easy installation scripts
+│   ├── easy-install.sh        # One-command VPS setup
+│   └── README.md              # Installation guide
+├── vps-scripts/               # VPS server scripts
+│   ├── omr-vps-install.sh     # Full VPS installer
+│   └── install.sh             # Symlink to easy installer
+├── common/                    # Common packages for all builds
+│   └── package/
+│       └── luci-theme-omr-optimized/  # Modern LuCI theme
+├── patches/                   # System patches
+├── 5.4/, 6.1/, 6.6/, 6.12/   # Kernel-specific configurations
+├── .github/workflows/         # Automated builds
+│   └── build.yml             # Build all images
+├── SETUP_GUIDE.md            # Detailed setup instructions
+└── README.md                 # This file
+```
+
+## Development & Contributing
+
+### Building Images
+
+Images are automatically built via GitHub Actions when you push code.
+
+Manual build:
+```bash
+OMR_TARGET=x86_64 OMR_KERNEL=6.12 ./build.sh
+```
+
+### Testing Changes
+
+1. Make your changes
+2. Test locally or wait for GitHub Actions build
+3. Flash image to hardware
+4. Verify functionality
+5. Submit pull request
+
+## Support & Community
+
+- 📖 [Setup Guide](SETUP_GUIDE.md) - Complete documentation
+- 💬 [Discussions](https://github.com/spotty118/openmptcprouter/discussions) - Ask questions
+- 🐛 [Issues](https://github.com/spotty118/openmptcprouter/issues) - Report bugs
+- 🌟 [Star this repo](https://github.com/spotty118/openmptcprouter) - Show your support
+
+## License
+
+This project is licensed under GPL-3.0 - see the [LICENSE](LICENSE) file for details.
