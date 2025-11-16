@@ -1,0 +1,12 @@
+--- a/package/kernel/mt76/Makefile
++++ b/package/kernel/mt76/Makefile
+@@ -240,6 +240,8 @@ ifdef CONFIG_PACKAGE_MAC80211_MESH
+   NOSTDINC_FLAGS += -DCONFIG_MAC80211_MESH
+ endif
+ 
++# Enable WiFi 7 optimizations for MT7996
++NOSTDINC_FLAGS += -DCONFIG_MT76_LEDS -DCONFIG_MT7996_DEBUGFS
++
+ define Build/Compile
+ 	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+ 		$(MAKE_OPTS) \

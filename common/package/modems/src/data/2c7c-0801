@@ -1,0 +1,16 @@
+{
+	"desc": "Quectel RM551E-GL 5G",
+	"type": "qmi_wwan",
+	"control": 4,
+	"boudrate": 115200,
+	"stop_bits": 8,
+	"gps": 1,
+	"ep_iface": 4,
+	"dl_max_size": 32768,
+	"dl_max_datagrams": 64,
+	"rx_urb_size": 32768,
+	"5g_capable": 1,
+	"carrier_aggregation": 1,
+	"ca_max_bands": 4,
+	"endc_support": 1
+}

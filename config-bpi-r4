@@ -22,6 +22,25 @@ CONFIG_DRIVER_11BE_SUPPORT=y
 CONFIG_PACKAGE_kmod-mac80211=y
 CONFIG_PACKAGE_MAC80211_DEBUGFS=y
 CONFIG_PACKAGE_MAC80211_MESH=y
+# 5G Modem Support (Quectel RM551E-GL)
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
+CONFIG_PACKAGE_kmod-usb-net-rndis=y
+CONFIG_PACKAGE_kmod-usb-serial=y
+CONFIG_PACKAGE_kmod-usb-serial-option=y
+CONFIG_PACKAGE_kmod-usb-serial-wwan=y
+CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y
+# Modem Management Tools
+CONFIG_PACKAGE_uqmi=y
+CONFIG_PACKAGE_umbim=y
+CONFIG_PACKAGE_comgt=y
+CONFIG_PACKAGE_picocom=y
+CONFIG_PACKAGE_modem-manager=y
+CONFIG_PACKAGE_libqmi=y
+CONFIG_PACKAGE_libmbim=y
 # Thermal and Hardware Monitoring
 CONFIG_PACKAGE_kmod-thermal=y
 CONFIG_PACKAGE_kmod-hwmon-core=y
