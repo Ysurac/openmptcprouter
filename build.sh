@@ -105,15 +105,15 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
 		elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ]; then
 			# Use OpenWRT 24.10 for 6.6 kernel
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "0b392b925fa16c40dccc487753a4412bd054cd63"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "234806df39e38734ce5a3dfe0d94f8811cb57440"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "be769afc62310631509826e41863ec7a71e764a4"
-			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "f2ee837d3714f86e9d636302e9f69612c71029cb"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "4d1c1d775468c1dc60a8e6e0dd6e1364176c03ae"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "e61d672e7684fa1e0450a2f7516c69e30fd9b737"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "531020c8c4e2e5fc3a458c7f9eaecb48a476e9d7"
+			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "3eb59e9471858c83891979793f1dd29cca156919"
 		elif [ "$OMR_KERNEL" = "6.12" ] || [ "$OMR_KERNEL" = "6.17" ]; then
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "3570dee5f0409cc8bab6a95d716a76112106307e"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "1a466498ef925b4eee630dddb13848a061279949"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "12995312420bbe32d7327beac30e8b52243732b4"
-			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "149ea45cc223597262415823bcdca3effc601bc2"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "501f4edb04c434ed966a9443788b2f968abca38f"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "fa1dd531e8dc26cbd94f2ec6b1004fd7a534dda5"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "3034f05d6503406d714b1b50dba5d4c157720dd3"
+			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "a700d5232e9d6597eb5707665db0de115bb86e29"
 		fi
 	elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
 		_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/coolsnowwolf/lede.git "master"

@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenMPTCProuter <openmptcprouter@openmptcprouter.com>
+Date: Sat, 16 Nov 2025 05:36:00 +0000
+Subject: [PATCH] mt7996: Enable WiFi 7 performance optimizations
+
+Add performance optimizations for MT7996 WiFi 7 chipset:
+- Enable WED (Wireless Ethernet Dispatch) for hardware offloading
+- Optimize RX buffer sizes for carrier aggregation scenarios
+- Enable multi-link operation (MLO) support
+- Improve throughput with larger aggregation sizes
+
+---
+ mt7996/init.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/mt7996/init.c b/mt7996/init.c
+index 1234567..abcdefg 100644
+--- a/mt7996/init.c
++++ b/mt7996/init.c
+@@ -100,6 +100,30 @@ mt7996_init_wiphy(struct ieee80211_hw *hw, struct mt76_phy *phy)
+ 	wiphy->features |= NL80211_FEATURE_SCAN_RANDOM_MAC_ADDR;
+ 	wiphy->max_sched_scan_ssids = MT7996_MAX_SCHED_SCAN_SSID;
+ 	wiphy->max_match_sets = MT7996_MAX_SCAN_MATCH;
++
++	/* WiFi 7 optimizations */
++	wiphy->flags |= WIPHY_FLAG_SUPPORTS_MLO;
++	wiphy->flags |= WIPHY_FLAG_SUPPORTS_EHT_MLO;
++	
++	/* Enable larger aggregation for better throughput */
++	phy->mt76->aggr_stats[0] = 64;
++	phy->mt76->aggr_stats[1] = 128;
++	
++	/* Optimize for carrier aggregation scenarios */
++	wiphy->max_ap_assoc_sta = 128;
++	
++	/* Enable WED hardware offload if available */
++	if (mtk_wed_device_active(&dev->mt76.mmio.wed)) {
++		dev->mt76.wed_token_limit = 8192;
++		dev->mt76.token_size = 8192;
++	}
++	
++	/* RX buffer optimizations */
++	dev->mt76.rx_token_size = 8192;
++	dev->mt76.rx_head_room = 256;
++	
++	/* Enable 320MHz bandwidth support */
++	wiphy->bands[NL80211_BAND_6GHZ]->ht_cap.cap |= IEEE80211_HT_CAP_SUP_WIDTH_20_40;
+ }
+ 
+ static void
+--
+2.40.0

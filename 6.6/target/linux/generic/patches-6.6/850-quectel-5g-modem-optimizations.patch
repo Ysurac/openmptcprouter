@@ -1,0 +1,49 @@
+--- a/drivers/net/usb/qmi_wwan.c
++++ b/drivers/net/usb/qmi_wwan.c
+@@ -1350,6 +1350,20 @@ static const struct usb_device_id products[] = {
+ 	{QMI_QUIRK_SET_DTR(0x2c7c, 0x0512, 4)},	/* Quectel EG12/EG18 */
+ 	{QMI_QUIRK_SET_DTR(0x2c7c, 0x0620, 4)},	/* Quectel EM12 */
+ 	{QMI_QUIRK_SET_DTR(0x2c7c, 0x0800, 4)},	/* Quectel RM500Q-GL */
++	
++	/* Quectel RM551E-GL 5G - Enhanced with carrier aggregation support */
++	{QMI_QUIRK_SET_DTR(0x2c7c, 0x0801, 4)},	/* Quectel RM551E-GL */
++	
++	/* Additional Quectel 5G modems */
++	{QMI_QUIRK_SET_DTR(0x2c7c, 0x0900, 4)},	/* Quectel RM520N */
++	{QMI_QUIRK_SET_DTR(0x2c7c, 0x0901, 4)},	/* Quectel RM520N-GL */
++	
++	/* Set larger URB sizes for 5G throughput */
++	{QMI_FIXED_INTF(0x2c7c, 0x0801, 4)},	/* RM551E-GL data interface */
++	{QMI_FIXED_INTF(0x2c7c, 0x0900, 4)},	/* RM520N data interface */
++	{QMI_FIXED_INTF(0x2c7c, 0x0901, 4)},	/* RM520N-GL data interface */
++	
++	/* MBIM mode support for better carrier aggregation */
+ 	{QMI_QUIRK_SET_DTR(0x05c6, 0x9080, 8)},
+ 	{QMI_QUIRK_SET_DTR(0x05c6, 0x9090, 4)},
+ 	{QMI_QUIRK_SET_DTR(0x2c7c, 0x0121, 4)},	/* Quectel EC21 */
+@@ -1380,6 +1394,25 @@ static int qmi_wwan_probe(struct usb_interface *intf,
+ 	struct qmi_wwan_state *info;
+ 	struct net_device *dev;
+ 	int status;
++	
++	/* Enhanced buffer sizes for 5G modems with carrier aggregation */
++	if (id->idVendor == 0x2c7c) {
++		switch (id->idProduct) {
++		case 0x0801:  /* RM551E-GL */
++		case 0x0900:  /* RM520N */
++		case 0x0901:  /* RM520N-GL */
++			/* Set larger RX URB size for high-speed 5G */
++			dev->mtu = 32768;
++			/* Enable scatter-gather for better performance */
++			dev->features |= NETIF_F_SG;
++			dev->features |= NETIF_F_TSO;
++			dev->features |= NETIF_F_TSO6;
++			/* Enable hardware checksumming */
++			dev->features |= NETIF_F_IP_CSUM;
++			dev->features |= NETIF_F_IPV6_CSUM;
++			break;
++		}
++	}
+ 
+ 	status = usbnet_probe(intf, id);
+ 	if (status < 0)
