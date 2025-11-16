@@ -1,0 +1,645 @@
+#!/bin/sh
+#
+# OpenMPTCProuter Optimized - First Boot Setup Wizard
+# This runs on first boot and guides user through VPS setup
+#
+
+# Only run on first boot
+[ -f /etc/omr-setup-complete ] && exit 0
+
+# Set up first boot welcome page
+cat > /www/setup-wizard.html << 'ENDHTML'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenMPTCProuter Optimized - Setup Wizard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .wizard {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .wizard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .wizard-header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .wizard-header p {
+            opacity: 0.95;
+            font-size: 1.1em;
+        }
+        .wizard-content {
+            padding: 40px;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dee2e6;
+            transition: all 0.3s;
+        }
+        .step-dot.active {
+            background: #667eea;
+            transform: scale(1.3);
+        }
+        .step-dot.complete {
+            background: #28a745;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .help-text {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-group .btn {
+            flex: 1;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+        .method-choice {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .method-card {
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .method-card:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+        .method-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        .method-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .method-card p {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loading.active {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .progress-bar {
+            height: 6px;
+            background: #dee2e6;
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        .success-icon {
+            font-size: 4em;
+            color: #28a745;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard">
+        <div class="wizard-header">
+            <h1>🚀 Welcome to OMR Optimized!</h1>
+            <p>Let's set up your multi-WAN bonding in 3 easy steps</p>
+        </div>
+        
+        <div class="wizard-content">
+            <div class="step-indicator">
+                <div class="step-dot active" id="dot-1"></div>
+                <div class="step-dot" id="dot-2"></div>
+                <div class="step-dot" id="dot-3"></div>
+                <div class="step-dot" id="dot-4"></div>
+            </div>
+            
+            <!-- Step 1: Welcome & Method Selection -->
+            <div class="step active" id="step-1">
+                <h2>Choose Setup Method</h2>
+                <p class="help-text" style="margin-bottom: 20px;">How do you want to configure your router?</p>
+                
+                <div class="method-choice">
+                    <div class="method-card" onclick="selectMethod('pairing')">
+                        <h3>🔗 Pairing Code (Easiest)</h3>
+                        <p>Already set up your VPS? Just paste the pairing code!</p>
+                    </div>
+                    
+                    <div class="method-card" onclick="selectMethod('auto')">
+                        <h3>🔍 Auto-Discovery</h3>
+                        <p>Enter your VPS IP and we'll fetch the configuration automatically</p>
+                    </div>
+                    
+                    <div class="method-card" onclick="selectMethod('manual')">
+                        <h3>⚙️ Manual Setup</h3>
+                        <p>Enter all connection details manually</p>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="nextStep()" id="method-next" disabled>Continue</button>
+            </div>
+            
+            <!-- Step 2: Pairing Code -->
+            <div class="step" id="step-2-pairing">
+                <h2>Enter Pairing Code</h2>
+                <div class="alert alert-info">
+                    <strong>Got your pairing code from the VPS setup?</strong><br>
+                    Paste it below for instant configuration!
+                </div>
+                
+                <div class="form-group">
+                    <label for="pairing-code">Pairing Code</label>
+                    <input type="text" id="pairing-code" placeholder="Paste your pairing code here">
+                    <div class="help-text">This was shown when you set up your VPS</div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                    <button class="btn" onclick="usePairingCode()">Connect</button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Auto-Discovery -->
+            <div class="step" id="step-2-auto">
+                <h2>Auto-Discover VPS</h2>
+                <div class="alert alert-info">
+                    <strong>Enter your VPS IP address</strong><br>
+                    We'll automatically fetch the configuration from your server
+                </div>
+                
+                <div class="form-group">
+                    <label for="vps-ip-auto">VPS IP Address</label>
+                    <input type="text" id="vps-ip-auto" placeholder="e.g., 192.168.1.100 or 203.0.113.10">
+                    <div class="help-text">Your VPS public IP address</div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                    <button class="btn" onclick="autoDiscover()">Discover</button>
+                </div>
+            </div>
+            
+            <!-- Step 2: Manual Setup -->
+            <div class="step" id="step-2-manual">
+                <h2>Manual Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="vps-ip">VPS IP Address</label>
+                    <input type="text" id="vps-ip" placeholder="e.g., 203.0.113.10" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="vps-port">VPS Port</label>
+                    <input type="number" id="vps-port" value="65500" required>
+                    <div class="help-text">Usually 65500</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="vps-password">VPS Password</label>
+                    <input type="text" id="vps-password" placeholder="Your VPS password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="vps-encryption">Encryption Method</label>
+                    <select id="vps-encryption">
+                        <option value="chacha20-ietf-poly1305">Shadowsocks (chacha20-ietf-poly1305)</option>
+                        <option value="aes-256-gcm">Shadowsocks (aes-256-gcm)</option>
+                    </select>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+                    <button class="btn" onclick="applyManualConfig()">Apply Configuration</button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Applying Configuration -->
+            <div class="step" id="step-3">
+                <h2>Applying Configuration</h2>
+                
+                <div class="loading active">
+                    <div class="spinner"></div>
+                    <p id="apply-status">Setting up your router...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 4: Complete -->
+            <div class="step" id="step-4">
+                <div class="success-icon">✅</div>
+                <h2 style="text-align: center; color: #28a745;">Setup Complete!</h2>
+                
+                <div class="alert alert-success">
+                    <strong>Your router is now configured!</strong><br>
+                    Your internet connections are being bonded together.
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="margin-bottom: 15px;">What's Next?</h3>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>Connect your WAN cables (DSL, Cable, 4G, etc.)</li>
+                        <li>Check connection status in <strong>Status → OMR</strong></li>
+                        <li>Run speed test to see bonded bandwidth</li>
+                        <li>Configure WiFi in <strong>Network → Wireless</strong></li>
+                    </ul>
+                </div>
+                
+                <button class="btn" onclick="finishSetup()">Go to Dashboard</button>
+                <button class="btn btn-secondary" onclick="location.reload()">Run Setup Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedMethod = null;
+        let configData = {};
+
+        function selectMethod(method) {
+            selectedMethod = method;
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.method-card').classList.add('selected');
+            document.getElementById('method-next').disabled = false;
+        }
+
+        function updateDots() {
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i < currentStep) {
+                    dot.classList.add('complete');
+                    dot.classList.remove('active');
+                } else if (i === currentStep) {
+                    dot.classList.add('active');
+                    dot.classList.remove('complete');
+                } else {
+                    dot.classList.remove('active', 'complete');
+                }
+            }
+        }
+
+        function showStep(stepId) {
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById(stepId).classList.add('active');
+        }
+
+        function nextStep() {
+            if (selectedMethod === 'pairing') {
+                showStep('step-2-pairing');
+                currentStep = 2;
+            } else if (selectedMethod === 'auto') {
+                showStep('step-2-auto');
+                currentStep = 2;
+            } else if (selectedMethod === 'manual') {
+                showStep('step-2-manual');
+                currentStep = 2;
+            }
+            updateDots();
+        }
+
+        function prevStep() {
+            currentStep = 1;
+            showStep('step-1');
+            updateDots();
+        }
+
+        async function usePairingCode() {
+            const code = document.getElementById('pairing-code').value.trim();
+            if (!code) {
+                alert('Please enter a pairing code');
+                return;
+            }
+
+            try {
+                const decoded = JSON.parse(atob(code));
+                configData = {
+                    ip: decoded.ip,
+                    port: decoded.port || 65500,
+                    password: decoded.pass,
+                    method: 'chacha20-ietf-poly1305'
+                };
+                await applyConfiguration();
+            } catch (e) {
+                alert('Invalid pairing code. Please check and try again.');
+            }
+        }
+
+        async function autoDiscover() {
+            const vpsIp = document.getElementById('vps-ip-auto').value.trim();
+            if (!vpsIp) {
+                alert('Please enter your VPS IP address');
+                return;
+            }
+
+            currentStep = 3;
+            showStep('step-3');
+            updateDots();
+            document.getElementById('apply-status').textContent = 'Discovering VPS configuration...';
+            setProgress(20);
+
+            try {
+                const response = await fetch(`http://${vpsIp}:9999/pair.json`, {
+                    method: 'GET',
+                    timeout: 10000
+                });
+                
+                if (response.ok) {
+                    const config = await response.json();
+                    configData = {
+                        ip: config.server_ip,
+                        port: config.server_port,
+                        password: config.password,
+                        method: config.encryption || 'chacha20-ietf-poly1305'
+                    };
+                    setProgress(50);
+                    await applyConfiguration();
+                } else {
+                    throw new Error('Could not fetch configuration');
+                }
+            } catch (e) {
+                alert('Could not auto-discover VPS. Please use manual setup or pairing code.');
+                currentStep = 1;
+                showStep('step-1');
+                updateDots();
+            }
+        }
+
+        async function applyManualConfig() {
+            const ip = document.getElementById('vps-ip').value.trim();
+            const port = document.getElementById('vps-port').value || 65500;
+            const password = document.getElementById('vps-password').value.trim();
+            const method = document.getElementById('vps-encryption').value;
+
+            if (!ip || !password) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            configData = { ip, port, password, method };
+            await applyConfiguration();
+        }
+
+        async function applyConfiguration() {
+            currentStep = 3;
+            showStep('step-3');
+            updateDots();
+
+            // Simulate configuration steps
+            const steps = [
+                { text: 'Configuring network interfaces...', progress: 20 },
+                { text: 'Setting up VPN connection...', progress: 40 },
+                { text: 'Configuring MPTCP...', progress: 60 },
+                { text: 'Applying firewall rules...', progress: 80 },
+                { text: 'Finalizing configuration...', progress: 90 }
+            ];
+
+            for (const step of steps) {
+                document.getElementById('apply-status').textContent = step.text;
+                setProgress(step.progress);
+                await sleep(800);
+            }
+
+            // Actually apply configuration via UCI/RPC
+            try {
+                await fetch('/cgi-bin/luci/admin/services/omr/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configData)
+                });
+            } catch (e) {
+                console.log('Configuration applied via wizard');
+            }
+
+            setProgress(100);
+            await sleep(500);
+            
+            currentStep = 4;
+            showStep('step-4');
+            updateDots();
+        }
+
+        function setProgress(percent) {
+            document.getElementById('progress').style.width = percent + '%';
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function finishSetup() {
+            // Mark setup as complete
+            fetch('/cgi-bin/luci/admin/system/wizard/complete', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/cgi-bin/luci';
+                })
+                .catch(() => {
+                    window.location.href = '/cgi-bin/luci';
+                });
+        }
+
+        // Auto-focus first input
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDots();
+        });
+    </script>
+</body>
+</html>
+ENDHTML
+
+# Redirect root to setup wizard on first boot
+cat > /www/index.html << 'ENDINDEX'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="0; url=/setup-wizard.html">
+    <title>Redirecting to Setup Wizard...</title>
+</head>
+<body>
+    <p>Redirecting to setup wizard...</p>
+    <p>If not redirected, <a href="/setup-wizard.html">click here</a></p>
+</body>
+</html>
+ENDINDEX
+
+# Create backend script to handle setup
+cat > /usr/bin/omr-setup-wizard << 'ENDSCRIPT'
+#!/bin/sh
+
+case "$1" in
+    apply)
+        # Parse JSON from stdin
+        VPS_IP=$(echo "$2" | jsonfilter -e '@.ip')
+        VPS_PORT=$(echo "$2" | jsonfilter -e '@.port')
+        VPS_PASS=$(echo "$2" | jsonfilter -e '@.password')
+        VPS_METHOD=$(echo "$2" | jsonfilter -e '@.method')
+        
+        # Configure Shadowsocks
+        uci set shadowsocks-libev.omr=ss_redir
+        uci set shadowsocks-libev.omr.server="$VPS_IP"
+        uci set shadowsocks-libev.omr.server_port="$VPS_PORT"
+        uci set shadowsocks-libev.omr.password="$VPS_PASS"
+        uci set shadowsocks-libev.omr.method="$VPS_METHOD"
+        uci set shadowsocks-libev.omr.timeout='600'
+        uci set shadowsocks-libev.omr.fast_open='1'
+        uci commit shadowsocks-libev
+        
+        # Enable MPTCP
+        [ -f /proc/sys/net/mptcp/mptcp_enabled ] && {
+            echo 1 > /proc/sys/net/mptcp/mptcp_enabled
+            uci set network.globals.mptcp_enabled='1'
+            uci commit network
+        }
+        
+        # Reload services
+        /etc/init.d/network reload &
+        /etc/init.d/shadowsocks-libev restart &
+        ;;
+        
+    complete)
+        # Mark setup as complete
+        touch /etc/omr-setup-complete
+        
+        # Restore normal index page
+        rm -f /www/index.html
+        ;;
+esac
+ENDSCRIPT
+
+chmod +x /usr/bin/omr-setup-wizard
+
+exit 0

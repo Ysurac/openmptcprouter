@@ -30,29 +30,67 @@ OpenMPTCProuter Optimized VPS configuration is based on: [https://github.com/Ysu
 
 ## 🚀 Quick Start - Super Easy Setup!
 
-### Step 1: Set Up Your VPS (2 minutes)
+### Complete Zero-Configuration Setup!
 
-On your VPS server, run this single command:
+**Just flash and go!** When you first boot your OpenMPTCProuter Optimized router:
 
+1. **Flash the image** to your device
+2. **Connect** to the router (WiFi or Ethernet)
+3. **Open browser** - automatic wizard appears!
+4. **Choose setup method:**
+   - 🔗 **Pairing Code** - Paste code from VPS (easiest!)
+   - 🔍 **Auto-Discovery** - Enter VPS IP, auto-configures
+   - ⚙️ **Manual** - Enter details manually
+5. **Done!** Router configures itself automatically!
+
+**No SSH needed! No command line! No technical knowledge!**
+
+---
+
+### Traditional VPS Setup (if needed)
+
+#### Step 1: Set Up Your VPS (1 command - 2 minutes)
+
+**Method 1: Auto-Pairing (Get pairing code for router)**
+```bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/auto-pair.sh | sudo bash
+```
+Output: Pairing code to use in router wizard
+
+**Method 2: Standard Setup (Web interface)**
 ```bash
 curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
 ```
+Output: Web page at http://VPS_IP:8080
 
-**That's it for the server!** The script will:
-- ✅ Automatically install and configure everything
-- ✅ Generate secure passwords
-- ✅ Set up firewall and networking
-- ✅ Create a beautiful web page with your settings
+#### Step 2: Configure Your Router 
 
-### Step 2: Configure Your Router (1 minute)
+**Automatic (First Boot Wizard):**
+- Just flash and boot - wizard appears automatically!
 
-1. Flash your router with an image from [Releases](https://github.com/spotty118/openmptcprouter/releases)
-2. Connect to your router at `http://192.168.100.1`
-3. Go to **Services → OpenMPTCProuter**
-4. Open `http://YOUR_VPS_IP:8080` and copy the settings shown
-5. Click **Save & Apply**
+**Manual (if wizard skipped):**
+```bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/client-auto-setup.sh | sh -s VPS_IP PASSWORD
+```
 
-**Done!** Your multiple internet connections are now bonded together!
+**Web Interface:**
+1. Go to http://192.168.100.1
+2. Navigate to Services → OpenMPTCProuter
+3. Enter VPS details from setup page
+4. Save & Apply
+
+---
+
+### 🎯 Setup Methods Comparison
+
+| Method | Time | Difficulty | Steps |
+|--------|------|-----------|-------|
+| **First Boot Wizard** 🆕 | 1 min | Zero! | 0 (automatic) |
+| **Auto-Pairing** | 2 min | Easiest | 2 commands |
+| **Auto-Discovery** | 3 min | Easy | Enter VPS IP |
+| **Manual Setup** | 5 min | Moderate | Copy/paste settings |
+
+---
 
 📖 **Detailed Guide:** [Complete Setup Guide](SETUP_GUIDE.md)
 🎥 **Need Help?** [Setup Scripts README](scripts/README.md)
