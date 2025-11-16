@@ -1,0 +1,90 @@
+name: Build OpenMPTCProuter Images
+on: [push]
+
+env:
+  REPO_URL: 'https://github.com/spotty118/openmptcprouter'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        OMR_TARGET: [bpi-r1, bpi-r2, bpi-r3, bpi-r4, bpi-r4-poe, bpi-r64, rpi2, rpi4, wrt32x, espressobin, r2s, rpi3, wrt3200acm, x86, x86_64, ubnt-erx, r4s, r7800, rutx12, rutx50, r5s, qnap-301w, rpi5, z8102ax_128m, z8102ax_64m, z8102ax-emmc, gl-mt6000, gl-mt3000, gl-mt2500, r5c, z8109ax_128m]
+        OMR_KERNEL: [6.6, 6.12]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+    - name: Branch name
+      id: branch_name
+      run: |
+        echo "SOURCE_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+        echo "SOURCE_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+        echo "SOURCE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        echo "WORKSPACE=${GITHUB_WORKSPACE}" >> $GITHUB_OUTPUT
+    - name: Prepare
+      run: |
+        sudo apt-get update
+        sudo apt-get install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler python3-pyelftools llvm clang
+    - if: matrix.OMR_KERNEL == '6.6'
+      name: Install LLVM
+      run: |
+        sudo apt-get install llvm clang
+    - name: Free disk space
+      run: |
+        df -h
+        sudo swapoff -a >/dev/null 2>&1 || true
+        sudo rm -f /swapfile >/dev/null 2>&1 || true
+        sudo apt-get autoremove -y >/dev/null 2>&1 || true
+        sudo apt-get autoclean -y >/dev/null 2>&1 || true
+        sudo rm -rf "/usr/local/share/boost" >/dev/null 2>&1 || true
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY" >/dev/null 2>&1 || true
+        sudo rm -rf /usr/share/dotnet >/dev/null 2>&1 || true
+        sudo rm -rf /usr/local/lib/android >/dev/null 2>&1 || true
+        sudo rm -rf /opt/ghc >/dev/null 2>&1 || true
+        sudo docker rmi $(docker images -qf "dangling=true") >/dev/null 2>&1 || true
+        df -h
+    - name: Clone source code
+      working-directory: ../../
+      env: 
+        REPO_URL: https://github.com/spotty118/openmptcprouter
+        SOURCE_NAME: ${{ steps.branch_name.outputs.SOURCE_NAME }}
+        GITHUB_WORKSPACE: ${{ steps.branch_name.outputs.WORKSPACE }}
+      run: |
+        git clone $REPO_URL omr
+        cd omr
+        pwd
+        git fetch
+        git checkout $SOURCE_NAME
+        git pull
+        pwd
+    - name: Build toolchain
+      working-directory: ../../omr
+      env:
+        OMR_FEED_URL: https://github.com/ysurac/openmptcprouter-feeds
+        SOURCE_NAME: ${{ steps.branch_name.outputs.SOURCE_NAME }}
+        OMR_TARGET: ${{ matrix.OMR_TARGET }}
+        OMR_KERNEL: ${{ matrix.OMR_KERNEL }}
+        OMR_HOST: ${{ secrets.OMR_HOST }}
+        OMR_PORT: ${{ secrets.OMR_PORT }}
+      run: |
+        OMR_KERNEL="${OMR_KERNEL}" OMR_FEED_SRC="develop" sh build.sh prepare {tools,toolchain}/install -j$(nproc) || OMR_KERNEL="${OMR_KERNEL}" OMR_FEED_SRC="develop" sh build.sh prepare {tools,toolchain}/install -j1 V=s
+    - name: Build packages
+      working-directory: ../../omr
+      env:
+        OMR_TARGET: ${{ matrix.OMR_TARGET }}
+        OMR_KERNEL: ${{ matrix.OMR_KERNEL }}
+      run: |
+        make IGNORE_ERRORS=m -C $OMR_TARGET/$OMR_KERNEL/source package/{compile,install,index} -j$(nproc) || make IGNORE_ERRORS=m -C $OMR_TARGET/$OMR_KERNEL/source package/{compile,install,index} -j1 V=s
+    - name: Build image
+      working-directory: ../../omr
+      env:
+        OMR_TARGET: ${{ matrix.OMR_TARGET }}
+        OMR_KERNEL: ${{ matrix.OMR_KERNEL }}
+      run: |
+        make IGNORE_ERRORS=m -C $OMR_TARGET/$OMR_KERNEL/source target/install -j$(nproc) || make IGNORE_ERRORS=m -C $OMR_TARGET/$OMR_KERNEL/source target/install -j1 V=s
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.OMR_TARGET }}-${{ matrix.OMR_KERNEL }}
+        path: /home/runner/work/omr/${{ matrix.OMR_TARGET }}/${{ matrix.OMR_KERNEL }}/source/bin
+        overwrite: true

@@ -96,13 +96,13 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 	if [ "$OMR_OPENWRT" = "default" ]; then
 		if [ "$OMR_KERNEL" = "5.4" ]; then
 			# Use OpenWrt 21.02 for 5.4 kernel
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "170d9e447df0f52882a8b7a61bf940b062b2cacc"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "b3a6bb839059546a52df00af3e1aa97dba75de22"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "78e4cffcd882389cb8f0bf818303f85f8d1e9c8e"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "1be343f776e7b035b20357fa7e8dcd14c6e4fb61"
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "e4c46338b196e486a88b1a75b78e283708c82bc4"
 		elif [ "$OMR_KERNEL" = "6.1" ]; then
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "acf40c022e3d8949c7bb1f9c5212eb91512ae8a9"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "3ee7b46610e9dbd8fd2bba87bd06024cd0d9c08f"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "ddda66aa8caa5e929cf7a542a79e2c3ce69eb66c"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "fd7b88447c4a001ae16b5ac4e7d0b595bbfb615e"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "a2d56138801afc982b831298f2f4de0daaf04b4f"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "7ce34fe1a53db10bb9dd0223467f5bb71a29a659"
 		elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ]; then
 			# Use OpenWRT 24.10 for 6.6 kernel
 			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "4d1c1d775468c1dc60a8e6e0dd6e1364176c03ae"
@@ -111,7 +111,7 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "3eb59e9471858c83891979793f1dd29cca156919"
 		elif [ "$OMR_KERNEL" = "6.12" ] || [ "$OMR_KERNEL" = "6.17" ]; then
 			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "501f4edb04c434ed966a9443788b2f968abca38f"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "fa1dd531e8dc26cbd94f2ec6b1004fd7a534dda5"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "0c908eed83012ce34aa254df7f7659755456cb3e"
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "3034f05d6503406d714b1b50dba5d4c157720dd3"
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "a700d5232e9d6597eb5707665db0de115bb86e29"
 		fi
