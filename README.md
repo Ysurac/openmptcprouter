@@ -1,5 +1,6 @@
-![openmptcprouter](https://github.com/Ysurac/openmptcprouter-feeds/workflows/openmptcprouter/badge.svg)
-![Latest tag](https://img.shields.io/github/tag/ysurac/openmptcprouter-feeds.svg)
+![OpenMPTCProuter Optimized](https://img.shields.io/badge/OpenMPTCProuter-Optimized-blue.svg)
+![Build Status](https://github.com/spotty118/openmptcprouter/workflows/Build%20OpenMPTCProuter%20Optimized%20Images/badge.svg)
+![Latest tag](https://img.shields.io/github/tag/spotty118/openmptcprouter.svg)
 [![Paypal](https://www.openmptcprouter.com/img/donate-PayPal-green.svg)](https://www.paypal.me/ycarus)
 [![Flattr](https://www.openmptcprouter.com/img/donate-flattr-yellow.svg)](https://flattr.com/@ycarus)
 [![Liberapay](https://img.shields.io/liberapay/patrons/Moul.svg?logo=liberapay)](https://liberapay.com/Ycarus/)
@@ -7,9 +8,11 @@
 [![Twitter](https://www.openmptcprouter.com/img/twitter.jpg)](https://twitter.com/OpenMPTCProuter)
 [![Atom](https://www.openmptcprouter.com/img/feed.png)](https://www.openmptcprouter.com/atom)
 
-# OpenMPTCProuter
+# OpenMPTCProuter Optimized
 
-OpenMPTCProuter is an open source solution to aggregate and encrypt multiple internet connections and terminates it over any VPS which make clients benefit security, reliability, net neutrality, as well as dedicated public IP.
+> **Note:** This is an optimized fork of [OpenMPTCProuter](https://github.com/Ysurac/openmptcprouter) with enhanced features, updated patches, and driver optimizations.
+
+OpenMPTCProuter Optimized is an optimized fork of the open source solution to aggregate and encrypt multiple internet connections and terminates it over any VPS which make clients benefit security, reliability, net neutrality, as well as dedicated public IP.
 
 The aggregation is based on Multipath TCP (MPTCP), which is ISP, WAN type, and latency independent "whether it was Fiber, VDSL, SHDSL, ADSL, 4G or even 5G", different scenarios can be configured to have either aggregation or failover based on MPTCP.
 
@@ -20,9 +23,9 @@ The solution takes advantage of the OpenWRT/LEDE system, which is user friendly 
 
 Main website: [https://www.openmptcprouter.com/](https://www.openmptcprouter.com/)
 
-Packages made for OpenMPTCProuter are available here: [https://github.com/Ysurac/openmptcprouter-feeds](https://github.com/Ysurac/openmptcprouter-feeds)
+Packages made for OpenMPTCProuter Optimized are based on the upstream: [https://github.com/Ysurac/openmptcprouter-feeds](https://github.com/Ysurac/openmptcprouter-feeds)
 
-OpenMPTCProuter VPS script part: [https://github.com/Ysurac/openmptcprouter-vps](https://github.com/Ysurac/openmptcprouter-vps)
+OpenMPTCProuter Optimized VPS configuration is based on: [https://github.com/Ysurac/openmptcprouter-vps](https://github.com/Ysurac/openmptcprouter-vps)
 
 
 ## Install from pre-compiled images
@@ -45,7 +48,7 @@ dd bs=4M if=omr-*.img of=/dev/sdX conv=fsync
 
 ### Hardware Support
 
-OpenMPTCProuter supports a wide range of hardware platforms with optimized configurations:
+OpenMPTCProuter Optimized supports a wide range of hardware platforms with optimized configurations:
 
 #### Banana Pi R4 - Enhanced Support
 The Banana Pi R4 receives special attention with comprehensive optimizations:

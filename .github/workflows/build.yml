@@ -1,4 +1,4 @@
-name: Build OpenMPTCProuter Images
+name: Build OpenMPTCProuter Optimized Images
 on: [push]
 
 env:

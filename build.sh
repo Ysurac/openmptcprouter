@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2017 OVH OverTheBox
 # Copyright (C) 2017-2025 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter project
+# Copyright (C) 2025 spotty118 - OpenMPTCProuter Optimized fork
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
