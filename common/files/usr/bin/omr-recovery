@@ -1,0 +1,173 @@
+#!/bin/sh
+#
+# Emergency Recovery Tool
+# Run this if you've locked yourself out of the router
+# This will restore LAN access on at least one port
+#
+
+echo "═══════════════════════════════════════════════════"
+echo "OpenMPTCProuter Emergency Recovery"
+echo "═══════════════════════════════════════════════════"
+echo ""
+echo "This will restore LAN access if you've locked yourself out."
+echo ""
+echo "What happened?"
+echo "  1. All ports assigned to WAN"
+echo "  2. Wrong IP address configuration"
+echo "  3. DHCP server not working"
+echo "  4. Complete reset to factory defaults"
+echo "  5. Cancel"
+echo ""
+read -p "Choose option (1-5): " choice
+
+case "$choice" in
+    1)
+        echo ""
+        echo "Fixing: Restoring at least one LAN port..."
+        
+        # Find first available port
+        for iface in /sys/class/net/eth* /sys/class/net/lan*; do
+            if [ -e "$iface" ]; then
+                port=$(basename "$iface")
+                
+                echo "Using $port for LAN access"
+                
+                # Remove from all WANs
+                for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
+                    wan_dev=$(uci -q get network.$wan.device)
+                    if [ "$wan_dev" = "$port" ]; then
+                        uci delete network.$wan
+                        echo "Removed $port from $wan"
+                    fi
+                done
+                
+                # Add to LAN
+                uci -q batch <<-EOF
+					delete network.@device[0]
+					add network device
+					set network.@device[-1].name='br-lan'
+					set network.@device[-1].type='bridge'
+					set network.@device[-1].ports='$port'
+					set network.lan.device='br-lan'
+					set network.lan.proto='static'
+					set network.lan.ipaddr='192.168.2.1'
+					set network.lan.netmask='255.255.255.0'
+				EOF
+                
+                uci commit network
+                /etc/init.d/network restart
+                
+                echo ""
+                echo "✓ LAN restored on port $port"
+                echo "✓ Access router at http://192.168.2.1"
+                break
+            fi
+        done
+        ;;
+        
+    2)
+        echo ""
+        echo "Fixing: Resetting LAN IP to 192.168.2.1..."
+        
+        uci set network.lan.ipaddr='192.168.2.1'
+        uci set network.lan.netmask='255.255.255.0'
+        uci set network.lan.proto='static'
+        uci commit network
+        /etc/init.d/network restart
+        
+        echo ""
+        echo "✓ LAN IP reset to 192.168.2.1"
+        echo "✓ Access router at http://192.168.2.1"
+        ;;
+        
+    3)
+        echo ""
+        echo "Fixing: Enabling DHCP server on LAN..."
+        
+        uci -q batch <<-EOF
+			set dhcp.lan=dhcp
+			set dhcp.lan.interface='lan'
+			set dhcp.lan.start='100'
+			set dhcp.lan.limit='150'
+			set dhcp.lan.leasetime='12h'
+			set dhcp.lan.dhcpv4='server'
+			set dhcp.lan.dhcpv6='server'
+			set dhcp.lan.ra='server'
+		EOF
+        
+        uci commit dhcp
+        /etc/init.d/dnsmasq restart
+        
+        echo ""
+        echo "✓ DHCP server enabled"
+        echo "✓ Reconnect your device to get new IP"
+        ;;
+        
+    4)
+        echo ""
+        echo "WARNING: This will reset ALL network settings!"
+        read -p "Are you sure? (yes/no): " confirm
+        
+        if [ "$confirm" = "yes" ]; then
+            echo ""
+            echo "Resetting to factory defaults..."
+            
+            # Run first-boot setup again
+            rm -f /etc/port-autoconfig-applied
+            
+            # Reset network config
+            cp /rom/etc/config/network /etc/config/network 2>/dev/null || {
+                # If no ROM config, create minimal one
+                cat > /etc/config/network <<-'NETEOF'
+config interface 'loopback'
+	option device 'lo'
+	option proto 'static'
+	option ipaddr '127.0.0.1'
+	option netmask '255.0.0.0'
+
+config interface 'lan'
+	option proto 'static'
+	option ipaddr '192.168.2.1'
+	option netmask '255.255.255.0'
+NETEOF
+            }
+            
+            uci commit network
+            
+            # Reset DHCP
+            cp /rom/etc/config/dhcp /etc/config/dhcp 2>/dev/null
+            uci commit dhcp
+            
+            # Restart everything
+            /etc/init.d/network restart
+            /etc/init.d/dnsmasq restart
+            
+            # Run first boot setup
+            /usr/bin/port-autoconfig.sh &
+            
+            echo ""
+            echo "✓ Reset complete"
+            echo "✓ System will auto-configure in 30 seconds"
+            echo "✓ Access router at http://192.168.2.1"
+        else
+            echo "Cancelled"
+        fi
+        ;;
+        
+    5)
+        echo "Cancelled"
+        exit 0
+        ;;
+        
+    *)
+        echo "Invalid option"
+        exit 1
+        ;;
+esac
+
+echo ""
+echo "═══════════════════════════════════════════════════"
+echo "Recovery complete!"
+echo "═══════════════════════════════════════════════════"
+
+exit 0

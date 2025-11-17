@@ -1,0 +1,121 @@
+#!/bin/sh
+#
+# Hardware Reset Button Handler
+# Detects reset button press and restores network access
+# Works even when locked out via network
+#
+
+BUTTON="${1}"
+ACTION="${2}"
+
+# Only handle reset button
+[ "${BUTTON}" = "reset" ] || exit 0
+
+case "${ACTION}" in
+    pressed)
+        # Short press detected
+        logger -t reset-button "Reset button pressed"
+        ;;
+        
+    timeout)
+        # Long press (5+ seconds) - Factory reset
+        logger -t reset-button "Long press detected - initiating factory reset"
+        
+        # Flash LED to indicate reset in progress
+        if [ -e /sys/class/leds/status ]; then
+            echo timer > /sys/class/leds/status/trigger
+        fi
+        
+        # Reset network configuration
+        logger -t reset-button "Resetting network configuration..."
+        
+        # Remove auto-config markers
+        rm -f /etc/port-autoconfig-applied
+        rm -f /etc/omr-network-configured
+        
+        # Restore LAN to safe defaults
+        uci -q batch <<-EOF
+			delete network.@device[0]
+			add network device
+			set network.@device[-1].name='br-lan'
+			set network.@device[-1].type='bridge'
+			set network.lan.device='br-lan'
+			set network.lan.proto='static'
+			set network.lan.ipaddr='192.168.2.1'
+			set network.lan.netmask='255.255.255.0'
+			set network.lan.ip6assign='60'
+		EOF
+        
+        # Delete all WAN interfaces
+        for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
+            uci delete network.$wan
+        done
+        
+        # Find all physical ports and assign to LAN
+        local lan_ports=""
+        for iface in /sys/class/net/eth* /sys/class/net/lan*; do
+            if [ -e "$iface" ]; then
+                local port=$(basename "$iface")
+                lan_ports="$lan_ports $port"
+            fi
+        done
+        
+        if [ -n "$lan_ports" ]; then
+            lan_ports=$(echo "$lan_ports" | xargs)
+            uci set network.@device[-1].ports="$lan_ports"
+            logger -t reset-button "Assigned all ports to LAN: $lan_ports"
+        fi
+        
+        uci commit network
+        
+        # Reset DHCP
+        uci -q batch <<-EOF
+			delete dhcp.lan
+			set dhcp.lan=dhcp
+			set dhcp.lan.interface='lan'
+			set dhcp.lan.start='100'
+			set dhcp.lan.limit='150'
+			set dhcp.lan.leasetime='12h'
+			set dhcp.lan.dhcpv4='server'
+			set dhcp.lan.dhcpv6='server'
+			set dhcp.lan.ra='server'
+			commit dhcp
+		EOF
+        
+        # Restart network
+        /etc/init.d/network restart
+        /etc/init.d/dnsmasq restart
+        
+        # Flash LED to indicate success
+        if [ -e /sys/class/leds/status ]; then
+            echo default-on > /sys/class/leds/status/trigger
+        fi
+        
+        logger -t reset-button "Factory reset complete - all ports on LAN @ 192.168.2.1"
+        logger -t reset-button "First boot auto-config will run on next reboot"
+        ;;
+        
+    released)
+        # Short press released - Quick LAN recovery
+        if [ "${SEEN}" -lt 5 ]; then
+            logger -t reset-button "Short press - restoring LAN access"
+            
+            # Flash LED
+            if [ -e /sys/class/leds/status ]; then
+                echo timer > /sys/class/leds/status/trigger
+            fi
+            
+            # Run emergency recovery script
+            if [ -x /usr/bin/emergency-lan-restore.sh ]; then
+                /usr/bin/emergency-lan-restore.sh &
+            fi
+            
+            # Restore LED
+            if [ -e /sys/class/leds/status ]; then
+                echo default-on > /sys/class/leds/status/trigger
+            fi
+        fi
+        ;;
+esac
+
+exit 0

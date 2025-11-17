@@ -1,14 +1,12 @@
 #!/bin/sh
 #
-# OpenMPTCProuter Optimized - Auto WAN/LAN Port Detection
-# Automatically configures ports based on what's connected
-# Detects upstream internet on any port and configures it as WAN
-# Other ports become LAN
+# OpenMPTCProuter Optimized - First Boot Port Setup
+# Simple first-boot helper that detects a basic WAN/LAN configuration
+# Works like any standard router - smart defaults, then user customizes
+# Only runs once on first boot, then user has full control
 #
 
 LOG_TAG="port-autoconfig"
-CHECK_INTERVAL=10
-DETECTION_FILE="/var/run/port-autoconfig.state"
 CONFIG_APPLIED="/etc/port-autoconfig-applied"
 
 log_msg() {
@@ -38,147 +36,91 @@ get_all_ports() {
     echo "$ports" | xargs
 }
 
-# Check if a port has link (cable plugged in)
-port_has_link() {
-    local port="$1"
-    
-    [ ! -e "/sys/class/net/$port" ] && return 1
-    
-    # Check carrier status
-    local carrier=$(cat /sys/class/net/$port/carrier 2>/dev/null)
-    [ "$carrier" = "1" ] && return 0
-    
-    return 1
-}
-
-# Check if a port has DHCP offer (upstream internet)
-port_has_upstream() {
-    local port="$1"
-    local timeout=15
-    
-    log_msg "Testing $port for upstream internet..."
-    
-    # Bring interface up
-    ip link set "$port" up
-    sleep 2
-    
-    # Try to get DHCP offer
-    local dhcp_result=$(timeout $timeout udhcpc -i "$port" -n -q -s /dev/null 2>&1)
-    local dhcp_status=$?
-    
-    # Check if we got an IP
-    if [ $dhcp_status -eq 0 ]; then
-        log_msg "$port has upstream DHCP (likely WAN)"
-        # Release the IP since we're just testing
-        ip addr flush dev "$port"
-        return 0
-    fi
-    
-    # Try to detect gateway via ARP
-    arping -I "$port" -c 3 -b 255.255.255.255 2>/dev/null | grep -q "reply from" && {
-        log_msg "$port has active network devices (potential WAN)"
-        return 0
-    }
-    
-    log_msg "$port does not appear to have upstream internet"
-    return 1
-}
-
-# Detect which ports should be WAN and which should be LAN
+# Simple port assignment like standard routers
+# Look for a WAN port by name, everything else is LAN
 detect_port_roles() {
     local all_ports=$(get_all_ports)
-    local wan_ports=""
+    local wan_port=""
     local lan_ports=""
     
-    log_msg "Scanning ports: $all_ports"
+    log_msg "First boot setup - detecting ports: $all_ports"
     
-    for port in $all_ports; do
-        if port_has_link "$port"; then
-            log_msg "Port $port has link (cable connected)"
-            
-            # Test for upstream internet
-            if port_has_upstream "$port"; then
-                wan_ports="$wan_ports $port"
-            else
-                lan_ports="$lan_ports $port"
-            fi
-        else
-            log_msg "Port $port has no link (no cable)"
-            # Assume unused ports are LAN by default
-            lan_ports="$lan_ports $port"
+    # Strategy: Look for common WAN port names first (like standard routers)
+    # If found, use it. Otherwise pick the first port as WAN.
+    # Everything else becomes LAN.
+    
+    # Check for dedicated WAN port by name (most devices have this)
+    for port in wan wan0 eth0; do
+        if echo "$all_ports" | grep -qw "$port"; then
+            log_msg "Found WAN port: $port"
+            wan_port="$port"
+            # Remove from all_ports
+            all_ports=$(echo "$all_ports" | sed "s/$port//g" | xargs)
+            break
         fi
     done
     
-    # Clean up whitespace
-    wan_ports=$(echo "$wan_ports" | xargs)
-    lan_ports=$(echo "$lan_ports" | xargs)
-    
-    # If no WAN detected, use traditional naming
-    if [ -z "$wan_ports" ]; then
-        log_msg "No WAN ports detected via auto-detection, using defaults"
-        # Check for common WAN port names
-        for port in eth0 eth1 wan; do
-            if echo "$all_ports" | grep -qw "$port"; then
-                wan_ports="$port"
-                # Remove from lan_ports if present
-                lan_ports=$(echo "$lan_ports" | sed "s/$port//g" | xargs)
-                break
-            fi
-        done
-    fi
-    
-    # Ensure we have at least one LAN port
-    if [ -z "$lan_ports" ]; then
-        log_msg "WARNING: No LAN ports detected, this seems wrong"
-        # Keep at least one port for LAN
-        first_port=$(echo "$all_ports" | awk '{print $1}')
-        if [ "$first_port" != "$wan_ports" ]; then
-            lan_ports="$first_port"
+    # If no WAN port found by name and we have multiple ports,
+    # use the first one as WAN (like most routers do)
+    if [ -z "$wan_port" ]; then
+        local port_count=$(echo "$all_ports" | wc -w)
+        
+        if [ $port_count -gt 1 ]; then
+            wan_port=$(echo "$all_ports" | awk '{print $1}')
+            log_msg "Using first port as WAN: $wan_port"
+            all_ports=$(echo "$all_ports" | sed "s/$wan_port//g" | xargs)
+        elif [ $port_count -eq 1 ]; then
+            # Only one port - make it LAN so user can login
+            log_msg "Single port detected - using as LAN for initial login"
+            wan_port=""
         fi
     fi
     
-    log_msg "Detected WAN ports: ${wan_ports:-none}"
-    log_msg "Detected LAN ports: ${lan_ports:-none}"
+    # Everything else is LAN
+    lan_ports="$all_ports"
     
-    echo "WAN=$wan_ports"
+    # Ensure we have at least one LAN port for login
+    if [ -z "$lan_ports" ]; then
+        log_msg "WARNING: No LAN ports - need at least one for login"
+        if [ -n "$wan_port" ]; then
+            # Move WAN to LAN
+            lan_ports="$wan_port"
+            wan_port=""
+        fi
+    fi
+    
+    log_msg "Default setup - WAN: ${wan_port:-none}, LAN: $lan_ports"
+    
+    echo "WAN=$wan_port"
     echo "LAN=$lan_ports"
 }
 
-# Apply detected configuration to UCI
+# Apply simple default configuration
 apply_port_configuration() {
-    local wan_ports="$1"
+    local wan_port="$1"
     local lan_ports="$2"
     
-    log_msg "Applying port configuration..."
-    log_msg "Configuring WAN: $wan_ports"
-    log_msg "Configuring LAN: $lan_ports"
+    log_msg "Applying first boot configuration..."
     
-    # Backup current config
-    cp /etc/config/network /etc/config/network.backup-autodetect 2>/dev/null
-    
-    # Configure WAN interfaces
-    local wan_num=1
-    for port in $wan_ports; do
-        local wan_name="wan"
-        [ $wan_num -gt 1 ] && wan_name="wan${wan_num}"
-        
-        log_msg "Configuring $port as $wan_name"
+    # Configure WAN if we have one
+    if [ -n "$wan_port" ]; then
+        log_msg "Configuring WAN on: $wan_port"
         
         uci -q batch <<-EOF
-			delete network.$wan_name
-			set network.$wan_name=interface
-			set network.$wan_name.device='$port'
-			set network.$wan_name.proto='dhcp'
-			set network.$wan_name.metric='$((wan_num * 10))'
-			set network.$wan_name.multipath='on'
+			delete network.wan
+			set network.wan=interface
+			set network.wan.device='$wan_port'
+			set network.wan.proto='dhcp'
+			set network.wan.metric='10'
+			set network.wan.multipath='on'
 		EOF
-        
-        wan_num=$((wan_num + 1))
-    done
+    else
+        log_msg "No WAN port - user can configure later"
+    fi
     
     # Configure LAN bridge with remaining ports
     if [ -n "$lan_ports" ]; then
-        log_msg "Configuring LAN bridge with: $lan_ports"
+        log_msg "Configuring LAN on: $lan_ports"
         
         # Create bridge device
         uci -q batch <<-EOF
@@ -186,16 +128,8 @@ apply_port_configuration() {
 			add network device
 			set network.@device[-1].name='br-lan'
 			set network.@device[-1].type='bridge'
+			set network.@device[-1].ports='$lan_ports'
 		EOF
-        
-        # Add ports to bridge
-        local port_list=""
-        for port in $lan_ports; do
-            port_list="$port_list $port"
-        done
-        port_list=$(echo "$port_list" | xargs)
-        
-        uci set network.@device[-1].ports="$port_list"
         
         # Configure LAN interface
         uci -q batch <<-EOF
@@ -210,10 +144,9 @@ apply_port_configuration() {
     # Commit changes
     uci commit network
     
-    log_msg "Port configuration applied successfully"
-    log_msg "Reloading network..."
+    log_msg "Configuration applied successfully"
     
-    # Mark configuration as applied
+    # Mark as configured
     touch "$CONFIG_APPLIED"
     
     # Reload network
@@ -224,46 +157,45 @@ apply_port_configuration() {
 
 # Main function
 main() {
-    log_msg "Starting automatic WAN/LAN port detection"
+    log_msg "═══════════════════════════════════════════════════"
+    log_msg "OpenMPTCProuter First Boot Setup"
+    log_msg "═══════════════════════════════════════════════════"
     
     # Check if already configured
     if [ -f "$CONFIG_APPLIED" ]; then
-        log_msg "Port auto-configuration already applied"
-        log_msg "Delete $CONFIG_APPLIED to re-run detection"
+        log_msg "Already configured - skipping"
+        log_msg "You can customize via web UI at http://192.168.2.1"
         exit 0
     fi
     
-    # Wait for network interfaces to initialize
-    log_msg "Waiting for network interfaces to initialize..."
+    log_msg "Running one-time first boot setup..."
+    
+    # Wait for interfaces
     sleep 5
     
-    # Detect port roles
+    # Detect ports
     local detection=$(detect_port_roles)
     
     # Parse results
-    local wan_ports=$(echo "$detection" | grep "^WAN=" | cut -d= -f2)
+    local wan_port=$(echo "$detection" | grep "^WAN=" | cut -d= -f2)
     local lan_ports=$(echo "$detection" | grep "^LAN=" | cut -d= -f2)
     
-    # Save detection state
-    cat > "$DETECTION_FILE" <<-EOF
-		# Auto-detected port configuration
-		# Generated: $(date)
-		WAN_PORTS="$wan_ports"
-		LAN_PORTS="$lan_ports"
-	EOF
-    
     # Apply configuration
-    if apply_port_configuration "$wan_ports" "$lan_ports"; then
-        log_msg "Auto-configuration completed successfully"
-        log_msg "WAN ports: $wan_ports"
-        log_msg "LAN ports: $lan_ports"
+    if apply_port_configuration "$wan_port" "$lan_ports"; then
+        log_msg "═══════════════════════════════════════════════════"
+        log_msg "✓ First boot setup complete!"
+        log_msg "  WAN: ${wan_port:-none (add USB modem or configure manually)}"
+        log_msg "  LAN: $lan_ports"
+        log_msg "  Login: http://192.168.2.1"
+        log_msg "  Customize everything via web UI"
+        log_msg "═══════════════════════════════════════════════════"
     else
-        log_msg "ERROR: Failed to apply configuration"
+        log_msg "ERROR: Setup failed"
         return 1
     fi
 }
 
-# Run main function
+# Run
 main
 
 exit 0
