@@ -752,7 +752,7 @@ cat > /var/www/omr-setup/index.html << 'ENDHTML'
                     <span class="step-number">1</span>
                     <strong>Access Your Router</strong><br><br>
                     • Connect to router via WiFi or Ethernet<br>
-                    • Open browser to: <code style="background:#f0f0f0;padding:8px;border-radius:5px">http://192.168.100.1</code><br>
+                    • Open browser to: <code style="background:#f0f0f0;padding:8px;border-radius:5px">http://192.168.2.1</code><br>
                     • Login (default username: <strong>root</strong>, no password)
                 </div>
 
@@ -833,7 +833,7 @@ Password: ${password}
 Encryption: Shadowsocks (chacha20-ietf-poly1305)
 
 Quick Setup:
-1. Access router at http://192.168.100.1
+1. Access router at http://192.168.2.1
 2. Go to Services → OpenMPTCProuter
 3. Enter above details
 4. Save & Apply

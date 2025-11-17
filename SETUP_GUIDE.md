@@ -39,7 +39,7 @@ This guide will help you quickly set up OpenMPTCProuter Optimized for bonding/ag
 
 ### Step 2: Initial Configuration
 1. Connect to the router via Ethernet
-2. Access the web interface at `http://192.168.100.1`
+2. Access the web interface at `http://192.168.2.1`
 3. Default credentials:
    - Username: `root`
    - Password: (none - press Enter)
@@ -150,7 +150,7 @@ This script will:
 On the client router:
 ```bash
 # SSH to router
-ssh root@192.168.100.1
+ssh root@192.168.2.1
 
 # Check tunnel status
 ip addr show tun0

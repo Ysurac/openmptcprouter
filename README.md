@@ -84,7 +84,7 @@ curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scrip
 ```
 
 **Web Interface:**
-1. Go to http://192.168.100.1
+1. Go to http://192.168.2.1
 2. Navigate to Services → OpenMPTCProuter
 3. Enter VPS details from setup page
 4. Save & Apply

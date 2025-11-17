@@ -78,7 +78,7 @@ Once the wizard completes, you'll get:
 
 ## Router Setup (After VPS Installation)
 
-1. **Access your router**: `http://192.168.100.1`
+1. **Access your router**: `http://192.168.2.1`
 2. **Navigate to**: Services → OpenMPTCProuter
 3. **Enter details** from the web page or credentials file:
    - Server IP: (your VPS public IP)
