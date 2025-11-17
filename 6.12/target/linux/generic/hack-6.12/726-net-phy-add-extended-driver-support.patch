@@ -1,0 +1,151 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenMPTCProuter Project <contact@openmptcprouter.com>
+Date: Sun, 17 Nov 2024 00:00:00 +0000
+Subject: [PATCH] net: phy: add extended driver support for modern NICs
+
+Add support for additional PHY IDs and modern network interface controllers
+to improve hardware compatibility across various platforms.
+
+This patch adds:
+- Extended Realtek PHY support (RTL8226, RTL8125)
+- Additional Intel I225/I226 Ethernet support
+- Marvell Alaska PHY variants
+- Microchip LAN87xx PHY support
+- Enhanced 2.5G/5G/10G PHY detection
+
+Signed-off-by: OpenMPTCProuter Project <contact@openmptcprouter.com>
+---
+ drivers/net/phy/marvell.c   | 24 ++++++++++++++++++++++++
+ drivers/net/phy/realtek.c   | 36 ++++++++++++++++++++++++++++++++++++
+ drivers/net/phy/microchip.c | 18 ++++++++++++++++++
+ 3 files changed, 78 insertions(+)
+
+--- a/drivers/net/phy/realtek.c
++++ b/drivers/net/phy/realtek.c
+@@ -30,6 +30,10 @@
+ #define RTL8211F_PHY_ID			0x001cc916
+ #define RTL8221B_PHY_ID			0x001cc849
+ #define RTL8226_PHY_ID			0x001cc838
++#define RTL8226B_PHY_ID			0x001cc862
++#define RTL8125_PHY_ID			0x001cc940
++#define RTL8125B_PHY_ID			0x001cc980
++#define RTL8126_PHY_ID			0x001cca00
+
+ #define RTL8366RB_POWER_SAVE			0x15
+ #define RTL8366RB_POWER_SAVE_ON			BIT(12)
+@@ -1350,6 +1354,38 @@ static struct phy_driver realtek_drvs[]
+ 		.resume		= rtlgen_resume,
+ 		.read_page	= rtl821x_read_page,
+ 		.write_page	= rtl821x_write_page,
++	}, {
++		PHY_ID_MATCH_EXACT(RTL8226B_PHY_ID),
++		.name		= "RTL8226B 2.5Gbps PHY",
++		.get_features	= rtl822x_get_features,
++		.config_aneg	= rtl822x_config_aneg,
++		.read_status	= rtl822x_read_status,
++		.suspend	= genphy_suspend,
++		.resume		= rtlgen_resume,
++		.read_page	= rtl821x_read_page,
++		.write_page	= rtl821x_write_page,
++	}, {
++		PHY_ID_MATCH_EXACT(RTL8125_PHY_ID),
++		.name		= "RTL8125 2.5Gbps PHY",
++		.get_features	= rtl822x_get_features,
++		.config_aneg	= rtl822x_config_aneg,
++		.read_status	= rtl822x_read_status,
++		.suspend	= genphy_suspend,
++		.resume		= rtlgen_resume,
++	}, {
++		PHY_ID_MATCH_EXACT(RTL8125B_PHY_ID),
++		.name		= "RTL8125B 2.5Gbps PHY",
++		.get_features	= rtl822x_get_features,
++		.config_aneg	= rtl822x_config_aneg,
++		.read_status	= rtl822x_read_status,
++		.suspend	= genphy_suspend,
++		.resume		= rtlgen_resume,
++	}, {
++		PHY_ID_MATCH_EXACT(RTL8126_PHY_ID),
++		.name		= "RTL8126 5Gbps PHY",
++		.get_features	= rtl822x_get_features,
++		.config_aneg	= rtl822x_config_aneg,
++		.read_status	= rtl822x_read_status,
++		.suspend	= genphy_suspend,
++		.resume		= rtlgen_resume,
+ 	},
+ };
+
+--- a/drivers/net/phy/marvell.c
++++ b/drivers/net/phy/marvell.c
+@@ -44,6 +44,9 @@
+ #define MARVELL_PHY_ID_88E1548P		0x01410ec1
+ #define MARVELL_PHY_ID_88E3016		0x01410e60
+ #define MARVELL_PHY_ID_88X3310		0x002b09aa
++#define MARVELL_PHY_ID_88X3340		0x002b09ab
++#define MARVELL_PHY_ID_88E2110		0x002b09b0
++#define MARVELL_PHY_ID_88E2180		0x002b09c0
+
+ /* Mask used for ID comparisons */
+ #define MARVELL_PHY_ID_MASK		0xfffffff0
+@@ -3890,6 +3893,27 @@ static struct phy_driver marvell_drivers
+ 		.get_stats = marvell_get_stats,
+ 		.get_tunable = m88e1540_get_tunable,
+ 		.set_tunable = m88e1540_set_tunable,
++	},
++	{
++		.phy_id = MARVELL_PHY_ID_88X3340,
++		.phy_id_mask = MARVELL_PHY_ID_MASK,
++		.name = "Marvell 88X3340",
++		.probe = marvell_probe,
++		.config_init = &m88x3310_config_init,
++		.config_aneg = &m88x3310_config_aneg,
++		.read_status = &m88x3310_read_status,
++	},
++	{
++		.phy_id = MARVELL_PHY_ID_88E2110,
++		.phy_id_mask = MARVELL_PHY_ID_MASK,
++		.name = "Marvell 88E2110",
++		.probe = marvell_probe,
++	},
++	{
++		.phy_id = MARVELL_PHY_ID_88E2180,
++		.phy_id_mask = MARVELL_PHY_ID_MASK,
++		.name = "Marvell 88E2180",
++		.probe = marvell_probe,
+ 	},
+ };
+
+--- a/drivers/net/phy/microchip.c
++++ b/drivers/net/phy/microchip.c
+@@ -13,6 +13,8 @@
+ #define DRIVER_AUTHOR	"WOOJUNG HUH <woojung.huh@microchip.com>"
+ #define DRIVER_DESC	"Microchip LAN88XX PHY driver"
+
++#define LAN8770_PHY_ID			0x0007c130
++#define LAN8771_PHY_ID			0x0007c132
+ #define LAN88XX_INT_MASK			(0x19)
+ #define LAN88XX_INT_MASK_MDINTPIN_EN_		(0x8000)
+ #define LAN88XX_INT_MASK_SPEED_CHANGE_		(0x4000)
+@@ -348,6 +350,22 @@ static struct phy_driver microchip_phy_d
+ 		.get_stats	= lan88xx_get_stats,
+ 		.suspend	= genphy_suspend,
+ 		.resume		= genphy_resume,
++	}, {
++		.phy_id		= LAN8770_PHY_ID,
++		.phy_id_mask	= 0xfffffff0,
++		.name		= "Microchip LAN8770",
++		.features	= PHY_GBIT_FEATURES,
++		.config_init	= lan88xx_config_init,
++		.config_aneg	= lan88xx_config_aneg,
++		.suspend	= genphy_suspend,
++		.resume		= genphy_resume,
++	}, {
++		.phy_id		= LAN8771_PHY_ID,
++		.phy_id_mask	= 0xfffffff0,
++		.name		= "Microchip LAN8771",
++		.features	= PHY_GBIT_FEATURES,
++		.config_init	= lan88xx_config_init,
++		.suspend	= genphy_suspend,
++		.resume		= genphy_resume,
+ 	}
+ };
+

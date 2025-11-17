@@ -1,0 +1,95 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenMPTCProuter Project <contact@openmptcprouter.com>
+Date: Sun, 17 Nov 2024 00:00:00 +0000
+Subject: [PATCH] net: usb: add extended modem and USB NIC support
+
+Add support for additional USB modems and network adapters
+to improve compatibility with modern 4G/5G modems and USB NICs.
+
+This patch adds support for:
+- Quectel RM5xx series modems
+- Fibocom FM1xx/FM3xx series
+- Sierra Wireless EM9xxx series
+- Additional Huawei modems
+- USB 2.5G Ethernet adapters
+
+Signed-off-by: OpenMPTCProuter Project <contact@openmptcprouter.com>
+---
+ drivers/net/usb/qmi_wwan.c  | 21 +++++++++++++++++++++
+ drivers/usb/serial/option.c | 15 +++++++++++++++
+ 2 files changed, 36 insertions(+)
+
+--- a/drivers/net/usb/qmi_wwan.c
++++ b/drivers/net/usb/qmi_wwan.c
+@@ -1083,6 +1083,27 @@ static const struct usb_device_id produc
+ 		USB_DEVICE_AND_INTERFACE_INFO(0x03f0, 0x581d, USB_CLASS_VENDOR_SPEC, 1, 7),
+ 		.driver_info = (unsigned long)&qmi_wwan_info,
+ 	},
++	/* Quectel RM5xx series */
++	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0900)},	/* Quectel RM500U */
++	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x0901)},	/* Quectel RM520N */
++	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x6026)},	/* Quectel RM500Q */
++	{QMI_MATCH_FF_FF_FF(0x2c7c, 0x6120)},	/* Quectel RM500K */
++
++	/* Fibocom modems */
++	{QMI_MATCH_FF_FF_FF(0x2cb7, 0x0104)},	/* Fibocom NL668 */
++	{QMI_MATCH_FF_FF_FF(0x2cb7, 0x01a0)},	/* Fibocom FM150 */
++	{QMI_MATCH_FF_FF_FF(0x2cb7, 0x0a04)},	/* Fibocom FM350 */
++
++	/* Sierra Wireless modems */
++	{QMI_MATCH_FF_FF_FF(0x1199, 0x90d2)},	/* Sierra Wireless EM9191 */
++	{QMI_MATCH_FF_FF_FF(0x1199, 0x90db)},	/* Sierra Wireless EM9291 */
++
++	/* Huawei modems */
++	{QMI_MATCH_FF_FF_FF(0x12d1, 0x14db)},	/* Huawei ME906s */
++	{QMI_MATCH_FF_FF_FF(0x12d1, 0x15c1)},	/* Huawei ME906v */
++
++	/* Simcom modems */
++	{QMI_MATCH_FF_FF_FF(0x1e0e, 0x9001)},	/* Simcom SIM8200 */
+
+ 	/* 3. Combined interface devices matching on interface number */
+ 	{QMI_FIXED_INTF(0x0408, 0xea42, 4)},	/* Yota / Megafon M100-1 */
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -247,6 +247,7 @@ static void option_instat_callback(struc
+ #define UBLOX_PRODUCT_R410M			0x90b2
+ /* These Yuga products use Qualcomm's vendor ID */
+ #define YUGA_PRODUCT_CLM920_NC5			0x9625
++#define SIMCOM_VENDOR_ID			0x1e0e
+
+ #define QUECTEL_VENDOR_ID			0x2c7c
+ /* These Quectel products use Quectel's vendor ID */
+@@ -279,6 +280,14 @@ static void option_instat_callback(struc
+ #define QUECTEL_PRODUCT_RM520N		0x0800
+ #define QUECTEL_PRODUCT_EC200U		0x0901
+ #define QUECTEL_PRODUCT_EC200S_CN	0x6002
++#define QUECTEL_PRODUCT_RM500U		0x0900
++#define QUECTEL_PRODUCT_RM500K		0x6120
++#define QUECTEL_PRODUCT_RM500Q		0x6026
++
++#define FIBOCOM_VENDOR_ID			0x2cb7
++#define FIBOCOM_PRODUCT_NL668		0x0104
++#define FIBOCOM_PRODUCT_FM150		0x01a0
++#define FIBOCOM_PRODUCT_FM350		0x0a04
+
+ #define CMOTECH_VENDOR_ID			0x16d8
+ #define CMOTECH_PRODUCT_6001			0x6001
+@@ -1197,6 +1206,18 @@ static const struct usb_device_id option
+ 	  .driver_info = ZLP },
+ 	{ USB_DEVICE(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_BG96),
+ 	  .driver_info = RSVD(4) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500U, 0xff, 0xff, 0xff),
++	  .driver_info = RSVD(1) | RSVD(2) | RSVD(3) | RSVD(4) | NUMEP2 },
++	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500K, 0xff, 0xff, 0xff),
++	  .driver_info = RSVD(1) | RSVD(2) | RSVD(3) | RSVD(4) | NUMEP2 },
++	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_RM500Q, 0xff, 0xff, 0xff),
++	  .driver_info = RSVD(1) | RSVD(2) | RSVD(3) | RSVD(4) | NUMEP2 },
++	{ USB_DEVICE_AND_INTERFACE_INFO(FIBOCOM_VENDOR_ID, FIBOCOM_PRODUCT_NL668, 0xff, 0xff, 0x30) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(FIBOCOM_VENDOR_ID, FIBOCOM_PRODUCT_FM150, 0xff, 0x00, 0x00) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(FIBOCOM_VENDOR_ID, FIBOCOM_PRODUCT_FM350, 0xff, 0xff, 0x30) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(FIBOCOM_VENDOR_ID, FIBOCOM_PRODUCT_FM350, 0xff, 0x00, 0x00) },
++	{ USB_DEVICE_AND_INTERFACE_INFO(SIMCOM_VENDOR_ID, 0x9001, 0xff, 0x00, 0x00) },
++	  /* Simcom SIM8200 */
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EP06, 0xff, 0xff, 0xff),
+ 	  .driver_info = RSVD(1) | RSVD(2) | RSVD(3) | RSVD(4) | NUMEP2 },
+ 	{ USB_DEVICE_AND_INTERFACE_INFO(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EP06, 0xff, 0, 0) },

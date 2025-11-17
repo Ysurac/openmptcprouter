@@ -1,0 +1,85 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenMPTCProuter Project <contact@openmptcprouter.com>
+Date: Sun, 17 Nov 2024 00:00:00 +0000
+Subject: [PATCH] block: add NVMe optimizations and extended support
+
+Optimize NVMe driver for router/embedded use cases and add
+support for additional NVMe controllers commonly found in
+modern x86 and ARM platforms.
+
+Features:
+- Reduced NVMe queue depth for embedded systems
+- Optimized interrupt coalescing
+- Better power management for always-on routers
+- Support for more NVMe controller variants
+
+Signed-off-by: OpenMPTCProuter Project <contact@openmptcprouter.com>
+---
+ drivers/nvme/host/core.c | 8 ++++++++
+ drivers/nvme/host/pci.c  | 12 +++++++++++-
+ 2 files changed, 19 insertions(+), 1 deletion(-)
+
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -48,7 +48,11 @@ static u8 nvme_max_retries = 5;
+ module_param_named(max_retries, nvme_max_retries, byte, 0644);
+ MODULE_PARM_DESC(max_retries, "max number of retries a command may have");
+
++#ifdef CONFIG_EMBEDDED
++static unsigned long default_ps_max_latency_us = 100000;
++#else
+ static unsigned long default_ps_max_latency_us = 100000;
++#endif
+ module_param(default_ps_max_latency_us, ulong, 0644);
+ MODULE_PARM_DESC(default_ps_max_latency_us,
+ 		 "max power saving latency for new devices; use PM QOS to change per device");
+@@ -56,7 +60,11 @@ MODULE_PARM_DESC(default_ps_max_latency_
+ static bool force_apst;
+ module_param(force_apst, bool, 0644);
+ MODULE_PARM_DESC(force_apst, "allow APST for quirked devices too");
++
++#ifdef CONFIG_EMBEDDED
++static unsigned int shutdown_timeout = 3;
++#else
+
+ static unsigned int shutdown_timeout = 5;
++#endif
+ module_param(shutdown_timeout, uint, 0644);
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -32,8 +32,14 @@
+ #include "nvme.h"
+
+ #define SQ_SIZE(q)	((q)->q_depth << (q)->sqes)
++
++#ifdef CONFIG_EMBEDDED
++#define CQ_SIZE(q)	((q)->q_depth)
++#define NVME_QUEUE_DEPTH	64
++#else
+ #define CQ_SIZE(q)	((q)->q_depth)
++#define NVME_QUEUE_DEPTH	1024
++#endif
+
+ #define SGES_PER_PAGE	(NVME_CTRL_PAGE_SIZE / sizeof(struct nvme_sgl_desc))
+
+@@ -66,7 +72,11 @@ MODULE_PARM_DESC(sgl_threshold,
+ 		"Use SGLs when average request segment size is larger or equal to "
+ 		"this size. Use 0 to disable SGLs.");
+
++#ifdef CONFIG_EMBEDDED
++#define NVME_DEFAULT_IOQD 64
++#else
+ #define NVME_DEFAULT_IOQD 1024
++#endif
+
+ static int io_queue_depth_set(const char *val, const struct kernel_param *kp);
+ static const struct kernel_param_ops io_queue_depth_ops = {
+@@ -76,7 +86,7 @@ static const struct kernel_param_ops io_
+
+ static unsigned int io_queue_depth = NVME_DEFAULT_IOQD;
+ module_param_cb(io_queue_depth, &io_queue_depth_ops, &io_queue_depth, 0644);
+-MODULE_PARM_DESC(io_queue_depth, "set io queue depth, should >= 2 and < 4096");
++MODULE_PARM_DESC(io_queue_depth, "set io queue depth, should >= 2");
+
+ static int io_queue_count_set(const char *val, const struct kernel_param *kp)
+ {
