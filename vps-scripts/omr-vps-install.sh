@@ -95,7 +95,9 @@ echo "This script will install and configure your VPS for use with OpenMPTCProut
 echo ""
 
 # Ask for confirmation
-read -p "Do you want to proceed with the installation? (yes/no): " -r
+read -p "Do you want to proceed with the installation? [Y/n]: " -r
+# Default to yes if empty (user just presses Enter)
+REPLY=${REPLY:-Y}
 if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$|^[Yy]$ ]]; then
     echo -e "${YELLOW}Installation cancelled.${NC}"
     exit 0
