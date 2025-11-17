@@ -3,38 +3,175 @@ CONFIG_TARGET_mediatek_mt7623=y
 CONFIG_TARGET_mediatek_mt7623_DEVICE_bpi_bananapi-r2=y
 CONFIG_TARGET_ROOTFS_EXT4FS=y
 CONFIG_TARGET_ROOTFS_SQUASHFS=y
-CONFIG_PACKAGE_kmod-cryptodev=y
-CONFIG_OPENSSL_HARDWARE_SUPPORT=y
-CONFIG_OPENSSL_ENGINE_CRYPTO=y
-CONFIG_OPENSSL_ENGINE_DIGEST=y
+# Bootloader Support
 CONFIG_PACKAGE_u-boot-mt7623n_bpir2=y
 CONFIG_PACKAGE_mt7623n-preloader=y
 CONFIG_PACKAGE_uboot-envtools=y
+# Filesystem Tools
 CONFIG_PACKAGE_attr=y
 CONFIG_PACKAGE_f2fs-tools=y
 CONFIG_PACKAGE_f2fsck=y
 CONFIG_PACKAGE_mkf2fs=y
-# CONFIG_PACKAGE_kmod-fs-nfs-v3 is not set
-# CONFIG_PACKAGE_kmod-fs-nfs-v4 is not set
-# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set
+# Kernel Optimizations
+CONFIG_KERNEL_ARM_MODULE_PLTS=y
+CONFIG_KERNEL_TCP_CONG_BBR2=y
+CONFIG_KERNEL_PERF_EVENTS=y
+CONFIG_KERNEL_KALLSYMS=y
+# Cryptographic Support
+CONFIG_PACKAGE_kmod-cryptodev=y
+CONFIG_OPENSSL_HARDWARE_SUPPORT=y
+CONFIG_OPENSSL_ENGINE_CRYPTO=y
+CONFIG_OPENSSL_ENGINE_DIGEST=y
+CONFIG_PACKAGE_kmod-crypto-authenc=y
+CONFIG_PACKAGE_kmod-crypto-cbc=y
+CONFIG_PACKAGE_kmod-crypto-gcm=y
+CONFIG_PACKAGE_kmod-crypto-sha256=y
+CONFIG_PACKAGE_kmod-crypto-aes=y
+# Network Stack
+CONFIG_KERNEL_IP_MROUTE=y
+CONFIG_KERNEL_IPV6_MROUTE=y
+CONFIG_KERNEL_NETFILTER_XT_TARGET_FLOWOFFLOAD=y
+CONFIG_KERNEL_NET_SCHED=y
+CONFIG_KERNEL_NET_SCH_HTB=y
+CONFIG_KERNEL_NET_SCH_FQ_CODEL=y
+# WiFi Support (MT7623 based)
+CONFIG_PACKAGE_kmod-mt76=y
+CONFIG_PACKAGE_kmod-mt7615e=y
+CONFIG_PACKAGE_kmod-mt7615-firmware=y
+# Disable unwanted wireless
 # CONFIG_PACKAGE_kmod-mt6625l-bt is not set
 # CONFIG_PACKAGE_kmod-mt6625l-wlan-gen-2 is not set
-CONFIG_KERNEL_ARM_MODULE_PLTS=y
+# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set
+# Additional WiFi Drivers
+CONFIG_PACKAGE_kmod-ath=y
+CONFIG_PACKAGE_kmod-ath10k=y
+CONFIG_PACKAGE_kmod-rt2800-lib=y
+CONFIG_PACKAGE_kmod-rt2800-usb=y
+CONFIG_PACKAGE_kmod-rtl8xxxu=y
+# Wireless Tools
+CONFIG_PACKAGE_wireless-regdb=y
+CONFIG_PACKAGE_iw-full=y
+CONFIG_PACKAGE_iwinfo=y
+CONFIG_PACKAGE_wpad-mbedtls=y
+CONFIG_PACKAGE_kmod-mac80211=y
+CONFIG_PACKAGE_kmod-cfg80211=y
+CONFIG_DRIVER_11AC_SUPPORT=y
+# USB Modem Support
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
+CONFIG_PACKAGE_kmod-usb-net-rndis=y
+CONFIG_PACKAGE_kmod-usb-serial=y
+CONFIG_PACKAGE_kmod-usb-serial-option=y
+CONFIG_PACKAGE_kmod-usb-serial-wwan=y
+CONFIG_PACKAGE_kmod-usb-acm=y
+CONFIG_PACKAGE_kmod-usb-wdm=y
+CONFIG_PACKAGE_kmod-usb-net-asix=y
+CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
+# Modem Tools
+CONFIG_PACKAGE_uqmi=y
+CONFIG_PACKAGE_umbim=y
+CONFIG_PACKAGE_comgt=y
+CONFIG_PACKAGE_libqmi=y
+CONFIG_PACKAGE_libmbim=y
+CONFIG_PACKAGE_usb-modeswitch=y
+# Hardware Support
+CONFIG_PACKAGE_kmod-usb-core=y
+CONFIG_PACKAGE_kmod-usb2=y
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_kmod-usb-storage=y
+CONFIG_PACKAGE_kmod-usb-storage-uas=y
+CONFIG_PACKAGE_kmod-thermal=y
+CONFIG_PACKAGE_kmod-hwmon-core=y
+# Ethernet Drivers
+CONFIG_PACKAGE_kmod-mt7530=y
+CONFIG_PACKAGE_kmod-mtk-eth=y
+CONFIG_PACKAGE_kmod-r8169=y
+CONFIG_PACKAGE_kmod-pps=y
+CONFIG_PACKAGE_kmod-ptp=y
+# Disable unwanted drivers
 # CONFIG_PACKAGE_kmod-r8125 is not set
 # CONFIG_PACKAGE_kmod-r8168 is not set
+# CONFIG_PACKAGE_kmod-atlantic is not set
+# CONFIG_PACKAGE_kmod-dm9000 is not set
+# CONFIG_PACKAGE_kmod-vmxnet3 is not set
+# CONFIG_PACKAGE_kmod-forcedeth is not set
+# CONFIG_PACKAGE_kmod-ethoc is not set
+# LED Support
+CONFIG_PACKAGE_kmod-leds-gpio=y
+CONFIG_PACKAGE_kmod-leds-trigger-netdev=y
+CONFIG_PACKAGE_kmod-leds-trigger-timer=y
+# Storage Drivers
+CONFIG_PACKAGE_kmod-fs-ext4=y
+CONFIG_PACKAGE_kmod-fs-f2fs=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-fs-exfat=y
+CONFIG_PACKAGE_kmod-scsi-core=y
+# Disable unwanted SCSI
 # CONFIG_PACKAGE_kmod-scsi-cdrom is not set
 # CONFIG_PACKAGE_kmod-scsi-generic is not set
 # CONFIG_PACKAGE_kmod-scsi-tape is not set
 # CONFIG_PACKAGE_kmod-iscsi-initiator is not set
-# CONFIG_PACKAGE_kmod-atlantic is not set
-# CONFIG_PACKAGE_kmod-dm9000 is not set
-# CONFIG_PACKAGE_kmod-vmxnet3 is not set
+# MMC/SD Card
+CONFIG_PACKAGE_kmod-mmc=y
+CONFIG_PACKAGE_kmod-sdhci=y
+# I2C and SPI
+CONFIG_PACKAGE_kmod-i2c-core=y
+CONFIG_PACKAGE_kmod-i2c-gpio=y
+CONFIG_PACKAGE_kmod-spi-dev=y
+CONFIG_PACKAGE_kmod-spi-gpio=y
+# Disable unwanted SPI
 # CONFIG_PACKAGE_kmod-spi-ks8995 is not set
-# CONFIG_PACKAGE_kmod-solos-pci is not set
-# CONFIG_PACKAGE_kmod-hfcmulti is not set
-# CONFIG_PACKAGE_kmod-forcedeth is not set
-# CONFIG_PACKAGE_kmod-ethoc is not set
+# GPIO
+CONFIG_PACKAGE_kmod-gpio-button-hotplug=y
+CONFIG_PACKAGE_kmod-gpio-dev=y
+# Network Features
+CONFIG_PACKAGE_kmod-nf-flow=y
+CONFIG_PACKAGE_kmod-nf-conntrack=y
+CONFIG_PACKAGE_kmod-sched-core=y
+CONFIG_PACKAGE_kmod-sched-cake=y
+CONFIG_PACKAGE_kmod-macvlan=y
+CONFIG_PACKAGE_kmod-tun=y
+CONFIG_PACKAGE_kmod-pppoe=y
+CONFIG_PACKAGE_kmod-ppp=y
+CONFIG_PACKAGE_kmod-8021q=y
+CONFIG_PACKAGE_kmod-bonding=y
+CONFIG_PACKAGE_kmod-bridge=y
+# Disable SCTP
 # CONFIG_PACKAGE_kmod-sctp-diag is not set
 # CONFIG_PACKAGE_kmod-sctp is not set
+# CONFIG_PACKAGE_kmod-solos-pci is not set
+# CONFIG_PACKAGE_kmod-hfcmulti is not set
+# PHY Drivers
+CONFIG_PACKAGE_kmod-phy-realtek=y
+CONFIG_PACKAGE_kmod-swconfig=y
+# USB Serial
+CONFIG_PACKAGE_kmod-usb-serial-cp210x=y
+CONFIG_PACKAGE_kmod-usb-serial-ftdi=y
+CONFIG_PACKAGE_kmod-usb-serial-pl2303=y
+# USB HID
+CONFIG_PACKAGE_kmod-usb-hid=y
+CONFIG_PACKAGE_kmod-hid=y
+# IPv6
+CONFIG_PACKAGE_kmod-ip6tables=y
+# Tunneling
+CONFIG_PACKAGE_kmod-gre=y
+CONFIG_PACKAGE_kmod-ip6-tunnel=y
+# MPTCP
+CONFIG_PACKAGE_kmod-mptcp=y
+# Kernel Features
+CONFIG_KERNEL_DEVMEM=y
+CONFIG_KERNEL_CGROUPS=y
+CONFIG_KERNEL_NAMESPACES=y
+CONFIG_KERNEL_AIO=y
+CONFIG_KERNEL_MEMCG=y
+# Disable NFS
+# CONFIG_PACKAGE_kmod-fs-nfs-v3 is not set
+# CONFIG_PACKAGE_kmod-fs-nfs-v4 is not set
+# MediaTek Specific
+CONFIG_KERNEL_NET_VENDOR_MEDIATEK=y
+# Optimize for size
 # CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set
 CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y

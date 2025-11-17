@@ -1,9 +1,227 @@
 CONFIG_TARGET_mediatek=y
 CONFIG_TARGET_mediatek_filogic=y
 CONFIG_TARGET_mediatek_filogic_DEVICE_bananapi_bpi-r3-mini=y
+# Kernel Optimizations
 CONFIG_KERNEL_ARM64_MODULE_PLTS=y
 CONFIG_KERNEL_TCP_CONG_BBR2=y
+CONFIG_KERNEL_PERF_EVENTS=y
+CONFIG_KERNEL_PROFILING=y
+CONFIG_KERNEL_KALLSYMS=y
+# USB and PCIe stability
+CONFIG_KERNEL_USB_XHCI_PLATFORM=y
+CONFIG_KERNEL_USB_XHCI_MTK=y
+CONFIG_KERNEL_PCI_MSI=y
+CONFIG_KERNEL_PCIEPORTBUS=y
+# WiFi 6 support requirements (MT7986 based)
+CONFIG_KERNEL_CFG80211=y
+CONFIG_KERNEL_MAC80211=y
+CONFIG_KERNEL_MAC80211_RC_MINSTREL=y
+# Network Stack Optimizations
+CONFIG_KERNEL_IP_MROUTE=y
+CONFIG_KERNEL_IP_MROUTE_MULTIPLE_TABLES=y
+CONFIG_KERNEL_IPV6_MROUTE=y
+CONFIG_KERNEL_IPV6_MROUTE_MULTIPLE_TABLES=y
+# Advanced Networking Features
+CONFIG_KERNEL_NETFILTER_XT_TARGET_FLOWOFFLOAD=y
+CONFIG_KERNEL_NET_SCHED=y
+CONFIG_KERNEL_NET_SCH_HTB=y
+CONFIG_KERNEL_NET_SCH_FQ_CODEL=y
+# WiFi 6 / MT7986 Driver Support - Enhanced for BPI-R3
 CONFIG_PACKAGE_kmod-mt76=y
+CONFIG_PACKAGE_kmod-mt7915e=y
+CONFIG_PACKAGE_kmod-mt7915-firmware=y
+CONFIG_PACKAGE_kmod-mt7916-firmware=y
+CONFIG_PACKAGE_kmod-mt7986-firmware=y
+CONFIG_PACKAGE_mt7986-wo-firmware=y
+# Additional WiFi Drivers
+CONFIG_PACKAGE_kmod-mt7921e=y
+CONFIG_PACKAGE_kmod-mt7921-firmware=y
+CONFIG_PACKAGE_kmod-ath=y
+CONFIG_PACKAGE_kmod-ath10k=y
+CONFIG_PACKAGE_ATH10K-FIRMWARE-QCA988X=y
+CONFIG_PACKAGE_kmod-rt2800-lib=y
+CONFIG_PACKAGE_kmod-rt2800-usb=y
+CONFIG_PACKAGE_kmod-rtl8192c-common=y
+CONFIG_PACKAGE_kmod-rtl8192cu=y
+CONFIG_PACKAGE_kmod-rtl8xxxu=y
+# Wireless Tools and Firmware
+CONFIG_PACKAGE_wireless-regdb=y
+CONFIG_PACKAGE_iw-full=y
+CONFIG_PACKAGE_iwinfo=y
+CONFIG_PACKAGE_hostapd-common=y
+CONFIG_PACKAGE_wpad-mbedtls=y
+# WiFi Standards Support
+CONFIG_DRIVER_11AC_SUPPORT=y
+CONFIG_DRIVER_11AX_SUPPORT=y
+# MAC80211 Framework
+CONFIG_PACKAGE_kmod-mac80211=y
+CONFIG_PACKAGE_MAC80211_DEBUGFS=y
+CONFIG_PACKAGE_MAC80211_MESH=y
+CONFIG_PACKAGE_MT76_LEDS=y
+# WiFi Performance Optimization
+CONFIG_PACKAGE_kmod-cfg80211=y
+CONFIG_PACKAGE_CFG80211_TESTMODE=y
+# 5G Modem Support - Comprehensive
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
+CONFIG_PACKAGE_kmod-usb-net-rndis=y
+CONFIG_PACKAGE_kmod-usb-serial=y
+CONFIG_PACKAGE_kmod-usb-serial-option=y
+CONFIG_PACKAGE_kmod-usb-serial-wwan=y
+CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-subset=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-eem=y
+CONFIG_PACKAGE_kmod-usb-acm=y
+CONFIG_PACKAGE_kmod-usb-wdm=y
+CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=y
+CONFIG_PACKAGE_kmod-usb-net-ipheth=y
+CONFIG_PACKAGE_kmod-usb-net-asix=y
+CONFIG_PACKAGE_kmod-usb-net-asix-ax88179=y
+CONFIG_PACKAGE_kmod-usb-net-rtl8150=y
+CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
+# Modem Management Tools
+CONFIG_PACKAGE_uqmi=y
+CONFIG_PACKAGE_umbim=y
+CONFIG_PACKAGE_comgt=y
+CONFIG_PACKAGE_comgt-ncm=y
+CONFIG_PACKAGE_picocom=y
+CONFIG_PACKAGE_modem-manager=y
+CONFIG_PACKAGE_libqmi=y
+CONFIG_PACKAGE_libmbim=y
+CONFIG_PACKAGE_usb-modeswitch=y
+CONFIG_PACKAGE_kmod-mii=y
+CONFIG_PACKAGE_qmi-utils=y
+CONFIG_PACKAGE_mbim-utils=y
+# Thermal and Hardware Monitoring
 CONFIG_PACKAGE_kmod-thermal=y
 CONFIG_PACKAGE_kmod-hwmon-core=y
+CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
+CONFIG_PACKAGE_kmod-hwmon-gpiofan=y
+CONFIG_PACKAGE_kmod-hwmon-tmp102=y
+CONFIG_PACKAGE_kmod-hwmon-lm75=y
+# Additional Hardware Support
+CONFIG_PACKAGE_kmod-usb-core=y
+CONFIG_PACKAGE_kmod-usb2=y
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_kmod-usb-storage=y
+CONFIG_PACKAGE_kmod-usb-storage-uas=y
+CONFIG_PACKAGE_kmod-usb3-xhci-mtk=y
+CONFIG_PACKAGE_kmod-usb-roles=y
+# Ethernet and Network Drivers
+CONFIG_PACKAGE_kmod-r8169=y
+CONFIG_PACKAGE_kmod-igb=y
+CONFIG_PACKAGE_kmod-ixgbe=y
+CONFIG_PACKAGE_kmod-mt7530=y
+CONFIG_PACKAGE_kmod-mtk-eth=y
+CONFIG_PACKAGE_kmod-dsa-mt7530=y
+CONFIG_PACKAGE_kmod-pps=y
+CONFIG_PACKAGE_kmod-ptp=y
+# LED Support
+CONFIG_PACKAGE_kmod-leds-gpio=y
+CONFIG_PACKAGE_kmod-leds-trigger-netdev=y
+CONFIG_PACKAGE_kmod-leds-trigger-timer=y
+CONFIG_PACKAGE_kmod-leds-trigger-heartbeat=y
+CONFIG_PACKAGE_kmod-leds-trigger-default-on=y
+# Storage Drivers
+CONFIG_PACKAGE_kmod-fs-ext4=y
+CONFIG_PACKAGE_kmod-fs-f2fs=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-fs-exfat=y
+CONFIG_PACKAGE_kmod-fs-ntfs3=y
+CONFIG_PACKAGE_kmod-fs-btrfs=y
+CONFIG_PACKAGE_kmod-scsi-core=y
+CONFIG_PACKAGE_kmod-scsi-generic=y
+# MMC/SD Card Support
+CONFIG_PACKAGE_kmod-mmc=y
+CONFIG_PACKAGE_kmod-sdhci=y
+# I2C Support
+CONFIG_PACKAGE_kmod-i2c-core=y
+CONFIG_PACKAGE_kmod-i2c-gpio=y
+CONFIG_PACKAGE_kmod-i2c-mt7621=y
+# SPI Support
+CONFIG_PACKAGE_kmod-spi-dev=y
+CONFIG_PACKAGE_kmod-spi-gpio=y
+CONFIG_PACKAGE_kmod-spi-mt7621=y
+# GPIO and Pin Control
+CONFIG_PACKAGE_kmod-gpio-button-hotplug=y
+CONFIG_PACKAGE_kmod-gpio-dev=y
+# PWM Support
+CONFIG_PACKAGE_kmod-pwm=y
+CONFIG_PACKAGE_kmod-pwm-mediatek=y
+# RTC Support
+CONFIG_PACKAGE_kmod-rtc-ds1307=y
+CONFIG_PACKAGE_kmod-rtc-pcf8563=y
+# Cryptographic Acceleration
+CONFIG_PACKAGE_kmod-crypto-authenc=y
+CONFIG_PACKAGE_kmod-crypto-cbc=y
+CONFIG_PACKAGE_kmod-crypto-gcm=y
+CONFIG_PACKAGE_kmod-crypto-hmac=y
+CONFIG_PACKAGE_kmod-crypto-sha256=y
+CONFIG_PACKAGE_kmod-crypto-sha512=y
+CONFIG_PACKAGE_kmod-crypto-aes=y
+# MediaTek Hardware Offload
+CONFIG_PACKAGE_kmod-nf-flow=y
+CONFIG_PACKAGE_kmod-nf-conntrack=y
+CONFIG_PACKAGE_kmod-nf-conntrack-netlink=y
+# Network QoS
+CONFIG_PACKAGE_kmod-sched-core=y
+CONFIG_PACKAGE_kmod-sched-cake=y
+CONFIG_PACKAGE_kmod-ifb=y
+# Additional Network Drivers
+CONFIG_PACKAGE_kmod-macvlan=y
+CONFIG_PACKAGE_kmod-tun=y
+CONFIG_PACKAGE_kmod-pppoe=y
+CONFIG_PACKAGE_kmod-ppp=y
+CONFIG_PACKAGE_kmod-l2tp=y
+CONFIG_PACKAGE_kmod-8021q=y
+CONFIG_PACKAGE_kmod-bonding=y
+CONFIG_PACKAGE_kmod-bridge=y
+# SFP Support
+CONFIG_PACKAGE_kmod-sfp=y
+CONFIG_PACKAGE_kmod-phylink=y
+# Additional PHY Drivers
+CONFIG_PACKAGE_kmod-phy-broadcom=y
+CONFIG_PACKAGE_kmod-phy-marvell=y
+CONFIG_PACKAGE_kmod-phy-realtek=y
+CONFIG_PACKAGE_kmod-swconfig=y
+# Watchdog Support
+CONFIG_PACKAGE_kmod-mtk-wdt=y
+# Input Device Support
+CONFIG_PACKAGE_kmod-input-core=y
+CONFIG_PACKAGE_kmod-input-gpio-keys=y
+# USB Serial Adapters
+CONFIG_PACKAGE_kmod-usb-serial-cp210x=y
+CONFIG_PACKAGE_kmod-usb-serial-ftdi=y
+CONFIG_PACKAGE_kmod-usb-serial-pl2303=y
+CONFIG_PACKAGE_kmod-usb-serial-ch341=y
+# USB HID Support
+CONFIG_PACKAGE_kmod-usb-hid=y
+CONFIG_PACKAGE_kmod-hid=y
+# IPv6 Support
+CONFIG_PACKAGE_kmod-ip6tables=y
+CONFIG_PACKAGE_kmod-ip6tables-extra=y
+# Tunneling Support
+CONFIG_PACKAGE_kmod-gre=y
+CONFIG_PACKAGE_kmod-ip6-tunnel=y
+CONFIG_PACKAGE_kmod-ipsec=y
+# MPTCP Support
+CONFIG_PACKAGE_kmod-mptcp=y
+# Kernel Build Options
+CONFIG_KERNEL_DEVMEM=y
+CONFIG_KERNEL_CGROUPS=y
+CONFIG_KERNEL_NAMESPACES=y
+CONFIG_KERNEL_AIO=y
+CONFIG_KERNEL_BLK_DEV_THROTTLING=y
+CONFIG_KERNEL_MEMCG=y
+# MediaTek Specific Features
+CONFIG_KERNEL_MTK_HSDMA=y
+CONFIG_KERNEL_NET_VENDOR_MEDIATEK=y
+CONFIG_KERNEL_NET_MEDIATEK_SOC=y
+CONFIG_KERNEL_MTD_NAND_MTK=y
+CONFIG_KERNEL_MTD_NAND_MTK_BMT=y
+CONFIG_KERNEL_MTD_SPI_NAND=y
+CONFIG_KERNEL_PCIE_MTK=y
 # CONFIG_TARGET_ROOTFS_INITRAMFS is not set

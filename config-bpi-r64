@@ -1,13 +1,17 @@
 CONFIG_TARGET_mediatek=y
 CONFIG_TARGET_mediatek_mt7622=y
 CONFIG_TARGET_mediatek_mt7622_DEVICE_bpi_bananapi-r64=y
-# CONFIG_PACKAGE_kmod-mt6625l-bt is not set
-# CONFIG_PACKAGE_kmod-mt6625l-wlan-gen-2 is not set
+# Bootloader Support
 CONFIG_PACKAGE_uboot-mediatek=y
 CONFIG_PACKAGE_uboot-envtools=y
 CONFIG_PACKAGE_mt7622-preloader=y
+# Kernel Optimizations
 CONFIG_KERNEL_ARM64_MODULE_PLTS=y
 CONFIG_KERNEL_TCP_CONG_BBR2=y
+CONFIG_KERNEL_PERF_EVENTS=y
+CONFIG_KERNEL_PROFILING=y
+CONFIG_KERNEL_KALLSYMS=y
+# Cryptographic Hardware Acceleration
 CONFIG_CRYPTO_HW=y
 CONFIG_ARM64_CRYPTO=y
 CONFIG_CRYPTO_SHA1_ARM_CE=y
@@ -15,5 +19,148 @@ CONFIG_CRYPTO_SHA2_ARM_CE=y
 CONFIG_CRYPTO_GHASH_ARM_CE=y
 CONFIG_CRYPTO_AES_ARM=y
 CONFIG_CRYPTO_AES_ARM_CE=y
+# USB and PCIe Support
+CONFIG_KERNEL_USB_XHCI_PLATFORM=y
+CONFIG_KERNEL_USB_XHCI_MTK=y
+CONFIG_KERNEL_PCI_MSI=y
+CONFIG_KERNEL_PCIEPORTBUS=y
+# Network Stack
+CONFIG_KERNEL_IP_MROUTE=y
+CONFIG_KERNEL_IPV6_MROUTE=y
+CONFIG_KERNEL_NETFILTER_XT_TARGET_FLOWOFFLOAD=y
+CONFIG_KERNEL_NET_SCHED=y
+CONFIG_KERNEL_NET_SCH_HTB=y
+CONFIG_KERNEL_NET_SCH_FQ_CODEL=y
+# WiFi Support (MT7622 based - WiFi 5)
+CONFIG_PACKAGE_kmod-mt76=y
+CONFIG_PACKAGE_kmod-mt7615e=y
+CONFIG_PACKAGE_kmod-mt7615-firmware=y
+CONFIG_PACKAGE_kmod-mt7663-firmware-ap=y
+# Disable unwanted wireless
+# CONFIG_PACKAGE_kmod-mt6625l-bt is not set
+# CONFIG_PACKAGE_kmod-mt6625l-wlan-gen-2 is not set
+# Additional WiFi Drivers
+CONFIG_PACKAGE_kmod-ath=y
+CONFIG_PACKAGE_kmod-ath10k=y
+CONFIG_PACKAGE_kmod-rt2800-lib=y
+CONFIG_PACKAGE_kmod-rt2800-usb=y
+# Wireless Tools
+CONFIG_PACKAGE_wireless-regdb=y
+CONFIG_PACKAGE_iw-full=y
+CONFIG_PACKAGE_iwinfo=y
+CONFIG_PACKAGE_wpad-mbedtls=y
+# MAC80211 Framework
+CONFIG_PACKAGE_kmod-mac80211=y
+CONFIG_PACKAGE_kmod-cfg80211=y
+CONFIG_DRIVER_11AC_SUPPORT=y
+# USB Modem Support
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
+CONFIG_PACKAGE_kmod-usb-net-rndis=y
+CONFIG_PACKAGE_kmod-usb-serial=y
+CONFIG_PACKAGE_kmod-usb-serial-option=y
+CONFIG_PACKAGE_kmod-usb-serial-wwan=y
+CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y
+CONFIG_PACKAGE_kmod-usb-acm=y
+CONFIG_PACKAGE_kmod-usb-wdm=y
+CONFIG_PACKAGE_kmod-usb-net-asix=y
+CONFIG_PACKAGE_kmod-usb-net-asix-ax88179=y
+CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
+# Modem Tools
+CONFIG_PACKAGE_uqmi=y
+CONFIG_PACKAGE_umbim=y
+CONFIG_PACKAGE_comgt=y
+CONFIG_PACKAGE_libqmi=y
+CONFIG_PACKAGE_libmbim=y
+CONFIG_PACKAGE_usb-modeswitch=y
+# Hardware Support
+CONFIG_PACKAGE_kmod-usb-core=y
+CONFIG_PACKAGE_kmod-usb2=y
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_kmod-usb-storage=y
+CONFIG_PACKAGE_kmod-usb-storage-uas=y
+CONFIG_PACKAGE_kmod-thermal=y
+CONFIG_PACKAGE_kmod-hwmon-core=y
+CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
+# Ethernet Drivers
+CONFIG_PACKAGE_kmod-mt7530=y
+CONFIG_PACKAGE_kmod-mtk-eth=y
+CONFIG_PACKAGE_kmod-r8169=y
+CONFIG_PACKAGE_kmod-igb=y
+CONFIG_PACKAGE_kmod-pps=y
+CONFIG_PACKAGE_kmod-ptp=y
+# LED Support
+CONFIG_PACKAGE_kmod-leds-gpio=y
+CONFIG_PACKAGE_kmod-leds-trigger-netdev=y
+CONFIG_PACKAGE_kmod-leds-trigger-timer=y
+# Storage Drivers
+CONFIG_PACKAGE_kmod-fs-ext4=y
+CONFIG_PACKAGE_kmod-fs-f2fs=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-fs-exfat=y
+CONFIG_PACKAGE_kmod-scsi-core=y
+CONFIG_PACKAGE_kmod-scsi-generic=y
+# MMC/SD Card
+CONFIG_PACKAGE_kmod-mmc=y
+CONFIG_PACKAGE_kmod-sdhci=y
+# I2C and SPI
+CONFIG_PACKAGE_kmod-i2c-core=y
+CONFIG_PACKAGE_kmod-i2c-gpio=y
+CONFIG_PACKAGE_kmod-spi-dev=y
+CONFIG_PACKAGE_kmod-spi-gpio=y
+# GPIO
+CONFIG_PACKAGE_kmod-gpio-button-hotplug=y
+CONFIG_PACKAGE_kmod-gpio-dev=y
+# Cryptographic Drivers
+CONFIG_PACKAGE_kmod-crypto-authenc=y
+CONFIG_PACKAGE_kmod-crypto-cbc=y
+CONFIG_PACKAGE_kmod-crypto-gcm=y
+CONFIG_PACKAGE_kmod-crypto-sha256=y
+CONFIG_PACKAGE_kmod-crypto-aes=y
+# Network Features
+CONFIG_PACKAGE_kmod-nf-flow=y
+CONFIG_PACKAGE_kmod-nf-conntrack=y
+CONFIG_PACKAGE_kmod-sched-core=y
+CONFIG_PACKAGE_kmod-sched-cake=y
+CONFIG_PACKAGE_kmod-macvlan=y
+CONFIG_PACKAGE_kmod-tun=y
+CONFIG_PACKAGE_kmod-pppoe=y
+CONFIG_PACKAGE_kmod-ppp=y
+CONFIG_PACKAGE_kmod-8021q=y
+CONFIG_PACKAGE_kmod-bonding=y
+CONFIG_PACKAGE_kmod-bridge=y
+# PHY Drivers
+CONFIG_PACKAGE_kmod-phy-broadcom=y
+CONFIG_PACKAGE_kmod-phy-realtek=y
+CONFIG_PACKAGE_kmod-swconfig=y
+# SFP Support
+CONFIG_PACKAGE_kmod-sfp=y
+# USB Serial
+CONFIG_PACKAGE_kmod-usb-serial-cp210x=y
+CONFIG_PACKAGE_kmod-usb-serial-ftdi=y
+CONFIG_PACKAGE_kmod-usb-serial-pl2303=y
+# USB HID
+CONFIG_PACKAGE_kmod-usb-hid=y
+CONFIG_PACKAGE_kmod-hid=y
+# IPv6
+CONFIG_PACKAGE_kmod-ip6tables=y
+# Tunneling
+CONFIG_PACKAGE_kmod-gre=y
+CONFIG_PACKAGE_kmod-ip6-tunnel=y
+# MPTCP
+CONFIG_PACKAGE_kmod-mptcp=y
+# Kernel Features
+CONFIG_KERNEL_DEVMEM=y
+CONFIG_KERNEL_CGROUPS=y
+CONFIG_KERNEL_NAMESPACES=y
+CONFIG_KERNEL_AIO=y
+CONFIG_KERNEL_MEMCG=y
+# MediaTek Specific
+CONFIG_KERNEL_NET_VENDOR_MEDIATEK=y
+CONFIG_KERNEL_MTD_NAND_MTK=y
+CONFIG_KERNEL_PCIE_MTK=y
 CONFIG_TARGET_ROOTFS_PARTSIZE=900
 # CONFIG_TARGET_ROOTFS_INITRAMFS is not set
