@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # OpenMPTCProuter Optimized - Auto-Configuration Initialization
-# Sets up the self-aware network monitoring system
+# Sets up the network monitoring and safety systems
 # Runs on first boot and sets up continuous monitoring
 #
 
@@ -15,11 +15,17 @@ log_msg() {
 chmod +x /usr/bin/port-autoconfig.sh 2>/dev/null
 chmod +x /usr/bin/wifi-autoconfig.sh 2>/dev/null
 chmod +x /usr/bin/network-monitor.sh 2>/dev/null
+chmod +x /usr/bin/network-safety-monitor.sh 2>/dev/null
+chmod +x /usr/bin/usb-modem-autoconfig.sh 2>/dev/null
+chmod +x /usr/bin/omr-status 2>/dev/null
+
+# Make hotplug scripts executable
+chmod +x /etc/hotplug.d/usb/20-usb-modem 2>/dev/null
 
 # Create init script for network monitor
 cat > /etc/init.d/network-monitor << 'INITSCRIPT'
 #!/bin/sh /etc/rc.common
-# Self-Aware Network Monitor
+# Network Health Monitor
 
 START=99
 STOP=10
@@ -45,13 +51,36 @@ INITSCRIPT
 
 chmod +x /etc/init.d/network-monitor
 
-# Enable the network monitor service
+# Create init script for network safety monitor
+cat > /etc/init.d/network-safety << 'SAFETYINIT'
+#!/bin/sh /etc/rc.common
+# Network Safety Monitor - Prevents lockouts
+
+START=98
+STOP=11
+USE_PROCD=1
+
+start_service() {
+	procd_open_instance
+	procd_set_param command /usr/bin/network-safety-monitor.sh
+	procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_close_instance
+}
+SAFETYINIT
+
+chmod +x /etc/init.d/network-safety
+
+# Enable the services
 /etc/init.d/network-monitor enable
+/etc/init.d/network-safety enable
 
 log_msg "Auto-configuration system initialized"
-log_msg "Network monitor will start on boot"
+log_msg "Network monitor and safety system will start on boot"
 
-# Start the network monitor now
+# Start the services now
+/etc/init.d/network-safety start &
 /etc/init.d/network-monitor start &
 
 exit 0
