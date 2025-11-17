@@ -857,9 +857,11 @@ IMPORTANT: Keep this file secure!
 </html>
 ENDHTML
 
-# Replace placeholders
-sed -i "s/REPLACE_VPS_IP/$VPS_PUBLIC_IP/g" /var/www/omr-setup/index.html
-sed -i "s/REPLACE_PASSWORD/$SHADOWSOCKS_PASS/g" /var/www/omr-setup/index.html
+# Replace placeholders - escape special characters for sed
+VPS_PUBLIC_IP_ESCAPED=$(printf '%s\n' "$VPS_PUBLIC_IP" | sed 's/[&/\]/\\&/g')
+SHADOWSOCKS_PASS_ESCAPED=$(printf '%s\n' "$SHADOWSOCKS_PASS" | sed 's/[&/\]/\\&/g')
+sed -i "s/REPLACE_VPS_IP/$VPS_PUBLIC_IP_ESCAPED/g" /var/www/omr-setup/index.html
+sed -i "s/REPLACE_PASSWORD/$SHADOWSOCKS_PASS_ESCAPED/g" /var/www/omr-setup/index.html
 
 # Create systemd service for web interface
 cat > /etc/systemd/system/omr-setup-web.service << 'ENDSERVICE'

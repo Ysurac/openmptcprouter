@@ -85,7 +85,7 @@ find_at_port() {
     for port in /dev/ttyUSB2 /dev/ttyUSB3 /dev/ttyUSB1 /dev/ttyUSB0; do
         if [ -c "$port" ]; then
             # Test if port responds to AT commands
-            if timeout 2 sh -c "echo -e 'AT\r' > $port 2>/dev/null && cat $port 2>/dev/null" | grep -q "OK"; then
+            if timeout 2 sh -c "printf 'AT\r\n' > \"$port\" 2>/dev/null && cat \"$port\" 2>/dev/null" | grep -q "OK"; then
                 echo "$port"
                 return 0
             fi
@@ -114,7 +114,7 @@ configure_modem_mode() {
         sleep $INIT_WAIT_TIME
         
         # Test basic connectivity
-        if ! timeout 3 sh -c "echo -e 'AT\r' > $device && cat $device" | grep -q "OK"; then
+        if ! timeout 3 sh -c "printf 'AT\r\n' > \"$device\" && cat \"$device\"" | grep -q "OK"; then
             log_msg "Device $device not responding on attempt $attempt"
             attempt=$((attempt + 1))
             continue
@@ -126,14 +126,14 @@ configure_modem_mode() {
         
         # Get modem info
         log_msg "Getting modem information..."
-        timeout 3 sh -c "echo -e 'ATI\r' > $device && cat $device" 2>/dev/null | head -n 10
+        timeout 3 sh -c "printf 'ATI\r\n' > \"$device\" && cat \"$device\"" 2>/dev/null | head -n 10
         
         # Check firmware version
         echo -e 'AT+QGMR\r' > "$device" 2>/dev/null
         sleep 1
         
         # Get current USB configuration
-        local usb_mode=$(timeout 3 sh -c "echo -e 'AT+QCFG=\"usbnet\"\r' > $device && cat $device" 2>/dev/null | grep "+QCFG" | cut -d, -f1 | cut -d'"' -f2)
+        local usb_mode=$(timeout 3 sh -c "printf 'AT+QCFG=\"usbnet\"\r\n' > \"$device\" && cat \"$device\"" 2>/dev/null | grep "+QCFG" | cut -d, -f1 | cut -d'"' -f2)
         log_msg "Current USB mode: ${usb_mode:-unknown}"
         
         # Set to QMI mode (0) for best performance with OpenWrt
@@ -183,7 +183,7 @@ configure_modem_mode() {
         
         # Verify configuration
         log_msg "Verifying configuration..."
-        timeout 3 sh -c "echo -e 'AT+QCFG=\"usbnet\"\r' > $device && cat $device" 2>/dev/null | head -n 5
+        timeout 3 sh -c "printf 'AT+QCFG=\"usbnet\"\r\n' > \"$device\" && cat \"$device\"" 2>/dev/null | head -n 5
         
         log_msg "Modem configuration complete"
         return 0

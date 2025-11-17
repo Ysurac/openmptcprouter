@@ -319,8 +319,9 @@ COMMIT
 COMMIT
 IPTABLES
 
-# Replace placeholder with actual interface
-sed -i "s/INTERFACE_PLACEHOLDER/$INTERFACE/g" /etc/iptables/rules.v4
+# Replace placeholder with actual interface - escape special characters
+INTERFACE_ESCAPED=$(printf '%s\n' "$INTERFACE" | sed 's/[&/\]/\\&/g')
+sed -i "s/INTERFACE_PLACEHOLDER/$INTERFACE_ESCAPED/g" /etc/iptables/rules.v4
 
 # Apply iptables rules
 iptables-restore < /etc/iptables/rules.v4

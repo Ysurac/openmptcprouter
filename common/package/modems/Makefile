@@ -30,14 +30,12 @@ endef
 define Package/modems/install
 	$(INSTALL_DIR) $(1)/lib/network/wwan/
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/data/* $(1)/lib/network/wwan/
-	# Rename files with colons
-	shopt -s nullglob ; \
-	for filevar in $(1)/lib/network/wwan/*-* ; \
-	do \
-		FILENAME=$$$$(basename $$$$filevar) ; \
+	# Rename files with colons (use find instead of bash glob for portability)
+	find $(1)/lib/network/wwan -type f -name '*-*' 2>/dev/null | while read -r filevar ; do \
+		FILENAME=$$$$(basename "$$$$filevar") ; \
 		NEWNAME=$$$${FILENAME//-/:} ; \
-		mv "$(1)/lib/network/wwan/$$$$FILENAME" "$(1)/lib/network/wwan/$$$$NEWNAME" ; \
-	done
+		mv "$$$$filevar" "$(1)/lib/network/wwan/$$$$NEWNAME" ; \
+	done || true
 	
 	# Install modem optimization and stability scripts
 	$(INSTALL_DIR) $(1)/usr/bin
@@ -68,7 +66,7 @@ define Package/modems/install
 	echo '' >> $(1)/etc/init.d/rm551e-monitor
 	echo 'stop() {' >> $(1)/etc/init.d/rm551e-monitor
 	echo '	if [ -f /var/run/rm551e-monitor.pid ]; then' >> $(1)/etc/init.d/rm551e-monitor
-	echo '		kill $$(cat /var/run/rm551e-monitor.pid) 2>/dev/null' >> $(1)/etc/init.d/rm551e-monitor
+	echo '		kill "$$$$(cat /var/run/rm551e-monitor.pid)" 2>/dev/null' >> $(1)/etc/init.d/rm551e-monitor
 	echo '		rm -f /var/run/rm551e-monitor.pid' >> $(1)/etc/init.d/rm551e-monitor
 	echo '	fi' >> $(1)/etc/init.d/rm551e-monitor
 	echo '}' >> $(1)/etc/init.d/rm551e-monitor

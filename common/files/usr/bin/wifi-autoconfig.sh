@@ -173,8 +173,9 @@ configure_all_radios() {
         # Configure WiFi interface
         configure_wifi_interface "$radio" "$band" "$ssid" "$wifi_password"
         
-        # Add to password file
-        echo "  - $ssid (${band^^})" >> /etc/wifi-password.txt
+        # Add to password file (use tr for POSIX compatibility)
+        band_upper=$(echo "$band" | tr '[:lower:]' '[:upper:]')
+        echo "  - $ssid ($band_upper)" >> /etc/wifi-password.txt
         
         radio_count=$((radio_count + 1))
     done
