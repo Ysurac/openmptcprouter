@@ -36,13 +36,15 @@ endef
 define Package/luci-theme-omr-optimized/install
 	$(INSTALL_DIR) $(1)/www/luci-static/omr-optimized
 	$(INSTALL_DIR) $(1)/www/luci-static/omr-optimized/css
+	$(INSTALL_DIR) $(1)/www/luci-static/omr-optimized/js
 	$(INSTALL_DIR) $(1)/www/luci-static/omr-optimized/images
 	
 	$(INSTALL_DATA) ./htdocs/luci-static/omr-optimized/cascade.css $(1)/www/luci-static/omr-optimized/cascade.css
-	$(INSTALL_DATA) ./htdocs/luci-static/omr-optimized/css/* $(1)/www/luci-static/omr-optimized/css/
+	$(INSTALL_DATA) ./htdocs/luci-static/omr-optimized/css/*.css $(1)/www/luci-static/omr-optimized/css/
+	$(INSTALL_DATA) ./htdocs/luci-static/omr-optimized/js/*.js $(1)/www/luci-static/omr-optimized/js/
 	
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/view/themes/omr-optimized
-	$(INSTALL_DATA) ./luasrc/view/themes/omr-optimized/* $(1)/usr/lib/lua/luci/view/themes/omr-optimized/
+	$(INSTALL_DATA) ./luasrc/view/themes/omr-optimized/*.htm $(1)/usr/lib/lua/luci/view/themes/omr-optimized/
 	
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./uci-defaults/30_luci-theme-omr-optimized $(1)/etc/uci-defaults/30_luci-theme-omr-optimized

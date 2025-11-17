@@ -1,0 +1,43 @@
+<%#
+ OpenMPTCProuter Optimized Theme
+ Copyright 2025 OpenMPTCProuter Optimized
+ Licensed under GPL-3.0
+-%>
+	</main>
+	
+	<footer class="footer" role="contentinfo">
+		<div class="footer-content">
+			<p>
+				Powered by 
+				<a href="https://github.com/spotty118/openmptcprouter" target="_blank" rel="noopener noreferrer">
+					<strong>OpenMPTCProuter Optimized</strong>
+				</a>
+			</p>
+			<p class="footer-meta">
+				<span><%:Kernel%>: <%=luci.sys.exec("uname -r"):gsub("\n","")%></span>
+				<span class="separator">|</span>
+				<span><%:Load%>: <%="%.2f %.2f %.2f"%><%=luci.sys.loadavg()%></span>
+			</p>
+		</div>
+	</footer>
+	
+	<!-- Theme toggle and accessibility enhancements -->
+	<div class="theme-controls" aria-label="Theme controls">
+		<button id="theme-toggle" class="btn-icon" aria-label="Toggle dark mode" title="Toggle dark mode">
+			<span class="icon-theme" aria-hidden="true">🌓</span>
+		</button>
+		<button id="advanced-toggle" class="btn-icon" aria-label="Toggle advanced settings" title="Show/hide advanced settings">
+			<span class="icon-advanced" aria-hidden="true">⚙️</span>
+		</button>
+	</div>
+	
+	<script>
+		// Initialize theme controls
+		document.addEventListener('DOMContentLoaded', function() {
+			if (window.OMRTheme) {
+				window.OMRTheme.init();
+			}
+		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+#!/bin/sh
+# Copyright (C) 2025 OpenMPTCProuter Optimized
+# Auto-activate OMR Optimized theme on first boot
+
+# Set the theme as default
+uci -q batch <<-EOF >/dev/null
+	set luci.main.mediaurlbase='/luci-static/omr-optimized'
+	set luci.main.lang='auto'
+	commit luci
+EOF
+
+# Ensure theme directories have correct permissions
+chmod -R 755 /www/luci-static/omr-optimized 2>/dev/null
+chmod 644 /www/luci-static/omr-optimized/*.css 2>/dev/null
+chmod 644 /www/luci-static/omr-optimized/css/*.css 2>/dev/null
+chmod 644 /www/luci-static/omr-optimized/js/*.js 2>/dev/null
+
+exit 0
