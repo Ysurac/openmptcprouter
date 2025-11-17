@@ -134,7 +134,7 @@ VPS_PUBLIC_IP=$(curl -4 -s --max-time 5 ifconfig.me 2>/dev/null || curl -4 -s --
 
 if [ -z "$VPS_PUBLIC_IP" ]; then
     print_warning "Could not auto-detect public IP"
-    read -p "Please enter your VPS public IP address: " VPS_PUBLIC_IP < /dev/tty
+    read -r -p "Please enter your VPS public IP address: " VPS_PUBLIC_IP < /dev/tty
     if [ -z "$VPS_PUBLIC_IP" ]; then
         print_error "VPS public IP is required"
     fi
@@ -163,7 +163,7 @@ GLORYTUN_PASS=$(od -vN "32" -An -tx1 /dev/urandom | tr '[:lower:]' '[:upper:]' |
 MLVPN_PASS=$(head -c 32 /dev/urandom | base64 -w0)
 DSVPN_PASS=$(od -vN "32" -An -tx1 /dev/urandom | tr '[:lower:]' '[:upper:]' | tr -d " \n")
 OMR_ADMIN_PASS=$(od -vN "32" -An -tx1 /dev/urandom | tr '[:lower:]' '[:upper:]' | tr -d " \n")
-V2RAY_UUID=$(cat /proc/sys/kernel/random/uuid | tr -d "\n")
+V2RAY_UUID=$(tr -d "\n" < /proc/sys/kernel/random/uuid)
 XRAY_UUID=$V2RAY_UUID
 
 print_success "Secure credentials generated"
@@ -271,7 +271,7 @@ print_step "6/8" "Optimizing Kernel Parameters for MPTCP"
 print_info "Applying kernel optimizations for multi-WAN performance..."
 
 # Backup existing sysctl.conf
-cp /etc/sysctl.conf /etc/sysctl.conf.backup.$(date +%Y%m%d-%H%M%S) 2>/dev/null || true
+cp /etc/sysctl.conf "/etc/sysctl.conf.backup.$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
 
 # Configure kernel parameters
 cat > /etc/sysctl.d/99-openmptcprouter.conf << 'SYSCTL'
@@ -382,7 +382,7 @@ print_step "7/8" "Configuring Firewall"
 print_info "Setting up iptables firewall rules..."
 
 # Backup existing iptables rules
-iptables-save > /root/iptables-backup-$(date +%Y%m%d-%H%M%S).rules 2>/dev/null || true
+iptables-save > "/root/iptables-backup-$(date +%Y%m%d-%H%M%S).rules" 2>/dev/null || true
 
 # Create firewall rules
 cat > /etc/iptables/rules.v4 << IPTABLES
