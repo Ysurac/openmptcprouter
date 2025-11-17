@@ -107,7 +107,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get upgrade -y -qq
 
-echo -e "${GREEN}Step 2/6: Installing required packages...${NC}"
+echo -e "${GREEN}Step 2/6: Installing required packages for multi-WAN bonding...${NC}"
 apt-get install -y -qq \
     curl wget git build-essential \
     iptables iptables-persistent \
@@ -115,9 +115,44 @@ apt-get install -y -qq \
     dnsutils bind9-dnsutils \
     htop vim nano \
     ca-certificates gnupg lsb-release \
-    jq
+    jq \
+    conntrack conntrackd \
+    nftables \
+    ethtool \
+    ifenslave \
+    vlan \
+    bridge-utils \
+    traceroute mtr-tiny \
+    tcpdump \
+    iperf3
 
-echo -e "${GREEN}Step 3/6: Configuring kernel parameters for MPTCP and BBR2...${NC}"
+# Load kernel modules for bonding and enhanced networking
+echo -e "${YELLOW}Loading kernel modules for multi-WAN bonding...${NC}"
+modprobe bonding
+modprobe 8021q
+modprobe nf_conntrack
+modprobe xt_TCPMSS
+modprobe xt_mark
+modprobe xt_multiport
+modprobe sch_fq_codel
+modprobe sch_cake
+modprobe sch_htb
+
+# Make modules load on boot
+cat > /etc/modules-load.d/openmptcprouter.conf << 'MODULES'
+# OpenMPTCProuter Multi-WAN Bonding Modules
+bonding
+8021q
+nf_conntrack
+xt_TCPMSS
+xt_mark
+xt_multiport
+sch_fq_codel
+sch_cake
+sch_htb
+MODULES
+
+echo -e "${GREEN}Step 3/6: Configuring kernel parameters for MPTCP and multi-WAN bonding...${NC}"
 
 # Backup existing sysctl.conf
 cp /etc/sysctl.conf /etc/sysctl.conf.backup
@@ -130,25 +165,28 @@ cat > /etc/sysctl.d/99-openmptcprouter.conf << 'SYSCTL'
 net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 
-# MPTCP Configuration
+# MPTCP Configuration - Enhanced for Multi-WAN Bonding
 net.mptcp.mptcp_enabled = 1
 net.mptcp.mptcp_checksum = 0
 net.mptcp.mptcp_debug = 0
 net.mptcp.mptcp_syn_retries = 3
+net.mptcp.mptcp_path_manager = fullmesh
+net.mptcp.mptcp_scheduler = default
 
 # BBR2 Congestion Control
 net.ipv4.tcp_congestion_control = bbr2
 net.core.default_qdisc = fq_codel
 
-# Network Performance Tuning
+# Network Performance Tuning - Enhanced for Multi-WAN
 net.core.rmem_max = 134217728
 net.core.wmem_max = 134217728
 net.core.rmem_default = 67108864
 net.core.wmem_default = 67108864
 net.core.netdev_max_backlog = 250000
 net.core.somaxconn = 4096
+net.core.optmem_max = 65536
 
-# TCP Performance
+# TCP Performance - Optimized for Multiple Connections
 net.ipv4.tcp_rmem = 4096 87380 67108864
 net.ipv4.tcp_wmem = 4096 65536 67108864
 net.ipv4.tcp_max_syn_backlog = 8192
@@ -162,9 +200,34 @@ net.ipv4.tcp_keepalive_intvl = 15
 # Optimize TCP window size
 net.ipv4.tcp_window_scaling = 1
 net.ipv4.tcp_adv_win_scale = 1
+net.ipv4.tcp_moderate_rcvbuf = 1
 
 # Enable TCP Fast Open
 net.ipv4.tcp_fastopen = 3
+
+# Connection Tracking - Enhanced for Multi-WAN
+net.netfilter.nf_conntrack_max = 262144
+net.netfilter.nf_conntrack_tcp_timeout_established = 432000
+net.netfilter.nf_conntrack_tcp_timeout_time_wait = 30
+net.netfilter.nf_conntrack_tcp_timeout_close_wait = 15
+net.netfilter.nf_conntrack_tcp_timeout_fin_wait = 30
+
+# Multi-path routing enhancements
+net.ipv4.fib_multipath_hash_policy = 1
+net.ipv4.fib_multipath_use_neigh = 1
+
+# TCP optimizations for bonding
+net.ipv4.tcp_no_metrics_save = 1
+net.ipv4.tcp_ecn = 0
+net.ipv4.tcp_frto = 2
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_rfc1337 = 1
+net.ipv4.tcp_sack = 1
+net.ipv4.tcp_fack = 1
+net.ipv4.tcp_timestamps = 1
+
+# Increase connection tracking table size for multi-WAN
+net.nf_conntrack_max = 262144
 
 # Security
 net.ipv4.conf.default.rp_filter = 1
@@ -173,10 +236,23 @@ net.ipv4.conf.all.accept_redirects = 0
 net.ipv4.conf.all.send_redirects = 0
 net.ipv4.conf.all.accept_source_route = 0
 net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
 
 # IPv6 Security
 net.ipv6.conf.all.accept_redirects = 0
 net.ipv6.conf.all.accept_source_route = 0
+
+# Kernel panic behavior for stability
+kernel.panic = 10
+kernel.panic_on_oops = 1
+
+# Memory and file system optimizations
+vm.swappiness = 10
+vm.dirty_ratio = 60
+vm.dirty_background_ratio = 2
+
+# File descriptor limits
+fs.file-max = 2097152
 SYSCTL
 
 # Apply sysctl settings

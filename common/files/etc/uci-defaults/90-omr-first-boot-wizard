@@ -274,7 +274,8 @@ cat > /www/setup-wizard.html << 'ENDHTML'
                 <h2>Enter Pairing Code</h2>
                 <div class="alert alert-info">
                     <strong>Got your pairing code from the VPS setup?</strong><br>
-                    Paste it below for instant configuration!
+                    Paste it below for instant configuration!<br>
+                    <small>Note: After setup, access router at <strong>http://192.168.2.1</strong></small>
                 </div>
                 
                 <div class="form-group">

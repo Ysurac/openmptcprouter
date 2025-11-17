@@ -1,0 +1,68 @@
+#!/bin/sh
+#
+# OpenMPTCProuter Optimized - Network Configuration
+# Set default LAN IP to 192.168.2.1 to avoid conflicts
+# Enable DHCP server by default
+#
+
+# Only run on first boot
+[ -f /etc/omr-network-configured ] && exit 0
+
+# Configure LAN interface
+uci -q batch <<-EOF
+	set network.lan.ipaddr='192.168.2.1'
+	set network.lan.netmask='255.255.255.0'
+	set network.lan.ip6assign='60'
+	commit network
+EOF
+
+# Enable DHCP server on LAN
+uci -q batch <<-EOF
+	set dhcp.lan=dhcp
+	set dhcp.lan.interface='lan'
+	set dhcp.lan.start='100'
+	set dhcp.lan.limit='150'
+	set dhcp.lan.leasetime='12h'
+	set dhcp.lan.dhcpv4='server'
+	set dhcp.lan.dhcpv6='server'
+	set dhcp.lan.ra='server'
+	set dhcp.lan.ra_management='1'
+	commit dhcp
+EOF
+
+# Configure DNS
+uci -q batch <<-EOF
+	set dhcp.@dnsmasq[0].domainneeded='1'
+	set dhcp.@dnsmasq[0].localise_queries='1'
+	set dhcp.@dnsmasq[0].rebind_protection='1'
+	set dhcp.@dnsmasq[0].rebind_localhost='1'
+	set dhcp.@dnsmasq[0].local='/lan/'
+	set dhcp.@dnsmasq[0].domain='lan'
+	set dhcp.@dnsmasq[0].expandhosts='1'
+	set dhcp.@dnsmasq[0].cachesize='1000'
+	set dhcp.@dnsmasq[0].authoritative='1'
+	set dhcp.@dnsmasq[0].readethers='1'
+	set dhcp.@dnsmasq[0].leasefile='/tmp/dhcp.leases'
+	set dhcp.@dnsmasq[0].resolvfile='/tmp/resolv.conf.d/resolv.conf.auto'
+	set dhcp.@dnsmasq[0].localservice='1'
+	set dhcp.@dnsmasq[0].ednspacket_max='1232'
+	commit dhcp
+EOF
+
+# Set hostname
+uci -q batch <<-EOF
+	set system.@system[0].hostname='OMR-Optimized'
+	set system.@system[0].timezone='UTC'
+	commit system
+EOF
+
+# Mark as configured
+touch /etc/omr-network-configured
+
+# Apply network changes
+/etc/init.d/network reload
+/etc/init.d/dnsmasq reload
+
+logger -t omr-network "Network configured: LAN IP 192.168.2.1, DHCP enabled"
+
+exit 0

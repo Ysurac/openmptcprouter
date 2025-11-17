@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+# OpenMPTCProuter Optimized - Auto-Configuration Initialization
+# Sets up the self-aware network monitoring system
+# Runs on first boot and sets up continuous monitoring
+#
+
+LOG_TAG="autoconfig-init"
+
+log_msg() {
+    logger -t "$LOG_TAG" "$1"
+}
+
+# Make scripts executable
+chmod +x /usr/bin/port-autoconfig.sh 2>/dev/null
+chmod +x /usr/bin/wifi-autoconfig.sh 2>/dev/null
+chmod +x /usr/bin/network-monitor.sh 2>/dev/null
+
+# Create init script for network monitor
+cat > /etc/init.d/network-monitor << 'INITSCRIPT'
+#!/bin/sh /etc/rc.common
+# Self-Aware Network Monitor
+
+START=99
+STOP=10
+USE_PROCD=1
+
+start_service() {
+	procd_open_instance
+	procd_set_param command /usr/bin/network-monitor.sh
+	procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_close_instance
+}
+
+stop_service() {
+	# Kill monitor gracefully
+	if [ -f /var/run/network-monitor.pid ]; then
+		kill $(cat /var/run/network-monitor.pid) 2>/dev/null
+		rm -f /var/run/network-monitor.pid
+	fi
+}
+INITSCRIPT
+
+chmod +x /etc/init.d/network-monitor
+
+# Enable the network monitor service
+/etc/init.d/network-monitor enable
+
+log_msg "Auto-configuration system initialized"
+log_msg "Network monitor will start on boot"
+
+# Start the network monitor now
+/etc/init.d/network-monitor start &
+
+exit 0

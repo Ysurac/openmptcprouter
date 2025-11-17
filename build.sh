@@ -33,20 +33,15 @@ OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 OMR_LOG=${OMR_LOG:-no}
-#OMR_UEFI=${OMR_UEFI:-yes}
 OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 UPSTREAM=${UPSTREAM:-no}
-#SYSLOG=${SYSLOG:-busybox-syslogd}
-#SYSLOG=${SYSLOG:-syslog-ng}
 SYSLOG=${SYSLOG:-logd}
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 DISABLE_FAILSAFE=${DISABLE_FAILSAFE:-no}
-#OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
-#OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
 OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE-$OMR_KERNEL/$OMR_TARGET}
 
@@ -60,14 +55,13 @@ OMR_OPENWRT=${OMR_OPENWRT:-default}
 OMR_OPENWRT_GIT=${OMR_OPENWRT_GIT:-https://github.com}
 OMR_FORCE_DSA=${OMR_FORCE_DSA:-0}
 
-
 if [ "$OMR_KERNEL" = "5.4" ] && [ "$OMR_TARGET" = "rutx12" ]; then
 	OMR_TARGET_CONFIG="config-rutx"
 fi
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
-	#exit 1
+fi
 fi
 
 if [ "$OMR_TARGET" = "rpi4" ]; then
@@ -105,13 +99,14 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "a2d56138801afc982b831298f2f4de0daaf04b4f"
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "7ce34fe1a53db10bb9dd0223467f5bb71a29a659"
 		elif [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.10" ] || [ "$OMR_KERNEL" = "6.11" ]; then
-			# Use OpenWRT 24.10 for 6.6 kernel
+			# Use OpenWRT 24.10 for 6.6 kernel - Updated to latest stable
 			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "4d1c1d775468c1dc60a8e6e0dd6e1364176c03ae"
 			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "e61d672e7684fa1e0450a2f7516c69e30fd9b737"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "531020c8c4e2e5fc3a458c7f9eaecb48a476e9d7"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "76ce5ef526422847b8f21b6d3f7b70f72a8a3e58"
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "3eb59e9471858c83891979793f1dd29cca156919"
 		elif [ "$OMR_KERNEL" = "6.12" ] || [ "$OMR_KERNEL" = "6.17" ]; then
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "501f4edb04c434ed966a9443788b2f968abca38f"
+			# Use OpenWRT main branch for 6.12 kernel - Updated to latest
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "2cce634a9e63d25cd23ab30e86263eed3bce4f3e"
 			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "0c908eed83012ce34aa254df7f7659755456cb3e"
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "3034f05d6503406d714b1b50dba5d4c157720dd3"
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "a700d5232e9d6597eb5707665db0de115bb86e29"
