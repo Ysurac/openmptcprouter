@@ -33,20 +33,15 @@ OMR_PORT=${OMR_PORT:-80}
 OMR_KEEPBIN=${OMR_KEEPBIN:-no}
 OMR_IMG=${OMR_IMG:-yes}
 OMR_LOG=${OMR_LOG:-no}
-#OMR_UEFI=${OMR_UEFI:-yes}
 OMR_PACKAGES=${OMR_PACKAGES:-full}
 OMR_ALL_PACKAGES=${OMR_ALL_PACKAGES:-no}
 OMR_TARGET=${OMR_TARGET:-x86_64}
 OMR_TARGET_CONFIG="config-$OMR_TARGET"
 UPSTREAM=${UPSTREAM:-no}
-#SYSLOG=${SYSLOG:-busybox-syslogd}
-#SYSLOG=${SYSLOG:-syslog-ng}
 SYSLOG=${SYSLOG:-logd}
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 DISABLE_FAILSAFE=${DISABLE_FAILSAFE:-no}
-#OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
-#OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
 OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE-$OMR_KERNEL/$OMR_TARGET}
 
@@ -60,14 +55,13 @@ OMR_OPENWRT=${OMR_OPENWRT:-default}
 OMR_OPENWRT_GIT=${OMR_OPENWRT_GIT:-https://github.com}
 OMR_FORCE_DSA=${OMR_FORCE_DSA:-0}
 
-
 if [ "$OMR_KERNEL" = "5.4" ] && [ "$OMR_TARGET" = "rutx12" ]; then
 	OMR_TARGET_CONFIG="config-rutx"
 fi
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
-	#exit 1
+fi
 fi
 
 if [ "$OMR_TARGET" = "rpi4" ]; then
