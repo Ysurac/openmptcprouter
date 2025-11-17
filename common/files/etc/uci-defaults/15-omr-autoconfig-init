@@ -18,9 +18,14 @@ chmod +x /usr/bin/network-monitor.sh 2>/dev/null
 chmod +x /usr/bin/network-safety-monitor.sh 2>/dev/null
 chmod +x /usr/bin/usb-modem-autoconfig.sh 2>/dev/null
 chmod +x /usr/bin/omr-status 2>/dev/null
+chmod +x /usr/bin/omr-recovery 2>/dev/null
+chmod +x /usr/bin/emergency-lan-restore.sh 2>/dev/null
 
 # Make hotplug scripts executable
 chmod +x /etc/hotplug.d/usb/20-usb-modem 2>/dev/null
+
+# Make button handlers executable
+chmod +x /etc/rc.button/reset 2>/dev/null
 
 # Create init script for network monitor
 cat > /etc/init.d/network-monitor << 'INITSCRIPT'
