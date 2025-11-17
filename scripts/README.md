@@ -5,7 +5,7 @@
 Just copy and paste this command on your VPS:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash
 ```
 
 That's it! The script will:
@@ -76,14 +76,14 @@ If you want to customize the installation, you can set environment variables:
 ```bash
 # Use specific kernel version
 export KERNEL=6.12
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash
 ```
 
 ### Manual Installation
 For more control, use the full installer:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/omr-vps-install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/omr-vps-install.sh | sudo bash
 ```
 
 ## Security Notes

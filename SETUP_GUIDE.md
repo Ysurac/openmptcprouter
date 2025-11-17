@@ -133,7 +133,7 @@ Create a configuration file `/etc/openmptcprouter/config.json`:
 We provide a helper script to make setup even easier. Run this on your VPS:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-setup.sh | bash
 ```
 
 This script will:

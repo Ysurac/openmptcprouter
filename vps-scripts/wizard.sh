@@ -134,7 +134,7 @@ VPS_PUBLIC_IP=$(curl -4 -s --max-time 5 ifconfig.me 2>/dev/null || curl -4 -s --
 
 if [ -z "$VPS_PUBLIC_IP" ]; then
     print_warning "Could not auto-detect public IP"
-    read -p "Please enter your VPS public IP address: " VPS_PUBLIC_IP
+    read -p "Please enter your VPS public IP address: " VPS_PUBLIC_IP < /dev/tty
     if [ -z "$VPS_PUBLIC_IP" ]; then
         print_error "VPS public IP is required"
     fi
@@ -185,7 +185,7 @@ echo ""
 echo -e "${YELLOW}Estimated time: 5-10 minutes${NC}"
 echo ""
 
-read -p "Continue with installation? [Y/n]: " -r
+read -p "Continue with installation? [Y/n]: " -r < /dev/tty
 # Default to yes if empty (user just presses Enter)
 REPLY=${REPLY:-Y}
 if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$|^[Yy]$ ]]; then

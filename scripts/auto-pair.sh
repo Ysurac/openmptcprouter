@@ -72,7 +72,7 @@ if [ "$DEVICE_TYPE" = "vps" ]; then
     
     if [ -z "$VPS_IP" ]; then
         echo -e "${YELLOW}Could not auto-detect IP. Please enter manually:${NC}"
-        read -p "VPS Public IP: " VPS_IP
+        read -p "VPS Public IP: " VPS_IP < /dev/tty
     fi
     
     echo -e "${CYAN}Detected VPS IP:${NC} ${GREEN}$VPS_IP${NC}"
@@ -226,7 +226,7 @@ EOF
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     echo -e "On your router, run:"
-    echo -e "${YELLOW}curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/auto-pair.sh | sh -s '$PAIRING_CODE'${NC}"
+    echo -e "${YELLOW}curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/auto-pair.sh | sh -s '$PAIRING_CODE'${NC}"
     echo ""
     
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -268,7 +268,7 @@ $PAIRING_CODE
 
 Auto-Pair Command for Router:
 ------------------------------
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/auto-pair.sh | sh -s '$PAIRING_CODE'
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/auto-pair.sh | sh -s '$PAIRING_CODE'
 
 Auto-Discovery URL:
 -------------------
@@ -339,7 +339,7 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
         echo ""
         
         echo -e "${YELLOW}Enter your VPS IP for auto-discovery:${NC}"
-        read VPS_IP
+        read VPS_IP < /dev/tty
         
         echo -e "${CYAN}Fetching configuration from VPS...${NC}"
         
@@ -355,9 +355,9 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
             echo -e "${RED}Error: Could not auto-discover VPS configuration${NC}"
             echo ""
             echo -e "${YELLOW}Please use pairing code or enter manually:${NC}"
-            read -p "VPS Port (default 65500): " VPS_PORT
+            read -p "VPS Port (default 65500): " VPS_PORT < /dev/tty
             VPS_PORT=${VPS_PORT:-65500}
-            read -p "VPS Password: " VPS_PASS
+            read -p "VPS Password: " VPS_PASS < /dev/tty
         fi
     fi
     
@@ -375,7 +375,7 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
     echo ""
     
     # Run client auto-setup
-    curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/client-auto-setup.sh | sh -s "$VPS_IP" "$VPS_PASS" "$VPS_PORT"
+    curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/client-auto-setup.sh | sh -s "$VPS_IP" "$VPS_PASS" "$VPS_PORT"
     
     echo ""
     echo -e "${GREEN}✓ Router automatically paired with VPS!${NC}"
