@@ -51,13 +51,23 @@ OpenMPTCProuter Optimized VPS configuration is based on: [https://github.com/Ysu
 
 #### Step 1: Set Up Your VPS (1 command - 2 minutes)
 
-**Method 1: Auto-Pairing (Get pairing code for router)**
+**Method 1: VPS Installation Wizard (Recommended - Self-Contained)**
+```bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/wizard.sh | sudo bash
+```
+Output: Complete VPS setup with web interface at http://VPS_IP:8080
+- ✅ No external downloads during installation
+- ✅ Interactive wizard interface
+- ✅ Auto-configures everything
+- ✅ Generates secure credentials
+
+**Method 2: Auto-Pairing (Get pairing code for router)**
 ```bash
 curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/auto-pair.sh | sudo bash
 ```
 Output: Pairing code to use in router wizard
 
-**Method 2: Standard Setup (Web interface)**
+**Method 3: Easy Install (Web interface)**
 ```bash
 curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
 ```
@@ -74,26 +84,34 @@ curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scrip
 ```
 
 **Web Interface:**
-1. Go to http://192.168.100.1
+1. Go to http://192.168.2.1
 2. Navigate to Services → OpenMPTCProuter
 3. Enter VPS details from setup page
 4. Save & Apply
 
 ---
 
-### 🎯 Setup Methods Comparison
+### 🎯 VPS Setup Methods Comparison
+
+| Method | Time | Difficulty | Features |
+|--------|------|-----------|----------|
+| **VPS Wizard** 🆕 | 5-10 min | Easiest | Self-contained, interactive, web UI |
+| **Auto-Pairing** | 2 min | Easy | Quick pairing code generation |
+| **Easy Install** | 5-10 min | Easy | Downloads full installer, web UI |
+
+### 📱 Router Setup Methods
 
 | Method | Time | Difficulty | Steps |
 |--------|------|-----------|-------|
 | **First Boot Wizard** 🆕 | 1 min | Zero! | 0 (automatic) |
-| **Auto-Pairing** | 2 min | Easiest | 2 commands |
 | **Auto-Discovery** | 3 min | Easy | Enter VPS IP |
 | **Manual Setup** | 5 min | Moderate | Copy/paste settings |
 
 ---
 
-📖 **Detailed Guide:** [Complete Setup Guide](SETUP_GUIDE.md)
-🎥 **Need Help?** [Setup Scripts README](scripts/README.md)
+📖 **Detailed Guide:** [Complete Setup Guide](SETUP_GUIDE.md)  
+🎥 **Need Help?** [Setup Scripts README](scripts/README.md)  
+🚀 **VPS Wizard:** [VPS Scripts README](vps-scripts/README.md)
 
 ## Install from pre-compiled images
 
@@ -230,10 +248,14 @@ Our solution is mainly based on:
 openmptcprouter/
 ├── scripts/                    # Easy installation scripts
 │   ├── easy-install.sh        # One-command VPS setup
+│   ├── auto-pair.sh           # Auto-pairing setup
+│   ├── client-auto-setup.sh   # Client configuration
 │   └── README.md              # Installation guide
 ├── vps-scripts/               # VPS server scripts
+│   ├── wizard.sh              # 🆕 Self-contained VPS wizard (recommended)
 │   ├── omr-vps-install.sh     # Full VPS installer
-│   └── install.sh             # Symlink to easy installer
+│   ├── install.sh             # Symlink to easy installer
+│   └── README.md              # VPS setup documentation
 ├── common/                    # Common packages for all builds
 │   └── package/
 │       └── luci-theme-omr-optimized/  # Modern LuCI theme
