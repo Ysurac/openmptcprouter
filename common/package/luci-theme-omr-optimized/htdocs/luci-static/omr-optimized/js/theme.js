@@ -10,22 +10,27 @@
 	// Theme controller
 	const OMRTheme = {
 		// Initialize theme
-		init: function() {
-			this.initDarkMode();
-			this.initAdvancedToggle();
-			this.initTooltips();
-			this.initAccessibility();
-			this.initAnimations();
-			this.initFormValidation();
-			this.initTableEnhancements();
+		init() {
+			try {
+				this.initDarkMode();
+				this.initAdvancedToggle();
+				this.initTooltips();
+				this.initAccessibility();
+				this.initAnimations();
+				this.initFormValidation();
+				this.initTableEnhancements();
+				this.initPerformanceOptimizations();
+			} catch (error) {
+				console.error('OMRTheme initialization error:', error);
+			}
 		},
 
-		// Dark mode support
-		initDarkMode: function() {
+		// Dark mode support with modern syntax
+		initDarkMode() {
 			const toggleBtn = document.getElementById('theme-toggle');
 			if (!toggleBtn) return;
 
-			// Check saved preference
+			// Check saved preference using nullish coalescing
 			const savedTheme = localStorage.getItem('omr-theme');
 			const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 			const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
@@ -34,21 +39,23 @@
 				document.body.classList.add('dark-mode');
 			}
 
-			toggleBtn.addEventListener('click', function() {
+			// Modern arrow function with optional chaining
+			toggleBtn.addEventListener('click', () => {
 				const isDarkMode = document.body.classList.toggle('dark-mode');
 				localStorage.setItem('omr-theme', isDarkMode ? 'dark' : 'light');
-			});
+			}, { passive: true });
 
-			// Listen for system theme changes
-			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+			// Listen for system theme changes with modern syntax
+			const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+			darkModeQuery.addEventListener('change', (e) => {
 				if (!localStorage.getItem('omr-theme')) {
 					document.body.classList.toggle('dark-mode', e.matches);
 				}
 			});
 		},
 
-		// Advanced settings toggle
-		initAdvancedToggle: function() {
+		// Advanced settings toggle with modern syntax
+		initAdvancedToggle() {
 			const toggleBtn = document.getElementById('advanced-toggle');
 			if (!toggleBtn) return;
 
@@ -58,170 +65,161 @@
 				document.body.classList.add('show-advanced');
 			}
 
-			toggleBtn.addEventListener('click', function() {
+			toggleBtn.addEventListener('click', () => {
 				const isShown = document.body.classList.toggle('show-advanced');
 				localStorage.setItem('omr-show-advanced', isShown);
-			});
+			}, { passive: true });
 		},
 
-		// Tooltip support
-		initTooltips: function() {
+		// Tooltip support with modern syntax and optional chaining
+		initTooltips() {
 			const tooltipElements = document.querySelectorAll('[data-tooltip]');
-			
-			tooltipElements.forEach(function(el) {
-				el.addEventListener('mouseenter', function() {
+
+			tooltipElements.forEach((el) => {
+				el.addEventListener('mouseenter', () => {
 					const tooltipText = el.getAttribute('data-tooltip');
 					if (!tooltipText) return;
 
 					const tooltip = document.createElement('div');
 					tooltip.className = 'tooltip show';
-					tooltip.innerHTML = '<div class="tooltip-inner">' + tooltipText + '</div>';
+					tooltip.innerHTML = `<div class="tooltip-inner">${tooltipText}</div>`;
 					document.body.appendChild(tooltip);
 
 					const rect = el.getBoundingClientRect();
-					tooltip.style.top = (rect.top - tooltip.offsetHeight - 5) + 'px';
-					tooltip.style.left = (rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2)) + 'px';
+					tooltip.style.top = `${rect.top - tooltip.offsetHeight - 5}px`;
+					tooltip.style.left = `${rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2)}px`;
 
 					el._tooltip = tooltip;
-				});
+				}, { passive: true });
 
-				el.addEventListener('mouseleave', function() {
-					if (el._tooltip) {
-						el._tooltip.remove();
-						el._tooltip = null;
-					}
-				});
+				el.addEventListener('mouseleave', () => {
+					el._tooltip?.remove();
+					el._tooltip = null;
+				}, { passive: true });
 			});
 		},
 
-		// Accessibility enhancements
-		initAccessibility: function() {
+		// Accessibility enhancements with modern syntax
+		initAccessibility() {
 			// Add keyboard navigation for dropdowns
 			const dropdowns = document.querySelectorAll('.dropdown');
-			
-			dropdowns.forEach(function(dropdown) {
+
+			dropdowns.forEach((dropdown) => {
 				const toggle = dropdown.querySelector('.dropdown-toggle');
 				const menu = dropdown.querySelector('.dropdown-menu');
-				
+
 				if (!toggle || !menu) return;
 
-				toggle.addEventListener('click', function(e) {
+				toggle.addEventListener('click', (e) => {
 					e.preventDefault();
 					menu.classList.toggle('show');
-				});
+				}, { passive: false });
 
-				toggle.addEventListener('keydown', function(e) {
+				toggle.addEventListener('keydown', (e) => {
 					if (e.key === 'Enter' || e.key === ' ') {
 						e.preventDefault();
 						menu.classList.toggle('show');
 					}
 				});
 
-				// Close on escape
-				document.addEventListener('keydown', function(e) {
+				// Close on escape with modern event delegation
+				const escapeHandler = (e) => {
 					if (e.key === 'Escape' && menu.classList.contains('show')) {
 						menu.classList.remove('show');
 						toggle.focus();
 					}
-				});
+				};
+				document.addEventListener('keydown', escapeHandler);
 
 				// Close when clicking outside
-				document.addEventListener('click', function(e) {
+				const outsideClickHandler = (e) => {
 					if (!dropdown.contains(e.target)) {
 						menu.classList.remove('show');
 					}
-				});
+				};
+				document.addEventListener('click', outsideClickHandler, { passive: true });
 			});
 
 			// Ensure all interactive elements are keyboard accessible
 			const interactiveElements = document.querySelectorAll('a, button, input, select, textarea, [tabindex]');
-			interactiveElements.forEach(function(el) {
-				if (!el.hasAttribute('tabindex') && el.tagName !== 'INPUT' && el.tagName !== 'SELECT' && el.tagName !== 'TEXTAREA') {
+			interactiveElements.forEach((el) => {
+				const tagName = el.tagName;
+				if (!el.hasAttribute('tabindex') &&
+				    !['INPUT', 'SELECT', 'TEXTAREA'].includes(tagName)) {
 					el.setAttribute('tabindex', '0');
 				}
 			});
 		},
 
-		// Smooth animations with GPU acceleration
-		initAnimations: function() {
+		// Smooth animations with GPU acceleration and modern syntax
+		initAnimations() {
 			// Add GPU acceleration to animated elements
 			const animatedElements = document.querySelectorAll('.cbi-button, .main-menu a, .card');
-			animatedElements.forEach(function(el) {
-				el.classList.add('gpu-accelerated');
-			});
+			animatedElements.forEach((el) => el.classList.add('gpu-accelerated'));
 
-			// Intersection observer for lazy animations
+			// Intersection observer for lazy animations with modern options
 			if ('IntersectionObserver' in window) {
-				const observer = new IntersectionObserver(function(entries) {
-					entries.forEach(function(entry) {
+				const observer = new IntersectionObserver((entries) => {
+					entries.forEach((entry) => {
 						if (entry.isIntersecting) {
 							entry.target.classList.add('animate-in');
+							// Unobserve after animation to improve performance
+							observer.unobserve(entry.target);
 						}
 					});
 				}, {
-					threshold: 0.1
+					threshold: 0.1,
+					rootMargin: '50px'
 				});
 
-				document.querySelectorAll('.cbi-section, .card').forEach(function(el) {
+				document.querySelectorAll('.cbi-section, .card').forEach((el) => {
 					observer.observe(el);
 				});
 			}
 		},
 
-		// Form validation enhancements
-		initFormValidation: function() {
+		// Form validation enhancements with modern syntax
+		initFormValidation() {
 			const forms = document.querySelectorAll('form');
-			
-			forms.forEach(function(form) {
+
+			forms.forEach((form) => {
 				// Real-time validation
 				const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
-				
-				inputs.forEach(function(input) {
-					input.addEventListener('blur', function() {
-						if (!input.validity.valid) {
-							input.classList.add('is-invalid');
-						} else {
-							input.classList.remove('is-invalid');
-						}
-					});
 
-					input.addEventListener('input', function() {
+				inputs.forEach((input) => {
+					input.addEventListener('blur', () => {
+						input.classList.toggle('is-invalid', !input.validity.valid);
+					}, { passive: true });
+
+					input.addEventListener('input', () => {
 						if (input.classList.contains('is-invalid') && input.validity.valid) {
 							input.classList.remove('is-invalid');
 						}
-					});
+					}, { passive: true });
 				});
 
 				// Form submit validation
-				form.addEventListener('submit', function(e) {
-					let isValid = true;
-					
-					inputs.forEach(function(input) {
-						if (!input.validity.valid) {
-							input.classList.add('is-invalid');
-							isValid = false;
-						}
-					});
+				form.addEventListener('submit', (e) => {
+					const invalidInputs = Array.from(inputs).filter(input => !input.validity.valid);
 
-					if (!isValid) {
+					if (invalidInputs.length > 0) {
 						e.preventDefault();
-						// Focus first invalid field
-						const firstInvalid = form.querySelector('.is-invalid');
-						if (firstInvalid) {
-							firstInvalid.focus();
-						}
+						invalidInputs.forEach(input => input.classList.add('is-invalid'));
+						// Focus first invalid field with smooth scroll
+						invalidInputs[0]?.focus({ preventScroll: false });
+						invalidInputs[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 					}
 				});
 			});
 		},
 
-		// Table enhancements
-		initTableEnhancements: function() {
+		// Table enhancements with modern syntax
+		initTableEnhancements() {
 			const tables = document.querySelectorAll('table.cbi-section-table');
-			
-			tables.forEach(function(table) {
+
+			tables.forEach((table) => {
 				// Make tables responsive
-				if (!table.parentElement.classList.contains('table-responsive')) {
+				if (!table.parentElement?.classList.contains('table-responsive')) {
 					const wrapper = document.createElement('div');
 					wrapper.className = 'table-responsive';
 					table.parentNode.insertBefore(wrapper, table);
@@ -230,55 +228,57 @@
 
 				// Add sorting capability to headers
 				const headers = table.querySelectorAll('th');
-				headers.forEach(function(header, index) {
-					if (header.textContent.trim()) {
+				headers.forEach((header, index) => {
+					const headerText = header.textContent?.trim();
+					if (headerText) {
 						header.style.cursor = 'pointer';
 						header.setAttribute('role', 'button');
-						header.setAttribute('aria-label', 'Sort by ' + header.textContent);
-						
-						header.addEventListener('click', function() {
-							OMRTheme.sortTable(table, index);
-						});
+						header.setAttribute('aria-label', `Sort by ${headerText}`);
+
+						header.addEventListener('click', () => {
+							this.sortTable(table, index);
+						}, { passive: true });
 					}
 				});
 			});
 		},
 
-		// Table sorting
-		sortTable: function(table, columnIndex) {
+		// Table sorting with modern syntax and better performance
+		sortTable(table, columnIndex) {
 			const tbody = table.querySelector('tbody');
 			if (!tbody) return;
 
 			const rows = Array.from(tbody.querySelectorAll('tr'));
 			const isAscending = table.getAttribute('data-sort-order') !== 'asc';
-			
-			rows.sort(function(a, b) {
-				const aVal = a.cells[columnIndex]?.textContent.trim() || '';
-				const bVal = b.cells[columnIndex]?.textContent.trim() || '';
-				
+
+			// Use modern sort with destructuring
+			rows.sort((a, b) => {
+				const aVal = a.cells[columnIndex]?.textContent?.trim() ?? '';
+				const bVal = b.cells[columnIndex]?.textContent?.trim() ?? '';
+
 				// Try numeric comparison first
 				const aNum = parseFloat(aVal);
 				const bNum = parseFloat(bVal);
-				
+
 				if (!isNaN(aNum) && !isNaN(bNum)) {
 					return isAscending ? aNum - bNum : bNum - aNum;
 				}
-				
-				// Fall back to string comparison
+
+				// Fall back to string comparison with locale
 				return isAscending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
 			});
 
-			// Update table
-			rows.forEach(function(row) {
-				tbody.appendChild(row);
-			});
+			// Use DocumentFragment for better performance
+			const fragment = document.createDocumentFragment();
+			rows.forEach((row) => fragment.appendChild(row));
+			tbody.appendChild(fragment);
 
 			// Update sort indicator
 			table.setAttribute('data-sort-order', isAscending ? 'asc' : 'desc');
-			
-			// Visual feedback
+
+			// Visual feedback with modern syntax
 			const headers = table.querySelectorAll('th');
-			headers.forEach(function(h, i) {
+			headers.forEach((h, i) => {
 				h.classList.remove('sorted-asc', 'sorted-desc');
 				if (i === columnIndex) {
 					h.classList.add(isAscending ? 'sorted-asc' : 'sorted-desc');
@@ -286,39 +286,54 @@
 			});
 		},
 
-		// Utility: Debounce function
-		debounce: function(func, wait) {
+		// Modern performance optimizations
+		initPerformanceOptimizations() {
+			// Lazy load images with modern loading attribute
+			const images = document.querySelectorAll('img:not([loading])');
+			images.forEach((img) => {
+				img.setAttribute('loading', 'lazy');
+				img.setAttribute('decoding', 'async');
+			});
+
+			// Use passive event listeners for scroll performance
+			const scrollElements = document.querySelectorAll('[onscroll]');
+			scrollElements.forEach((el) => {
+				const scrollHandler = el.getAttribute('onscroll');
+				if (scrollHandler) {
+					el.removeAttribute('onscroll');
+					el.addEventListener('scroll', new Function(scrollHandler), { passive: true });
+				}
+			});
+		},
+
+		// Utility: Modern debounce function with arrow syntax
+		debounce(func, wait) {
 			let timeout;
-			return function executedFunction() {
-				const context = this;
-				const args = arguments;
+			return (...args) => {
 				clearTimeout(timeout);
-				timeout = setTimeout(function() {
-					func.apply(context, args);
-				}, wait);
+				timeout = setTimeout(() => func.apply(this, args), wait);
 			};
 		},
 
-		// Show notification
-		showNotification: function(message, type) {
-			type = type || 'info';
+		// Show notification with modern syntax
+		showNotification(message, type = 'info') {
 			const notification = document.createElement('div');
-			notification.className = 'alert alert-' + type;
+			notification.className = `alert alert-${type}`;
 			notification.textContent = message;
-			notification.style.position = 'fixed';
-			notification.style.top = '20px';
-			notification.style.right = '20px';
-			notification.style.zIndex = '9999';
-			notification.style.minWidth = '300px';
-			notification.style.animation = 'slideInRight 0.3s ease';
+			Object.assign(notification.style, {
+				position: 'fixed',
+				top: '20px',
+				right: '20px',
+				zIndex: '9999',
+				minWidth: '300px',
+				animation: 'slideInRight 0.3s ease'
+			});
 
 			document.body.appendChild(notification);
 
-			setTimeout(function() {
+			setTimeout(() => {
 				notification.style.animation = 'slideOutRight 0.3s ease';
-				setTimeout(function() {
-					notification.remove();
-				}, 300);
+				setTimeout(() => notification.remove(), 300);
 			}, 3000);
 		}
 	};
