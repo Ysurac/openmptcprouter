@@ -3,13 +3,15 @@
 # OpenMPTCProuter Optimized - Self-Aware Network Monitor
 # Continuously monitors network state and auto-adjusts configuration
 # Runs as a daemon and maintains optimal network configuration
+# Immediately responds to port changes and reconfigures on the fly
 #
 
 LOG_TAG="network-monitor"
 PID_FILE="/var/run/network-monitor.pid"
 STATE_FILE="/var/run/network-monitor.state"
-CHECK_INTERVAL=30
-RECONFIG_COOLDOWN=300  # Don't reconfigure more than once every 5 minutes
+CHECK_INTERVAL=5  # Check every 5 seconds for faster response
+QUICK_RECONFIG_COOLDOWN=30  # Allow quick reconfig every 30 seconds
+FULL_RECONFIG_COOLDOWN=180  # Full reconfiguration every 3 minutes max
 
 log_msg() {
     logger -t "$LOG_TAG" "$1"
@@ -37,25 +39,33 @@ cleanup() {
 
 trap cleanup INT TERM EXIT
 
-# Get current network state
+# Get current network state (more detailed)
 get_network_state() {
     local state=""
     
-    # Get list of interfaces with link
-    for iface in /sys/class/net/*/carrier; do
-        local if_name=$(echo "$iface" | cut -d/ -f5)
-        local carrier=$(cat "$iface" 2>/dev/null)
+    # Get list of interfaces with link and speed
+    for iface_path in /sys/class/net/*/carrier; do
+        local if_name=$(echo "$iface_path" | cut -d/ -f5)
         
         # Skip virtual interfaces
         case "$if_name" in
-            lo|sit*|ip6*|gre*|tun*|tap*|br-*|wlan*) continue ;;
+            lo|sit*|ip6*|gre*|tun*|tap*|br-*|wlan*|ifb*) continue ;;
         esac
         
-        state="${state}${if_name}:${carrier:-0} "
+        local carrier=$(cat "$iface_path" 2>/dev/null)
+        local speed=$(cat "/sys/class/net/$if_name/speed" 2>/dev/null)
+        local has_ip=0
+        
+        # Check if interface has an IP address
+        if ip addr show dev "$if_name" 2>/dev/null | grep -q "inet "; then
+            has_ip=1
+        fi
+        
+        state="${state}${if_name}:${carrier:-0}:${speed:-0}:${has_ip} "
     done
     
     # Get WiFi radio states
-    for radio in $(uci show wireless | grep "wireless\.radio.*=wifi-device" | cut -d. -f2 | cut -d= -f1); do
+    for radio in $(uci show wireless 2>/dev/null | grep "wireless\.radio.*=wifi-device" | cut -d. -f2 | cut -d= -f1); do
         local disabled=$(uci -q get wireless.$radio.disabled)
         state="${state}${radio}:${disabled:-0} "
     done
@@ -63,7 +73,7 @@ get_network_state() {
     echo "$state" | xargs
 }
 
-# Check if network state has changed
+# Check if network state has changed significantly
 network_state_changed() {
     local current_state=$(get_network_state)
     local last_state=""
@@ -73,27 +83,41 @@ network_state_changed() {
     fi
     
     if [ "$current_state" != "$last_state" ]; then
-        log_msg "Network state changed"
-        log_msg "Old: $last_state"
-        log_msg "New: $current_state"
+        # Check what changed
+        local changes=""
+        
+        # Parse old and new states
+        for item in $current_state; do
+            if ! echo "$last_state" | grep -q "$item"; then
+                local iface=$(echo "$item" | cut -d: -f1)
+                changes="${changes}${iface} "
+            fi
+        done
+        
+        if [ -n "$changes" ]; then
+            log_msg "Network state changed - interfaces affected: $changes"
+        else
+            log_msg "Network state changed (details)"
+        fi
+        
         echo "$current_state" > "$STATE_FILE"
+        echo "$changes"
         return 0
     fi
     
     return 1
 }
 
-# Check if it's time to reconfigure
-can_reconfigure() {
-    local last_reconfig_file="/var/run/last-network-reconfig"
+# Check if we can do a quick reconfiguration
+can_quick_reconfig() {
+    local last_reconfig_file="/var/run/last-quick-reconfig"
     local current_time=$(date +%s)
     
     if [ -f "$last_reconfig_file" ]; then
         local last_time=$(cat "$last_reconfig_file")
         local elapsed=$((current_time - last_time))
         
-        if [ $elapsed -lt $RECONFIG_COOLDOWN ]; then
-            log_msg "Cooldown active: $((RECONFIG_COOLDOWN - elapsed))s remaining"
+        if [ $elapsed -lt $QUICK_RECONFIG_COOLDOWN ]; then
             return 1
         fi
     fi
@@ -102,16 +126,115 @@ can_reconfigure() {
     return 0
 }
 
-# Auto-configure network ports
-auto_configure_ports() {
-    log_msg "Triggering port auto-configuration"
+# Check if we can do a full reconfiguration
+can_full_reconfig() {
+    local last_reconfig_file="/var/run/last-full-reconfig"
+    local current_time=$(date +%s)
+    
+    if [ -f "$last_reconfig_file" ]; then
+        local last_time=$(cat "$last_reconfig_file")
+        local elapsed=$((current_time - last_time))
+        
+        if [ $elapsed -lt $FULL_RECONFIG_COOLDOWN ]; then
+            log_msg "Full reconfig cooldown: $((FULL_RECONFIG_COOLDOWN - elapsed))s remaining"
+            return 1
+        fi
+    fi
+    
+    echo "$current_time" > "$last_reconfig_file"
+    return 0
+}
+
+# Quickly reassign a single interface without full reconfiguration
+quick_reassign_interface() {
+    local iface="$1"
+    
+    log_msg "Quick reassigning interface $iface"
+    
+    # Check if interface has upstream internet
+    ip link set "$iface" up
+    sleep 2
+    
+    local has_upstream=0
+    if timeout 10 udhcpc -i "$iface" -n -q -s /dev/null 2>&1 | grep -q "obtained"; then
+        has_upstream=1
+        ip addr flush dev "$iface"
+    fi
+    
+    if [ $has_upstream -eq 1 ]; then
+        log_msg "$iface appears to have upstream internet - configuring as WAN"
+        
+        # Find next available WAN name
+        local wan_num=1
+        while uci -q get network.wan${wan_num} >/dev/null 2>&1; do
+            wan_num=$((wan_num + 1))
+        done
+        
+        local wan_name="wan"
+        [ $wan_num -gt 1 ] && wan_name="wan${wan_num}"
+        
+        # Remove from LAN bridge if present
+        local bridge_ports=$(uci -q get network.@device[0].ports)
+        local new_bridge_ports=$(echo "$bridge_ports" | sed "s/$iface//g" | xargs)
+        
+        if [ "$bridge_ports" != "$new_bridge_ports" ]; then
+            uci set network.@device[0].ports="$new_bridge_ports"
+            log_msg "Removed $iface from LAN bridge"
+        fi
+        
+        # Configure as WAN
+        uci -q batch <<-EOF
+			delete network.$wan_name
+			set network.$wan_name=interface
+			set network.$wan_name.device='$iface'
+			set network.$wan_name.proto='dhcp'
+			set network.$wan_name.metric='$((wan_num * 10))'
+			set network.$wan_name.multipath='on'
+		EOF
+        
+        uci commit network
+        ifup "$wan_name" 2>/dev/null &
+        
+    else
+        log_msg "$iface does not have upstream internet - ensuring it's in LAN"
+        
+        # Check if it's configured as WAN
+        local is_wan=0
+        for wan in $(uci show network | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
+            local wan_device=$(uci -q get network.$wan.device)
+            if [ "$wan_device" = "$iface" ]; then
+                log_msg "Removing $iface from WAN ($wan)"
+                uci delete network.$wan
+                is_wan=1
+            fi
+        done
+        
+        # Add to LAN bridge if not already there
+        local bridge_ports=$(uci -q get network.@device[0].ports)
+        if ! echo "$bridge_ports" | grep -qw "$iface"; then
+            local new_bridge_ports="$bridge_ports $iface"
+            uci set network.@device[0].ports="$(echo $new_bridge_ports | xargs)"
+            log_msg "Added $iface to LAN bridge"
+        fi
+        
+        uci commit network
+        
+        if [ $is_wan -eq 1 ]; then
+            /etc/init.d/network reload &
+        fi
+    fi
+}
+
+# Full port auto-configuration
+full_port_reconfig() {
+    log_msg "Triggering full port auto-configuration"
     
     # Remove the configuration marker to allow reconfiguration
     rm -f /etc/port-autoconfig-applied
     
     # Run port auto-config
     if [ -x /usr/bin/port-autoconfig.sh ]; then
-        /usr/bin/port-autoconfig.sh &
+        /usr/bin/port-autoconfig.sh
     else
         log_msg "WARNING: port-autoconfig.sh not found"
     fi
@@ -123,7 +246,7 @@ auto_configure_wifi() {
     
     # Check if any WiFi is enabled
     local wifi_enabled=0
-    for radio in $(uci show wireless | grep "wireless\.radio.*=wifi-device" | cut -d. -f2 | cut -d= -f1); do
+    for radio in $(uci show wireless 2>/dev/null | grep "wireless\.radio.*=wifi-device" | cut -d. -f2 | cut -d= -f1); do
         local disabled=$(uci -q get wireless.$radio.disabled)
         if [ "$disabled" != "1" ]; then
             wifi_enabled=1
@@ -145,14 +268,14 @@ check_wan_connectivity() {
     local wan_ok=0
     
     # Check each WAN interface
-    for wan in $(uci show network | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
+    for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
         local device=$(uci -q get network.$wan.device)
         
         if [ -n "$device" ]; then
             # Check if interface has IP
             if ip addr show dev "$device" 2>/dev/null | grep -q "inet "; then
                 # Try to ping gateway
-                local gateway=$(ip route show dev "$device" | grep "default" | awk '{print $3}')
+                local gateway=$(ip route show dev "$device" 2>/dev/null | grep "default" | awk '{print $3}')
                 if [ -n "$gateway" ]; then
                     if ping -c 1 -W 2 -I "$device" "$gateway" >/dev/null 2>&1; then
                         wan_ok=1
@@ -184,29 +307,31 @@ check_dhcp_server() {
     fi
 }
 
-# Monitor and recover from network issues
-monitor_and_recover() {
-    # Check WAN connectivity
-    if ! check_wan_connectivity; then
-        log_msg "WARNING: No WAN connectivity detected"
-        
-        # If we can reconfigure, try to detect ports again
-        if can_reconfigure; then
-            log_msg "Attempting to reconfigure network ports"
-            auto_configure_ports
-        fi
+# Handle network state change
+handle_network_change() {
+    local changed_ifaces="$1"
+    
+    log_msg "Handling network change for: $changed_ifaces"
+    
+    # If we can do a quick reconfig, handle individual interfaces
+    if can_quick_reconfig; then
+        for iface in $changed_ifaces; do
+            # Skip if it's not a physical interface
+            case "$iface" in
+                eth*|lan*|wan*)
+                    quick_reassign_interface "$iface"
+                    ;;
+            esac
+        done
+    else
+        log_msg "Quick reconfig cooldown active, will retry soon"
     fi
-    
-    # Ensure WiFi is configured
-    auto_configure_wifi
-    
-    # Ensure DHCP is running
-    check_dhcp_server
 }
 
 # Main monitoring loop
 main() {
     log_msg "Starting self-aware network monitor (PID: $$)"
+    log_msg "Response time: ${CHECK_INTERVAL}s, Quick reconfig: ${QUICK_RECONFIG_COOLDOWN}s"
     check_running
     
     # Wait for system to stabilize
@@ -218,7 +343,7 @@ main() {
     
     # Configure ports
     if [ ! -f /etc/port-autoconfig-applied ]; then
-        auto_configure_ports
+        full_port_reconfig
         sleep 10
     fi
     
@@ -229,7 +354,8 @@ main() {
     # Initialize state
     get_network_state > "$STATE_FILE"
     
-    log_msg "Entering monitoring loop (check interval: ${CHECK_INTERVAL}s)"
+    log_msg "Entering self-aware monitoring loop"
+    log_msg "System will auto-adjust to port changes immediately"
     
     # Main loop
     local loop_count=0
@@ -238,20 +364,39 @@ main() {
         loop_count=$((loop_count + 1))
         
         # Check if network state changed
-        if network_state_changed; then
+        local changed_ifaces=$(network_state_changed)
+        if [ -n "$changed_ifaces" ]; then
             log_msg "Network change detected (loop #$loop_count)"
             
-            # Wait a bit for things to stabilize
-            sleep 5
-            
-            # Try to recover/optimize
-            monitor_and_recover
+            # Immediate response to changes
+            handle_network_change "$changed_ifaces"
         fi
         
-        # Periodic health check every 10 loops
-        if [ $((loop_count % 10)) -eq 0 ]; then
+        # Periodic full check every 60 loops (~5 minutes at 5s intervals)
+        if [ $((loop_count % 60)) -eq 0 ]; then
             log_msg "Periodic health check (loop #$loop_count)"
-            monitor_and_recover
+            
+            # Check WAN connectivity
+            if ! check_wan_connectivity; then
+                log_msg "WARNING: No WAN connectivity detected"
+                
+                # If we can do a full reconfig, do it
+                if can_full_reconfig; then
+                    log_msg "Triggering full port reconfiguration"
+                    full_port_reconfig
+                fi
+            fi
+            
+            # Ensure WiFi is configured
+            auto_configure_wifi
+            
+            # Ensure DHCP is running
+            check_dhcp_server
+        fi
+        
+        # Quick DHCP check every 20 loops (~100 seconds)
+        if [ $((loop_count % 20)) -eq 0 ]; then
+            check_dhcp_server
         fi
     done
 }
