@@ -9,13 +9,13 @@ The easiest way to set up your VPS is using our **self-contained installation wi
 ### Method 1: One-Line Install (Recommended)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/wizard.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/wizard.sh | sudo bash
 ```
 
 ### Method 2: Download and Run
 
 ```bash
-wget https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/wizard.sh
+wget https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/wizard.sh
 chmod +x wizard.sh
 sudo ./wizard.sh
 ```
@@ -122,7 +122,7 @@ This is the comprehensive installation script with all features.
 Alternative method that downloads and runs the full installer:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash
 ```
 
 ## Troubleshooting

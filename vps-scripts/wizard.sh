@@ -8,12 +8,12 @@
 # Just download and run: No external dependencies during installation!
 #
 # Usage:
-#   wget https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/wizard.sh
+#   wget https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/wizard.sh
 #   chmod +x wizard.sh
 #   sudo ./wizard.sh
 #
 # Or one-liner:
-#   curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/wizard.sh | sudo bash
+#   curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/wizard.sh | sudo bash
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
@@ -134,7 +134,7 @@ VPS_PUBLIC_IP=$(curl -4 -s --max-time 5 ifconfig.me 2>/dev/null || curl -4 -s --
 
 if [ -z "$VPS_PUBLIC_IP" ]; then
     print_warning "Could not auto-detect public IP"
-    read -p "Please enter your VPS public IP address: " VPS_PUBLIC_IP
+    read -p "Please enter your VPS public IP address: " VPS_PUBLIC_IP < /dev/tty
     if [ -z "$VPS_PUBLIC_IP" ]; then
         print_error "VPS public IP is required"
     fi
@@ -185,7 +185,7 @@ echo ""
 echo -e "${YELLOW}Estimated time: 5-10 minutes${NC}"
 echo ""
 
-read -p "Continue with installation? [Y/n]: " -r
+read -p "Continue with installation? [Y/n]: " -r < /dev/tty
 # Default to yes if empty (user just presses Enter)
 REPLY=${REPLY:-Y}
 if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$|^[Yy]$ ]]; then

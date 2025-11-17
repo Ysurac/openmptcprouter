@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # OpenMPTCProuter Optimized - One-Command Easy Install
-# Just run: curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | bash
+# Just run: curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | bash
 #
 
 set -e
@@ -43,7 +43,7 @@ echo ""
 # Check root
 if [ "$(id -u)" -ne 0 ]; then 
     echo -e "${RED}Please run as root or with sudo:${NC}"
-    echo -e "${CYAN}curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash${NC}"
+    echo -e "${CYAN}curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash${NC}"
     exit 1
 fi
 
@@ -67,7 +67,7 @@ VPS_IP=$(curl -4 -s --max-time 5 ifconfig.me 2>/dev/null || curl -4 -s --max-tim
 
 if [ "$VPS_IP" = "Unable to detect" ]; then
     echo -e "${YELLOW}Could not auto-detect IP. Please enter manually:${NC}"
-    read -p "VPS Public IP: " VPS_IP
+    read -p "VPS Public IP: " VPS_IP < /dev/tty
 fi
 
 echo -e "${BLUE}│${NC} Public IP: ${GREEN}$VPS_IP${NC}"
@@ -86,7 +86,7 @@ echo "  ✓ Generate secure passwords"
 echo "  ✓ Create easy router configuration"
 echo "  ✓ Generate setup webpage"
 echo ""
-read -p "Continue? (Y/n): " -n 1 -r
+read -p "Continue? (Y/n): " -n 1 -r < /dev/tty
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ ! -z $REPLY ]]; then
     echo -e "${YELLOW}Installation cancelled.${NC}"
@@ -105,7 +105,7 @@ cd $TEMP_DIR
 
 # Download and run the full installer
 echo -e "${CYAN}[1/3]${NC} Downloading installer..."
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/omr-vps-install.sh -o installer.sh
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/omr-vps-install.sh -o installer.sh
 chmod +x installer.sh
 
 echo -e "${CYAN}[2/3]${NC} Running installation (this may take 5-10 minutes)..."

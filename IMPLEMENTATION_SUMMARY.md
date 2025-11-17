@@ -108,7 +108,7 @@ This document summarizes all the work completed to transform OpenMPTCProuter int
 
 **Installation:**
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash
 ```
 
 **Features:**
@@ -214,7 +214,7 @@ openmptcprouter/
 
 **VPS Setup:**
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash
 ```
 
 Then open `http://YOUR_VPS_IP:8080` in browser and follow the 3-step guide.

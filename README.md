@@ -53,7 +53,7 @@ OpenMPTCProuter Optimized VPS configuration is based on: [https://github.com/Ysu
 
 **Method 1: VPS Installation Wizard (Recommended - Self-Contained)**
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/wizard.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/wizard.sh | sudo bash
 ```
 Output: Complete VPS setup with web interface at http://VPS_IP:8080
 - ✅ No external downloads during installation
@@ -63,13 +63,13 @@ Output: Complete VPS setup with web interface at http://VPS_IP:8080
 
 **Method 2: Auto-Pairing (Get pairing code for router)**
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/auto-pair.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/auto-pair.sh | sudo bash
 ```
 Output: Pairing code to use in router wizard
 
 **Method 3: Easy Install (Web interface)**
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash
 ```
 Output: Web page at http://VPS_IP:8080
 
@@ -80,7 +80,7 @@ Output: Web page at http://VPS_IP:8080
 
 **Manual (if wizard skipped):**
 ```bash
-curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/client-auto-setup.sh | sh -s VPS_IP PASSWORD
+curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/client-auto-setup.sh | sh -s VPS_IP PASSWORD
 ```
 
 **Web Interface:**

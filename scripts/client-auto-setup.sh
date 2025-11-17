@@ -4,7 +4,7 @@
 # Run this script on your OpenMPTCProuter router for automatic configuration
 #
 # Usage: 
-#   curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/client-auto-setup.sh | sh -s YOUR_VPS_IP YOUR_PASSWORD
+#   curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/client-auto-setup.sh | sh -s YOUR_VPS_IP YOUR_PASSWORD
 #
 
 set -e
@@ -47,13 +47,13 @@ if [ -z "$VPS_IP" ]; then
     
     echo -e "${CYAN}Enter your VPS details:${NC}"
     printf "VPS IP Address: "
-    read VPS_IP
+    read VPS_IP < /dev/tty
     
     printf "VPS Password: "
-    read VPS_PASSWORD
+    read VPS_PASSWORD < /dev/tty
     
     printf "VPS Port (default 65500): "
-    read VPS_PORT_INPUT
+    read VPS_PORT_INPUT < /dev/tty
     VPS_PORT="${VPS_PORT_INPUT:-65500}"
 fi
 
@@ -79,7 +79,7 @@ echo ""
 
 # Confirm
 printf "${YELLOW}Proceed with configuration? (Y/n): ${NC}"
-read CONFIRM
+read CONFIRM < /dev/tty
 if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
     echo -e "${YELLOW}Configuration cancelled.${NC}"
     exit 0

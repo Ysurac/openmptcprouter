@@ -50,7 +50,7 @@ jobs:
         Download and run the installation script:
         
         ```bash
-        curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+        curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash
         ```
         
         ## Auto-Pairing
@@ -58,7 +58,7 @@ jobs:
         For automatic pairing with client:
         
         ```bash
-        curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/auto-pair.sh | sudo bash
+        curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/auto-pair.sh | sudo bash
         ```
         
         ## Manual Installation
