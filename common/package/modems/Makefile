@@ -15,7 +15,13 @@ include $(INCLUDE_DIR)/package.mk
 define Package/modems
 	SECTION:=utils
 	CATEGORY:=Utilities
-	TITLE:=3G/4G modem list
+	TITLE:=3G/4G/5G modem list and optimization tools
+	DEPENDS:=+uqmi +umbim +comgt
+endef
+
+define Package/modems/description
+	Modem configuration database and optimization scripts for 3G/4G/5G modems.
+	Includes specific optimizations for Quectel RM551E-GL and other 5G modems.
 endef
 
 define Build/Compile
@@ -34,6 +40,17 @@ define Package/modems/install
 		NEWNAME=$$$${FILENAME//-/:} ; \
 		mv "$(1)/lib/network/wwan/$$$$FILENAME" "$(1)/lib/network/wwan/$$$$NEWNAME" ; \
 	done
+	
+	# Install modem optimization scripts
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) ./files/modem-ca-optimize.sh $(1)/usr/bin/modem-ca-optimize.sh
+	$(INSTALL_BIN) ./files/rm551e-init.sh $(1)/usr/bin/rm551e-init.sh
+	
+	# Install init scripts
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/usb
+	echo '#!/bin/sh' > $(1)/etc/hotplug.d/usb/99-modem-init
+	echo '[ "$$ACTION" = "add" ] && [ "$$PRODUCT" = "2c7c/800/*" -o "$$PRODUCT" = "2c7c/801/*" -o "$$PRODUCT" = "2c7c/900/*" -o "$$PRODUCT" = "2c7c/901/*" ] && /usr/bin/rm551e-init.sh &' >> $(1)/etc/hotplug.d/usb/99-modem-init
+	chmod +x $(1)/etc/hotplug.d/usb/99-modem-init
 endef
 
 $(eval $(call BuildPackage,modems))

@@ -2,53 +2,106 @@
 # Carrier Aggregation Optimization Script for 5G Modems
 # Optimizes Quectel RM551E-GL and other 5G modems for maximum CA performance
 
-set_modem_ca_optimization() {
+# Function to send AT command and wait for response
+send_at_command() {
     local device="$1"
+    local command="$2"
+    local timeout="${3:-2}"
     
-    # Enable 5G NR carrier aggregation
-    echo "AT+QNWCFG=\"nr5g_carrier_aggregation\",1" > "$device"
-    sleep 1
+    # Send command
+    echo "$command" > "$device"
+    sleep "$timeout"
     
-    # Enable EN-DC (E-UTRA-NR Dual Connectivity)
-    echo "AT+QNWCFG=\"endc\",1" > "$device"
-    sleep 1
-    
-    # Set maximum bandwidth aggregation
-    echo "AT+QNWCFG=\"nr5g_bandwidth\",\"auto\"" > "$device"
-    sleep 1
-    
-    # Enable all carrier aggregation combinations
-    echo "AT+QNWCFG=\"lte_ca\",1" > "$device"
-    sleep 1
-    
-    # Optimize data throughput settings
-    echo "AT+QMAP=\"MPENABLE\",1" > "$device"
-    sleep 1
-    
-    # Enable data aggregation
-    echo "AT+QCFG=\"data_aggregation\",1" > "$device"
-    sleep 1
-    
-    # Set URB size for optimal throughput
-    echo "AT+QCFG=\"usbnet\",3" > "$device"  # MBIM mode with data aggregation
-    sleep 1
-    
-    # Enable flow control for better stability
-    echo "AT+IFC=2,2" > "$device"
-    sleep 1
-    
-    logger -t modem_ca "Carrier aggregation optimizations applied to $device"
+    logger -t modem_ca "Sent command: $command to $device"
 }
 
+# Function to detect modem model
+detect_modem_model() {
+    local device="$1"
+    local response
+    
+    # Query modem information
+    echo "ATI" > "$device"
+    sleep 1
+    response=$(timeout 2 cat "$device" 2>/dev/null | head -n 5)
+    
+    echo "$response"
+}
+
+set_modem_ca_optimization() {
+    local device="$1"
+    local model_info="$2"
+    
+    logger -t modem_ca "Optimizing modem on $device: $model_info"
+    
+    # RM551E specific optimizations
+    if echo "$model_info" | grep -qi "RM551E\|RM551"; then
+        logger -t modem_ca "Detected RM551E modem, applying enhanced settings"
+        
+        # Reset to known state
+        send_at_command "$device" "AT+CFUN=0" 2
+        
+        # Configure USB mode for optimal performance
+        # Mode 3 = QMI, Mode 1 = MBIM, Mode 0 = RNDIS
+        send_at_command "$device" "AT+QCFG=\"usbnet\",0" 2
+        
+        # Enable 5G NR carrier aggregation
+        send_at_command "$device" "AT+QNWCFG=\"nr5g_carrier_aggregation\",1" 1
+        
+        # Enable EN-DC (E-UTRA-NR Dual Connectivity)
+        send_at_command "$device" "AT+QNWCFG=\"endc\",1" 1
+        
+        # Set maximum bandwidth aggregation
+        send_at_command "$device" "AT+QNWCFG=\"nr5g_bandwidth\",\"auto\"" 1
+        
+        # Enable all LTE carrier aggregation combinations
+        send_at_command "$device" "AT+QNWCFG=\"lte_ca\",1" 1
+        
+        # Enable data aggregation with optimized URB size
+        send_at_command "$device" "AT+QCFG=\"data_aggregation\",1,32768,64" 1
+        
+        # Set network search mode (auto LTE/5G)
+        send_at_command "$device" "AT+QNWPREFCFG=\"mode_pref\",AUTO" 1
+        
+        # Enable flow control for better stability
+        send_at_command "$device" "AT+IFC=2,2" 1
+        
+        # Optimize for low latency
+        send_at_command "$device" "AT+QCFG=\"nat\",1" 1
+        
+        # Enable function
+        send_at_command "$device" "AT+CFUN=1" 3
+        
+        logger -t modem_ca "RM551E optimizations completed on $device"
+    else
+        # Generic Quectel 5G optimizations
+        logger -t modem_ca "Applying generic 5G optimizations"
+        
+        send_at_command "$device" "AT+QNWCFG=\"nr5g_carrier_aggregation\",1" 1
+        send_at_command "$device" "AT+QNWCFG=\"endc\",1" 1
+        send_at_command "$device" "AT+QNWCFG=\"nr5g_bandwidth\",\"auto\"" 1
+        send_at_command "$device" "AT+QNWCFG=\"lte_ca\",1" 1
+        send_at_command "$device" "AT+IFC=2,2" 1
+        
+        logger -t modem_ca "Generic optimizations completed on $device"
+    fi
+}
+
+# Main execution
+logger -t modem_ca "Starting modem optimization scan"
+
 # Detect Quectel modems
-for device in /dev/ttyUSB*; do
-    if [ -e "$device" ]; then
+for device in /dev/ttyUSB* /dev/cdc-wdm*; do
+    if [ -c "$device" ]; then
         # Check if it's a Quectel modem
-        response=$(echo "ATI" > "$device" 2>&1)
-        if echo "$response" | grep -qi "Quectel"; then
-            set_modem_ca_optimization "$device"
+        model_info=$(detect_modem_model "$device")
+        if echo "$model_info" | grep -qi "Quectel"; then
+            logger -t modem_ca "Found Quectel modem at $device"
+            set_modem_ca_optimization "$device" "$model_info"
+            break  # Only configure the first modem found
         fi
     fi
 done
 
+logger -t modem_ca "Modem optimization scan completed"
 exit 0

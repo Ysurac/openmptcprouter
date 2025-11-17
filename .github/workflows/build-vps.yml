@@ -1,0 +1,81 @@
+name: Build VPS Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      vps_type:
+        description: 'VPS distribution type'
+        required: true
+        type: choice
+        options:
+          - 'debian'
+          - 'ubuntu'
+          - 'all'
+        default: 'all'
+
+jobs:
+  build-vps:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Build VPS setup scripts
+      run: |
+        echo "Building VPS installation package..."
+        cd vps-scripts
+        
+        # Create VPS package
+        mkdir -p ../vps-build
+        cp -r * ../vps-build/
+        
+        # Package the installation scripts
+        cd ../vps-build
+        tar -czf ../omr-vps-install-${{ github.sha }}.tar.gz *
+        
+    - name: Upload VPS artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: vps-install-package
+        path: omr-vps-install-*.tar.gz
+        
+    - name: Create installation documentation
+      run: |
+        cat > VPS_INSTALL_README.md << 'EOF'
+        # OpenMPTCProuter VPS Installation
+        
+        ## Quick Install
+        
+        Download and run the installation script:
+        
+        ```bash
+        curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/easy-install.sh | sudo bash
+        ```
+        
+        ## Auto-Pairing
+        
+        For automatic pairing with client:
+        
+        ```bash
+        curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/scripts/auto-pair.sh | sudo bash
+        ```
+        
+        ## Manual Installation
+        
+        1. Download the VPS package from the artifacts
+        2. Extract: `tar -xzf omr-vps-install-*.tar.gz`
+        3. Run: `sudo bash omr-vps-install.sh`
+        
+        ## Supported Platforms
+        
+        - Debian 10, 11, 12
+        - Ubuntu 20.04, 22.04, 24.04
+        
+        EOF
+        
+    - name: Upload documentation
+      uses: actions/upload-artifact@v4
+      with:
+        name: vps-documentation
+        path: VPS_INSTALL_README.md
