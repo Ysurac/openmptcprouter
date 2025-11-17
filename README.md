@@ -249,12 +249,35 @@ openmptcprouter/
 
 ### Building Images
 
+#### On-Demand Builds via GitHub Actions 🆕
+
+You can now trigger builds on-demand directly from GitHub:
+
+1. Go to the [Actions tab](https://github.com/spotty118/openmptcprouter/actions)
+2. Select "Build OpenMPTCProuter Optimized Images" workflow
+3. Click "Run workflow"
+4. Choose your options:
+   - **Target platform**: Select specific device or "all"
+   - **Kernel version**: Choose 6.6, 6.12, or "all"
+5. Click "Run workflow" to start the build
+
+**Client Images** are built automatically for all supported platforms.
+
+**VPS Images** can be built using the "Build VPS Images" workflow:
+1. Go to the [Actions tab](https://github.com/spotty118/openmptcprouter/actions)
+2. Select "Build VPS Images" workflow
+3. Click "Run workflow" and select distribution type
+4. Download artifacts when complete
+
 Images are automatically built via GitHub Actions when you push code.
 
-Manual build:
+#### Local Manual Build
+
 ```bash
 OMR_TARGET=x86_64 OMR_KERNEL=6.12 ./build.sh
 ```
+
+Supported targets: bpi-r4, bpi-r4-poe, rpi4, rpi5, x86_64, and [many more](https://github.com/spotty118/openmptcprouter/blob/main/.github/workflows/build.yml#L11)
 
 ### Testing Changes
 
@@ -263,6 +286,25 @@ OMR_TARGET=x86_64 OMR_KERNEL=6.12 ./build.sh
 3. Flash image to hardware
 4. Verify functionality
 5. Submit pull request
+
+### Hardware-Specific Features
+
+#### Quectel RM551E-GL 5G Modem Support
+
+Full support for Quectel RM551E-GL modems with automatic detection and optimization:
+
+- **Automatic Configuration**: Hotplug detection and initialization
+- **Multiple USB Modes**: QMI (recommended), MBIM, RNDIS, NCM
+- **Carrier Aggregation**: Up to 4 bands with EN-DC support
+- **Performance Tuning**: Optimized URB sizes and data aggregation
+
+See [RM551E Documentation](common/package/modems/src/README_RM551E.md) for details.
+
+**Supported Product IDs:**
+- 2c7c:0800 (MBIM mode)
+- 2c7c:0801 (QMI mode - recommended)
+- 2c7c:0900 (RNDIS mode)
+- 2c7c:0901 (NCM mode)
 
 ## Support & Community
 

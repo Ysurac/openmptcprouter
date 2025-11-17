@@ -1,5 +1,55 @@
 name: Build OpenMPTCProuter Optimized Images
-on: [push]
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target platform (leave empty for all)'
+        required: false
+        type: choice
+        options:
+          - 'all'
+          - 'bpi-r1'
+          - 'bpi-r2'
+          - 'bpi-r3'
+          - 'bpi-r4'
+          - 'bpi-r4-poe'
+          - 'bpi-r64'
+          - 'rpi2'
+          - 'rpi3'
+          - 'rpi4'
+          - 'rpi5'
+          - 'wrt3200acm'
+          - 'wrt32x'
+          - 'espressobin'
+          - 'r2s'
+          - 'r4s'
+          - 'r5s'
+          - 'r5c'
+          - 'r7800'
+          - 'rutx12'
+          - 'rutx50'
+          - 'qnap-301w'
+          - 'ubnt-erx'
+          - 'x86'
+          - 'x86_64'
+          - 'z8102ax_128m'
+          - 'z8102ax_64m'
+          - 'z8102ax-emmc'
+          - 'z8109ax_128m'
+          - 'gl-mt2500'
+          - 'gl-mt3000'
+          - 'gl-mt6000'
+        default: 'all'
+      kernel:
+        description: 'Kernel version (leave empty for all)'
+        required: false
+        type: choice
+        options:
+          - 'all'
+          - '6.6'
+          - '6.12'
+        default: 'all'
 
 env:
   REPO_URL: 'https://github.com/spotty118/openmptcprouter'
@@ -8,8 +58,8 @@ jobs:
   build:
     strategy:
       matrix:
-        OMR_TARGET: [bpi-r1, bpi-r2, bpi-r3, bpi-r4, bpi-r4-poe, bpi-r64, rpi2, rpi4, wrt32x, espressobin, r2s, rpi3, wrt3200acm, x86, x86_64, ubnt-erx, r4s, r7800, rutx12, rutx50, r5s, qnap-301w, rpi5, z8102ax_128m, z8102ax_64m, z8102ax-emmc, gl-mt6000, gl-mt3000, gl-mt2500, r5c, z8109ax_128m]
-        OMR_KERNEL: [6.6, 6.12]
+        OMR_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target != 'all' && fromJSON(format('["{0}"]', github.event.inputs.target)) || fromJSON('["bpi-r1", "bpi-r2", "bpi-r3", "bpi-r4", "bpi-r4-poe", "bpi-r64", "rpi2", "rpi4", "wrt32x", "espressobin", "r2s", "rpi3", "wrt3200acm", "x86", "x86_64", "ubnt-erx", "r4s", "r7800", "rutx12", "rutx50", "r5s", "qnap-301w", "rpi5", "z8102ax_128m", "z8102ax_64m", "z8102ax-emmc", "gl-mt6000", "gl-mt3000", "gl-mt2500", "r5c", "z8109ax_128m"]') }}
+        OMR_KERNEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.kernel != 'all' && fromJSON(format('["{0}"]', github.event.inputs.kernel)) || fromJSON('["6.6", "6.12"]') }}
     runs-on: ubuntu-latest
     continue-on-error: true
 
