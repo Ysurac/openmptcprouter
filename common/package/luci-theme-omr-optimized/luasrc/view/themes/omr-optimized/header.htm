@@ -1,0 +1,99 @@
+<%#
+ OpenMPTCProuter Optimized Theme
+ Copyright 2025 OpenMPTCProuter Optimized
+ Licensed under GPL-3.0
+-%>
+<%
+	local sys = require "luci.sys"
+	local util = require "luci.util"
+	local http = require "luci.http"
+	local disp = require "luci.dispatcher"
+	
+	local hostname = sys.hostname()
+	local node = disp.context.requested
+	local categories = disp.node_childs(disp.context.tree)
+-%>
+<!DOCTYPE html>
+<html lang="<%=luci.i18n.context.lang%>">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="format-detection" content="telephone=no, email=no"/>
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="x5-fullscreen" content="true">
+	<meta name="full-screen" content="yes">
+	<meta name="x5-page-mode" content="app">
+	<meta name="browsermode" content="application">
+	<meta name="theme-color" content="#667eea">
+	<meta name="msapplication-tap-highlight" content="no">
+	<meta name="renderer" content="webkit">
+	
+	<title><%=striptags( (boardinfo.hostname or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %> - LuCI</title>
+	
+	<link rel="stylesheet" href="<%=media%>/cascade.css">
+	<link rel="stylesheet" href="<%=media%>/css/utilities.css">
+	<link rel="stylesheet" href="<%=media%>/css/components.css">
+	<link rel="shortcut icon" href="<%=media%>/images/favicon.ico">
+	<% if node and node.css then %>
+		<link rel="stylesheet" href="<%=resource%>/<%=node.css%>">
+	<% end %>
+	<script src="<%=resource%>/cbi.js"></script>
+	<script src="<%=media%>/js/theme.js"></script>
+</head>
+<body class="lang_<%=luci.i18n.context.lang%> <% if node then %><%= striptags( node.title ) %>-page<% end %>" data-page="<%= pcdata(table.concat(disp.context.path, "-")) %>">
+	<header class="header" role="banner">
+		<div class="container">
+			<a href="<%=controller%>/admin/status/overview" class="brand" aria-label="Home">
+				<div class="brand-icon" aria-hidden="true">🚀</div>
+				<span><%=striptags(hostname or "?")%></span>
+			</a>
+			<nav class="header-actions" role="navigation" aria-label="Header actions">
+				<% if luci.dispatcher.context.authsession then %>
+					<a href="<%=controller%>/admin/logout" class="btn-logout" title="<%:Logout%>" aria-label="<%:Logout%>">
+						<span class="icon-logout" aria-hidden="true">🚪</span>
+						<span class="btn-text"><%:Logout%></span>
+					</a>
+				<% end %>
+			</nav>
+		</div>
+	</header>
+
+	<% if categories then %>
+	<nav class="main-menu" role="navigation" aria-label="Main navigation">
+		<ul>
+			<% for i, k in ipairs(categories) do %>
+				<% local cat = disp.node(disp.context.tree, k) %>
+				<% if cat.title then %>
+					<li<% if disp.context.path[1] == k then %> class="active"<% end %>>
+						<a href="<%=controller%>/<%=k%>"><%=striptags(cat.title)%></a>
+						<% local nodes = disp.node_childs(cat) %>
+						<% if #nodes > 0 then %>
+							<ul>
+								<% for j, n in ipairs(nodes) do %>
+									<% local node = cat.nodes[n] %>
+									<% if node.title then %>
+										<li<% if disp.context.path[2] == n then %> class="active"<% end %>>
+											<a href="<%=controller%>/<%=k%>/<%=n%>"><%=striptags(node.title)%></a>
+										</li>
+									<% end %>
+								<% end %>
+							</ul>
+						<% end %>
+					</li>
+				<% end %>
+			<% end %>
+		</ul>
+	</nav>
+	<% end %>
+
+	<main class="main-content" role="main">
+		<% if node and node.title then %>
+			<h1 class="page-title"><%=striptags(node.title)%></h1>
+		<% end %>
+		<noscript>
+			<div class="alert alert-warning" role="alert">
+				<strong><%:JavaScript required!%></strong><br>
+				<%:You must enable JavaScript in your browser or LuCI will not work properly.%>
+			</div>
+		</noscript>
