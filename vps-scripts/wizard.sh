@@ -8,12 +8,12 @@
 # Just download and run: No external dependencies during installation!
 #
 # Usage:
-#   wget https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/wizard.sh
+#   wget https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/wizard.sh
 #   chmod +x wizard.sh
 #   sudo ./wizard.sh
 #
 # Or one-liner:
-#   curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/main/vps-scripts/wizard.sh | sudo bash
+#   curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/vps-scripts/wizard.sh | sudo bash
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
