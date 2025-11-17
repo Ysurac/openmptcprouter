@@ -62,7 +62,6 @@ fi
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
 fi
-fi
 
 if [ "$OMR_TARGET" = "rpi4" ]; then
 	OMR_REAL_TARGET="aarch64_cortex-a72"
