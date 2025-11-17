@@ -61,6 +61,10 @@ CONFIG_KERNEL_NAMESPACES=y
 CONFIG_KERNEL_NET_NS=y
 CONFIG_KERNEL_PID_NS=y
 # CONFIG_KERNEL_SWAP is not set
+CONFIG_KERNEL_PANIC_ON_OOPS=y
+CONFIG_KERNEL_PANIC_TIMEOUT=10
+CONFIG_KERNEL_PRINTK=y
+CONFIG_KERNEL_EARLY_PRINTK=y
 CONFIG_KERNEL_USER_NS=y
 CONFIG_KERNEL_UTS_NS=y
 # CONFIG_PACKAGE_dnsmasq is not set
@@ -122,6 +126,8 @@ CONFIG_PACKAGE_kmod-usb-net-rtl8152=m
 CONFIG_PACKAGE_kmod-usb-net-sierrawireless=y
 CONFIG_PACKAGE_kmod-usb-net-smsc95xx=y
 CONFIG_PACKAGE_kmod-usb-net-sr9700=y
+CONFIG_PACKAGE_kmod-usb-net-aqc111=y
+CONFIG_PACKAGE_kmod-usb-net-pl=y
 CONFIG_PACKAGE_kmod-usb-serial=y
 CONFIG_PACKAGE_kmod-usb-serial-ark3116=y
 CONFIG_PACKAGE_kmod-usb-serial-belkin=y
@@ -155,6 +161,7 @@ CONFIG_PACKAGE_kmod-atl1=y
 CONFIG_PACKAGE_kmod-atl1c=y
 CONFIG_PACKAGE_kmod-atl1e=y
 CONFIG_PACKAGE_kmod-atl2=y
+CONFIG_PACKAGE_kmod-atlantic=y
 CONFIG_PACKAGE_kmod-b44=y
 CONFIG_PACKAGE_kmod-bnx2=y
 CONFIG_PACKAGE_kmod-dm9000=y
@@ -167,6 +174,7 @@ CONFIG_PACKAGE_kmod-forcedeth=y
 CONFIG_PACKAGE_kmod-gigaset=y
 CONFIG_PACKAGE_kmod-hfcmulti=y
 CONFIG_PACKAGE_kmod-hfcpci=y
+CONFIG_PACKAGE_kmod-igc=y
 CONFIG_PACKAGE_kmod-natsemi=y
 CONFIG_PACKAGE_kmod-ne2k-pci=y
 CONFIG_PACKAGE_kmod-of-mdio=y
@@ -194,6 +202,22 @@ CONFIG_PACKAGE_kmod-vmxnet3=y
 # CONFIG_PACKAGE_kmod-xr-usb-serial is not set
 CONFIG_PACKAGE_kmod-fs-vfat=y
 CONFIG_PACKAGE_kmod-macremapper=m
+CONFIG_PACKAGE_kmod-macvtap=y
+# Enhanced Multi-WAN Bonding Support
+CONFIG_PACKAGE_kmod-bonding=y
+CONFIG_PACKAGE_kmod-team=y
+CONFIG_PACKAGE_kmod-ipvlan=y
+# Network traffic shaping for multi-WAN
+CONFIG_PACKAGE_kmod-sched-core=y
+CONFIG_PACKAGE_kmod-sched-cake=y
+CONFIG_PACKAGE_kmod-sched-connmark=y
+CONFIG_PACKAGE_kmod-netem=y
+# Advanced routing and policy-based routing
+CONFIG_PACKAGE_kmod-ipt-conntrack-extra=y
+CONFIG_PACKAGE_kmod-ipt-ipmark=y
+CONFIG_PACKAGE_kmod-ipt-raw=y
+# Connection tracking enhancements
+CONFIG_PACKAGE_kmod-nf-conntrack-netlink=y
 CONFIG_TARGET_IMAGES_PAD=y
 CONFIG_TARGET_ROOTFS_EXT4=y
 CONFIG_KERNEL_TCP_CONG_CDG=y
