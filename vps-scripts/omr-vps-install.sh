@@ -51,7 +51,7 @@ GLORYTUN_PASS=${GLORYTUN_PASS:-$(od -vN "32" -An -tx1 /dev/urandom | tr '[:lower
 MLVPN_PASS=${MLVPN_PASS:-$(head -c 32 /dev/urandom | base64 -w0)}
 DSVPN_PASS=${DSVPN_PASS:-$(od -vN "32" -An -tx1 /dev/urandom | tr '[:lower:]' '[:upper:]' | tr -d " \n")}
 OMR_ADMIN_PASS=${OMR_ADMIN_PASS:-$(od -vN "32" -An -tx1 /dev/urandom | tr '[:lower:]' '[:upper:]' | tr -d " \n")}
-V2RAY_UUID=${V2RAY_UUID:-$(cat /proc/sys/kernel/random/uuid | tr -d "\n")}
+V2RAY_UUID=${V2RAY_UUID:-$(tr -d "\n" < /proc/sys/kernel/random/uuid)}
 XRAY_UUID=${XRAY_UUID:-$V2RAY_UUID}
 
 VPS_PUBLIC_IP=${VPS_PUBLIC_IP:-$(curl -4 -s ifconfig.me || curl -4 -s icanhazip.com)}
@@ -263,7 +263,7 @@ sysctl -p /etc/sysctl.d/99-openmptcprouter.conf > /dev/null
 echo -e "${GREEN}Step 4/6: Configuring firewall rules...${NC}"
 
 # Backup existing iptables rules
-iptables-save > /root/iptables-backup-$(date +%Y%m%d-%H%M%S).rules 2>/dev/null || true
+iptables-save > "/root/iptables-backup-$(date +%Y%m%d-%H%M%S).rules" 2>/dev/null || true
 
 # Basic firewall configuration
 cat > /etc/iptables/rules.v4 << 'IPTABLES'

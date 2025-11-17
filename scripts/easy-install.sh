@@ -67,7 +67,7 @@ VPS_IP=$(curl -4 -s --max-time 5 ifconfig.me 2>/dev/null || curl -4 -s --max-tim
 
 if [ "$VPS_IP" = "Unable to detect" ]; then
     echo -e "${YELLOW}Could not auto-detect IP. Please enter manually:${NC}"
-    read -p "VPS Public IP: " VPS_IP < /dev/tty
+    read -r -p "VPS Public IP: " VPS_IP < /dev/tty
 fi
 
 echo -e "${BLUE}│${NC} Public IP: ${GREEN}$VPS_IP${NC}"
@@ -88,7 +88,7 @@ echo "  ✓ Generate setup webpage"
 echo ""
 read -p "Continue? (Y/n): " -n 1 -r < /dev/tty
 echo
-if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ ! -z $REPLY ]]; then
+if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ -n $REPLY ]]; then
     echo -e "${YELLOW}Installation cancelled.${NC}"
     exit 0
 fi
@@ -101,7 +101,7 @@ echo ""
 
 # Create temp directory for downloads
 TEMP_DIR=$(mktemp -d)
-cd $TEMP_DIR
+cd "$TEMP_DIR"
 
 # Download and run the full installer
 echo -e "${CYAN}[1/3]${NC} Downloading installer..."
@@ -399,7 +399,7 @@ systemctl restart omr-setup-web
 
 # Cleanup
 cd /
-rm -rf $TEMP_DIR
+rm -rf "$TEMP_DIR"
 
 clear
 

@@ -72,7 +72,7 @@ if [ "$DEVICE_TYPE" = "vps" ]; then
     
     if [ -z "$VPS_IP" ]; then
         echo -e "${YELLOW}Could not auto-detect IP. Please enter manually:${NC}"
-        read -p "VPS Public IP: " VPS_IP < /dev/tty
+        read -r -p "VPS Public IP: " VPS_IP < /dev/tty
     fi
     
     echo -e "${CYAN}Detected VPS IP:${NC} ${GREEN}$VPS_IP${NC}"
@@ -148,7 +148,7 @@ ENDSS
     iptables -A INPUT -p tcp --dport 9999 -j ACCEPT
     
     # NAT for VPN
-    iptables -t nat -A POSTROUTING -o $INTERFACE -j MASQUERADE
+    iptables -t nat -A POSTROUTING -o "$INTERFACE" -j MASQUERADE
     
     # Start services
     systemctl enable shadowsocks-libev-server@config > /dev/null 2>&1 || true
@@ -319,9 +319,7 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
         echo -e "${CYAN}Decoding pairing code...${NC}"
         
         # Decode pairing code
-        PAIRING_JSON=$(echo "$PAIRING_CODE" | base64 -d 2>/dev/null)
-        
-        if [ $? -eq 0 ]; then
+        if PAIRING_JSON=$(echo "$PAIRING_CODE" | base64 -d 2>/dev/null); then
             VPS_IP=$(echo "$PAIRING_JSON" | grep -o '"ip":"[^"]*' | cut -d'"' -f4)
             VPS_PORT=$(echo "$PAIRING_JSON" | grep -o '"port":[0-9]*' | cut -d':' -f2)
             VPS_PASS=$(echo "$PAIRING_JSON" | grep -o '"pass":"[^"]*' | cut -d'"' -f4)
@@ -339,14 +337,12 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
         echo ""
         
         echo -e "${YELLOW}Enter your VPS IP for auto-discovery:${NC}"
-        read VPS_IP < /dev/tty
+        read -r VPS_IP < /dev/tty
         
         echo -e "${CYAN}Fetching configuration from VPS...${NC}"
         
         # Try to fetch config from VPS
-        CONFIG_JSON=$(curl -s --max-time 10 "http://$VPS_IP:9999/pair.json" 2>/dev/null)
-        
-        if [ $? -eq 0 ] && [ -n "$CONFIG_JSON" ]; then
+        if CONFIG_JSON=$(curl -s --max-time 10 "http://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
             VPS_PORT=$(echo "$CONFIG_JSON" | grep -o '"server_port":[0-9]*' | cut -d':' -f2)
             VPS_PASS=$(echo "$CONFIG_JSON" | grep -o '"password":"[^"]*' | cut -d'"' -f4)
             
@@ -355,9 +351,9 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
             echo -e "${RED}Error: Could not auto-discover VPS configuration${NC}"
             echo ""
             echo -e "${YELLOW}Please use pairing code or enter manually:${NC}"
-            read -p "VPS Port (default 65500): " VPS_PORT < /dev/tty
+            read -r -p "VPS Port (default 65500): " VPS_PORT < /dev/tty
             VPS_PORT=${VPS_PORT:-65500}
-            read -p "VPS Password: " VPS_PASS < /dev/tty
+            read -r -p "VPS Password: " VPS_PASS < /dev/tty
         fi
     fi
     
