@@ -1,0 +1,44 @@
+#!/bin/sh
+# USB modem hotplug handler
+# Automatically configures USB modems as additional WANs when plugged in
+
+[ "$ACTION" = "add" ] || exit 0
+
+# Only handle USB network devices and modems
+case "$DEVTYPE" in
+    usb_interface|usb_device)
+        # Check if this is a modem-related device
+        case "$PRODUCT" in
+            # Quectel modems
+            2c7c/*)
+                logger -t usb-modem-hotplug "Quectel modem detected: $PRODUCT"
+                ;;
+            # Huawei modems
+            12d1/*)
+                logger -t usb-modem-hotplug "Huawei modem detected: $PRODUCT"
+                ;;
+            # Sierra Wireless
+            1199/*)
+                logger -t usb-modem-hotplug "Sierra Wireless modem detected: $PRODUCT"
+                ;;
+            # ZTE modems
+            19d2/*)
+                logger -t usb-modem-hotplug "ZTE modem detected: $PRODUCT"
+                ;;
+            *)
+                # Not a known modem, skip
+                exit 0
+                ;;
+        esac
+        
+        # Wait a bit for device to fully enumerate
+        sleep 5
+        
+        # Run USB modem auto-config
+        if [ -x /usr/bin/usb-modem-autoconfig.sh ]; then
+            /usr/bin/usb-modem-autoconfig.sh &
+        fi
+        ;;
+esac
+
+exit 0

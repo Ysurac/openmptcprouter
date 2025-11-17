@@ -1,0 +1,319 @@
+#!/bin/sh
+#
+# OpenMPTCProuter Optimized - Connection Status Dashboard
+# Shows all WAN connections with type, status, and performance info
+#
+
+# Color codes for terminal output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
+# Check if running in a terminal
+if [ -t 1 ]; then
+    USE_COLOR=1
+else
+    USE_COLOR=0
+fi
+
+print_header() {
+    if [ $USE_COLOR -eq 1 ]; then
+        printf "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+        printf "${BOLD}${CYAN}  OpenMPTCProuter Optimized - Connection Status${NC}\n"
+        printf "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+    else
+        printf "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        printf "  OpenMPTCProuter Optimized - Connection Status\n"
+        printf "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+    fi
+}
+
+# Get connection type (Ethernet, USB Modem, Cellular)
+get_connection_type() {
+    local iface="$1"
+    local proto="$2"
+    
+    case "$proto" in
+        qmi|mbim)
+            echo "Cellular (${proto})"
+            ;;
+        dhcp)
+            # Check if it's a USB interface
+            if echo "$iface" | grep -qE "usb|wwan"; then
+                echo "USB Modem"
+            else
+                echo "Ethernet"
+            fi
+            ;;
+        *)
+            echo "$proto"
+            ;;
+    esac
+}
+
+# Get signal strength for cellular modems
+get_signal_strength() {
+    local proto="$1"
+    local device="$2"
+    
+    case "$proto" in
+        qmi)
+            if [ -c "$device" ] && command -v uqmi >/dev/null 2>&1; then
+                local signal=$(uqmi -d "$device" --get-signal-info 2>/dev/null | grep '"rssi":' | cut -d: -f2 | tr -d ' ,')
+                if [ -n "$signal" ]; then
+                    echo "${signal}dBm"
+                    return
+                fi
+            fi
+            ;;
+        mbim)
+            if [ -c "$device" ] && command -v umbim >/dev/null 2>&1; then
+                local signal=$(umbim -d "$device" -n signal 2>/dev/null | grep rssi | cut -d: -f2 | xargs)
+                if [ -n "$signal" ]; then
+                    echo "${signal}dBm"
+                    return
+                fi
+            fi
+            ;;
+    esac
+    
+    echo "N/A"
+}
+
+# Get interface status (up/down, IP address)
+get_interface_status() {
+    local iface="$1"
+    
+    if [ ! -e "/sys/class/net/$iface" ]; then
+        echo "NOT_FOUND"
+        return
+    fi
+    
+    # Check if interface is up
+    local operstate=$(cat "/sys/class/net/$iface/operstate" 2>/dev/null)
+    if [ "$operstate" != "up" ]; then
+        echo "DOWN"
+        return
+    fi
+    
+    # Get IP address
+    local ip=$(ip -4 addr show dev "$iface" 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+    if [ -z "$ip" ]; then
+        echo "UP (no IP)"
+        return
+    fi
+    
+    echo "UP ($ip)"
+}
+
+# Get link speed for ethernet
+get_link_speed() {
+    local iface="$1"
+    
+    if [ -e "/sys/class/net/$iface/speed" ]; then
+        local speed=$(cat "/sys/class/net/$iface/speed" 2>/dev/null)
+        if [ -n "$speed" ] && [ "$speed" != "-1" ]; then
+            echo "${speed}Mbps"
+            return
+        fi
+    fi
+    
+    echo "N/A"
+}
+
+# Get traffic stats
+get_traffic_stats() {
+    local iface="$1"
+    
+    if [ ! -e "/sys/class/net/$iface/statistics" ]; then
+        echo "N/A"
+        return
+    fi
+    
+    local rx_bytes=$(cat "/sys/class/net/$iface/statistics/rx_bytes" 2>/dev/null)
+    local tx_bytes=$(cat "/sys/class/net/$iface/statistics/tx_bytes" 2>/dev/null)
+    
+    if [ -n "$rx_bytes" ] && [ -n "$tx_bytes" ]; then
+        # Convert to human readable
+        local rx_mb=$((rx_bytes / 1024 / 1024))
+        local tx_mb=$((tx_bytes / 1024 / 1024))
+        echo "↓${rx_mb}MB ↑${tx_mb}MB"
+    else
+        echo "N/A"
+    fi
+}
+
+# Print WAN interface info
+print_wan_info() {
+    local wan_name="$1"
+    local proto=$(uci -q get network.$wan_name.proto)
+    local device=$(uci -q get network.$wan_name.device)
+    local metric=$(uci -q get network.$wan_name.metric)
+    local multipath=$(uci -q get network.$wan_name.multipath)
+    
+    # Get actual interface name (might be different from device)
+    local iface="$device"
+    if [ -z "$iface" ]; then
+        # Try to get from ifstatus
+        iface=$(ifstatus "$wan_name" 2>/dev/null | grep '"device":' | cut -d\" -f4)
+    fi
+    
+    local conn_type=$(get_connection_type "$iface" "$proto")
+    local status=$(get_interface_status "$iface")
+    
+    # Color code the status
+    local status_color="$NC"
+    if [ $USE_COLOR -eq 1 ]; then
+        case "$status" in
+            UP\ \(*) status_color="$GREEN" ;;
+            DOWN*) status_color="$RED" ;;
+            *) status_color="$YELLOW" ;;
+        esac
+    fi
+    
+    # Get additional info based on type
+    local extra_info=""
+    case "$proto" in
+        qmi|mbim)
+            local signal=$(get_signal_strength "$proto" "$device")
+            extra_info="Signal: $signal"
+            ;;
+        dhcp)
+            local speed=$(get_link_speed "$iface")
+            extra_info="Speed: $speed"
+            ;;
+    esac
+    
+    local traffic=$(get_traffic_stats "$iface")
+    local mptcp_status="disabled"
+    [ "$multipath" = "on" ] && mptcp_status="enabled"
+    
+    # Print the interface info
+    printf "  ${BOLD}%s${NC}\n" "$wan_name"
+    printf "    Type:       %s\n" "$conn_type"
+    printf "    Device:     %s\n" "${iface:-unknown}"
+    printf "    Status:     ${status_color}%s${NC}\n" "$status"
+    [ -n "$extra_info" ] && printf "    %s\n" "$extra_info"
+    printf "    Traffic:    %s\n" "$traffic"
+    printf "    MPTCP:      %s (metric: %s)\n" "$mptcp_status" "${metric:-auto}"
+    printf "\n"
+}
+
+# Main function
+main() {
+    print_header
+    
+    # Count WAN interfaces
+    local wan_count=0
+    for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1 | sort); do
+        wan_count=$((wan_count + 1))
+    done
+    
+    if [ $wan_count -eq 0 ]; then
+        if [ $USE_COLOR -eq 1 ]; then
+            printf "${YELLOW}No WAN interfaces configured${NC}\n"
+        else
+            printf "No WAN interfaces configured\n"
+        fi
+        printf "\nTip: Connect a WAN cable or USB modem to get started\n"
+        return 1
+    fi
+    
+    if [ $USE_COLOR -eq 1 ]; then
+        printf "${BOLD}WAN Interfaces (${wan_count} total):${NC}\n\n"
+    else
+        printf "WAN Interfaces (%d total):\n\n" "$wan_count"
+    fi
+    
+    # Print each WAN interface
+    for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1 | sort); do
+        print_wan_info "$wan"
+    done
+    
+    # Print aggregated status
+    if [ $USE_COLOR -eq 1 ]; then
+        printf "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+        printf "${BOLD}Aggregation Status:${NC}\n"
+    else
+        printf "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        printf "Aggregation Status:\n"
+    fi
+    
+    # Count active WANs
+    local active_count=0
+    for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
+        local device=$(uci -q get network.$wan.device)
+        local iface="$device"
+        if [ -z "$iface" ]; then
+            iface=$(ifstatus "$wan" 2>/dev/null | grep '"device":' | cut -d\" -f4)
+        fi
+        
+        local status=$(get_interface_status "$iface")
+        if echo "$status" | grep -q "^UP"; then
+            active_count=$((active_count + 1))
+        fi
+    done
+    
+    printf "  Active WANs: %d/%d\n" "$active_count" "$wan_count"
+    
+    if [ $active_count -gt 1 ]; then
+        if [ $USE_COLOR -eq 1 ]; then
+            printf "  ${GREEN}✓ MPTCP bonding active across multiple connections${NC}\n"
+        else
+            printf "  ✓ MPTCP bonding active across multiple connections\n"
+        fi
+    elif [ $active_count -eq 1 ]; then
+        if [ $USE_COLOR -eq 1 ]; then
+            printf "  ${YELLOW}⚠ Single WAN active (no bonding)${NC}\n"
+        else
+            printf "  ⚠ Single WAN active (no bonding)\n"
+        fi
+    else
+        if [ $USE_COLOR -eq 1 ]; then
+            printf "  ${RED}✗ No active WAN connections${NC}\n"
+        else
+            printf "  ✗ No active WAN connections\n"
+        fi
+    fi
+    
+    if [ $USE_COLOR -eq 1 ]; then
+        printf "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+    else
+        printf "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+    fi
+    
+    # Save status to file for web UI
+    main_plain > /var/run/omr-status.txt 2>/dev/null
+}
+
+# Plain output without colors for file/web UI
+main_plain() {
+    USE_COLOR=0
+    main
+}
+
+# Check if called with --plain or --web flag
+case "$1" in
+    --plain|--web|--no-color)
+        main_plain
+        ;;
+    --help|-h)
+        echo "Usage: omr-status [OPTIONS]"
+        echo ""
+        echo "Show status of all WAN connections"
+        echo ""
+        echo "Options:"
+        echo "  --plain, --no-color    Output without colors"
+        echo "  --web                  Output for web interface"
+        echo "  --help, -h             Show this help"
+        ;;
+    *)
+        main
+        ;;
+esac
+
+exit 0
