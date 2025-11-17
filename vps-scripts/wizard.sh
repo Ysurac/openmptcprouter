@@ -185,7 +185,9 @@ echo ""
 echo -e "${YELLOW}Estimated time: 5-10 minutes${NC}"
 echo ""
 
-read -p "Continue with installation? (yes/no): " -r
+read -p "Continue with installation? [Y/n]: " -r
+# Default to yes if empty (user just presses Enter)
+REPLY=${REPLY:-Y}
 if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$|^[Yy]$ ]]; then
     echo -e "${YELLOW}Installation cancelled by user.${NC}"
     exit 0
