@@ -59,7 +59,13 @@ get_connection_type() {
 get_signal_strength() {
     local proto="$1"
     local device="$2"
-    
+
+    # Validate device path to prevent command injection
+    if [ -n "$device" ] && ! echo "$device" | grep -qE '^/dev/[a-zA-Z0-9_-]+$'; then
+        echo "N/A"
+        return
+    fi
+
     case "$proto" in
         qmi)
             if [ -c "$device" ] && command -v uqmi >/dev/null 2>&1; then
@@ -80,40 +86,52 @@ get_signal_strength() {
             fi
             ;;
     esac
-    
+
     echo "N/A"
 }
 
 # Get interface status (up/down, IP address)
 get_interface_status() {
     local iface="$1"
-    
+
+    # Validate interface name to prevent path traversal
+    if [ -z "$iface" ] || ! echo "$iface" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+        echo "INVALID"
+        return
+    fi
+
     if [ ! -e "/sys/class/net/$iface" ]; then
         echo "NOT_FOUND"
         return
     fi
-    
+
     # Check if interface is up
     local operstate=$(cat "/sys/class/net/$iface/operstate" 2>/dev/null)
     if [ "$operstate" != "up" ]; then
         echo "DOWN"
         return
     fi
-    
+
     # Get IP address
     local ip=$(ip -4 addr show dev "$iface" 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
     if [ -z "$ip" ]; then
         echo "UP (no IP)"
         return
     fi
-    
+
     echo "UP ($ip)"
 }
 
 # Get link speed for ethernet
 get_link_speed() {
     local iface="$1"
-    
+
+    # Validate interface name
+    if [ -z "$iface" ] || ! echo "$iface" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+        echo "N/A"
+        return
+    fi
+
     if [ -e "/sys/class/net/$iface/speed" ]; then
         local speed=$(cat "/sys/class/net/$iface/speed" 2>/dev/null)
         if [ -n "$speed" ] && [ "$speed" != "-1" ]; then
@@ -121,22 +139,28 @@ get_link_speed() {
             return
         fi
     fi
-    
+
     echo "N/A"
 }
 
 # Get traffic stats
 get_traffic_stats() {
     local iface="$1"
-    
+
+    # Validate interface name
+    if [ -z "$iface" ] || ! echo "$iface" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+        echo "N/A"
+        return
+    fi
+
     if [ ! -e "/sys/class/net/$iface/statistics" ]; then
         echo "N/A"
         return
     fi
-    
+
     local rx_bytes=$(cat "/sys/class/net/$iface/statistics/rx_bytes" 2>/dev/null)
     local tx_bytes=$(cat "/sys/class/net/$iface/statistics/tx_bytes" 2>/dev/null)
-    
+
     if [ -n "$rx_bytes" ] && [ -n "$tx_bytes" ]; then
         # Convert to human readable
         local rx_mb=$((rx_bytes / 1024 / 1024))
