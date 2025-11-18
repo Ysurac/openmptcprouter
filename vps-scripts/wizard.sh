@@ -168,6 +168,32 @@ XRAY_UUID=$V2RAY_UUID
 
 print_success "Secure credentials generated"
 
+# Generate pairing code for easy router setup
+generate_pairing_code() {
+    local ip=$1
+    local pass=$2
+    local port=${3:-65500}
+
+    # Create JSON configuration
+    local json=$(jq -n \
+        --arg ip "$ip" \
+        --arg port "$port" \
+        --arg password "$pass" \
+        --arg method "chacha20-ietf-poly1305" \
+        '{
+            server_ip: $ip,
+            server_port: ($port | tonumber),
+            password: $password,
+            encryption: $method,
+            version: "1.0"
+        }')
+
+    # Base64 encode for easy transfer
+    echo "$json" | base64 -w0
+}
+
+PAIRING_CODE=$(generate_pairing_code "$VPS_PUBLIC_IP" "$SHADOWSOCKS_PASS" "65500")
+
 # Ask for user confirmation
 echo ""
 echo -e "${PURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -230,7 +256,8 @@ apt-get install -y -qq \
     iperf3 \
     shadowsocks-libev \
     wireguard wireguard-tools \
-    python3 || print_error "Failed to install required packages"
+    python3 \
+    qrencode || print_error "Failed to install required packages"
 
 print_success "Required packages installed"
 
@@ -747,6 +774,30 @@ cat > /var/www/omr-setup/index.html << 'ENDHTML'
                 </div>
             </div>
 
+            <div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                <h2 style="color: white;">⚡ Quick Setup - Pairing Code</h2>
+                <p style="color: rgba(255,255,255,0.9); margin-bottom: 20px;">
+                    <strong>Easiest Method:</strong> Copy this code and paste it into your router's setup wizard!
+                </p>
+                <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin: 15px 0;">
+                    <div style="font-family: monospace; word-break: break-all; font-size: 0.9em; line-height: 1.6; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px;">
+                        <span id="pairing-code">REPLACE_PAIRING_CODE</span>
+                    </div>
+                    <button class="copy-btn" onclick="copyValue('pairing-code')" style="margin-top: 15px; background: white; color: #667eea; font-weight: bold;">
+                        📋 Copy Pairing Code
+                    </button>
+                </div>
+                <div id="qr-code" style="background: white; padding: 20px; border-radius: 10px; margin: 20px auto; text-align: center; max-width: 300px;">
+                    <div style="color: #333; font-weight: bold; margin-bottom: 10px;">Scan with Phone:</div>
+                    <div style="display: inline-block; padding: 10px; background: white;">
+                        <canvas id="qr-canvas"></canvas>
+                    </div>
+                    <div style="color: #666; font-size: 0.85em; margin-top: 10px;">
+                        Use your phone to scan and share the code
+                    </div>
+                </div>
+            </div>
+
             <div class="section">
                 <h2>📱 Router Configuration (3 Easy Steps)</h2>
                 
@@ -809,12 +860,38 @@ cat > /var/www/omr-setup/index.html << 'ENDHTML'
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
+        // Generate QR code on page load
+        window.addEventListener('load', function() {
+            const pairingCode = document.getElementById('pairing-code').textContent;
+            const qrContainer = document.getElementById('qr-code');
+
+            // Clear previous QR code if any
+            const canvas = document.getElementById('qr-canvas');
+            const parent = canvas.parentNode;
+            parent.removeChild(canvas);
+
+            // Create new QR code
+            const qrDiv = document.createElement('div');
+            qrDiv.id = 'qr-display';
+            parent.appendChild(qrDiv);
+
+            new QRCode(qrDiv, {
+                text: pairingCode,
+                width: 256,
+                height: 256,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        });
+
         function copyValue(elementId) {
             const text = document.getElementById(elementId).textContent;
             copyText(text);
         }
-        
+
         function copyText(text) {
             navigator.clipboard.writeText(text).then(() => {
                 alert('✅ Copied to clipboard!');
@@ -860,6 +937,7 @@ ENDHTML
 # Replace placeholders
 sed -i "s/REPLACE_VPS_IP/$VPS_PUBLIC_IP/g" /var/www/omr-setup/index.html
 sed -i "s/REPLACE_PASSWORD/$SHADOWSOCKS_PASS/g" /var/www/omr-setup/index.html
+sed -i "s|REPLACE_PAIRING_CODE|$PAIRING_CODE|g" /var/www/omr-setup/index.html
 
 # Create systemd service for web interface
 cat > /etc/systemd/system/omr-setup-web.service << 'ENDSERVICE'
@@ -909,6 +987,20 @@ echo -e "${CYAN}Port:${NC}          ${GREEN}65500${NC}"
 echo -e "${CYAN}Password:${NC}      ${GREEN}$SHADOWSOCKS_PASS${NC}"
 echo -e "${CYAN}Encryption:${NC}    ${GREEN}Shadowsocks (chacha20-ietf-poly1305)${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+echo ""
+echo -e "${YELLOW}⚡ Quick Pairing Code (Copy & Paste):${NC}"
+echo -e "${GREEN}$PAIRING_CODE${NC}"
+echo ""
+
+# Generate QR code if qrencode is available
+if command -v qrencode &> /dev/null; then
+    echo -e "${YELLOW}📱 Scan QR Code to Configure Router:${NC}"
+    echo ""
+    qrencode -t ANSIUTF8 "$PAIRING_CODE"
+    echo ""
+    print_info "Scan with your phone to quickly transfer pairing code"
+fi
 
 echo ""
 echo -e "${YELLOW}🌐 Easy Setup Web Page:${NC}"
