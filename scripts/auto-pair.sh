@@ -280,7 +280,7 @@ $QR_DATA
 
 Manual Setup:
 -------------
-1. Go to router: http://192.168.100.1
+1. Go to router: http://192.168.2.1
 2. Navigate to: Services → OpenMPTCProuter
 3. Enter:
    - Server IP: $VPS_IP
@@ -341,10 +341,14 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
         
         echo -e "${CYAN}Fetching configuration from VPS...${NC}"
         
-        # Try to fetch config from VPS
-        if CONFIG_JSON=$(curl -s --max-time 10 "http://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
-            VPS_PORT=$(echo "$CONFIG_JSON" | grep -o '"server_port":[0-9]*' | cut -d':' -f2)
-            VPS_PASS=$(echo "$CONFIG_JSON" | grep -o '"password":"[^"]*' | cut -d'"' -f4)
+        # Try to fetch config from VPS (try HTTPS first, fallback to HTTP)
+        if CONFIG_JSON=$(curl -s --max-time 10 -k "https://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
+            VPS_PORT=$(echo "$CONFIG_JSON" | jq -r '.server_port // empty' 2>/dev/null)
+            VPS_PASS=$(echo "$CONFIG_JSON" | jq -r '.password // empty' 2>/dev/null)
+        elif CONFIG_JSON=$(curl -s --max-time 10 "http://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
+            echo -e "${YELLOW}Warning: Using insecure HTTP connection${NC}"
+            VPS_PORT=$(echo "$CONFIG_JSON" | jq -r '.server_port // empty' 2>/dev/null)
+            VPS_PASS=$(echo "$CONFIG_JSON" | jq -r '.password // empty' 2>/dev/null)
             
             echo -e "${GREEN}✓ Configuration auto-discovered!${NC}"
         else

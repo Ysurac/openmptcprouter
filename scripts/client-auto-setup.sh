@@ -48,13 +48,25 @@ if [ -z "$VPS_IP" ]; then
     echo -e "${CYAN}Enter your VPS details:${NC}"
     printf "VPS IP Address: "
     read VPS_IP < /dev/tty
-    
+
+    # Validate IP address format
+    if ! echo "$VPS_IP" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+        echo -e "${RED}Error: Invalid IP address format${NC}"
+        exit 1
+    fi
+
     printf "VPS Password: "
     read VPS_PASSWORD < /dev/tty
-    
+
     printf "VPS Port (default 65500): "
     read VPS_PORT_INPUT < /dev/tty
     VPS_PORT="${VPS_PORT_INPUT:-65500}"
+
+    # Validate port number
+    if ! [ "$VPS_PORT" -ge 1 ] 2>/dev/null || ! [ "$VPS_PORT" -le 65535 ] 2>/dev/null; then
+        echo -e "${RED}Error: Port must be between 1-65535${NC}"
+        exit 1
+    fi
 fi
 
 # Validate inputs
@@ -298,7 +310,7 @@ echo ""
 echo -e "${YELLOW}Next Steps:${NC}"
 echo -e "  ${CYAN}1.${NC} Wait 30 seconds for services to fully start"
 echo -e "  ${CYAN}2.${NC} Run ${GREEN}omr-test${NC} to verify connection"
-echo -e "  ${CYAN}3.${NC} Check web interface at ${GREEN}http://192.168.100.1${NC}"
+echo -e "  ${CYAN}3.${NC} Check web interface at ${GREEN}http://192.168.2.1${NC}"
 echo -e "  ${CYAN}4.${NC} Go to ${GREEN}Status → OpenMPTCProuter${NC} to see connection status"
 echo ""
 
