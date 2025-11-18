@@ -7,11 +7,26 @@ send_at_command() {
     local device="$1"
     local command="$2"
     local timeout="${3:-2}"
-    
+
+    # Validate device path
+    if [ ! -c "$device" ]; then
+        logger -t modem_ca "ERROR: Invalid device: $device"
+        return 1
+    fi
+
+    # Sanitize device path - only allow known modem devices
+    case "$device" in
+        /dev/ttyUSB*|/dev/cdc-wdm*) ;;
+        *)
+            logger -t modem_ca "ERROR: Unsafe device path: $device"
+            return 1
+            ;;
+    esac
+
     # Send command
     echo "$command" > "$device"
     sleep "$timeout"
-    
+
     logger -t modem_ca "Sent command: $command to $device"
 }
 
@@ -28,10 +43,24 @@ detect_modem_model() {
     echo "$response"
 }
 
+# Cleanup on exit - restore modem to functional state
+cleanup_modem() {
+    if [ -n "$CURRENT_MODEM_DEVICE" ] && [ -c "$CURRENT_MODEM_DEVICE" ]; then
+        logger -t modem_ca "Cleanup: Restoring modem on $CURRENT_MODEM_DEVICE"
+        # Restore modem to functional state (exit airplane mode)
+        echo "AT+CFUN=1" > "$CURRENT_MODEM_DEVICE" 2>/dev/null || true
+    fi
+}
+
+trap cleanup_modem EXIT INT TERM
+
 set_modem_ca_optimization() {
     local device="$1"
     local model_info="$2"
-    
+
+    # Store for cleanup handler
+    CURRENT_MODEM_DEVICE="$device"
+
     logger -t modem_ca "Optimizing modem on $device: $model_info"
     
     # RM551E specific optimizations

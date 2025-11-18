@@ -20,7 +20,6 @@
 	};
 
 	aliases {
-		// TODO: Verify if the ethernet0 alias is needed
 		ethernet0 = &gmac;
 		ethernet1 = &swport4;
 	};

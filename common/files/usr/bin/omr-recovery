@@ -141,7 +141,8 @@ case "$choice" in
             cp /rom/etc/config/network /etc/config/network 2>/dev/null || {
                 # If no ROM config, create minimal one with secure permissions
                 (
-                    umask 077
+                    # Set umask to create file with correct permissions (644)
+                    umask 022
                     cat > /etc/config/network <<-'NETEOF'
 config interface 'loopback'
 	option device 'lo'
@@ -155,7 +156,7 @@ config interface 'lan'
 	option netmask '255.255.255.0'
 NETEOF
                 )
-                chmod 644 /etc/config/network
+                # chmod no longer needed - file created with correct permissions
             }
             
             uci commit network

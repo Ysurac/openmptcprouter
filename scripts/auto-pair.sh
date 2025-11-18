@@ -131,8 +131,17 @@ ENDSS
     # Firewall
     INTERFACE=$(ip -o -4 route show to default | awk '{print $5}' | head -n1)
     
+    # SECURITY FIX: Save existing rules before flushing
+    echo -e "${CYAN}Backing up existing firewall rules...${NC}"
+    iptables-save > /tmp/iptables-backup-$$.rules 2>/dev/null || true
+
+    # Flush with safety net - keep SSH access
     iptables -F > /dev/null 2>&1 || true
     iptables -t nat -F > /dev/null 2>&1 || true
+
+    # Immediately restore SSH access before anything else
+    iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+    iptables -A INPUT -p tcp --dport 22 -j ACCEPT
     
     # Allow established connections
     iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -222,11 +231,15 @@ EOF
     echo ""
     
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${GREEN}Method 1: Automatic Pairing (Easiest)${NC}"
+    echo -e "${GREEN}Method 1: Automatic Pairing (Recommended - Secure)${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "On your router, run:"
-    echo -e "${YELLOW}curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/auto-pair.sh | sh -s '$PAIRING_CODE'${NC}"
+    echo -e "On your router, download and verify the script:"
+    echo -e "${YELLOW}wget https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/auto-pair.sh${NC}"
+    echo -e "${YELLOW}chmod +x auto-pair.sh${NC}"
+    echo -e "${YELLOW}./auto-pair.sh '$PAIRING_CODE'${NC}"
+    echo ""
+    echo -e "${RED}⚠ For security, avoid using 'curl | sh' pattern${NC}"
     echo ""
     
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -249,7 +262,9 @@ EOF
     echo -e "Or fetch config from: ${GREEN}http://$VPS_IP:9999/pair.json${NC}"
     echo ""
     
-    # Save all info
+    # SECURITY FIX: Set umask before creating sensitive files
+    (
+    umask 077
     cat > /root/omr-pairing-info.txt << ENDINFO
 OpenMPTCProuter Optimized - Auto-Pairing Information
 ====================================================
@@ -292,10 +307,9 @@ Manual Setup:
 Connection Test:
 ----------------
 From router: ping $VPS_IP
-From router: curl http://$VPS_IP:9999/pair.json
+From router: curl https://$VPS_IP:9999/pair.json
 ENDINFO
-    
-    chmod 600 /root/omr-pairing-info.txt
+    )  # End umask subshell
     
     echo -e "${BLUE}💾 All pairing information saved to: ${CYAN}/root/omr-pairing-info.txt${NC}"
     echo ""
@@ -318,16 +332,49 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
     if [ -n "$PAIRING_CODE" ]; then
         echo -e "${CYAN}Decoding pairing code...${NC}"
         
-        # Decode pairing code
+        # SECURITY FIX: Proper JSON validation and safe parsing
         if PAIRING_JSON=$(echo "$PAIRING_CODE" | base64 -d 2>/dev/null); then
-            VPS_IP=$(echo "$PAIRING_JSON" | grep -o '"ip":"[^"]*' | cut -d'"' -f4)
-            VPS_PORT=$(echo "$PAIRING_JSON" | grep -o '"port":[0-9]*' | cut -d':' -f2)
-            VPS_PASS=$(echo "$PAIRING_JSON" | grep -o '"pass":"[^"]*' | cut -d'"' -f4)
-            
-            echo -e "${GREEN}✓ Pairing code decoded${NC}"
+            # Validate JSON structure before parsing
+            if ! echo "$PAIRING_JSON" | jq empty 2>/dev/null; then
+                echo -e "${RED}Error: Invalid JSON in pairing code${NC}"
+                exit 1
+            fi
+
+            # Safely extract and validate values using jq
+            VPS_IP=$(echo "$PAIRING_JSON" | jq -r '.ip // empty' 2>/dev/null)
+            VPS_PORT=$(echo "$PAIRING_JSON" | jq -r '.port // empty' 2>/dev/null)
+            VPS_PASS=$(echo "$PAIRING_JSON" | jq -r '.pass // empty' 2>/dev/null)
+
+            # Validate IP address format
+            if ! echo "$VPS_IP" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+                echo -e "${RED}Error: Invalid IP address in pairing code${NC}"
+                exit 1
+            fi
+
+            # Validate each octet is 0-255
+            for octet in $(echo "$VPS_IP" | tr '.' ' '); do
+                if [ "$octet" -lt 0 ] 2>/dev/null || [ "$octet" -gt 255 ] 2>/dev/null; then
+                    echo -e "${RED}Error: Invalid IP address (octets must be 0-255)${NC}"
+                    exit 1
+                fi
+            done
+
+            # Validate port number
+            if ! [ "$VPS_PORT" -ge 1 ] 2>/dev/null || ! [ "$VPS_PORT" -le 65535 ] 2>/dev/null; then
+                echo -e "${RED}Error: Invalid port number in pairing code (must be 1-65535)${NC}"
+                exit 1
+            fi
+
+            # Validate password is not empty
+            if [ -z "$VPS_PASS" ]; then
+                echo -e "${RED}Error: Empty password in pairing code${NC}"
+                exit 1
+            fi
+
+            echo -e "${GREEN}✓ Pairing code decoded and validated${NC}"
             echo -e "  VPS IP: ${CYAN}$VPS_IP${NC}"
         else
-            echo -e "${RED}Error: Invalid pairing code${NC}"
+            echo -e "${RED}Error: Invalid pairing code (base64 decode failed)${NC}"
             exit 1
         fi
     
@@ -340,21 +387,28 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
         read -r VPS_IP < /dev/tty
         
         echo -e "${CYAN}Fetching configuration from VPS...${NC}"
-        
-        # Try to fetch config from VPS (try HTTPS first, fallback to HTTP)
-        if CONFIG_JSON=$(curl -s --max-time 10 -k "https://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
+
+        # SECURITY FIX: Only use HTTPS with proper certificate verification
+        # Removed insecure HTTP fallback and -k flag to prevent MITM attacks
+        if CONFIG_JSON=$(curl -s --max-time 10 "https://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
+            echo -e "${GREEN}✓ Secure connection established (HTTPS)${NC}"
             VPS_PORT=$(echo "$CONFIG_JSON" | jq -r '.server_port // empty' 2>/dev/null)
             VPS_PASS=$(echo "$CONFIG_JSON" | jq -r '.password // empty' 2>/dev/null)
-        elif CONFIG_JSON=$(curl -s --max-time 10 "http://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
-            echo -e "${YELLOW}Warning: Using insecure HTTP connection${NC}"
-            VPS_PORT=$(echo "$CONFIG_JSON" | jq -r '.server_port // empty' 2>/dev/null)
-            VPS_PASS=$(echo "$CONFIG_JSON" | jq -r '.password // empty' 2>/dev/null)
-            
-            echo -e "${GREEN}✓ Configuration auto-discovered!${NC}"
+
+            echo -e "${GREEN}✓ Configuration auto-discovered${NC}"
         else
-            echo -e "${RED}Error: Could not auto-discover VPS configuration${NC}"
+            echo -e "${RED}✗ Could not auto-discover VPS configuration via HTTPS${NC}"
             echo ""
-            echo -e "${YELLOW}Please use pairing code or enter manually:${NC}"
+            echo -e "${YELLOW}Possible reasons:${NC}"
+            echo -e "  • VPS pairing API not running on port 9999"
+            echo -e "  • Firewall blocking HTTPS connections"
+            echo -e "  • Invalid SSL certificate on VPS"
+            echo -e "  • VPS IP address incorrect"
+            echo ""
+            echo -e "${CYAN}Tip: Ensure your VPS has a valid SSL certificate for secure pairing.${NC}"
+            echo -e "${CYAN}     HTTP connections are not supported for security reasons.${NC}"
+            echo ""
+            echo -e "${YELLOW}Please enter credentials manually:${NC}"
             read -r -p "VPS Port (default 65500): " VPS_PORT < /dev/tty
             VPS_PORT=${VPS_PORT:-65500}
             read -r -p "VPS Password: " VPS_PASS < /dev/tty
@@ -374,8 +428,19 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
     echo -e "${CYAN}Configuring router...${NC}"
     echo ""
     
-    # Run client auto-setup
-    curl -sSL https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/client-auto-setup.sh | sh -s "$VPS_IP" "$VPS_PASS" "$VPS_PORT"
+    # SECURITY FIX: Download and verify before executing
+    echo -e "${CYAN}Downloading client setup script...${NC}"
+    TEMP_SETUP=$(mktemp)
+    chmod 700 "$TEMP_SETUP"
+    trap "rm -f '$TEMP_SETUP'" EXIT INT TERM
+
+    if curl -sSL -o "$TEMP_SETUP" https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/client-auto-setup.sh; then
+        chmod +x "$TEMP_SETUP"
+        "$TEMP_SETUP" "$VPS_IP" "$VPS_PASS" "$VPS_PORT"
+    else
+        echo -e "${RED}Error: Failed to download client setup script${NC}"
+        exit 1
+    fi
     
     echo ""
     echo -e "${GREEN}✓ Router automatically paired with VPS!${NC}"

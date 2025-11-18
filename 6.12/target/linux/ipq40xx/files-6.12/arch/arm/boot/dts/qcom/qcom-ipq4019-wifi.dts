@@ -14,7 +14,6 @@
 	compatible = "google,wifi", "google,gale-v2", "qcom,ipq4019";
 
 	aliases {
-		// TODO: Verify if the ethernet0 alias is needed
 		ethernet0 = &gmac;
 		label-mac-device = &gmac0;
 		led-boot = &led0_blue;

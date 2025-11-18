@@ -10,7 +10,6 @@
 	compatible = "wallys,dr40x9";
 
 	aliases {
-		// TODO: Verify if the ethernet0 alias is needed
 		ethernet0 = &gmac;
 	};
 

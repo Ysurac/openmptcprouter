@@ -78,13 +78,23 @@ case "$DEVTYPE" in
                 exit 0
                 ;;
         esac
-        
-        # Wait a bit for device to fully enumerate
-        sleep 5
-        
-        # Run USB modem auto-config
+
+        # Wait for device to fully enumerate with adaptive timeout
+        # Poll for USB device readiness instead of fixed delay
+        for i in $(seq 1 10); do
+            [ -e /sys/bus/usb/devices ] && break
+            sleep 0.5
+        done
+
+        # Run USB modem auto-config with lock to prevent race conditions
+        # Multiple rapid plug/unplug events could spawn duplicate configs
         if [ -x /usr/bin/usb-modem-autoconfig.sh ]; then
-            /usr/bin/usb-modem-autoconfig.sh &
+            LOCK_FILE="/var/lock/usb-modem-autoconfig.lock"
+            (
+                # Non-blocking lock - exit if another instance is running
+                flock -n 200 || exit 0
+                /usr/bin/usb-modem-autoconfig.sh
+            ) 200>"$LOCK_FILE" &
         fi
         ;;
 esac

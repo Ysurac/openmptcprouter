@@ -29,19 +29,25 @@ detect_rm551e() {
 # Load required kernel modules
 load_modem_drivers() {
     log_msg "Loading modem drivers..."
-    
+
+    local failed_modules=""
+
     # USB Serial drivers
-    modprobe option 2>/dev/null || true
-    modprobe usb_wwan 2>/dev/null || true
-    modprobe qcserial 2>/dev/null || true
-    
+    modprobe option 2>/dev/null || failed_modules="$failed_modules option"
+    modprobe usb_wwan 2>/dev/null || failed_modules="$failed_modules usb_wwan"
+    modprobe qcserial 2>/dev/null || failed_modules="$failed_modules qcserial"
+
     # Network drivers
-    modprobe qmi_wwan 2>/dev/null || true
-    modprobe cdc_mbim 2>/dev/null || true
-    modprobe cdc_ncm 2>/dev/null || true
-    modprobe cdc_ether 2>/dev/null || true
-    modprobe rndis_host 2>/dev/null || true
-    modprobe cdc_wdm 2>/dev/null || true
+    modprobe qmi_wwan 2>/dev/null || failed_modules="$failed_modules qmi_wwan"
+    modprobe cdc_mbim 2>/dev/null || failed_modules="$failed_modules cdc_mbim"
+    modprobe cdc_ncm 2>/dev/null || failed_modules="$failed_modules cdc_ncm"
+    modprobe cdc_ether 2>/dev/null || failed_modules="$failed_modules cdc_ether"
+    modprobe rndis_host 2>/dev/null || failed_modules="$failed_modules rndis_host"
+    modprobe cdc_wdm 2>/dev/null || failed_modules="$failed_modules cdc_wdm"
+
+    if [ -n "$failed_modules" ]; then
+        log_msg "WARNING: Failed to load modules:$failed_modules"
+    fi
     
     # Add USB ID to drivers if not auto-detected
     echo "$MODEM_VENDOR_ID 0801" > /sys/bus/usb-serial/drivers/option1/new_id 2>/dev/null || true
@@ -55,9 +61,10 @@ load_modem_drivers() {
 wait_for_device_ready() {
     local max_wait=30
     local count=0
-    
+    local retry_done=0
+
     log_msg "Waiting for modem devices to be ready..."
-    
+
     while [ $count -lt $max_wait ]; do
         if [ -c /dev/ttyUSB0 ] || [ -c /dev/ttyUSB1 ] || [ -c /dev/ttyUSB2 ]; then
             log_msg "Modem devices detected"
@@ -66,8 +73,30 @@ wait_for_device_ready() {
         sleep 1
         count=$((count + 1))
     done
-    
+
     log_msg "WARNING: Timeout waiting for modem devices"
+
+    # Retry once with driver reload
+    if [ $retry_done -eq 0 ]; then
+        retry_done=1
+        log_msg "Retrying with driver reload..."
+        rmmod qmi_wwan cdc_mbim 2>/dev/null || true
+        sleep 2
+        load_modem_drivers
+
+        # Wait again with shorter timeout
+        count=0
+        while [ $count -lt 10 ]; do
+            if [ -c /dev/ttyUSB0 ] || [ -c /dev/ttyUSB1 ] || [ -c /dev/ttyUSB2 ]; then
+                log_msg "Modem devices detected after retry"
+                return 0
+            fi
+            sleep 1
+            count=$((count + 1))
+        done
+        log_msg "ERROR: Modem devices not detected after retry"
+    fi
+
     return 1
 }
 
@@ -78,9 +107,19 @@ find_at_port() {
     # ttyUSB1 - NMEA (GPS)
     # ttyUSB2 - AT command interface
     # ttyUSB3 - AT command interface (backup)
-    
+
     for port in /dev/ttyUSB2 /dev/ttyUSB3 /dev/ttyUSB1 /dev/ttyUSB0; do
+        # Validate port is a character device
         if [ -c "$port" ]; then
+            # Validate path contains only expected characters (defense in depth)
+            case "$port" in
+                /dev/ttyUSB[0-9]) ;;
+                *)
+                    log_msg "WARNING: Unexpected port path: $port"
+                    continue
+                    ;;
+            esac
+
             # Test if port responds to AT commands
             if timeout 2 sh -c "echo -e 'AT\r' > $port 2>/dev/null && cat $port 2>/dev/null" | grep -q "OK"; then
                 echo "$port"
@@ -88,7 +127,7 @@ find_at_port() {
             fi
         fi
     done
-    
+
     return 1
 }
 

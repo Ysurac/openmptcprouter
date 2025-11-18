@@ -6,7 +6,12 @@ PKG_RELEASE=1
 PKG_LICENSE:=GPLv2
 PKG_LICENSE_FILES:=
 
-PKG_SOURCE_URL:=https://github.com/morrownr/8821cu.git
+# Note: This package uses the 8821cu driver repository because morrownr does not
+# maintain a separate 88x2cu repository. The 8821cu driver supports RTL8812CU and
+# RTL8822CU chipsets in addition to the 8811CU/8821CU/8831CU chipsets.
+# This is separate from the rtl8821cu package to provide different configuration
+# options optimized for the 88x2CU chipsets.
+PKG_SOURCE_URL:=https://github.com/morrownr/8821cu-20210916.git
 PKG_MIRROR_HASH:=skip
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_DATE:=2024-11-23
