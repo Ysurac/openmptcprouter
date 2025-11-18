@@ -387,18 +387,28 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
         read -r VPS_IP < /dev/tty
         
         echo -e "${CYAN}Fetching configuration from VPS...${NC}"
-        
-        # SECURITY FIX: Removed insecure HTTP fallback and -k flag
-        # Only use HTTPS with proper certificate verification
+
+        # SECURITY FIX: Only use HTTPS with proper certificate verification
+        # Removed insecure HTTP fallback and -k flag to prevent MITM attacks
         if CONFIG_JSON=$(curl -s --max-time 10 "https://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
+            echo -e "${GREEN}✓ Secure connection established (HTTPS)${NC}"
             VPS_PORT=$(echo "$CONFIG_JSON" | jq -r '.server_port // empty' 2>/dev/null)
             VPS_PASS=$(echo "$CONFIG_JSON" | jq -r '.password // empty' 2>/dev/null)
-            
-            echo -e "${GREEN}✓ Configuration auto-discovered!${NC}"
+
+            echo -e "${GREEN}✓ Configuration auto-discovered${NC}"
         else
-            echo -e "${RED}Error: Could not auto-discover VPS configuration${NC}"
+            echo -e "${RED}✗ Could not auto-discover VPS configuration via HTTPS${NC}"
             echo ""
-            echo -e "${YELLOW}Please use pairing code or enter manually:${NC}"
+            echo -e "${YELLOW}Possible reasons:${NC}"
+            echo -e "  • VPS pairing API not running on port 9999"
+            echo -e "  • Firewall blocking HTTPS connections"
+            echo -e "  • Invalid SSL certificate on VPS"
+            echo -e "  • VPS IP address incorrect"
+            echo ""
+            echo -e "${CYAN}Tip: Ensure your VPS has a valid SSL certificate for secure pairing.${NC}"
+            echo -e "${CYAN}     HTTP connections are not supported for security reasons.${NC}"
+            echo ""
+            echo -e "${YELLOW}Please enter credentials manually:${NC}"
             read -r -p "VPS Port (default 65500): " VPS_PORT < /dev/tty
             VPS_PORT=${VPS_PORT:-65500}
             read -r -p "VPS Password: " VPS_PASS < /dev/tty
