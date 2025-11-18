@@ -1,0 +1,67 @@
+#!/bin/sh
+#
+# OpenMPTCProuter Optimized - Platform-Aware Buffer Configuration
+# Detects available RAM and adjusts network buffer sizes accordingly
+# Prevents OOM on low-RAM devices while maintaining performance on high-RAM devices
+#
+# This runs BEFORE the main sysctl config (05 < 99)
+#
+
+# Only run on first boot
+[ -f /etc/omr-buffer-configured ] && exit 0
+
+# Get total RAM in KB
+total_ram_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null)
+
+if [ -z "$total_ram_kb" ]; then
+    logger -t omr-buffers "WARNING: Could not detect RAM, using default buffer sizes"
+    exit 0
+fi
+
+# Convert to MB for logging
+total_ram_mb=$((total_ram_kb / 1024))
+
+# Create platform-specific sysctl override
+SYSCTL_OVERRIDE="/etc/sysctl.d/98-omr-buffer-override.conf"
+
+if [ "$total_ram_kb" -lt 524288 ]; then
+    # Very low RAM device (< 512MB): use 16MB buffers
+    logger -t omr-buffers "Low RAM device detected (${total_ram_mb}MB), using conservative 16MB buffers"
+    cat > "$SYSCTL_OVERRIDE" <<-EOF
+	# Auto-generated for low-RAM device (${total_ram_mb}MB)
+	# Conservative buffer sizes to prevent OOM
+	net.core.rmem_max = 16777216
+	net.core.wmem_max = 16777216
+	net.core.rmem_default = 8388608
+	net.core.wmem_default = 8388608
+	net.ipv4.tcp_rmem = 4096 65536 16777216
+	net.ipv4.tcp_wmem = 4096 65536 16777216
+	net.core.netdev_max_backlog = 50000
+	EOF
+
+elif [ "$total_ram_kb" -lt 1048576 ]; then
+    # Medium RAM device (512MB - 1GB): use 32MB buffers
+    logger -t omr-buffers "Medium RAM device detected (${total_ram_mb}MB), using balanced 32MB buffers"
+    cat > "$SYSCTL_OVERRIDE" <<-EOF
+	# Auto-generated for medium-RAM device (${total_ram_mb}MB)
+	# Balanced buffer sizes
+	net.core.rmem_max = 33554432
+	net.core.wmem_max = 33554432
+	net.core.rmem_default = 16777216
+	net.core.wmem_default = 16777216
+	net.ipv4.tcp_rmem = 4096 87380 33554432
+	net.ipv4.tcp_wmem = 4096 87380 33554432
+	net.core.netdev_max_backlog = 100000
+	EOF
+
+else
+    # High RAM device (>= 1GB): use full 128MB buffers from main config
+    logger -t omr-buffers "High RAM device detected (${total_ram_mb}MB), using full 128MB buffers"
+    # No override needed - let 99-omr-mptcp-5g-optimization.conf use its defaults
+    rm -f "$SYSCTL_OVERRIDE" 2>/dev/null
+fi
+
+# Mark as configured
+touch /etc/omr-buffer-configured
+
+exit 0
