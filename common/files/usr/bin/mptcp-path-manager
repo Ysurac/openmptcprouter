@@ -114,6 +114,27 @@ is_degraded() {
     [ -f "$STATE_DIR/${iface}.degraded" ]
 }
 
+# Check if penalty has been applied (prevents accumulation)
+has_penalty() {
+    local iface=$1
+    local penalty_type=$2
+    [ -f "$STATE_DIR/${iface}.penalty_${penalty_type}" ]
+}
+
+# Mark penalty as applied
+mark_penalty_applied() {
+    local iface=$1
+    local penalty_type=$2
+    touch "$STATE_DIR/${iface}.penalty_${penalty_type}"
+}
+
+# Clear penalty mark
+clear_penalty_mark() {
+    local iface=$1
+    local penalty_type=$2
+    rm -f "$STATE_DIR/${iface}.penalty_${penalty_type}"
+}
+
 # Count failures within blacklist window
 count_recent_failures() {
     local iface=$1
@@ -273,7 +294,11 @@ check_path_blacklisting() {
             if echo "$now" > "$bl_tmp" 2>/dev/null; then
                 mv -f "$bl_tmp" "$STATE_DIR/${iface}.blacklist" 2>/dev/null || rm -f "$bl_tmp"
             fi
-            apply_metric_penalty "$iface" 1000 "blacklisted due to repeated failures"
+            # Only apply penalty if not already applied (prevents accumulation)
+            if ! has_penalty "$iface" "blacklist"; then
+                apply_metric_penalty "$iface" 1000 "blacklisted due to repeated failures"
+                mark_penalty_applied "$iface" "blacklist"
+            fi
         fi
     else
         # Check if blacklist should be lifted
@@ -284,7 +309,11 @@ check_path_blacklisting() {
             if [ "$blacklist_age" -ge "$BLACKLIST_DURATION" ]; then
                 log_info "UNBLACKLISTING $iface (served ${blacklist_age}s penalty, recent_failures: $recent_failures)"
                 rm -f "$STATE_DIR/${iface}.blacklist"
-                remove_metric_penalty "$iface" 1000 "blacklist expired"
+                # Only remove penalty if it was applied
+                if has_penalty "$iface" "blacklist"; then
+                    remove_metric_penalty "$iface" 1000 "blacklist expired"
+                    clear_penalty_mark "$iface" "blacklist"
+                fi
             fi
         fi
     fi
@@ -314,7 +343,11 @@ check_path_degradation() {
             local loss_pct=$((loss_rate / 100))
             log_warn "Path $iface DEGRADED (loss rate: ${loss_pct}.$(printf "%02d" $((loss_rate % 100)))%)"
             touch "$STATE_DIR/${iface}.degraded"
-            apply_metric_penalty "$iface" "$DEGRADED_METRIC_PENALTY" "degraded link quality"
+            # Only apply penalty if not already applied (prevents accumulation)
+            if ! has_penalty "$iface" "degraded"; then
+                apply_metric_penalty "$iface" "$DEGRADED_METRIC_PENALTY" "degraded link quality"
+                mark_penalty_applied "$iface" "degraded"
+            fi
         fi
     else
         # Path quality is good - restore if was degraded
@@ -322,7 +355,11 @@ check_path_degradation() {
             local loss_pct=$((loss_rate / 100))
             log_info "Path $iface RECOVERED from degradation (loss rate: ${loss_pct}.$(printf "%02d" $((loss_rate % 100)))%)"
             rm -f "$STATE_DIR/${iface}.degraded"
-            remove_metric_penalty "$iface" "$DEGRADED_METRIC_PENALTY" "link quality recovered"
+            # Only remove penalty if it was applied
+            if has_penalty "$iface" "degraded"; then
+                remove_metric_penalty "$iface" "$DEGRADED_METRIC_PENALTY" "link quality recovered"
+                clear_penalty_mark "$iface" "degraded"
+            fi
         fi
     fi
 }

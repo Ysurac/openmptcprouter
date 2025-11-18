@@ -373,8 +373,10 @@ net.ipv4.tcp_timestamps = 1
 net.nf_conntrack_max = 262144
 
 # Security
-net.ipv4.conf.default.rp_filter = 1
-net.ipv4.conf.all.rp_filter = 1
+# Use loose mode (2) for multi-WAN MPTCP - required for asymmetric routing
+# Strict mode (1) would drop valid MPTCP packets arriving on "wrong" interface
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.all.rp_filter = 2
 net.ipv4.conf.all.accept_redirects = 0
 net.ipv4.conf.all.send_redirects = 0
 net.ipv4.conf.all.accept_source_route = 0
@@ -464,6 +466,7 @@ cat > /etc/iptables/rules.v4 << IPTABLES
 # Forward traffic from VPN to internet
 -A FORWARD -i tun+ -o $INTERFACE -j ACCEPT
 -A FORWARD -i mlvpn+ -o $INTERFACE -j ACCEPT
+-A FORWARD -i wg+ -o $INTERFACE -j ACCEPT
 
 COMMIT
 
