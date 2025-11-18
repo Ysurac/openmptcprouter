@@ -180,8 +180,11 @@ apply_port_configuration() {
     fi
     
     # Commit changes
-    uci commit network
-    
+    if ! uci commit network 2>/dev/null; then
+        log_msg "ERROR: Failed to commit network configuration"
+        return 1
+    fi
+
     log_msg "Configuration applied successfully"
     
     # Mark as configured

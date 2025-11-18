@@ -98,9 +98,10 @@ check_signal_quality() {
     fi
     
     # Get signal quality
-    local signal=$(timeout 3 sh -c "echo -e 'AT+CSQ\r' > $device 2>/dev/null && cat $device 2>/dev/null" | grep "+CSQ:" | cut -d: -f2 | cut -d, -f1 | tr -d ' ')
-    
-    if [ -n "$signal" ] && [ "$signal" -ge 0 ] && [ "$signal" -le 31 ]; then
+    local signal=$(timeout 3 sh -c "echo -e 'AT+CSQ\r' > $device 2>/dev/null && timeout 2 cat $device 2>/dev/null" | grep "+CSQ:" | cut -d: -f2 | cut -d, -f1 | tr -d ' ')
+
+    # Validate signal is numeric before comparison
+    if [ -n "$signal" ] && echo "$signal" | grep -qE '^[0-9]+$' && [ "$signal" -ge 0 ] && [ "$signal" -le 31 ]; then
         if [ "$signal" -lt 10 ]; then
             log_msg "Warning: Low signal quality: $signal/31"
         else
@@ -272,7 +273,9 @@ main() {
         if ! detect_modem; then
             log_msg "ERROR: Modem disappeared from USB bus"
             failure_count=$((failure_count + 1))
-            
+            # Prevent counter overflow
+            [ "$failure_count" -gt 1000 ] && failure_count=1000
+
             if [ $failure_count -ge $FAILURE_THRESHOLD ]; then
                 hard_reset_modem
                 failure_count=0
@@ -282,11 +285,13 @@ main() {
         
         # Find control device
         control_dev=$(find_control_device)
-        
+
         if [ -z "$control_dev" ]; then
             log_msg "WARNING: Cannot find modem control interface"
             failure_count=$((failure_count + 1))
-            
+            # Prevent counter overflow
+            [ "$failure_count" -gt 1000 ] && failure_count=1000
+
             if [ $failure_count -ge $FAILURE_THRESHOLD ]; then
                 recover_modem ""
             fi
@@ -297,7 +302,9 @@ main() {
         if ! check_modem_responsive "$control_dev"; then
             log_msg "WARNING: Modem not responding to AT commands"
             failure_count=$((failure_count + 1))
-            
+            # Prevent counter overflow
+            [ "$failure_count" -gt 1000 ] && failure_count=1000
+
             if [ $failure_count -ge $FAILURE_THRESHOLD ]; then
                 recover_modem "$control_dev"
             fi
@@ -307,7 +314,9 @@ main() {
         # Check network registration
         if ! check_network_registration "$control_dev"; then
             failure_count=$((failure_count + 1))
-            
+            # Prevent counter overflow
+            [ "$failure_count" -gt 1000 ] && failure_count=1000
+
             if [ $failure_count -ge $FAILURE_THRESHOLD ]; then
                 log_msg "Network registration failed multiple times"
                 recover_modem "$control_dev"
