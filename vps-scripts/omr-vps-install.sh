@@ -1,11 +1,36 @@
 #!/bin/bash
 #
-# OpenMPTCProuter Optimized - VPS Installation Script
+# OpenMPTCProuter Optimized - VPS Installation Script (Streamlined Version)
 # Copyright (C) 2018-2025 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter
 # Copyright (C) 2025 spotty118 - OpenMPTCProuter Optimized fork
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
+#
+# ============================================================================
+# CHOOSING THE RIGHT INSTALLATION SCRIPT:
+# ============================================================================
+#
+# Use THIS script (omr-vps-install.sh) if you want:
+#   • Streamlined, direct installation without interactive prompts
+#   • Automation-friendly (CI/CD, scripting, bulk deployments)
+#   • Minimal dependencies (no web interface generation)
+#   • Text-only credential output
+#   • Advanced user control
+#
+# Use wizard.sh instead if you want:
+#   • Interactive step-by-step setup with visual feedback
+#   • Automatic QR code and pairing code generation
+#   • Web-based setup interface (http://YOUR_IP:8080)
+#   • Copy-paste friendly credential management
+#   • Beginner-friendly experience (RECOMMENDED for most users)
+#
+# Quick comparison:
+#   wizard.sh         - Full-featured, user-friendly (1032 lines)
+#   omr-vps-install.sh - Streamlined, automation-ready (484 lines)
+#
+# Both scripts install the same core functionality but differ in presentation.
+# ============================================================================
 #
 
 set -e
@@ -179,27 +204,30 @@ net.mptcp.mptcp_scheduler = default
 net.ipv4.tcp_congestion_control = bbr2
 net.core.default_qdisc = fq_codel
 
-# Network Performance Tuning - Enhanced for Multi-WAN
-net.core.rmem_max = 134217728
-net.core.wmem_max = 134217728
+# Network Performance Tuning - Enhanced for Multi-WAN and 5G
+net.core.rmem_max = 268435456
+net.core.wmem_max = 268435456
 net.core.rmem_default = 67108864
 net.core.wmem_default = 67108864
-net.core.netdev_max_backlog = 250000
-net.core.somaxconn = 4096
-net.core.optmem_max = 65536
+net.core.netdev_max_backlog = 300000
+net.core.netdev_budget = 600
+net.core.netdev_budget_usecs = 8000
+net.core.somaxconn = 8192
+net.core.optmem_max = 131072
 
-# TCP Performance - Optimized for Multiple Connections
-net.ipv4.tcp_rmem = 4096 87380 67108864
-net.ipv4.tcp_wmem = 4096 65536 67108864
-net.ipv4.tcp_max_syn_backlog = 8192
+# TCP Performance - Optimized for 5G High-Bandwidth Links
+net.ipv4.tcp_rmem = 4096 131072 268435456
+net.ipv4.tcp_wmem = 4096 131072 268435456
+net.ipv4.tcp_max_syn_backlog = 16384
 net.ipv4.tcp_slow_start_after_idle = 0
 net.ipv4.tcp_tw_reuse = 1
-net.ipv4.tcp_fin_timeout = 15
+net.ipv4.tcp_fin_timeout = 10
+net.ipv4.tcp_max_tw_buckets = 2000000
 net.ipv4.tcp_keepalive_time = 300
 net.ipv4.tcp_keepalive_probes = 5
 net.ipv4.tcp_keepalive_intvl = 15
 
-# Optimize TCP window size
+# Optimize TCP window size for high-latency 5G links
 net.ipv4.tcp_window_scaling = 1
 net.ipv4.tcp_adv_win_scale = 1
 net.ipv4.tcp_moderate_rcvbuf = 1
@@ -207,29 +235,44 @@ net.ipv4.tcp_moderate_rcvbuf = 1
 # Enable TCP Fast Open
 net.ipv4.tcp_fastopen = 3
 
-# Connection Tracking - Enhanced for Multi-WAN
-net.netfilter.nf_conntrack_max = 262144
+# UDP optimizations for QUIC and real-time protocols
+net.ipv4.udp_rmem_min = 16384
+net.ipv4.udp_wmem_min = 16384
+
+# Connection Tracking - Enhanced for Multi-WAN and High Connection Count
+net.netfilter.nf_conntrack_max = 524288
+net.nf_conntrack_max = 524288
 net.netfilter.nf_conntrack_tcp_timeout_established = 432000
 net.netfilter.nf_conntrack_tcp_timeout_time_wait = 30
 net.netfilter.nf_conntrack_tcp_timeout_close_wait = 15
 net.netfilter.nf_conntrack_tcp_timeout_fin_wait = 30
+net.netfilter.nf_conntrack_udp_timeout = 60
+net.netfilter.nf_conntrack_udp_timeout_stream = 120
+net.netfilter.nf_conntrack_helper = 1
 
 # Multi-path routing enhancements
 net.ipv4.fib_multipath_hash_policy = 1
 net.ipv4.fib_multipath_use_neigh = 1
 
-# TCP optimizations for bonding
+# TCP optimizations for bonding and 5G
 net.ipv4.tcp_no_metrics_save = 1
 net.ipv4.tcp_ecn = 0
 net.ipv4.tcp_frto = 2
+net.ipv4.tcp_early_retrans = 3
 net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_base_mss = 1024
 net.ipv4.tcp_rfc1337 = 1
 net.ipv4.tcp_sack = 1
-net.ipv4.tcp_fack = 1
+net.ipv4.tcp_dsack = 1
 net.ipv4.tcp_timestamps = 1
 
-# Increase connection tracking table size for multi-WAN
-net.nf_conntrack_max = 262144
+# ARP and neighbor cache optimizations
+net.ipv4.neigh.default.gc_thresh1 = 2048
+net.ipv4.neigh.default.gc_thresh2 = 4096
+net.ipv4.neigh.default.gc_thresh3 = 8192
+net.ipv6.neigh.default.gc_thresh1 = 2048
+net.ipv6.neigh.default.gc_thresh2 = 4096
+net.ipv6.neigh.default.gc_thresh3 = 8192
 
 # Security
 net.ipv4.conf.default.rp_filter = 1

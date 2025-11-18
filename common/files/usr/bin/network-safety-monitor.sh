@@ -88,21 +88,28 @@ check_interface_ips() {
     # Check all network interfaces for APIPA addresses
     for iface in /sys/class/net/*; do
         if [ -e "$iface" ]; then
-            local if_name=$(basename "$iface")
-            
+            local if_name
+            if_name=$(basename "$iface")
+
+            # Validate interface name
+            if ! echo "$if_name" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+                continue
+            fi
+
             # Skip virtual interfaces
             case "$if_name" in
                 lo|sit*|ip6*|gre*|tun*|tap*|ifb*) continue ;;
             esac
-            
+
             # Get IP address
-            local current_ip=$(ip -4 addr show dev "$if_name" 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
-            
+            local current_ip
+            current_ip=$(ip -4 addr show dev "$if_name" 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+
             if [ -n "$current_ip" ]; then
                 # Check if it's APIPA
                 if echo "$current_ip" | grep -q "^169\.254\."; then
                     log_msg "WARNING: Interface $if_name has APIPA address $current_ip"
-                    
+
                     # If this is the LAN interface, fix it immediately
                     if echo "$if_name" | grep -q "^br-lan"; then
                         log_msg "CRITICAL: LAN has APIPA address - fixing immediately!"
@@ -112,7 +119,7 @@ check_interface_ips() {
             fi
         fi
     done
-    
+
     return 0
 }
 
@@ -122,25 +129,32 @@ emergency_recovery() {
     log_msg "EMERGENCY RECOVERY ACTIVATED"
     log_msg "User locked out - restoring LAN access"
     log_msg "═══════════════════════════════════════════════════"
-    
+
     # Find any available physical port
     local emergency_port=""
-    
+
     # Try to find a port not assigned to WAN
     for iface in /sys/class/net/eth* /sys/class/net/lan*; do
         if [ -e "$iface" ]; then
-            local port=$(basename "$iface")
-            
+            local port
+            port=$(basename "$iface")
+
+            # Validate port name
+            if ! echo "$port" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+                continue
+            fi
+
             # Check if this port is assigned to a WAN
             local is_wan=0
             for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
-                local wan_device=$(uci -q get network.$wan.device)
+                local wan_device
+                wan_device=$(uci -q get "network.$wan.device")
                 if [ "$wan_device" = "$port" ]; then
                     is_wan=1
                     break
                 fi
             done
-            
+
             # If not a WAN, use it for emergency LAN
             if [ $is_wan -eq 0 ]; then
                 emergency_port="$port"
@@ -167,16 +181,30 @@ emergency_recovery() {
     fi
     
     log_msg "Using $emergency_port for emergency LAN access"
-    echo "$emergency_port" > "$EMERGENCY_PORT_FILE"
-    
+
+    # Write emergency port file with secure permissions
+    (
+        umask 077
+        echo "$emergency_port" > "$EMERGENCY_PORT_FILE"
+    )
+
     # Create minimal working LAN configuration with STATIC IP
     # Never use DHCP on LAN - it causes APIPA addresses
-    uci -q batch <<-EOF
+    # Use quoted heredoc to prevent variable expansion issues
+    uci -q batch <<-'EOF'
 		delete network.@device[0]
 		add network device
 		set network.@device[-1].name='br-lan'
 		set network.@device[-1].type='bridge'
-		set network.@device[-1].ports='$emergency_port'
+	EOF
+
+    # Set ports separately with validation
+    if ! uci -q set "network.@device[-1].ports=$emergency_port"; then
+        log_msg "ERROR: Failed to set emergency port"
+        return 1
+    fi
+
+    uci -q batch <<-'EOF'
 		set network.lan.device='br-lan'
 		set network.lan.proto='static'
 		set network.lan.ipaddr='192.168.2.1'

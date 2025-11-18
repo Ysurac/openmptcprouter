@@ -84,7 +84,7 @@ echo -e "${GREEN}║  Configuration Summary                 ║${NC}"
 echo -e "${GREEN}╠════════════════════════════════════════╣${NC}"
 echo -e "${GREEN}║${NC} VPS IP:      ${YELLOW}$VPS_IP${NC}"
 echo -e "${GREEN}║${NC} VPS Port:    ${YELLOW}$VPS_PORT${NC}"
-echo -e "${GREEN}║${NC} Password:    ${YELLOW}$(echo $VPS_PASSWORD | sed 's/./*/g')${NC}"
+echo -e "${GREEN}║${NC} Password:    ${YELLOW}$(echo "$VPS_PASSWORD" | sed 's/./*/g')${NC}"
 echo -e "${GREEN}║${NC} Encryption:  ${YELLOW}Shadowsocks${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
 echo ""
@@ -255,7 +255,7 @@ echo "Connection test complete!"
 TESTEOF
 
 chmod +x /usr/bin/omr-test
-sed -i "s/\$1/$VPS_IP/g" /usr/bin/omr-test
+sed -i "s|\$1|$VPS_IP|g" /usr/bin/omr-test
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════╗${NC}"

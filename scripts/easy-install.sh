@@ -366,13 +366,18 @@ cat > /var/www/omr-setup/index.html << 'ENDHTML'
 </html>
 ENDHTML
 
+
 # Replace placeholders (using | delimiter to prevent injection)
-sed -i "s|REPLACE_IP|$VPS_IP|g" /var/www/omr-setup/index.html
-if [ -f /etc/openmptcprouter/config.json ]; then
-    PASSWORD=$(jq -r '.credentials.shadowsocks_password' /etc/openmptcprouter/config.json 2>/dev/null || echo "check /root/openmptcprouter_credentials.txt")
-    # Escape special characters in password for sed
-    PASSWORD_ESCAPED=$(printf '%s\n' "$PASSWORD" | sed 's/[&/\]/\\&/g')
-    sed -i "s|REPLACE_PASSWORD|$PASSWORD_ESCAPED|g" /var/www/omr-setup/index.html
+if [ -f /var/www/omr-setup/index.html ]; then
+    sed -i "s|REPLACE_IP|$VPS_IP|g" /var/www/omr-setup/index.html
+    if [ -f /etc/openmptcprouter/config.json ]; then
+        PASSWORD=$(jq -r '.credentials.shadowsocks_password' /etc/openmptcprouter/config.json 2>/dev/null || echo "check /root/openmptcprouter_credentials.txt")
+        # Escape special characters in password for sed (security fix)
+        PASSWORD_ESCAPED=$(printf '%s\n' "$PASSWORD" | sed 's/[&/\]/\\&/g')
+        sed -i "s|REPLACE_PASSWORD|$PASSWORD_ESCAPED|g" /var/www/omr-setup/index.html
+    fi
+else
+    echo "Warning: /var/www/omr-setup/index.html not found, skipping placeholder replacement"
 fi
 
 # Install and configure simple web server

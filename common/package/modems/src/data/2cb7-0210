@@ -1,0 +1,10 @@
+{
+	"desc": "Fibocom L830-EB LTE Cat4",
+	"type": "cdc_mbim",
+	"control": 4,
+	"boudrate": 115200,
+	"stop_bits": 8,
+	"dl_max_size": 8192,
+	"dl_max_datagrams": 16,
+	"carrier_aggregation": 1
+}

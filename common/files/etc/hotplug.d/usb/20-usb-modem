@@ -25,6 +25,22 @@ case "$DEVTYPE" in
             19d2/*)
                 logger -t usb-modem-hotplug "ZTE modem detected: $PRODUCT"
                 ;;
+            # SIMCom modems
+            1e0e/*)
+                logger -t usb-modem-hotplug "SIMCom modem detected: $PRODUCT"
+                ;;
+            # Fibocom modems
+            2cb7/*)
+                logger -t usb-modem-hotplug "Fibocom modem detected: $PRODUCT"
+                ;;
+            # Telit modems
+            1bc7/*)
+                logger -t usb-modem-hotplug "Telit modem detected: $PRODUCT"
+                ;;
+            # MediaTek modems (Fibocom FM350-GL)
+            0e8d/*)
+                logger -t usb-modem-hotplug "MediaTek/Fibocom modem detected: $PRODUCT"
+                ;;
             *)
                 # Not a known modem, skip
                 exit 0

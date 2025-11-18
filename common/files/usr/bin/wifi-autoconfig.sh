@@ -124,16 +124,19 @@ configure_all_radios() {
     
     log_msg "Starting WiFi auto-configuration"
     log_msg "Device: $device_name"
-    
-    # Save password to file for user reference
-    cat > /etc/wifi-password.txt <<-EOF
+
+    # Save password to file for user reference with secure permissions
+    (
+        umask 077
+        cat > /etc/wifi-password.txt <<-EOF
 		OpenMPTCProuter Optimized - WiFi Configuration
 		Generated: $(date)
-		
+
 		WiFi Password: $wifi_password
-		
+
 		Networks:
-	EOF
+		EOF
+    )
     
     # Detect and configure each radio
     for radio_path in /sys/class/ieee80211/phy*; do
@@ -173,27 +176,35 @@ configure_all_radios() {
         # Configure WiFi interface
         configure_wifi_interface "$radio" "$band" "$ssid" "$wifi_password"
         
-        # Add to password file
-        echo "  - $ssid (${band^^})" >> /etc/wifi-password.txt
+        # Add to password file (convert band to uppercase using tr instead of bash-specific ${band^^})
+        local band_upper=$(echo "$band" | tr '[:lower:]' '[:upper:]')
+        echo "  - $ssid ($band_upper)" >> /etc/wifi-password.txt
         
         radio_count=$((radio_count + 1))
     done
     
-    echo "" >> /etc/wifi-password.txt
-    echo "Access web interface at: http://192.168.2.1" >> /etc/wifi-password.txt
-    
+    # Append additional info with secure permissions
+    (
+        umask 077
+        echo "" >> /etc/wifi-password.txt
+        echo "Access web interface at: http://192.168.2.1" >> /etc/wifi-password.txt
+    )
+
     if [ $radio_count -eq 0 ]; then
         log_msg "WARNING: No WiFi radios detected"
         return 1
     fi
-    
+
     # Commit wireless configuration
     uci commit wireless
-    
+
     log_msg "Configured $radio_count WiFi radio(s)"
     log_msg "WiFi password saved to /etc/wifi-password.txt"
     log_msg "Password: $wifi_password"
-    
+
+    # Ensure password file has correct permissions
+    chmod 600 /etc/wifi-password.txt 2>/dev/null
+
     return 0
 }
 

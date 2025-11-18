@@ -16,17 +16,14 @@ log_msg() {
 
 # Check if modem is present
 detect_rm551e() {
-    local found=0
-    
     for pid in $MODEM_PRODUCT_IDS; do
         if lsusb | grep -qi "${MODEM_VENDOR_ID}:${pid}"; then
             log_msg "Detected RM551E modem (${MODEM_VENDOR_ID}:${pid})"
-            found=1
-            break
+            return 0  # Success - modem found
         fi
     done
-    
-    return $found
+
+    return 1  # Failure - modem not found
 }
 
 # Load required kernel modules

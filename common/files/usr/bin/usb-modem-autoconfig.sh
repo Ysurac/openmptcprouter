@@ -7,9 +7,70 @@
 
 LOG_TAG="usb-modem-autoconfig"
 
+# Load USA carrier APN database if available
+if [ -f "/etc/usa-carrier-apns.conf" ]; then
+    . /etc/usa-carrier-apns.conf
+fi
+
 log_msg() {
     logger -t "$LOG_TAG" "$1"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+# Get carrier configuration from UCI or environment
+get_carrier_config() {
+    local wan_name="$1"
+    local carrier=""
+
+    # Priority 1: Per-interface carrier setting
+    carrier=$(uci -q get "network.$wan_name.carrier")
+
+    # Priority 2: Global carrier setting
+    [ -z "$carrier" ] && carrier=$(uci -q get "network.globals.carrier")
+
+    # Priority 3: Environment variable
+    [ -z "$carrier" ] && carrier="$USA_CARRIER"
+
+    echo "$carrier"
+}
+
+# Get APN settings for the configured carrier
+get_apn_settings() {
+    local carrier="$1"
+    local default_apn="internet"
+    local apn="$default_apn"
+    local username=""
+    local password=""
+    local auth_type="PAP"
+
+    # If no carrier specified, use default
+    if [ -z "$carrier" ]; then
+        log_msg "No carrier specified, using default APN: $default_apn"
+        echo "$apn:$username:$password:$auth_type"
+        return
+    fi
+
+    # Get carrier APN from database
+    if type get_carrier_apn >/dev/null 2>&1; then
+        local carrier_data=$(get_carrier_apn "$carrier")
+        if [ $? -eq 0 ] && [ -n "$carrier_data" ]; then
+            log_msg "Found carrier APN for '$carrier'"
+            if type parse_apn_data >/dev/null 2>&1; then
+                parse_apn_data "$carrier_data"
+                apn="$APN_NAME"
+                username="$APN_USERNAME"
+                password="$APN_PASSWORD"
+                auth_type="$APN_AUTH_TYPE"
+                log_msg "Using APN: $apn (auth: $auth_type)"
+            fi
+        else
+            log_msg "WARNING: Carrier '$carrier' not found in database, using default APN"
+        fi
+    else
+        log_msg "WARNING: USA carrier APN database not loaded, using default APN"
+    fi
+
+    echo "$apn:$username:$password:$auth_type"
 }
 
 # Detect USB modems (QMI, MBIM, RNDIS, NCM)
@@ -77,29 +138,38 @@ get_modem_info() {
     local proto="$1"
     local iface="$2"
     local dev="$3"
-    
+
+    # Validate device path
+    if [ -n "$dev" ] && ! echo "$dev" | grep -qE '^/dev/[a-zA-Z0-9_-]+$'; then
+        echo "Type: $proto (invalid device path)"
+        return
+    fi
+
     local info="Type: $proto"
-    
+
     case "$proto" in
         qmi)
-            if command -v uqmi >/dev/null 2>&1 && [ -n "$dev" ]; then
+            if command -v uqmi >/dev/null 2>&1 && [ -n "$dev" ] && [ -c "$dev" ]; then
                 # Get signal strength
-                local signal=$(uqmi -d "$dev" --get-signal-info 2>/dev/null | grep rssi | cut -d: -f2 | tr -d ' ,')
+                local signal
+                signal=$(uqmi -d "$dev" --get-signal-info 2>/dev/null | grep rssi | cut -d: -f2 | tr -d ' ,')
                 [ -n "$signal" ] && info="$info, Signal: ${signal}dBm"
-                
+
                 # Get network registration
-                local network=$(uqmi -d "$dev" --get-serving-system 2>/dev/null | grep description | cut -d\" -f4)
+                local network
+                network=$(uqmi -d "$dev" --get-serving-system 2>/dev/null | grep description | cut -d\" -f4)
                 [ -n "$network" ] && info="$info, Network: $network"
             fi
             ;;
         mbim)
-            if command -v umbim >/dev/null 2>&1 && [ -n "$dev" ]; then
-                local signal=$(umbim -d "$dev" -n signal 2>/dev/null | grep rssi | cut -d: -f2)
+            if command -v umbim >/dev/null 2>&1 && [ -n "$dev" ] && [ -c "$dev" ]; then
+                local signal
+                signal=$(umbim -d "$dev" -n signal 2>/dev/null | grep rssi | cut -d: -f2)
                 [ -n "$signal" ] && info="$info, Signal: ${signal}dBm"
             fi
             ;;
     esac
-    
+
     echo "$info"
 }
 
@@ -122,6 +192,14 @@ configure_modem_as_wan() {
     # Get modem info for logging
     local modem_info=$(get_modem_info "$proto" "$iface" "$dev")
     log_msg "Modem info: $modem_info"
+
+    # Get carrier and APN settings
+    local carrier=$(get_carrier_config "$wan_name")
+    local apn_settings=$(get_apn_settings "$carrier")
+    local apn=$(echo "$apn_settings" | cut -d: -f1)
+    local username=$(echo "$apn_settings" | cut -d: -f2)
+    local password=$(echo "$apn_settings" | cut -d: -f3)
+    local auth_type=$(echo "$apn_settings" | cut -d: -f4)
     
     # Configure based on protocol
     case "$proto" in
@@ -131,11 +209,15 @@ configure_modem_as_wan() {
 				set network.$wan_name=interface
 				set network.$wan_name.proto='qmi'
 				set network.$wan_name.device='$dev'
-				set network.$wan_name.apn='internet'
+				set network.$wan_name.apn='$apn'
 				set network.$wan_name.metric='$((wan_num * 10))'
 				set network.$wan_name.multipath='on'
 				set network.$wan_name.auto='1'
 			EOF
+            # Add username and password if provided
+            [ -n "$username" ] && uci -q set "network.$wan_name.username=$username"
+            [ -n "$password" ] && uci -q set "network.$wan_name.password=$password"
+            [ -n "$auth_type" ] && uci -q set "network.$wan_name.auth=$auth_type"
             ;;
         mbim)
             uci -q batch <<-EOF
@@ -143,11 +225,15 @@ configure_modem_as_wan() {
 				set network.$wan_name=interface
 				set network.$wan_name.proto='mbim'
 				set network.$wan_name.device='$dev'
-				set network.$wan_name.apn='internet'
+				set network.$wan_name.apn='$apn'
 				set network.$wan_name.metric='$((wan_num * 10))'
 				set network.$wan_name.multipath='on'
 				set network.$wan_name.auto='1'
 			EOF
+            # Add username and password if provided
+            [ -n "$username" ] && uci -q set "network.$wan_name.username=$username"
+            [ -n "$password" ] && uci -q set "network.$wan_name.password=$password"
+            [ -n "$auth_type" ] && uci -q set "network.$wan_name.auth=$auth_type"
             ;;
         eth)
             # Generic USB ethernet (could be RNDIS, NCM, etc.)
@@ -167,14 +253,20 @@ configure_modem_as_wan() {
     # Save modem info to a status file
     local status_dir="/var/run/modem-status"
     mkdir -p "$status_dir"
-    cat > "$status_dir/$wan_name" <<-EOFF
+
+    # Use quoted heredoc to prevent variable expansion issues
+    # Write status file with secure permissions
+    (
+        umask 077
+        cat > "$status_dir/$wan_name" <<-EOFF
 		INTERFACE=$wan_name
 		PHYSICAL_DEVICE=$iface
 		PROTOCOL=$proto
 		CONTROL_DEVICE=$dev
 		INFO=$modem_info
 		CONFIGURED_AT=$(date)
-	EOFF
+		EOFF
+    )
     
     log_msg "$wan_name configured successfully"
     
@@ -185,40 +277,54 @@ configure_modem_as_wan() {
 # Check if a modem is already configured
 is_modem_configured() {
     local iface="$1"
-    
+
+    # Validate interface name
+    if ! echo "$iface" | grep -qE '^[a-zA-Z0-9_/-]+$'; then
+        return 1
+    fi
+
     # Check all WAN interfaces
     for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
-        local device=$(uci -q get network.$wan.device)
+        local device
+        device=$(uci -q get "network.$wan.device")
         # Check both device name and physical device
         if [ "$device" = "$iface" ] || [ "$device" = "/dev/cdc-wdm0" ]; then
             return 0
         fi
     done
-    
+
     return 1
 }
 
 # Remove modems that are no longer present
 cleanup_disconnected_modems() {
     log_msg "Checking for disconnected modems..."
-    
+
     for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan[0-9]" | cut -d. -f2 | cut -d= -f1); do
-        local proto=$(uci -q get network.$wan.proto)
-        local device=$(uci -q get network.$wan.device)
-        
+        local proto
+        local device
+        proto=$(uci -q get "network.$wan.proto")
+        device=$(uci -q get "network.$wan.device")
+
+        # Validate device path
+        if [ -n "$device" ] && ! echo "$device" | grep -qE '^/dev/[a-zA-Z0-9_-]+$'; then
+            log_msg "WARNING: Invalid device path for $wan: $device"
+            continue
+        fi
+
         # Check if this is a modem interface
         case "$proto" in
             qmi|mbim)
                 # Check if device still exists
-                if [ ! -c "$device" ]; then
+                if [ -n "$device" ] && [ ! -c "$device" ]; then
                     log_msg "Modem on $wan ($device) is disconnected, removing configuration"
-                    uci delete network.$wan
+                    uci delete "network.$wan"
                     rm -f "/var/run/modem-status/$wan"
                 fi
                 ;;
         esac
     done
-    
+
     uci commit network
 }
 

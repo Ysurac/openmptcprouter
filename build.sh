@@ -91,6 +91,7 @@ fi
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
+	exit 1
 fi
 
 if [ "$OMR_TARGET" = "rpi4" ]; then
@@ -317,9 +318,8 @@ else
 
 fi
 
-if [ -f "$OMR_TARGET_CONFIG" ]; then
-	cat "$OMR_TARGET_CONFIG" config > "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-	cat >> "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
+if [ -f $OMR_TARGET_CONFIG ]; then
+	cat "$OMR_TARGET_CONFIG" config > "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"
@@ -327,8 +327,7 @@ if [ -f "$OMR_TARGET_CONFIG" ]; then
 	CONFIG_VERSION_NUMBER="${OMR_RELEASE}-${OMR_KERNEL}"
 	EOF
 else
-	cat config > "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-	cat >> "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
+	cat config > "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
 	CONFIG_VERSION_DIST="$OMR_DIST"

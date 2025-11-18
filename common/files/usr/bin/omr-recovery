@@ -20,6 +20,12 @@ echo "  5. Cancel"
 echo ""
 read -p "Choose option (1-5): " choice
 
+# Validate user input - only allow digits 1-5
+if ! echo "$choice" | grep -qE '^[1-5]$'; then
+    echo "Invalid option. Please enter 1-5."
+    exit 1
+fi
+
 case "$choice" in
     1)
         echo ""
@@ -29,25 +35,35 @@ case "$choice" in
         for iface in /sys/class/net/eth* /sys/class/net/lan*; do
             if [ -e "$iface" ]; then
                 port=$(basename "$iface")
-                
+
+                # Validate port name
+                if ! echo "$port" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+                    continue
+                fi
+
                 echo "Using $port for LAN access"
-                
+
                 # Remove from all WANs
                 for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
-                    wan_dev=$(uci -q get network.$wan.device)
+                    wan_dev=$(uci -q get "network.$wan.device")
                     if [ "$wan_dev" = "$port" ]; then
-                        uci delete network.$wan
+                        uci delete "network.$wan"
                         echo "Removed $port from $wan"
                     fi
                 done
-                
-                # Add to LAN
-                uci -q batch <<-EOF
+
+                # Add to LAN - use quoted heredoc
+                uci -q batch <<-'EOF'
 					delete network.@device[0]
 					add network device
 					set network.@device[-1].name='br-lan'
 					set network.@device[-1].type='bridge'
-					set network.@device[-1].ports='$port'
+				EOF
+
+                # Set port separately with validation
+                uci -q set "network.@device[-1].ports=$port"
+
+                uci -q batch <<-'EOF'
 					set network.lan.device='br-lan'
 					set network.lan.proto='static'
 					set network.lan.ipaddr='192.168.2.1'
@@ -107,7 +123,13 @@ case "$choice" in
         echo ""
         echo "WARNING: This will reset ALL network settings!"
         read -p "Are you sure? (yes/no): " confirm
-        
+
+        # Validate confirmation input
+        if ! echo "$confirm" | grep -qE '^(yes|no)$'; then
+            echo "Invalid input. Please enter 'yes' or 'no'."
+            exit 1
+        fi
+
         if [ "$confirm" = "yes" ]; then
             echo ""
             echo "Resetting to factory defaults..."
@@ -115,10 +137,12 @@ case "$choice" in
             # Run first-boot setup again
             rm -f /etc/port-autoconfig-applied
             
-            # Reset network config
+            # Reset network config with secure permissions
             cp /rom/etc/config/network /etc/config/network 2>/dev/null || {
-                # If no ROM config, create minimal one
-                cat > /etc/config/network <<-'NETEOF'
+                # If no ROM config, create minimal one with secure permissions
+                (
+                    umask 077
+                    cat > /etc/config/network <<-'NETEOF'
 config interface 'loopback'
 	option device 'lo'
 	option proto 'static'
@@ -130,6 +154,8 @@ config interface 'lan'
 	option ipaddr '192.168.2.1'
 	option netmask '255.255.255.0'
 NETEOF
+                )
+                chmod 644 /etc/config/network
             }
             
             uci commit network

@@ -291,7 +291,8 @@ int parse_fit_partitions(struct parsed_partitions *state, u64 fit_start_sector, 
 		put_partition(state, ++(*slot), fit_start_sector + imgmaxsect, dsectors - imgmaxsect);
 		state->parts[*slot].flags = 0;
 		info = &state->parts[*slot].info;
-		strcpy(info->volname, REMAIN_VOLNAME);
+		strncpy(info->volname, REMAIN_VOLNAME, sizeof(info->volname) - 1);
+		info->volname[sizeof(info->volname) - 1] = '\0';
 		snprintf(tmp, sizeof(tmp), "(%s)", REMAIN_VOLNAME);
 		strlcat(state->pp_buf, tmp, PAGE_SIZE);
 	}

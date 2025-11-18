@@ -1,0 +1,178 @@
+#!/bin/sh
+#
+# USA Carrier Configuration Helper
+# Sets the carrier for cellular modems to use carrier-specific APNs
+#
+
+# Load carrier APN database
+if [ -f "/etc/usa-carrier-apns.conf" ]; then
+    . /etc/usa-carrier-apns.conf
+else
+    echo "ERROR: USA carrier APN database not found at /etc/usa-carrier-apns.conf"
+    exit 1
+fi
+
+show_usage() {
+    cat <<EOF
+Usage: set-carrier [OPTIONS] <carrier_name>
+
+Configure cellular modem carrier for automatic APN selection.
+
+OPTIONS:
+    -i, --interface <name>    Set carrier for specific interface (e.g., wan1)
+    -g, --global              Set carrier globally for all modems (default)
+    -l, --list                List all available carriers
+    -s, --show                Show current carrier configuration
+    -h, --help                Show this help message
+
+EXAMPLES:
+    set-carrier verizon              Set Verizon as global carrier
+    set-carrier -i wan1 tmobile      Set T-Mobile for wan1 interface
+    set-carrier --list               List all available USA carriers
+    set-carrier --show               Show current configuration
+
+SUPPORTED CARRIERS:
+    Major carriers: verizon, att, tmobile, sprint, uscellular
+    MVNOs: cricket, metro, boost, mint, googlefi, visible, xfinity,
+           spectrum, straighttalk, tracfone, simplemobile, h2o, ting,
+           redpocket, totalwireless, net10, consumer, tello, ultramobile,
+           wing, optimum, republic, usmobile, twigby, freedompop, lycamobile
+
+    Use --list for complete list with variants (prepaid, business, etc.)
+
+EOF
+}
+
+list_carriers() {
+    echo "Available USA carriers and their APNs:"
+    echo "======================================="
+    if type list_carriers >/dev/null 2>&1; then
+        list_carriers
+    else
+        echo "ERROR: Carrier database functions not available"
+        exit 1
+    fi
+}
+
+show_current() {
+    echo "Current carrier configuration:"
+    echo "=============================="
+
+    # Check global setting
+    local global_carrier=$(uci -q get network.globals.carrier)
+    if [ -n "$global_carrier" ]; then
+        echo "Global carrier: $global_carrier"
+    else
+        echo "Global carrier: not set (using default)"
+    fi
+
+    echo ""
+    echo "Per-interface settings:"
+
+    # Check all WAN interfaces
+    local found=0
+    for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
+        local proto=$(uci -q get "network.$wan.proto")
+        local carrier=$(uci -q get "network.$wan.carrier")
+        local apn=$(uci -q get "network.$wan.apn")
+
+        case "$proto" in
+            qmi|mbim)
+                if [ -n "$carrier" ]; then
+                    echo "  $wan: carrier=$carrier, apn=$apn"
+                else
+                    echo "  $wan: carrier=not set, apn=$apn"
+                fi
+                found=1
+                ;;
+        esac
+    done
+
+    if [ $found -eq 0 ]; then
+        echo "  No cellular modem interfaces configured"
+    fi
+}
+
+set_carrier() {
+    local carrier="$1"
+    local interface="$2"
+
+    # Validate carrier
+    if ! type get_carrier_apn >/dev/null 2>&1; then
+        echo "ERROR: Carrier database functions not available"
+        exit 1
+    fi
+
+    local carrier_data=$(get_carrier_apn "$carrier")
+    if [ $? -ne 0 ] || [ -z "$carrier_data" ]; then
+        echo "ERROR: Carrier '$carrier' not found in database"
+        echo "Use 'set-carrier --list' to see available carriers"
+        exit 1
+    fi
+
+    # Set carrier configuration
+    if [ -n "$interface" ]; then
+        # Set for specific interface
+        if ! uci -q get "network.$interface" >/dev/null 2>&1; then
+            echo "ERROR: Interface '$interface' not found"
+            exit 1
+        fi
+
+        uci set "network.$interface.carrier=$carrier"
+        uci commit network
+        echo "Carrier set to '$carrier' for interface $interface"
+    else
+        # Set globally
+        uci set "network.globals=globals" 2>/dev/null
+        uci set "network.globals.carrier=$carrier"
+        uci commit network
+        echo "Carrier set to '$carrier' globally"
+    fi
+
+    echo ""
+    echo "To apply changes, run: /etc/init.d/network reload"
+    echo "Or reconfigure modems: /usr/bin/usb-modem-autoconfig.sh"
+}
+
+# Parse command line arguments
+INTERFACE=""
+MODE="set"
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            show_usage
+            exit 0
+            ;;
+        -l|--list)
+            list_carriers
+            exit 0
+            ;;
+        -s|--show)
+            show_current
+            exit 0
+            ;;
+        -g|--global)
+            INTERFACE=""
+            shift
+            ;;
+        -i|--interface)
+            INTERFACE="$2"
+            shift 2
+            ;;
+        -*)
+            echo "ERROR: Unknown option: $1"
+            show_usage
+            exit 1
+            ;;
+        *)
+            # This is the carrier name
+            set_carrier "$1" "$INTERFACE"
+            exit 0
+            ;;
+    esac
+done
+
+# No arguments provided
+show_usage
+exit 1
