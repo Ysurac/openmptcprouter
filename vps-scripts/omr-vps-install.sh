@@ -193,12 +193,11 @@ net.ipv4.ip_forward = 1
 net.ipv6.conf.all.forwarding = 1
 
 # MPTCP Configuration - Enhanced for Multi-WAN Bonding
-net.mptcp.mptcp_enabled = 1
-net.mptcp.mptcp_checksum = 0
-net.mptcp.mptcp_debug = 0
-net.mptcp.mptcp_syn_retries = 3
-net.mptcp.mptcp_path_manager = fullmesh
-net.mptcp.mptcp_scheduler = default
+# Note: Using modern kernel 6.1+ sysctl format (old mptcp_enabled format is deprecated)
+net.mptcp.enabled = 1
+net.mptcp.checksum_enabled = 0
+net.mptcp.allow_join_initial_addr_port = 1
+# Path manager and scheduler are configured via 'ip mptcp' commands after boot
 
 # BBR2 Congestion Control
 net.ipv4.tcp_congestion_control = bbr2
@@ -274,9 +273,11 @@ net.ipv6.neigh.default.gc_thresh1 = 2048
 net.ipv6.neigh.default.gc_thresh2 = 4096
 net.ipv6.neigh.default.gc_thresh3 = 8192
 
-# Security
-net.ipv4.conf.default.rp_filter = 1
-net.ipv4.conf.all.rp_filter = 1
+# Security - Use loose RP filter for multi-WAN asymmetric routing
+# CRITICAL: Multi-WAN bonding creates asymmetric routes (packet arrives on WAN1, reply via WAN2)
+# Strict mode (=1) would DROP these packets, breaking MPTCP subflows
+net.ipv4.conf.default.rp_filter = 2
+net.ipv4.conf.all.rp_filter = 2
 net.ipv4.conf.all.accept_redirects = 0
 net.ipv4.conf.all.send_redirects = 0
 net.ipv4.conf.all.accept_source_route = 0
@@ -302,6 +303,12 @@ SYSCTL
 
 # Apply sysctl settings
 sysctl -p /etc/sysctl.d/99-openmptcprouter.conf > /dev/null
+
+# Configure MPTCP path manager limits for multi-WAN bonding
+# Allow up to 64 subflows and 64 additional addresses (for many modems)
+if command -v ip >/dev/null 2>&1; then
+    ip mptcp limits set subflow 64 add_addr_accepted 64 2>/dev/null || true
+fi
 
 echo -e "${GREEN}Step 4/6: Configuring firewall rules...${NC}"
 
