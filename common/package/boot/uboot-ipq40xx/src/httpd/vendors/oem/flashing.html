@@ -2,6 +2,11 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+		<!-- SECURITY FIX: Added security headers -->
+		<meta http-equiv="X-Content-Type-Options" content="nosniff">
+		<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Update in progress</title>
 		<style>
 			h1,p,body{margin:0;padding:0}html,body{font:13px/20px Tahoma,sans-serif;background:#FFF;color:#000;text-align:center;height:100%}#m{padding:30px 0}#m>*{padding:20px}h1{font:bold 40px/40px Arial}#l{height:30px;width:30px;margin:30px auto;-webkit-animation:r 1s infinite linear;-moz-animation:r 1s infinite linear;-o-animation:r 1s infinite linear;animation:r 1s infinite linear;border-left:5px solid #FFF;border-right:5px solid #FFF;border-bottom:5px solid #000;border-top:5px solid #000;border-radius:100%}@-webkit-keyframes r{from{-webkit-transform:rotate(0deg)}to{-webkit-transform:rotate(359deg)}}@-moz-keyframes r{from{-moz-transform:rotate(0deg)}to{-moz-transform:rotate(359deg)}}@-o-keyframes r{from{-o-transform:rotate(0deg)}to{-o-transform:rotate(359deg)}}@keyframes r{from{transform:rotate(0deg)}to{transform:rotate(359deg)}}

@@ -2,6 +2,11 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+		<!-- SECURITY FIX: Added security headers -->
+		<meta http-equiv="X-Content-Type-Options" content="nosniff">
+		<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Firmware update</title>
 		<link rel="stylesheet" href="style.css">
 	</head>
@@ -9,7 +14,44 @@
 		<div id="m">
 			<h1>FIRMWARE UPDATE</h1>
 			<p>You are going to update <strong>firmware</strong> on the device.<br>Please, choose file from your local hard drive and click <strong>Update firmware</strong> button.</p>
-			<form method="post" enctype="multipart/form-data"><input type="file" name="firmware"><input type="submit" value="Update firmware"></form>
+			<!-- SECURITY FIX: Added CSRF token, file validation, and size limits -->
+			<form method="post" enctype="multipart/form-data" onsubmit="return validateFirmware()">
+				<input type="hidden" name="csrf_token" value="__CSRF_TOKEN__">
+				<input type="file" name="firmware" id="firmware" accept=".bin,.img" required onchange="validateFirmwareFile(this)">
+				<input type="submit" value="Update firmware">
+			</form>
+			<script>
+			function validateFirmwareFile(input) {
+				const file = input.files[0];
+				if (!file) return false;
+
+				// Check file size (max 16MB)
+				const maxSize = 16 * 1024 * 1024;
+				if (file.size > maxSize) {
+					alert('Error: File too large. Maximum size is 16MB.');
+					input.value = '';
+					return false;
+				}
+
+				// Check file extension
+				const fileName = file.name.toLowerCase();
+				const validExtensions = ['.bin', '.img'];
+				const isValid = validExtensions.some(ext => fileName.endsWith(ext));
+
+				if (!isValid) {
+					alert('Error: Invalid file type. Only .bin and .img files are allowed.');
+					input.value = '';
+					return false;
+				}
+
+				return true;
+			}
+
+			function validateFirmware() {
+				const input = document.getElementById('firmware');
+				return validateFirmwareFile(input);
+			}
+			</script>
 			<div class="i w">
 				<strong>WARNINGS</strong>
 				<ul>
@@ -19,6 +61,6 @@
 				</ul>
 			</div>
 		</div>
-		<div id="f">You can find more information about this project on <a href="https://github.com/pepe2k/u-boot_mod" target="_blank">GitHub</a></div>
+		<div id="f">You can find more information about this project on <a href="https://github.com/pepe2k/u-boot_mod" target="_blank" rel="noopener noreferrer">GitHub</a></div>
 	</body>
 </html>
