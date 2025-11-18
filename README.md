@@ -30,6 +30,10 @@ OpenMPTCProuter Optimized VPS configuration is based on: [https://github.com/Ysu
 
 ## 🚀 Quick Start - Super Easy Setup!
 
+> **📖 New to OpenMPTCProuter? [Start here with our 5-minute Quick Start Guide!](QUICK_START.md)**
+>
+> **✨ NEW: Simplified setup with QR codes, pairing codes, and auto-verification!**
+
 ### Complete Zero-Configuration Setup!
 
 **Just flash and go!** When you first boot your OpenMPTCProuter Optimized router:
