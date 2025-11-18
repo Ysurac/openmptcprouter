@@ -7,7 +7,6 @@
 	compatible = "teltonika,rutx50";
 
 	aliases {
-		// TODO: Verify if the ethernet0 alias is needed
 		ethernet0 = &gmac;
 		led-boot = &led_rssi0;
 		led-failsafe = &led_rssi0;

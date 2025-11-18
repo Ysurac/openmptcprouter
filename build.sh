@@ -318,7 +318,7 @@ else
 
 fi
 
-if [ -f $OMR_TARGET_CONFIG ]; then
+if [ -f "$OMR_TARGET_CONFIG" ]; then
 	cat "$OMR_TARGET_CONFIG" config > "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
