@@ -6,13 +6,13 @@ PKG_RELEASE=1
 PKG_LICENSE:=GPLv2
 PKG_LICENSE_FILES:=
 
-PKG_SOURCE_URL:=https://github.com/greearb/rtl8812AU_8821AU_linux.git
-PKG_MIRROR_HASH:=31e658df3e4d4c18c396259c2e0bef2bfc44a4aa870931f031a31e948be98af4
+PKG_SOURCE_URL:=https://github.com/aircrack-ng/rtl8812au.git
+PKG_MIRROR_HASH:=skip
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2021-11-07
-PKG_SOURCE_VERSION:=39df55967b7de9f6c9600017b724303f95a8b9e2
+PKG_SOURCE_DATE:=2022-12-19
+PKG_SOURCE_VERSION:=c3fb89a2f7066f4bf4e4d9d85d84f9791f14c83e
 
-PKG_MAINTAINER:=Ben Greear <greearb@candelatech.com>
+PKG_MAINTAINER:=Aircrack-ng team
 PKG_BUILD_PARALLEL:=1
 #PKG_EXTMOD_SUBDIRS:=rtl8812au-ct
 
@@ -23,11 +23,11 @@ include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/rtl8812au-ct
   SUBMENU:=Wireless Drivers
-  TITLE:=Driver for Realtek 8812 AU devices comfast 912-ac, etc
+  TITLE:=Driver for Realtek 8812AU/8821AU/8814AU devices (v5.6.4.2)
   DEPENDS:=+kmod-cfg80211 +kmod-usb-core +@DRIVER_11AC_SUPPORT
   FILES:=\
-	$(PKG_BUILD_DIR)/rtl8812au.ko
-  AUTOLOAD:=$(call AutoProbe,rtl8812au)
+	$(PKG_BUILD_DIR)/88XXau.ko
+  AUTOLOAD:=$(call AutoProbe,88XXau)
   PROVIDES:=kmod-rtl8812au
 endef
 
