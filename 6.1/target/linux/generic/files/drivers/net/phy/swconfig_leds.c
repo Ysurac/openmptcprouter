@@ -221,15 +221,16 @@ static ssize_t swconfig_trig_mode_show(struct device *dev,
 	read_unlock(&trig_data->lock);
 
 	if (mode == 0) {
-		strcpy(buf, "none\n");
+		snprintf(buf, PAGE_SIZE, "none\n");
 	} else {
+		size_t len = 0;
 		if (mode & SWCONFIG_LED_MODE_LINK)
-			strcat(buf, "link ");
+			len += snprintf(buf + len, PAGE_SIZE - len, "link ");
 		if (mode & SWCONFIG_LED_MODE_TX)
-			strcat(buf, "tx ");
+			len += snprintf(buf + len, PAGE_SIZE - len, "tx ");
 		if (mode & SWCONFIG_LED_MODE_RX)
-			strcat(buf, "rx ");
-		strcat(buf, "\n");
+			len += snprintf(buf + len, PAGE_SIZE - len, "rx ");
+		snprintf(buf + len, PAGE_SIZE - len, "\n");
 	}
 
 	return strlen(buf)+1;

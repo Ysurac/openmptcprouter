@@ -37,7 +37,7 @@ uci -q batch <<-EOF
 	set dhcp.@dnsmasq[0].domainneeded='1'
 	set dhcp.@dnsmasq[0].localise_queries='1'
 	set dhcp.@dnsmasq[0].rebind_protection='1'
-	set dhcp.@dnsmasq[0].rebind_localhost='1'
+	set dhcp.@dnsmasq[0].rebind_localhost='0'
 	set dhcp.@dnsmasq[0].local='/lan/'
 	set dhcp.@dnsmasq[0].domain='lan'
 	set dhcp.@dnsmasq[0].expandhosts='1'

@@ -61,6 +61,7 @@ fi
 
 if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	echo "Target $OMR_TARGET not found !"
+	exit 1
 fi
 
 if [ "$OMR_TARGET" = "rpi4" ]; then

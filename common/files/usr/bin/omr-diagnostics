@@ -1,0 +1,416 @@
+#!/bin/sh
+# OpenMPTCProuter Smart Diagnostics
+# Non-intrusive system health monitoring and diagnostics
+# Copyright 2025 OpenMPTCProuter Optimized
+# Licensed under GPL-3.0
+
+set -e
+
+# Source the logging library
+. /usr/lib/omr/omr-logger.sh
+OMR_COMPONENT="omr-diagnostics"
+
+# Colors for terminal output
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m' # No Color
+
+# Status file for tracking system health
+readonly STATUS_FILE="/var/run/omr-health-status.json"
+
+# Print usage
+usage() {
+	cat <<EOF
+Usage: omr-diagnostics [COMMAND] [OPTIONS]
+
+Smart diagnostics and health monitoring for OpenMPTCProuter
+
+COMMANDS:
+  check       Run full system diagnostics
+  status      Show current system health status
+  watch       Continuously monitor system health (quiet mode)
+  report      Generate detailed diagnostic report
+  fix         Attempt to auto-fix common issues
+
+OPTIONS:
+  -v, --verbose    Enable verbose output
+  -q, --quiet      Quiet mode (only errors)
+  -j, --json       Output in JSON format
+  -h, --help       Show this help message
+
+EXAMPLES:
+  omr-diagnostics check         # Run full diagnostics
+  omr-diagnostics status -j     # Get status as JSON
+  omr-diagnostics watch         # Monitor in background
+
+EOF
+}
+
+# Check network connectivity
+check_network() {
+	local status="ok"
+	local message=""
+	local details=""
+
+	# Check if any WAN interface is up
+	local wan_up=$(uci show network | grep -c "ifname.*wan" || echo "0")
+	if [ "$wan_up" -eq 0 ]; then
+		status="warning"
+		message="No WAN interfaces configured"
+	fi
+
+	# Check default gateway
+	if ! ip route | grep -q "^default"; then
+		status="error"
+		message="No default gateway"
+	fi
+
+	# Check DNS resolution (quietly)
+	if ! nslookup google.com >/dev/null 2>&1; then
+		if [ "$status" = "ok" ]; then
+			status="warning"
+			message="DNS resolution failed"
+		fi
+	fi
+
+	# Count active interfaces
+	local active_intfs=$(ip link | grep -c "state UP" || echo "0")
+	details="Active interfaces: $active_intfs"
+
+	echo "$status|Network|$message|$details"
+}
+
+# Check MPTCP status
+check_mptcp() {
+	local status="ok"
+	local message=""
+	local details=""
+
+	# Check if MPTCP kernel module is loaded
+	if ! lsmod | grep -q "mptcp"; then
+		status="warning"
+		message="MPTCP module not loaded"
+	fi
+
+	# Check MPTCP configuration
+	local mptcp_enabled=$(sysctl -n net.mptcp.mptcp_enabled 2>/dev/null || echo "0")
+	if [ "$mptcp_enabled" != "1" ]; then
+		status="warning"
+		message="MPTCP not enabled"
+	fi
+
+	# Count MPTCP subflows
+	local subflows=$(ss -tin | grep -c "subflow" || echo "0")
+	details="Active subflows: $subflows"
+
+	echo "$status|MPTCP|$message|$details"
+}
+
+# Check VPN connectivity
+check_vpn() {
+	local status="ok"
+	local message=""
+	local details=""
+
+	# Check for active VPN connections
+	local vpn_count=0
+
+	# Check Shadowsocks
+	if pgrep -x "ss-redir" >/dev/null 2>&1; then
+		vpn_count=$((vpn_count + 1))
+	fi
+
+	# Check WireGuard
+	if [ -f /sys/module/wireguard/refcnt ]; then
+		local wg_peers=$(wg show all peers 2>/dev/null | wc -l || echo "0")
+		if [ "$wg_peers" -gt 0 ]; then
+			vpn_count=$((vpn_count + 1))
+		fi
+	fi
+
+	# Check Glorytun
+	if pgrep -x "glorytun" >/dev/null 2>&1; then
+		vpn_count=$((vpn_count + 1))
+	fi
+
+	if [ "$vpn_count" -eq 0 ]; then
+		status="info"
+		message="No active VPN connections"
+	fi
+
+	details="Active VPNs: $vpn_count"
+	echo "$status|VPN|$message|$details"
+}
+
+# Check system resources
+check_resources() {
+	local status="ok"
+	local message=""
+	local details=""
+
+	# Check memory usage
+	local mem_info=$(free | awk '/Mem:/ {printf "%.0f", ($3/$2) * 100}')
+	if [ "$mem_info" -gt 90 ]; then
+		status="warning"
+		message="High memory usage: ${mem_info}%"
+	elif [ "$mem_info" -gt 95 ]; then
+		status="error"
+		message="Critical memory usage: ${mem_info}%"
+	fi
+
+	# Check disk space
+	local disk_usage=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
+	if [ "$disk_usage" -gt 90 ]; then
+		status="warning"
+		message="Low disk space: ${disk_usage}% used"
+	fi
+
+	# Check load average
+	local load=$(cat /proc/loadavg | cut -d' ' -f1)
+	local cpu_count=$(nproc)
+	details="Memory: ${mem_info}%, Disk: ${disk_usage}%, Load: $load"
+
+	echo "$status|Resources|$message|$details"
+}
+
+# Check modem status (if present)
+check_modem() {
+	local status="ok"
+	local message=""
+	local details=""
+
+	# Check for USB modems
+	if lsusb | grep -q "Quectel\|Huawei\|Sierra"; then
+		# Check if modem is initialized
+		if [ ! -e /dev/cdc-wdm0 ]; then
+			status="warning"
+			message="Modem not initialized"
+		fi
+
+		# Check signal strength (if qmi available)
+		if command -v qmicli >/dev/null 2>&1; then
+			local signal=$(qmicli -d /dev/cdc-wdm0 --nas-get-signal-strength 2>/dev/null | grep "RSSI" | awk '{print $2}' || echo "N/A")
+			details="Signal: $signal dBm"
+		fi
+	else
+		status="info"
+		message="No modem detected"
+	fi
+
+	echo "$status|Modem|$message|$details"
+}
+
+# Run all checks
+run_checks() {
+	local verbose=$1
+	local format=${2:-text}
+
+	local checks="network mptcp vpn resources modem"
+	local results=""
+
+	for check in $checks; do
+		local result=$(check_$check)
+		results="$results
+$result"
+	done
+
+	if [ "$format" = "json" ]; then
+		output_json "$results"
+	else
+		output_text "$results" "$verbose"
+	fi
+
+	# Update status file
+	update_status_file "$results"
+}
+
+# Output results as text
+output_text() {
+	local results=$1
+	local verbose=$2
+
+	echo ""
+	printf "${BLUE}=== OpenMPTCProuter Health Check ===${NC}\n\n"
+
+	echo "$results" | while IFS='|' read -r status component message details; do
+		[ -z "$component" ] && continue
+
+		local color=$GREEN
+		local symbol="✓"
+
+		case $status in
+			warning)
+				color=$YELLOW
+				symbol="⚠"
+				;;
+			error)
+				color=$RED
+				symbol="✗"
+				;;
+			info)
+				color=$BLUE
+				symbol="ℹ"
+				;;
+		esac
+
+		printf "${color}${symbol} %-12s${NC}" "$component"
+		if [ -n "$message" ]; then
+			printf " - %s" "$message"
+		else
+			printf " OK"
+		fi
+
+		if [ "$verbose" = "1" ] && [ -n "$details" ]; then
+			printf " (%s)" "$details"
+		fi
+
+		printf "\n"
+	done
+
+	echo ""
+}
+
+# Output results as JSON
+output_json() {
+	local results=$1
+
+	echo "{"
+	echo '  "timestamp": "'$(date -Iseconds)'",'
+	echo '  "checks": ['
+
+	local first=1
+	echo "$results" | while IFS='|' read -r status component message details; do
+		[ -z "$component" ] && continue
+
+		[ "$first" -eq 0 ] && echo ","
+		first=0
+
+		echo "    {"
+		echo '      "component": "'$component'",'
+		echo '      "status": "'$status'",'
+		echo '      "message": "'$message'",'
+		echo '      "details": "'$details'"'
+		echo -n "    }"
+	done
+
+	echo ""
+	echo "  ]"
+	echo "}"
+}
+
+# Update status file for monitoring
+update_status_file() {
+	local results=$1
+
+	mkdir -p "$(dirname "$STATUS_FILE")"
+
+	cat > "$STATUS_FILE" <<EOF
+{
+  "last_check": "$(date -Iseconds)",
+  "status": $(echo "$results" | grep -q "error" && echo '"error"' || echo '"ok"'),
+  "checks": $(output_json "$results" | grep -A 100 '"checks"' | grep -v "timestamp")
+}
+EOF
+}
+
+# Auto-fix common issues
+auto_fix() {
+	echo "Attempting to fix common issues..."
+
+	# Restart network if no gateway
+	if ! ip route | grep -q "^default"; then
+		omr_log_warning "No default gateway, restarting network..."
+		/etc/init.d/network restart
+		sleep 5
+	fi
+
+	# Restart dnsmasq if DNS is broken
+	if ! nslookup google.com >/dev/null 2>&1; then
+		omr_log_warning "DNS resolution failed, restarting dnsmasq..."
+		/etc/init.d/dnsmasq restart
+		sleep 2
+	fi
+
+	# Initialize modem if detected but not ready
+	if lsusb | grep -q "Quectel\|Huawei\|Sierra" && [ ! -e /dev/cdc-wdm0 ]; then
+		omr_log_warning "Modem detected but not initialized, running init scripts..."
+		for script in /etc/hotplug.d/usb/*modem*; do
+			[ -x "$script" ] && "$script"
+		done
+	fi
+
+	echo "Auto-fix complete. Run 'omr-diagnostics check' to verify."
+}
+
+# Watch mode - continuous monitoring
+watch_mode() {
+	omr_log_info "Starting health monitoring (quiet mode)..."
+
+	while true; do
+		local results=$(run_checks 0 json 2>/dev/null)
+
+		# Only log if there are warnings or errors
+		if echo "$results" | grep -q '"status": "error"'; then
+			omr_log_error "Health check failed, see /var/run/omr-health-status.json for details"
+		elif echo "$results" | grep -q '"status": "warning"'; then
+			omr_log_warning "Health check has warnings, see /var/run/omr-health-status.json for details"
+		fi
+
+		sleep 60  # Check every minute
+	done
+}
+
+# Main command dispatcher
+main() {
+	local command=${1:-check}
+	local verbose=0
+	local format="text"
+
+	shift 2>/dev/null || true
+
+	while [ $# -gt 0 ]; do
+		case $1 in
+			-v|--verbose) verbose=1 ;;
+			-q|--quiet) OMR_LOG_LEVEL=$LOG_ERR ;;
+			-j|--json) format="json" ;;
+			-h|--help) usage; exit 0 ;;
+			*) echo "Unknown option: $1"; usage; exit 1 ;;
+		esac
+		shift
+	done
+
+	case $command in
+		check)
+			run_checks "$verbose" "$format"
+			;;
+		status)
+			if [ -f "$STATUS_FILE" ]; then
+				cat "$STATUS_FILE"
+			else
+				echo "No status available. Run 'omr-diagnostics check' first."
+			fi
+			;;
+		watch)
+			watch_mode
+			;;
+		fix)
+			auto_fix
+			;;
+		report)
+			echo "=== Full Diagnostic Report ==="
+			run_checks 1 text
+			echo ""
+			echo "=== Recent Logs ==="
+			tail -n 50 "$OMR_LOG_FILE" 2>/dev/null || echo "No logs available"
+			;;
+		*)
+			echo "Unknown command: $command"
+			usage
+			exit 1
+			;;
+	esac
+}
+
+main "$@"

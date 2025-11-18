@@ -9,8 +9,16 @@
 
 	// Theme controller
 	const OMRTheme = {
+		// Memory leak fix: Track event listeners for cleanup
+		_listeners: [],
+		_initialized: false,
+
 		// Initialize theme
 		init() {
+			// Prevent duplicate initialization
+			if (this._initialized) return;
+			this._initialized = true;
+
 			try {
 				this.initDarkMode();
 				this.initAdvancedToggle();
@@ -23,6 +31,21 @@
 			} catch (error) {
 				console.error('OMRTheme initialization error:', error);
 			}
+		},
+
+		// Memory leak fix: Add tracked event listener
+		_addListener(element, event, handler, options) {
+			element.addEventListener(event, handler, options);
+			this._listeners.push({ element, event, handler, options });
+		},
+
+		// Memory leak fix: Cleanup all event listeners
+		destroy() {
+			this._listeners.forEach(({ element, event, handler, options }) => {
+				element.removeEventListener(event, handler, options);
+			});
+			this._listeners = [];
+			this._initialized = false;
 		},
 
 		// Dark mode support with modern syntax
@@ -47,11 +70,13 @@
 
 			// Listen for system theme changes with modern syntax
 			const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-			darkModeQuery.addEventListener('change', (e) => {
-				if (!localStorage.getItem('omr-theme')) {
-					document.body.classList.toggle('dark-mode', e.matches);
-				}
-			});
+		const themeChangeHandler = (e) => {
+			if (!localStorage.getItem('omr-theme')) {
+				document.body.classList.toggle('dark-mode', e.matches);
+			}
+		};
+		// Memory leak fix: Use tracked listener
+		this._addListener(darkModeQuery, 'change', themeChangeHandler);
 		},
 
 		// Advanced settings toggle with modern syntax
@@ -75,18 +100,26 @@
 		initTooltips() {
 			const tooltipElements = document.querySelectorAll('[data-tooltip]');
 
-			tooltipElements.forEach((el) => {
+			tooltipElements.forEach((el, index) => {
+			// Accessibility fix: Add ARIA attributes
+			const tooltipId = `tooltip-${index}`;
+			el.setAttribute('aria-describedby', tooltipId);
 				el.addEventListener('mouseenter', () => {
 					const tooltipText = el.getAttribute('data-tooltip');
 					if (!tooltipText) return;
 
 					const tooltip = document.createElement('div');
+					const tooltip = document.createElement('div');
 					tooltip.className = 'tooltip show';
+					tooltip.id = tooltipId;
+					// Accessibility fix: Add ARIA role
+					tooltip.setAttribute('role', 'tooltip');
+					tooltip.setAttribute('aria-live', 'polite');
 					// Security: Use textContent to prevent XSS injection via data-tooltip attribute
-				const tooltipInner = document.createElement('div');
-				tooltipInner.className = 'tooltip-inner';
-				tooltipInner.textContent = tooltipText;
-				tooltip.appendChild(tooltipInner);
+					const tooltipInner = document.createElement('div');
+					tooltipInner.className = 'tooltip-inner';
+					tooltipInner.textContent = tooltipText;
+					tooltip.appendChild(tooltipInner);
 					document.body.appendChild(tooltip);
 
 					const rect = el.getBoundingClientRect();
@@ -133,7 +166,8 @@
 						toggle.focus();
 					}
 				};
-				document.addEventListener('keydown', escapeHandler);
+					// Memory leak fix: Use tracked listener
+				this._addListener(document, 'keydown', escapeHandler);
 
 				// Close when clicking outside
 				const outsideClickHandler = (e) => {
@@ -141,7 +175,8 @@
 						menu.classList.remove('show');
 					}
 				};
-				document.addEventListener('click', outsideClickHandler, { passive: true });
+					// Memory leak fix: Use tracked listener
+				this._addListener(document, 'click', outsideClickHandler, { passive: true });
 			});
 
 			// Ensure all interactive elements are keyboard accessible
@@ -306,8 +341,9 @@
 				if (scrollHandler) {
 					el.removeAttribute('onscroll');
 					// Security: Disabled new Function() to prevent code injection
-				// Inline onscroll handlers should be migrated to addEventListener
-				console.warn('Inline onscroll attribute detected but not executed for security reasons. Use addEventListener instead.');
+					// Inline onscroll handlers should be migrated to addEventListener
+					console.warn('Inline onscroll attribute detected but not executed for security reasons. Use addEventListener instead.');
+				}
 				}
 			});
 		},
