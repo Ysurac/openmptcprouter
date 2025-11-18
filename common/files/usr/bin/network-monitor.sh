@@ -29,14 +29,28 @@ check_running() {
         old_pid=$(cat "$PID_FILE" 2>/dev/null)
         # Validate PID is a number to prevent command injection
         if echo "$old_pid" | grep -qE '^[0-9]+$'; then
+            # Check if process exists
             if kill -0 "$old_pid" 2>/dev/null; then
-                log_msg "Monitor already running with PID $old_pid"
-                rmdir "$lockdir" 2>/dev/null
-                exit 0
+                # Verify it's actually our script by checking command line
+                local cmdline
+                cmdline=$(cat "/proc/$old_pid/cmdline" 2>/dev/null | tr '\0' ' ')
+                if echo "$cmdline" | grep -q "network-monitor"; then
+                    log_msg "Monitor already running with PID $old_pid"
+                    rmdir "$lockdir" 2>/dev/null
+                    exit 0
+                else
+                    log_msg "PID $old_pid exists but is not network-monitor (PID reused)"
+                    rm -f "$PID_FILE"
+                fi
+            else
+                # Process doesn't exist, remove stale PID file
+                log_msg "Removing stale PID file (process $old_pid not running)"
+                rm -f "$PID_FILE"
             fi
+        else
+            log_msg "Invalid PID in PID file, removing"
+            rm -f "$PID_FILE"
         fi
-        # Stale PID file, remove it
-        rm -f "$PID_FILE"
     fi
 
     # Use atomic write with umask for security
