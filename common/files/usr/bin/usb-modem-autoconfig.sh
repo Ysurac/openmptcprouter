@@ -5,6 +5,8 @@
 # Supports multiple concurrent modems with MPTCP bonding
 #
 
+set -u  # Catch undefined variables
+
 LOG_TAG="usb-modem-autoconfig"
 
 # Load USA carrier APN database if available

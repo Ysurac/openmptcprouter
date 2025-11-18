@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # OpenMPTCProuter Centralized Logging Library
 # Provides intelligent, non-annoying logging and diagnostics
 # Copyright 2025 OpenMPTCProuter Optimized

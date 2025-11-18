@@ -7,6 +7,8 @@
 # Runs continuously to rescue misconfigured systems
 #
 
+set -u  # Catch undefined variables
+
 LOG_TAG="network-safety"
 CHECK_INTERVAL=30  # Check every 30 seconds
 EMERGENCY_PORT_FILE="/var/run/emergency-port"

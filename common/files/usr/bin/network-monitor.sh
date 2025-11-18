@@ -5,6 +5,8 @@
 # Does NOT reconfigure ports - user has full control via web UI
 #
 
+set -u  # Catch undefined variables
+
 LOG_TAG="network-monitor"
 PID_FILE="/var/run/network-monitor.pid"
 CHECK_INTERVAL=60  # Check every minute
