@@ -55,6 +55,36 @@ OMR_OPENWRT=${OMR_OPENWRT:-default}
 OMR_OPENWRT_GIT=${OMR_OPENWRT_GIT:-https://github.com}
 OMR_FORCE_DSA=${OMR_FORCE_DSA:-0}
 
+# Validate required dependencies
+echo "Validating build dependencies..."
+MISSING_DEPS=""
+for tool in git curl patch sed make gcc g++ python3; do
+	if ! command -v "$tool" >/dev/null 2>&1; then
+		MISSING_DEPS="$MISSING_DEPS $tool"
+	fi
+done
+if [ -n "$MISSING_DEPS" ]; then
+	echo "ERROR: Missing required dependencies:$MISSING_DEPS"
+	echo "Please install them before running this script."
+	exit 1
+fi
+echo "✓ All required dependencies found"
+
+# Validate available disk space (require at least 30GB free)
+echo "Checking available disk space..."
+AVAILABLE_KB=$(df . | tail -1 | awk '{print $4}')
+REQUIRED_KB=$((30 * 1024 * 1024))  # 30GB in KB
+if [ "$AVAILABLE_KB" -lt "$REQUIRED_KB" ]; then
+	AVAILABLE_GB=$((AVAILABLE_KB / 1024 / 1024))
+	echo "ERROR: Insufficient disk space"
+	echo "  Available: ${AVAILABLE_GB}GB"
+	echo "  Required:  30GB minimum"
+	echo "Please free up disk space before building."
+	exit 1
+fi
+AVAILABLE_GB=$((AVAILABLE_KB / 1024 / 1024))
+echo "✓ Sufficient disk space available: ${AVAILABLE_GB}GB"
+
 if [ "$OMR_KERNEL" = "5.4" ] && [ "$OMR_TARGET" = "rutx12" ]; then
 	OMR_TARGET_CONFIG="config-rutx"
 fi
@@ -1102,6 +1132,27 @@ if [ ! -f "../../../$OMR_TARGET_CONFIG" ] || [ "$NOT_SUPPORTED" = "1" ]; then
 fi
 [ "$ONLY_PREPARE" = "yes" ] && exit 0
 echo "Building $OMR_DIST for the target $OMR_TARGET with kernel ${OMR_KERNEL}"
+
+# Determine number of parallel jobs
+if [ -n "$*" ]; then
+	# User provided make arguments, use them as-is
+	MAKE_ARGS="$@"
+else
+	# No arguments provided, enable parallel build with all available cores
+	NPROC=$(nproc 2>/dev/null || echo 1)
+	MAKE_ARGS="-j${NPROC}"
+	echo "Using ${NPROC} parallel jobs for compilation"
+fi
+
 make defconfig
-make IGNORE_ERRORS=m "$@"
+
+# Build with proper error handling (removed IGNORE_ERRORS for better error detection)
+if ! make ${MAKE_ARGS} V=s; then
+	echo "ERROR: Build failed with parallel jobs, retrying with single job for better error output..."
+	make -j1 V=s || {
+		echo "ERROR: Build failed. Check the output above for details."
+		exit 1
+	}
+fi
+
 echo "Done"
