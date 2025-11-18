@@ -20,17 +20,17 @@ get_all_ports() {
     
     # Check for eth* interfaces
     for iface in /sys/class/net/eth*; do
-        [ -e "$iface" ] && ports="$ports $(basename $iface)"
+        [ -e "$iface" ] && ports="$ports $(basename "$iface")"
     done
-    
+
     # Check for lan* interfaces (common on some devices)
     for iface in /sys/class/net/lan*; do
-        [ -e "$iface" ] && ports="$ports $(basename $iface)"
+        [ -e "$iface" ] && ports="$ports $(basename "$iface")"
     done
-    
+
     # Check for wan* interfaces
     for iface in /sys/class/net/wan*; do
-        [ -e "$iface" ] && ports="$ports $(basename $iface)"
+        [ -e "$iface" ] && ports="$ports $(basename "$iface")"
     done
     
     echo "$ports" | xargs

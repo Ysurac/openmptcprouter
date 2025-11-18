@@ -15,13 +15,22 @@ log_msg() {
 
 # Check if monitor is already running
 check_running() {
+    # Use atomic mkdir for lock to prevent race condition
+    local lockdir="${PID_FILE}.lock"
+    if ! mkdir "$lockdir" 2>/dev/null; then
+        # Another instance is starting, wait and check
+        sleep 1
+    fi
+
     if [ -f "$PID_FILE" ]; then
         old_pid=$(cat "$PID_FILE")
         if kill -0 "$old_pid" 2>/dev/null; then
+            rmdir "$lockdir" 2>/dev/null
             exit 0
         fi
     fi
     echo $$ > "$PID_FILE"
+    rmdir "$lockdir" 2>/dev/null
 }
 
 # Cleanup on exit

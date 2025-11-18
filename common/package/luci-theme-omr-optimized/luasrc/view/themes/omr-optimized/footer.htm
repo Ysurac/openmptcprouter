@@ -16,7 +16,7 @@
 			<p class="footer-meta">
 				<span><%:Kernel%>: <%=luci.sys.exec("uname -r"):gsub("\n","")%></span>
 				<span class="separator">|</span>
-				<span><%:Load%>: <%="%.2f %.2f %.2f"%><%=luci.sys.loadavg()%></span>
+				<span><%:Load%>: <%=string.format("%.2f %.2f %.2f", luci.sys.loadavg())%></span>
 			</p>
 		</div>
 	</footer>

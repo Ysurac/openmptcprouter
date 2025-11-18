@@ -367,10 +367,14 @@ cat > /var/www/omr-setup/index.html << 'ENDHTML'
 ENDHTML
 
 # Replace placeholders
-sed -i "s/REPLACE_IP/$VPS_IP/g" /var/www/omr-setup/index.html
-if [ -f /etc/openmptcprouter/config.json ]; then
-    PASSWORD=$(jq -r '.credentials.shadowsocks_password' /etc/openmptcprouter/config.json 2>/dev/null || echo "check /root/openmptcprouter_credentials.txt")
-    sed -i "s/REPLACE_PASSWORD/$PASSWORD/g" /var/www/omr-setup/index.html
+if [ -f /var/www/omr-setup/index.html ]; then
+    sed -i "s|REPLACE_IP|$VPS_IP|g" /var/www/omr-setup/index.html
+    if [ -f /etc/openmptcprouter/config.json ]; then
+        PASSWORD=$(jq -r '.credentials.shadowsocks_password' /etc/openmptcprouter/config.json 2>/dev/null || echo "check /root/openmptcprouter_credentials.txt")
+        sed -i "s|REPLACE_PASSWORD|$PASSWORD|g" /var/www/omr-setup/index.html
+    fi
+else
+    echo "Warning: /var/www/omr-setup/index.html not found, skipping placeholder replacement"
 fi
 
 # Install and configure simple web server

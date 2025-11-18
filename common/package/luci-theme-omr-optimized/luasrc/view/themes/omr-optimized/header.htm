@@ -29,7 +29,7 @@
 	<meta name="msapplication-tap-highlight" content="no">
 	<meta name="renderer" content="webkit">
 	
-	<title><%=striptags( (boardinfo.hostname or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %> - LuCI</title>
+	<title><%=striptags( ((boardinfo and boardinfo.hostname) or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %> - LuCI</title>
 	
 	<link rel="stylesheet" href="<%=media%>/cascade.css">
 	<link rel="stylesheet" href="<%=media%>/css/utilities.css">
@@ -64,15 +64,15 @@
 		<ul>
 			<% for i, k in ipairs(categories) do %>
 				<% local cat = disp.node(disp.context.tree, k) %>
-				<% if cat.title then %>
+				<% if cat and cat.title then %>
 					<li<% if disp.context.path[1] == k then %> class="active"<% end %>>
 						<a href="<%=controller%>/<%=k%>"><%=striptags(cat.title)%></a>
 						<% local nodes = disp.node_childs(cat) %>
-						<% if #nodes > 0 then %>
+						<% if #nodes > 0 and cat.nodes then %>
 							<ul>
 								<% for j, n in ipairs(nodes) do %>
 									<% local node = cat.nodes[n] %>
-									<% if node.title then %>
+									<% if node and node.title then %>
 										<li<% if disp.context.path[2] == n then %> class="active"<% end %>>
 											<a href="<%=controller%>/<%=k%>/<%=n%>"><%=striptags(node.title)%></a>
 										</li>
