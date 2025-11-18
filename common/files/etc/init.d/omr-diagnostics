@@ -1,0 +1,29 @@
+#!/bin/sh /etc/rc.common
+# OpenMPTCProuter Diagnostics Service
+# Starts background health monitoring
+# Copyright 2025 OpenMPTCProuter Optimized
+
+START=99
+STOP=10
+
+USE_PROCD=1
+
+start_service() {
+	# Only start if enabled in config
+	local enabled=$(uci -q get omr.diagnostics.enabled || echo "0")
+
+	if [ "$enabled" != "1" ]; then
+		return 0
+	fi
+
+	procd_open_instance
+	procd_set_param command /usr/bin/omr-diagnostics watch
+	procd_set_param respawn 3600 5 0  # Respawn after 1 hour if crashed, max 5 times
+	procd_set_param stdout 0  # Don't log stdout (quiet mode)
+	procd_set_param stderr 1  # Log stderr only
+	procd_close_instance
+}
+
+service_triggers() {
+	procd_add_reload_trigger "omr"
+}
