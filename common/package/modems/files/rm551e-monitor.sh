@@ -21,16 +21,49 @@ log_msg() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-# Check if monitor is already running
+# Check if monitor is already running (with atomic lock)
 check_running() {
+    local lockdir="${MONITOR_PID_FILE}.lock"
+
+    # Use atomic mkdir for lock to prevent race condition
+    if ! mkdir "$lockdir" 2>/dev/null; then
+        # Another instance is starting, wait and check
+        sleep 1
+    fi
+
     if [ -f "$MONITOR_PID_FILE" ]; then
-        old_pid=$(cat "$MONITOR_PID_FILE")
-        if kill -0 "$old_pid" 2>/dev/null; then
-            log_msg "Monitor already running with PID $old_pid"
-            exit 0
+        local old_pid
+        old_pid=$(cat "$MONITOR_PID_FILE" 2>/dev/null)
+        # Validate PID is a number to prevent command injection
+        if echo "$old_pid" | grep -qE '^[0-9]+$'; then
+            if kill -0 "$old_pid" 2>/dev/null; then
+                # Verify it's actually our script
+                local cmdline
+                cmdline=$(cat "/proc/$old_pid/cmdline" 2>/dev/null | tr '\0' ' ')
+                if echo "$cmdline" | grep -q "rm551e-monitor"; then
+                    log_msg "Monitor already running with PID $old_pid"
+                    rmdir "$lockdir" 2>/dev/null
+                    exit 0
+                else
+                    log_msg "PID $old_pid exists but is not rm551e-monitor"
+                    rm -f "$MONITOR_PID_FILE"
+                fi
+            else
+                log_msg "Removing stale PID file (process $old_pid not running)"
+                rm -f "$MONITOR_PID_FILE"
+            fi
+        else
+            log_msg "Invalid PID in PID file, removing"
+            rm -f "$MONITOR_PID_FILE"
         fi
     fi
-    echo $$ > "$MONITOR_PID_FILE"
+
+    # Write PID with secure permissions
+    (
+        umask 077
+        echo $$ > "$MONITOR_PID_FILE"
+    )
+    rmdir "$lockdir" 2>/dev/null
 }
 
 # Cleanup on exit
@@ -234,6 +267,17 @@ soft_reset_modem() {
     return 1
 }
 
+# Validate USB device name format to prevent sysfs injection
+validate_usb_device_name() {
+    local dev_name=$1
+    # USB device names follow pattern: bus-port or bus-port.port
+    if ! echo "$dev_name" | grep -qE '^[0-9]+-[0-9]+(\.[0-9]+)*$'; then
+        log_msg "ERROR: Invalid USB device name format: $dev_name"
+        return 1
+    fi
+    return 0
+}
+
 # Hard reset modem (USB reset)
 hard_reset_modem() {
     log_msg "Attempting hard reset of modem (USB reset)"
@@ -251,8 +295,12 @@ hard_reset_modem() {
             if [ "$vendor" = "$MODEM_VENDOR_ID" ]; then
                 log_msg "Found modem USB device: $usb_dev"
 
-                # Unbind and rebind USB device
+                # Unbind and rebind USB device with validation
                 dev_name=$(basename "$usb_dev")
+                if ! validate_usb_device_name "$dev_name"; then
+                    log_msg "ERROR: Skipping unsafe device name"
+                    continue
+                fi
                 echo "$dev_name" > /sys/bus/usb/drivers/usb/unbind 2>/dev/null
                 sleep 2
                 echo "$dev_name" > /sys/bus/usb/drivers/usb/bind 2>/dev/null

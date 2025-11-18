@@ -42,7 +42,7 @@ SYSLOG=${SYSLOG:-logd}
 OMR_KERNEL=${OMR_KERNEL:-5.4}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 DISABLE_FAILSAFE=${DISABLE_FAILSAFE:-no}
-OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
+OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags "$(git rev-list --tags --max-count=1 2>/dev/null)" 2>/dev/null | tail -1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE-$OMR_KERNEL/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/spotty118/openmptcprouter-feeds}"
