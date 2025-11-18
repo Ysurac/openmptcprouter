@@ -109,7 +109,6 @@
 					if (!tooltipText) return;
 
 					const tooltip = document.createElement('div');
-					const tooltip = document.createElement('div');
 					tooltip.className = 'tooltip show';
 					tooltip.id = tooltipId;
 					// Accessibility fix: Add ARIA role
@@ -343,7 +342,6 @@
 					// Security: Disabled new Function() to prevent code injection
 					// Inline onscroll handlers should be migrated to addEventListener
 					console.warn('Inline onscroll attribute detected but not executed for security reasons. Use addEventListener instead.');
-				}
 				}
 			});
 		},
