@@ -13,9 +13,25 @@ log_info() {
     logger -t mptcp-metrics -p daemon.info "$@"
 }
 
+# Validate interface name to prevent command injection
+validate_interface_name() {
+    local iface=$1
+    # Only allow alphanumeric, underscore, hyphen, and dot
+    case "$iface" in
+        *[!a-zA-Z0-9._-]*)
+            return 1
+            ;;
+    esac
+    # Ensure reasonable length (max 15 chars for Linux interfaces)
+    [ "${#iface}" -le 15 ]
+}
+
 # Check if interface is a WAN interface
 is_wan_interface() {
     local iface=$1
+
+    # Validate interface name first
+    validate_interface_name "$iface" || return 1
 
     # Skip non-WAN interfaces
     case "$iface" in

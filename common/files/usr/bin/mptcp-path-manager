@@ -27,9 +27,30 @@ log_warn() {
     logger -t mptcp-path -p daemon.warning "$@"
 }
 
+# Validate interface name to prevent command injection
+validate_interface_name() {
+    local iface=$1
+    # Only allow alphanumeric, underscore, hyphen, and dot
+    case "$iface" in
+        *[!a-zA-Z0-9._-]*)
+            log_warn "Invalid interface name rejected: $iface"
+            return 1
+            ;;
+    esac
+    # Ensure reasonable length (max 15 chars for Linux interfaces)
+    if [ "${#iface}" -gt 15 ]; then
+        log_warn "Interface name too long: $iface"
+        return 1
+    fi
+    return 0
+}
+
 # Check if interface is a WAN interface
 is_wan_interface() {
     local iface=$1
+
+    # Validate interface name first
+    validate_interface_name "$iface" || return 1
 
     # Skip non-WAN interfaces
     case "$iface" in
@@ -64,14 +85,21 @@ read_path_state() {
     fi
 }
 
-# Write path state to file
+# Write path state to file (atomic operation)
 write_path_state() {
     local iface=$1
     local last_failure=$2
     local recovery_start=$3
     local failure_count=$4
+    local state_file="$STATE_DIR/$iface"
+    local tmp_file="${state_file}.tmp.$$"
 
-    echo "$iface|$last_failure|$recovery_start|$failure_count" > "$STATE_DIR/$iface"
+    # Write to temp file and atomically move
+    if echo "$iface|$last_failure|$recovery_start|$failure_count" > "$tmp_file" 2>/dev/null; then
+        mv -f "$tmp_file" "$state_file" 2>/dev/null || rm -f "$tmp_file"
+    else
+        rm -f "$tmp_file" 2>/dev/null
+    fi
 }
 
 # Check if path is currently blacklisted
@@ -240,7 +268,11 @@ check_path_blacklisting() {
         # Path should be blacklisted
         if ! is_blacklisted "$iface"; then
             log_warn "BLACKLISTING $iface ($recent_failures failures in ${BLACKLIST_WINDOW}s window)"
-            echo "$now" > "$STATE_DIR/${iface}.blacklist"
+            # Atomic write for blacklist timestamp
+            local bl_tmp="$STATE_DIR/${iface}.blacklist.tmp.$$"
+            if echo "$now" > "$bl_tmp" 2>/dev/null; then
+                mv -f "$bl_tmp" "$STATE_DIR/${iface}.blacklist" 2>/dev/null || rm -f "$bl_tmp"
+            fi
             apply_metric_penalty "$iface" 1000 "blacklisted due to repeated failures"
         fi
     else
