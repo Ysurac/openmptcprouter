@@ -1,11 +1,36 @@
 #!/bin/bash
 #
-# OpenMPTCProuter Optimized - VPS Installation Script
+# OpenMPTCProuter Optimized - VPS Installation Script (Streamlined Version)
 # Copyright (C) 2018-2025 Ycarus (Yannick Chabanois) <ycarus@zugaina.org> for OpenMPTCProuter
 # Copyright (C) 2025 spotty118 - OpenMPTCProuter Optimized fork
 #
 # This is free software, licensed under the GNU General Public License v3.
 # See /LICENSE for more information.
+#
+# ============================================================================
+# CHOOSING THE RIGHT INSTALLATION SCRIPT:
+# ============================================================================
+#
+# Use THIS script (omr-vps-install.sh) if you want:
+#   • Streamlined, direct installation without interactive prompts
+#   • Automation-friendly (CI/CD, scripting, bulk deployments)
+#   • Minimal dependencies (no web interface generation)
+#   • Text-only credential output
+#   • Advanced user control
+#
+# Use wizard.sh instead if you want:
+#   • Interactive step-by-step setup with visual feedback
+#   • Automatic QR code and pairing code generation
+#   • Web-based setup interface (http://YOUR_IP:8080)
+#   • Copy-paste friendly credential management
+#   • Beginner-friendly experience (RECOMMENDED for most users)
+#
+# Quick comparison:
+#   wizard.sh         - Full-featured, user-friendly (1032 lines)
+#   omr-vps-install.sh - Streamlined, automation-ready (484 lines)
+#
+# Both scripts install the same core functionality but differ in presentation.
+# ============================================================================
 #
 
 set -e
