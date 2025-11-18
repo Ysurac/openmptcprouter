@@ -152,19 +152,64 @@ check_data_connection() {
     return 1
 }
 
+# Notify MPTCP path manager of modem event
+notify_mptcp_path_manager() {
+    local event="$1"
+    local interface="$2"
+
+    # FIX 2.3: Coordinate modem resets with MPTCP path manager
+    if [ -d "/var/run/mptcp-paths" ]; then
+        case "$event" in
+            reset_start)
+                # Mark path as failing with high failure count
+                # This forces immediate exclusion rather than waiting for keepalive
+                local now=$(date +%s)
+                echo "${interface}|${now}|0|999" > "/var/run/mptcp-paths/${interface}" 2>/dev/null
+                logger -t mptcp-path "Modem $interface resetting - path marked as down"
+                ;;
+            reset_complete)
+                # Mark path as recovering (will need hysteresis period)
+                logger -t mptcp-path "Modem $interface reset complete - entering recovery period"
+                ;;
+        esac
+    fi
+}
+
+# Find wwan interface for this modem
+find_wwan_interface() {
+    # Look for wwan interfaces in network config
+    for iface in wwan0 wwan1 wwan2; do
+        if [ -d "/sys/class/net/$iface" ]; then
+            # Check if this interface uses our modem
+            local proto=$(uci get network.${iface}.proto 2>/dev/null)
+            if [ "$proto" = "qmi" ] || [ "$proto" = "mbim" ]; then
+                echo "$iface"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
 # Soft reset modem (AT command)
 soft_reset_modem() {
     local device="$1"
-    
+
     log_msg "Attempting soft reset of modem"
-    
+
     if [ -z "$device" ] || [ ! -c "$device" ]; then
         return 1
     fi
-    
+
+    # FIX 2.3: Notify MPTCP before reset
+    local wwan_if=$(find_wwan_interface)
+    if [ -n "$wwan_if" ]; then
+        notify_mptcp_path_manager "reset_start" "$wwan_if"
+    fi
+
     # Reset modem via AT command
     echo -e 'AT+CFUN=1,1\r' > "$device" 2>/dev/null
-    
+
     sleep 10
     
     # Wait for modem to come back online
@@ -173,12 +218,18 @@ soft_reset_modem() {
         if detect_modem; then
             log_msg "Modem detected after soft reset"
             sleep 5
+
+            # FIX 2.3: Notify MPTCP of successful recovery
+            if [ -n "$wwan_if" ]; then
+                notify_mptcp_path_manager "reset_complete" "$wwan_if"
+            fi
+
             return 0
         fi
         sleep 2
         wait_count=$((wait_count + 1))
     done
-    
+
     log_msg "Modem did not respond after soft reset"
     return 1
 }
@@ -186,24 +237,36 @@ soft_reset_modem() {
 # Hard reset modem (USB reset)
 hard_reset_modem() {
     log_msg "Attempting hard reset of modem (USB reset)"
-    
+
+    # FIX 2.3: Notify MPTCP before reset
+    local wwan_if=$(find_wwan_interface)
+    if [ -n "$wwan_if" ]; then
+        notify_mptcp_path_manager "reset_start" "$wwan_if"
+    fi
+
     # Find USB device
     for usb_dev in /sys/bus/usb/devices/*; do
         if [ -f "$usb_dev/idVendor" ]; then
             vendor=$(cat "$usb_dev/idVendor")
             if [ "$vendor" = "$MODEM_VENDOR_ID" ]; then
                 log_msg "Found modem USB device: $usb_dev"
-                
+
                 # Unbind and rebind USB device
                 dev_name=$(basename "$usb_dev")
                 echo "$dev_name" > /sys/bus/usb/drivers/usb/unbind 2>/dev/null
                 sleep 2
                 echo "$dev_name" > /sys/bus/usb/drivers/usb/bind 2>/dev/null
-                
+
                 sleep 10
-                
+
                 if detect_modem; then
                     log_msg "Modem detected after hard reset"
+
+                    # FIX 2.3: Notify MPTCP of successful recovery
+                    if [ -n "$wwan_if" ]; then
+                        notify_mptcp_path_manager "reset_complete" "$wwan_if"
+                    fi
+
                     # Reinitialize modem
                     if [ -x /usr/bin/rm551e-init.sh ]; then
                         /usr/bin/rm551e-init.sh &
@@ -213,7 +276,7 @@ hard_reset_modem() {
             fi
         fi
     done
-    
+
     log_msg "Hard reset failed"
     return 1
 }

@@ -1,0 +1,198 @@
+#!/bin/sh
+# MPTCP Metrics Exporter - Collect and export link quality metrics
+# Provides data for intelligent path management and scheduling decisions
+# Part of OpenMPTCProuter bonding behavior fixes
+
+EXPORT_DIR="/var/run/mptcp-metrics"
+EXPORT_INTERVAL=10  # Update every 10 seconds
+
+mkdir -p "$EXPORT_DIR"
+
+# Logging helper
+log_info() {
+    logger -t mptcp-metrics -p daemon.info "$@"
+}
+
+# Check if interface is a WAN interface
+is_wan_interface() {
+    local iface=$1
+
+    # Skip non-WAN interfaces
+    case "$iface" in
+        lo|br-*|eth0.1|wlan*client|ifb*|sit*|ip6tnl*) return 1 ;;
+    esac
+
+    # Check if interface has multipath enabled in UCI
+    local multipath=$(uci get network.${iface}.multipath 2>/dev/null)
+    if [ "$multipath" = "on" ]; then
+        return 0
+    fi
+
+    # Check if it's a typical WAN interface name
+    case "$iface" in
+        wan*|wwan*|eth1|eth2|eth3|usb*) return 0 ;;
+    esac
+
+    return 1
+}
+
+# Get signal strength for cellular modems
+get_signal_strength() {
+    local iface=$1
+    local signal_strength="N/A"
+    local signal_quality="N/A"
+
+    # Check if this is a cellular modem interface
+    if ! echo "$iface" | grep -q "wwan"; then
+        echo "$signal_strength|$signal_quality"
+        return
+    fi
+
+    # Try to find the modem device
+    local qmi_device=""
+    local mbim_device=""
+
+    # Check UCI configuration for device path
+    local proto=$(uci get network.${iface}.proto 2>/dev/null)
+    case "$proto" in
+        qmi)
+            qmi_device=$(uci get network.${iface}.device 2>/dev/null)
+            ;;
+        mbim)
+            mbim_device=$(uci get network.${iface}.device 2>/dev/null)
+            ;;
+    esac
+
+    # Try QMI
+    if [ -n "$qmi_device" ] && [ -c "$qmi_device" ] && command -v uqmi >/dev/null 2>&1; then
+        local signal_info=$(timeout 2 uqmi -d "$qmi_device" --get-signal-info 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$signal_info" ]; then
+            # Try to extract RSSI and RSRP
+            if command -v jsonfilter >/dev/null 2>&1; then
+                signal_strength=$(echo "$signal_info" | jsonfilter -e '@.rssi' 2>/dev/null)
+                signal_quality=$(echo "$signal_info" | jsonfilter -e '@.rsrp' 2>/dev/null)
+            fi
+        fi
+    fi
+
+    # Try MBIM if QMI failed
+    if [ "$signal_strength" = "N/A" ] && [ -n "$mbim_device" ] && [ -c "$mbim_device" ] && command -v umbim >/dev/null 2>&1; then
+        local signal_info=$(timeout 2 umbim -d "$mbim_device" -n signal 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$signal_info" ]; then
+            signal_strength=$(echo "$signal_info" | awk '/rssi/ {print $2}')
+        fi
+    fi
+
+    # Default to N/A if nothing found
+    [ -z "$signal_strength" ] && signal_strength="N/A"
+    [ -z "$signal_quality" ] && signal_quality="N/A"
+
+    echo "$signal_strength|$signal_quality"
+}
+
+# Export metrics for a single interface
+export_interface_metrics() {
+    local iface=$1
+    local now=$(date +%s)
+
+    # Get basic stats from sysfs
+    local rx_bytes=$(cat /sys/class/net/$iface/statistics/rx_bytes 2>/dev/null || echo 0)
+    local tx_bytes=$(cat /sys/class/net/$iface/statistics/tx_bytes 2>/dev/null || echo 0)
+    local rx_packets=$(cat /sys/class/net/$iface/statistics/rx_packets 2>/dev/null || echo 0)
+    local tx_packets=$(cat /sys/class/net/$iface/statistics/tx_packets 2>/dev/null || echo 0)
+    local rx_errors=$(cat /sys/class/net/$iface/statistics/rx_errors 2>/dev/null || echo 0)
+    local tx_errors=$(cat /sys/class/net/$iface/statistics/tx_errors 2>/dev/null || echo 0)
+    local rx_dropped=$(cat /sys/class/net/$iface/statistics/rx_dropped 2>/dev/null || echo 0)
+    local tx_dropped=$(cat /sys/class/net/$iface/statistics/tx_dropped 2>/dev/null || echo 0)
+
+    # Calculate loss rate if we have previous data
+    local prev_file="$EXPORT_DIR/${iface}.prev"
+    local loss_rate=0
+    local throughput_rx=0
+    local throughput_tx=0
+
+    if [ -f "$prev_file" ]; then
+        # Read previous values
+        IFS='|' read -r _ prev_ts prev_rx_packets prev_tx_packets prev_rx_bytes prev_tx_bytes prev_rx_errors prev_tx_errors _ _ _ < "$prev_file"
+
+        # Calculate deltas
+        local packets_delta=$((rx_packets - prev_rx_packets))
+        local errors_delta=$((rx_errors - prev_rx_errors))
+        local time_delta=$((now - prev_ts))
+        local rx_bytes_delta=$((rx_bytes - prev_rx_bytes))
+        local tx_bytes_delta=$((tx_bytes - prev_tx_bytes))
+
+        # Calculate loss rate in basis points (0.01%)
+        if [ "$packets_delta" -gt 0 ]; then
+            loss_rate=$((errors_delta * 10000 / packets_delta))
+        fi
+
+        # Calculate throughput in bytes per second
+        if [ "$time_delta" -gt 0 ]; then
+            throughput_rx=$((rx_bytes_delta / time_delta))
+            throughput_tx=$((tx_bytes_delta / time_delta))
+        fi
+    fi
+
+    # Get signal strength for cellular modems
+    local signal_data=$(get_signal_strength "$iface")
+    local signal_strength=$(echo "$signal_data" | cut -d'|' -f1)
+    local signal_quality=$(echo "$signal_data" | cut -d'|' -f2)
+
+    # Get interface speed if available
+    local speed=$(cat /sys/class/net/$iface/speed 2>/dev/null || echo "N/A")
+
+    # Get MTU
+    local mtu=$(cat /sys/class/net/$iface/mtu 2>/dev/null || echo 1500)
+
+    # Export in parseable format
+    # Format: iface|timestamp|rx_packets|tx_packets|rx_bytes|tx_bytes|rx_errors|tx_errors|loss_rate|signal_strength|signal_quality|throughput_rx|throughput_tx|speed|mtu|rx_dropped|tx_dropped
+    echo "$iface|$now|$rx_packets|$tx_packets|$rx_bytes|$tx_bytes|$rx_errors|$tx_errors|$loss_rate|$signal_strength|$signal_quality|$throughput_rx|$throughput_tx|$speed|$mtu|$rx_dropped|$tx_dropped" \
+        > "$EXPORT_DIR/${iface}.current"
+
+    # Save for next delta calculation
+    cp "$EXPORT_DIR/${iface}.current" "$prev_file"
+}
+
+# Export status summary
+export_summary() {
+    local now=$(date +%s)
+    local summary_file="$EXPORT_DIR/summary"
+
+    {
+        echo "# MPTCP Metrics Summary"
+        echo "# Generated: $(date -d @$now '+%Y-%m-%d %H:%M:%S')"
+        echo "# Format: iface|state|loss_rate|throughput_rx|throughput_tx|signal|speed"
+        echo "#"
+
+        for iface in $(ls /sys/class/net/ 2>/dev/null); do
+            if is_wan_interface "$iface"; then
+                if [ -f "$EXPORT_DIR/${iface}.current" ]; then
+                    local state=$(cat /sys/class/net/$iface/operstate 2>/dev/null)
+                    IFS='|' read -r _ _ _ _ _ _ _ _ loss_rate signal_strength _ throughput_rx throughput_tx speed _ _ _ < "$EXPORT_DIR/${iface}.current"
+
+                    # Convert throughput to human readable (Kbps)
+                    local throughput_rx_kbps=$((throughput_rx * 8 / 1000))
+                    local throughput_tx_kbps=$((throughput_tx * 8 / 1000))
+                    local loss_pct=$((loss_rate / 100))
+
+                    echo "$iface|$state|${loss_pct}.$(printf "%02d" $((loss_rate % 100)))%|${throughput_rx_kbps}Kbps|${throughput_tx_kbps}Kbps|$signal_strength|$speed"
+                fi
+            fi
+        done
+    } > "$summary_file"
+}
+
+# Main loop
+log_info "MPTCP Metrics Exporter starting (export_interval: ${EXPORT_INTERVAL}s)"
+
+while true; do
+    for iface in $(ls /sys/class/net/ 2>/dev/null); do
+        if is_wan_interface "$iface"; then
+            export_interface_metrics "$iface"
+        fi
+    done
+
+    export_summary
+    sleep "$EXPORT_INTERVAL"
+done
