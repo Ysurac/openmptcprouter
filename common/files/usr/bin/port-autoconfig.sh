@@ -75,8 +75,8 @@ detect_port_roles() {
         if echo "$all_ports" | grep -qw "$port"; then
             log_msg "Found WAN port: $port"
             wan_port="$port"
-            # Remove from all_ports
-            all_ports=$(echo "$all_ports" | sed "s/$port//g" | xargs)
+            # Remove from all_ports - use word boundary matching to avoid regex issues
+            all_ports=$(echo "$all_ports" | tr ' ' '\n' | grep -v "^${port}$" | tr '\n' ' ' | xargs)
             break
         fi
     done
@@ -89,7 +89,8 @@ detect_port_roles() {
         if [ $port_count -gt 1 ]; then
             wan_port=$(echo "$all_ports" | awk '{print $1}')
             log_msg "Using first port as WAN: $wan_port"
-            all_ports=$(echo "$all_ports" | sed "s/$wan_port//g" | xargs)
+            # Remove from all_ports - use word boundary matching to avoid regex issues
+            all_ports=$(echo "$all_ports" | tr ' ' '\n' | grep -v "^${wan_port}$" | tr '\n' ' ' | xargs)
         elif [ $port_count -eq 1 ]; then
             # Only one port - make it LAN so user can login
             log_msg "Single port detected - using as LAN for initial login"

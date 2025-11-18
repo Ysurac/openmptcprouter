@@ -4,6 +4,38 @@
 
 [ "$ACTION" = "add" ] || exit 0
 
+# Lock to prevent race conditions when multiple devices are plugged in
+LOCK_FILE="/var/run/usb-modem-hotplug.lock"
+LOCK_TIMEOUT=60
+
+# Try to acquire lock with timeout
+acquire_lock() {
+    local count=0
+    while [ $count -lt $LOCK_TIMEOUT ]; do
+        if mkdir "$LOCK_FILE" 2>/dev/null; then
+            # Write PID for debugging
+            echo $$ > "$LOCK_FILE/pid"
+            return 0
+        fi
+        sleep 1
+        count=$((count + 1))
+    done
+    logger -t usb-modem-hotplug "Failed to acquire lock after ${LOCK_TIMEOUT}s"
+    return 1
+}
+
+release_lock() {
+    rm -rf "$LOCK_FILE"
+}
+
+# Ensure lock is released on exit
+trap release_lock EXIT
+
+# Try to acquire lock
+if ! acquire_lock; then
+    exit 1
+fi
+
 # Only handle USB network devices and modems
 case "$DEVTYPE" in
     usb_interface|usb_device)

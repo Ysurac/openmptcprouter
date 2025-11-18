@@ -48,7 +48,12 @@ start_service() {
 stop_service() {
 	# Kill monitor gracefully
 	if [ -f /var/run/network-monitor.pid ]; then
-		kill $(cat /var/run/network-monitor.pid) 2>/dev/null
+		local pid
+		pid=$(cat /var/run/network-monitor.pid 2>/dev/null)
+		# Validate PID is numeric to prevent command injection
+		if echo "$pid" | grep -qE '^[0-9]+$'; then
+			kill "$pid" 2>/dev/null
+		fi
 		rm -f /var/run/network-monitor.pid
 	fi
 }
