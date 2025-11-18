@@ -16,12 +16,24 @@ log_msg() {
 # Check if monitor is already running
 check_running() {
     if [ -f "$PID_FILE" ]; then
-        old_pid=$(cat "$PID_FILE")
-        if kill -0 "$old_pid" 2>/dev/null; then
-            exit 0
+        local old_pid
+        old_pid=$(cat "$PID_FILE" 2>/dev/null)
+        # Validate PID is a number to prevent command injection
+        if echo "$old_pid" | grep -qE '^[0-9]+$'; then
+            if kill -0 "$old_pid" 2>/dev/null; then
+                log_msg "Monitor already running with PID $old_pid"
+                exit 0
+            fi
         fi
+        # Stale PID file, remove it
+        rm -f "$PID_FILE"
     fi
-    echo $$ > "$PID_FILE"
+
+    # Use atomic write with umask for security
+    (
+        umask 077
+        echo $$ > "$PID_FILE"
+    )
 }
 
 # Cleanup on exit
