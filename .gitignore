@@ -1,3 +1,6 @@
 sdk
 source
 feeds
+.cpython-*.pyc
+*_AUDIT_*.txt
+*_AUDIT_*.md
