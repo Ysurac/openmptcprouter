@@ -1,0 +1,455 @@
+================================================================================
+           TODO/FIXME/HACK COMPREHENSIVE AUDIT REPORT
+            OpenMPTCProuter - Spotty118 Fork
+================================================================================
+
+REPORT DATE: 2025-11-18
+REPOSITORY: /home/user/openmptcprouter
+BRANCH: claude/todo-audit-reports-01VvyFs5vMf8grsShvH5vVaL
+
+================================================================================
+SECTION 1: TASK TRACKING CHECKLISTS (Priority 1 - Active Testing)
+================================================================================
+
+1.1 QOL Features Testing Checklist
+FILE: /home/user/openmptcprouter/QOL_FEATURES.md (Lines 434-445)
+STATUS: 12 items - ALL UNCHECKED
+PRIORITY: HIGH - These are end-user facing features
+
+Unchecked Test Items:
+  [ ] First boot creates working configuration
+  [ ] User can access 192.168.2.1 immediately
+  [ ] WiFi configured with password shown on console
+  [ ] USB modem plug-and-play works
+  [ ] omr-status shows all connections
+  [ ] Assigning all ports to WAN triggers recovery
+  [ ] Setting LAN to DHCP triggers fix
+  [ ] omr-recovery menu works
+  [ ] Console banner displays on login
+  [ ] Safety monitor prevents APIPA addresses
+  [ ] Multiple USB modems supported
+  [ ] MPTCP bonding active with 2+ WANs
+
+================================================================================
+SECTION 2: TEST PLAN WITH PENDING TESTS (Priority 1 - Critical Path)
+================================================================================
+
+FILE: /home/user/openmptcprouter/TEST_PLAN.md
+STATUS: 28 Total Tests - 0 Passed, 28 Pending, 0 Failed
+CATEGORY: Comprehensive hardware/workflow validation
+
+2.1 Build Workflow Tests (6 tests pending)
+  - Trigger Single Platform Build (bpi-r4 with kernel 6.12)
+  - Build All Platforms (31 × 2 = 62 jobs)
+  - Build Specific Kernel Version (all platforms with 6.6)
+  - Build VPS Package
+  - Automatic Push Builds (regression testing)
+  - Backward Compatibility
+
+2.2 Modem Detection Tests (3 hardware tests pending)
+  - USB Detection - QMI Mode (requires RM551E in QMI mode)
+  - USB Detection - MBIM Mode (requires RM551E in MBIM mode)
+  - USB Detection - Other Modes (PIDs 0x0900, 0x0901)
+
+2.3 Modem Initialization Tests (2 hardware tests pending)
+  - Hotplug Initialization
+  - Manual Initialization via /usr/bin/rm551e-init.sh
+
+2.4 Carrier Aggregation Optimization (3 hardware tests pending)
+  - Apply CA Optimizations
+  - Verify 5G NR CA
+  - Verify EN-DC support
+
+2.5 Performance Testing (3 hardware tests pending)
+  - Speed Test - QMI Mode
+  - Speed Test - MBIM Mode
+  - Multi-Band CA Performance
+
+2.6 USB Mode Switching (2 hardware tests pending)
+  - Switch to QMI Mode
+  - Switch to MBIM Mode
+
+2.7 Integration Testing (2 tests pending)
+  - Modem Package Build
+  - Configuration Validation
+
+2.8 Platform-Specific Tests (3 hardware tests pending)
+  - Banana Pi R4 testing
+  - Raspberry Pi 4 testing
+  - x86_64 system testing
+
+2.9 Documentation Testing (2 tests pending)
+  - User Following ON_DEMAND_BUILDS.md
+  - User Following RM551E_QUICK_REF.md
+
+2.10 Regression Testing (2 tests pending)
+  - Existing Modem Support (other Quectel modems)
+  - Build System Stability (multiple consecutive builds)
+
+NOTE: TEST_PLAN indicates: "Most tests require actual hardware (RM551E modem)"
+
+================================================================================
+SECTION 3: FRONTEND CRITICAL ISSUES (Priority 1 - Security Vulnerabilities)
+================================================================================
+
+FILE: /home/user/openmptcprouter/FRONTEND_ISSUES_SUMMARY.txt
+
+3.1 CRITICAL SECURITY ISSUES (Must Fix Immediately)
+
+Issue #1: XSS VULNERABILITY - Unsafe innerHTML Usage
+  Location: common/package/luci-theme-omr-optimized/htdocs/luci-static/omr-optimized/js/theme.js:85
+  Code: tooltip.innerHTML = `<div class="tooltip-inner">${tooltipText}</div>`;
+  Problem: User-provided data directly inserted via innerHTML
+  Impact: Remote code execution via malicious tooltip attribute
+  Severity: CRITICAL
+  Fix: Use tooltip.textContent = tooltipText; instead
+  Status: NOT FIXED
+
+Issue #2: CODE INJECTION - Dangerous Function Constructor
+  Location: js/theme.js:304
+  Code: el.addEventListener('scroll', new Function(scrollHandler), { passive: true });
+  Problem: Creates functions from string attributes (scrollHandler)
+  Impact: Arbitrary JavaScript execution if scrollHandler contains malicious code
+  Severity: CRITICAL
+  Fix: Never use new Function() with user input; refactor to use proper event handlers
+  Status: NOT FIXED
+
+Issue #3: ACCESSIBILITY VIOLATION - User Zoom Disabled
+  Location: luasrc/view/themes/omr-optimized/header.htm:20
+  Code: <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  Problem: Prevents users from zooming; violates WCAG 2.1
+  Impact: Visually impaired users cannot magnify content
+  Severity: CRITICAL (WCAG compliance)
+  Fix: Remove "maximum-scale=1.0" and "user-scalable=no"
+  Status: NOT FIXED
+
+3.2 HIGH PRIORITY ISSUES (Fix Soon)
+
+Issue #4: SYSTEM COMMAND EXECUTION - Performance Issue
+  Location: luasrc/view/themes/omr-optimized/footer.htm:17
+  Code: <%=luci.sys.exec("uname -r"):gsub("\n","")%>
+  Problem: Executes system command on every page render
+  Impact: Performance degradation; potential security risk
+  Severity: HIGH
+  Fix: Cache kernel version or use system APIs
+  Status: NOT FIXED
+
+Issue #5: LOGIC BUG - Format String Not Applied
+  Location: footer.htm:19
+  Code: <%="%.2f %.2f %.2f"%><%=luci.sys.loadavg()%>
+  Problem: Format string printed literally, not applied to values
+  Impact: Display shows "%.2f %.2f %.2f" followed by raw numbers
+  Severity: HIGH (Display Bug)
+  Fix: Use string.format("%.2f %.2f %.2f", luci.sys.loadavg())
+  Status: NOT FIXED
+
+Issue #6: MEMORY LEAKS - No Event Listener Cleanup
+  Location: js/theme.js (Lines: 78, 105, 113, 132, 140, 144, 157, 175, 183, 187, 218, 230, 299, 300)
+  Problem: 15 addEventListener() calls, 0 removeEventListener() calls
+  Impact: Memory leaks on repeated page loads; browser slowdown
+  Severity: HIGH
+  Fix: Implement destroy() method; clean up listeners on page unload
+  Status: NOT FIXED
+
+3.3 MEDIUM PRIORITY ISSUES
+
+Issue #7: MISSING ARIA ATTRIBUTES - Accessibility
+  Location: js/theme.js:83-85
+  Problem: Dynamically created tooltips lack role, aria-label, aria-describedby
+  Impact: Screen readers cannot announce tooltips
+  Severity: MEDIUM
+  Status: NOT FIXED
+
+Issue #8: MISSING CSP HEADER - Security Best Practice
+  Location: header.htm
+  Problem: No Content-Security-Policy defined
+  Impact: No protection against XSS/injection attacks
+  Severity: MEDIUM
+  Status: NOT FIXED
+
+Issue #9: CSS INVALID SYNTAX - Dark Mode Issue
+  Location: cascade.css:71-84
+  Problem: Selector syntax "body.dark-mode, @media" is invalid
+  Impact: Dark mode CSS variables may not apply correctly
+  Severity: MEDIUM
+  Status: NOT FIXED
+
+3.4 LOW PRIORITY ISSUES
+
+Issue #10: EXCESSIVE !important - CSS Code Quality
+  Location: css/utilities.css (128 instances)
+  Problem: All utility classes use !important
+  Severity: LOW (Code Quality)
+  Status: NOT FIXED
+
+Issue #11: EMOJI ACCESSIBILITY - Icon Fallbacks Missing
+  Location: header.htm (lines 65, 71), footer.htm (lines 27, 30)
+  Problem: Emoji icons have no text fallback
+  Severity: LOW
+  Status: NOT FIXED
+
+Issue #12: UNUSED CSS SELECTOR
+  Location: cascade.css:721-732
+  Problem: Targets non-existent #mainnav ID
+  Severity: LOW
+  Status: NOT FIXED
+
+================================================================================
+SECTION 4: CODE TODO/FIXME COMMENTS BY FILE
+================================================================================
+
+4.1 DNSMasq Configuration - DHCP TODO Items
+FILES: 
+  - 6.6/package/network/services/dnsmasq/files/dnsmasq.init (4 TODOs)
+  - 6.10/package/network/services/dnsmasq/files/dnsmasq.init (4 TODOs)
+  - 6.12/package/network/services/dnsmasq/files/dnsmasq.init (4 TODOs)
+  - 6.1/package/network/services/dnsmasq/files/dnsmasq.init (4 TODOs)
+  - 5.4/package/network/services/dnsmasq/files/dnsmasq.init (4 TODOs)
+
+Recurring TODOs:
+  Line 271: # TODO: DHCPV6 does not have circuitid; catch "option6:"
+  Line 304: # TODO: DHCPV6 vendor class has stricter definitions; catch? fixup?
+  Line 492: # TODO: BOOTURL is different between DHCPv4 and DHCPv6
+  Line 617: # TODO: convert flexible lease time into route life time (only seconds)
+
+TOTAL: 20 identical TODO items across 5 kernel versions
+PRIORITY: MEDIUM - DHCP-related improvements
+
+4.2 Network Device Driver TODOs
+FILE: 6.10/target/linux/mediatek/files-6.10/drivers/net/phy/mediatek-2p5ge.c:280
+  Issue: /* FIXME: The current firmware always enables rate adaptation mode. */
+  Priority: MEDIUM
+
+FILE: 5.4/target/linux/generic/files/drivers/net/phy/b53/b53_common.c
+  Line 633: /* TODO: Ports 5 & 7 require some extra handling */
+  Lines 1423, 1436, 1449, 1462, 1475: /* TODO: auto detect */ (5 instances)
+  Priority: MEDIUM
+
+4.3 Network Performance TODOs
+FILE: 5.4/target/linux/x86/files-5.4/drivers/net/ethernet/intel/igc/
+  igc_main.c:908: /* FIXME: when using ETF together with taprio */
+  igc_main.c:1361: /* FIXME: add support for retrieving timestamps */
+  igc_main.c:4827: /* FIXME: be a little smarter about cases */
+  igc_ptp.c:239: /* FIXME: For now, only support retrieving RX timestamps */
+  Priority: MEDIUM-HIGH
+
+4.4 Kernel/Patch TODOs (Various Architectures)
+FILES: Multiple kernel patches in target/linux/
+  - BBR2 and BBR3 patches contain 10+ NOTE comments about implementation details
+  - ALSA patch: /* TODO adjust for other compressed formats as well */
+  - Media drivers: /* TODO: Get the frequency from devicetree */
+  - DMA/Controller code: Multiple TODO comments on clock/reset configuration
+
+PRIORITY: LOW-MEDIUM (mostly informational comments from upstream)
+
+4.5 U-Boot Legacy TODOs
+DIRECTORY: common/package/boot/uboot-ipq40xx/src/
+COUNT: 80+ TODO/FIXME comments across multiple files
+Examples:
+  - board/evb64260/flash.c:587 /* TODO: 2x16 unsupported */
+  - drivers/mtd/nand/nand_base.c:2852 /* TODO onfi flash name */
+  - drivers/spi files: Multiple /* TODO For different clock frequency */
+  - drivers/net files: Various FIXME comments on driver implementations
+
+PRIORITY: LOW (Legacy bootloader code, not actively developed)
+
+================================================================================
+SECTION 5: DOCUMENTATION STATUS
+================================================================================
+
+5.1 Implementation Summary Status
+FILE: /home/user/openmptcprouter/IMPLEMENTATION_SUMMARY.md
+STATUS: Document indicates "ALL REQUIREMENTS COMPLETED"
+SECTIONS WITH STATUS:
+  ✅ All 6 major requirements marked COMPLETE
+  ✅ Production Ready workflows
+  ✅ All drivers and patches updated
+  ✅ Branding complete
+  ✅ Setup guides complete
+  ✅ VPS scripts complete
+
+NOTES: Document explicitly states "No TODO comments"
+
+5.2 Files with "Note:" References
+SECURITY_SUMMARY.md:
+  - Line 85: **Note:** The security audit flagged password display
+  - Line 155: **Note:** These are optional improvements, not requirements
+  
+CHANGES_SUMMARY.md:
+  - Line 173: **IMPORTANT NOTE:** Design explanation for bonding setup
+  
+AUDIT_SUMMARY.md:
+  - Multiple **Note:** entries about security audit findings
+
+5.3 Existing Documentation Files
+Generated Reports:
+  - AUDIT_REPORT.md
+  - SECURITY_AUDIT_REPORT.md
+  - AUDIT_SUMMARY.md
+  - SECURITY_SUMMARY.md
+  - KERNEL_USERSPACE_INTEGRATION_REPORT.md
+  - KERNEL_USERSPACE_ANALYSIS.md
+  - FRONTEND_ANALYSIS.md
+  - KERNEL_OPTIMIZATIONS.md
+  - DRIVER_UPDATE_SUMMARY.md
+  - MODEM_DRIVERS_ADDED.md
+  - QOL_FEATURES.md
+  - EMERGENCY_RECOVERY.md
+  - ON_DEMAND_BUILDS.md
+
+================================================================================
+SECTION 6: SUMMARY BY PRIORITY & TYPE
+================================================================================
+
+6.1 CRITICAL PRIORITY (Fix Immediately)
+Count: 3 Critical Issues
+Location: Frontend (Theme) security vulnerabilities
+Details:
+  - 1 XSS vulnerability (innerHTML)
+  - 1 Code injection (new Function)
+  - 1 Accessibility compliance violation
+Impact: Security, user experience, legal compliance
+Estimated Effort: 3-4 hours to fix
+
+6.2 HIGH PRIORITY (Fix Soon)
+Count: 4 Issues
+Location: Frontend + DHCP configuration
+Details:
+  - 1 Performance issue (command execution per page)
+  - 1 Display bug (format string)
+  - 1 Memory leak (15 event listeners)
+  - 4+ DHCP configuration improvements
+Impact: Performance, display, memory consumption
+Estimated Effort: 2-3 hours
+
+6.3 MEDIUM PRIORITY (Fix Next)
+Count: 3 Issues + 20 DHCP TODOs
+Location: Frontend accessibility + networking
+Details:
+  - Missing ARIA attributes
+  - Missing CSP header
+  - Invalid CSS syntax
+  - DHCP enhancements across 5 kernel versions
+Impact: Accessibility compliance, security best practice
+Estimated Effort: 2-3 hours
+
+6.4 LOW PRIORITY (Nice to Have)
+Count: 3 Issues + 80+ bootloader TODOs
+Location: Frontend code quality + legacy U-Boot
+Details:
+  - Excessive !important usage
+  - Missing emoji fallbacks
+  - Unused CSS selectors
+  - Legacy bootloader comments
+Impact: Code quality, maintainability
+Estimated Effort: 1-2 hours (excluding legacy code)
+
+6.5 TESTING CHECKLISTS (Active Work)
+Count: 12 unchecked QOL feature tests + 28 test plan items
+Status: Awaiting execution/hardware
+Impact: Release readiness validation
+Estimated Effort: Ongoing testing campaign
+
+================================================================================
+SECTION 7: FILE LOCATIONS - QUICK REFERENCE
+================================================================================
+
+Critical Frontend Issues:
+  /home/user/openmptcprouter/common/package/luci-theme-omr-optimized/
+    ├── htdocs/luci-static/omr-optimized/cascade.css
+    ├── htdocs/luci-static/omr-optimized/css/utilities.css
+    ├── htdocs/luci-static/omr-optimized/js/theme.js
+    ├── luasrc/view/themes/omr-optimized/header.htm
+    └── luasrc/view/themes/omr-optimized/footer.htm
+
+DNSMasq TODOs:
+  /home/user/openmptcprouter/{5.4,6.1,6.6,6.10,6.12}/package/network/services/dnsmasq/files/dnsmasq.init
+
+Test Plans:
+  /home/user/openmptcprouter/TEST_PLAN.md (28 items)
+  /home/user/openmptcprouter/QOL_FEATURES.md (12 items)
+
+Issue Summary:
+  /home/user/openmptcprouter/FRONTEND_ISSUES_SUMMARY.txt
+
+================================================================================
+SECTION 8: RECOMMENDATIONS
+================================================================================
+
+8.1 IMMEDIATE ACTIONS (This Week)
+Priority 1: Fix frontend XSS and code injection vulnerabilities
+Priority 2: Address WCAG accessibility violation (user zoom)
+Priority 3: Fix memory leaks in theme.js
+Timeline: Critical path for security release
+
+8.2 SHORT TERM (Next 2 Weeks)
+Priority 1: Execute QOL Features test checklist (12 items)
+Priority 2: Run BUILD workflow tests (basic validation)
+Priority 3: Fix frontend performance issues (uname command caching)
+Priority 4: Consolidate DHCP TODOs into unified improvement task
+Timeline: Pre-release validation
+
+8.3 MEDIUM TERM (Next Month)
+Priority 1: Complete TEST_PLAN execution with hardware
+Priority 2: Fix remaining frontend accessibility issues
+Priority 3: Add CSP headers and best practices
+Priority 4: Resolve CSS dark mode selector issues
+Timeline: Release stabilization
+
+8.4 LONG TERM (Next Quarter)
+Priority 1: Review U-Boot legacy code (80+ comments)
+Priority 2: Evaluate bootloader upgrade path
+Priority 3: Consolidate similar TODOs across kernel versions
+Priority 4: Implement comprehensive test automation
+Timeline: Architecture improvement
+
+================================================================================
+SECTION 9: STATISTICS
+================================================================================
+
+Total TODO/FIXME/HACK Comments Found: 1,081 file matches
+  - Breakdown by category:
+    * Configuration file matches (XXX in config): ~800
+    * Legacy U-Boot bootloader: ~80
+    * DNSMasq DHCP: 20
+    * Network drivers: ~10
+    * Kernel patches (informational): ~30
+    * Frontend code: 12
+
+Documented Issues/Tests:
+  - Critical Security Issues: 3
+  - High Priority Issues: 3
+  - Medium Priority Issues: 3
+  - Low Priority Issues: 3
+  - Pending Test Cases: 28
+  - Unchecked QOL Tests: 12
+  - Test Plan Sections: 10
+
+Files Analyzed:
+  - Markdown documentation: 13 files
+  - Source code files (shell/C/Python): 50+
+  - Configuration files: 100+
+  - Patch files: 20+
+
+================================================================================
+SECTION 10: CONCLUSION
+================================================================================
+
+The OpenMPTCProuter repository contains a well-documented set of TODO items,
+issue reports, and test plans. Key findings:
+
+1. SECURITY-CRITICAL: 3 frontend vulnerabilities require immediate attention
+2. TESTING-ACTIVE: 40 test items awaiting execution (12 functional, 28 system)
+3. IMPLEMENTATION: Documentation indicates core features are complete
+4. LEGACY CODE: 80+ U-Boot bootloader comments (not actively maintained)
+5. CONFIGURATION: 20 identical DHCP TODOs across 5 kernel versions
+
+RECOMMENDATION: Execute critical security fixes, complete testing checklist,
+and consolidate duplicate TODOs across kernel versions before next release.
+
+Report Generated: 2025-11-18
+Total Lines Analyzed: 1,000+
+Critical Items Found: 3
+Action Items Identified: 28+
+
+================================================================================

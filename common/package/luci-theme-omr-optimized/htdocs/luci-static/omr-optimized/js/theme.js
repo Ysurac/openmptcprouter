@@ -109,12 +109,13 @@
 					if (!tooltipText) return;
 
 					const tooltip = document.createElement('div');
-						tooltip.className = 'tooltip show';
+					const tooltip = document.createElement('div');
+					tooltip.className = 'tooltip show';
 					tooltip.id = tooltipId;
 					// Accessibility fix: Add ARIA role
 					tooltip.setAttribute('role', 'tooltip');
 					tooltip.setAttribute('aria-live', 'polite');
-					// XSS Fix: Use textContent instead of innerHTML to prevent XSS
+					// Security: Use textContent to prevent XSS injection via data-tooltip attribute
 					const tooltipInner = document.createElement('div');
 					tooltipInner.className = 'tooltip-inner';
 					tooltipInner.textContent = tooltipText;
@@ -339,8 +340,10 @@
 				const scrollHandler = el.getAttribute('onscroll');
 				if (scrollHandler) {
 					el.removeAttribute('onscroll');
-						// Security Fix: Removed new Function() to prevent code injection
-					// Inline scroll handlers should be replaced with proper event listeners
+					// Security: Disabled new Function() to prevent code injection
+					// Inline onscroll handlers should be migrated to addEventListener
+					console.warn('Inline onscroll attribute detected but not executed for security reasons. Use addEventListener instead.');
+				}
 				}
 			});
 		},
