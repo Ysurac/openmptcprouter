@@ -10,8 +10,22 @@ set -u  # Catch undefined variables
 LOG_TAG="usb-modem-autoconfig"
 
 # Load USA carrier APN database if available
+# Security: Only source if owned by root and not world-writable
 if [ -f "/etc/usa-carrier-apns.conf" ]; then
-    . /etc/usa-carrier-apns.conf
+    apn_file="/etc/usa-carrier-apns.conf"
+    file_owner=$(stat -c "%u" "$apn_file" 2>/dev/null)
+    file_perms=$(stat -c "%a" "$apn_file" 2>/dev/null)
+
+    if [ "$file_owner" = "0" ] && [ "${file_perms#?}" != "${file_perms#?[2367]}" ]; then
+        # File is owned by root but world-writable - skip for security
+        logger -t "$LOG_TAG" "WARNING: Skipping $apn_file - insecure permissions"
+    elif [ "$file_owner" = "0" ]; then
+        # File owned by root, safe to source
+        . "$apn_file"
+    else
+        # Not owned by root - skip for security
+        logger -t "$LOG_TAG" "WARNING: Skipping $apn_file - not owned by root"
+    fi
 fi
 
 log_msg() {
@@ -174,7 +188,19 @@ configure_modem_as_wan() {
     local proto="$1"
     local iface="$2"
     local dev="$3"
-    
+
+    # Validate interface name
+    if ! echo "$iface" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+        log_msg "ERROR: Invalid interface name: $iface"
+        return 1
+    fi
+
+    # Validate device path if provided
+    if [ -n "$dev" ] && ! echo "$dev" | grep -qE '^/dev/[a-zA-Z0-9_-]+$'; then
+        log_msg "ERROR: Invalid device path: $dev"
+        return 1
+    fi
+
     # Find the next available WAN number
     local wan_num=1
     while uci -q get network.wan${wan_num} >/dev/null 2>&1; do

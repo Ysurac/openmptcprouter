@@ -205,26 +205,24 @@ net.mptcp.mptcp_path_manager = fullmesh
 net.mptcp.mptcp_scheduler = default
 
 # BBR2/BBR Congestion Control
-# Try BBR2 first (if available), fall back to BBR, then cubic
-# Kernel uses first available algorithm
-net.ipv4.tcp_congestion_control = bbr2
-net.ipv4.tcp_congestion_control = bbr
+# Actual algorithm selected at runtime below (detects BBR2, falls back to BBR, then CUBIC)
 net.core.default_qdisc = fq_codel
 
-# Network Performance Tuning - Enhanced for Multi-WAN and 5G
-net.core.rmem_max = 268435456
-net.core.wmem_max = 268435456
-net.core.rmem_default = 67108864
-net.core.wmem_default = 67108864
+# Network Performance Tuning - Balanced for Multi-WAN
+# Reduced from 256MB to prevent bufferbloat while maintaining throughput
+net.core.rmem_max = 33554432
+net.core.wmem_max = 33554432
+net.core.rmem_default = 1048576
+net.core.wmem_default = 1048576
 net.core.netdev_max_backlog = 300000
 net.core.netdev_budget = 600
 net.core.netdev_budget_usecs = 8000
 net.core.somaxconn = 8192
 net.core.optmem_max = 131072
 
-# TCP Performance - Optimized for 5G High-Bandwidth Links
-net.ipv4.tcp_rmem = 4096 131072 268435456
-net.ipv4.tcp_wmem = 4096 131072 268435456
+# TCP Performance - Balanced for multi-WAN (reduced to prevent bufferbloat)
+net.ipv4.tcp_rmem = 4096 87380 33554432
+net.ipv4.tcp_wmem = 4096 65536 33554432
 net.ipv4.tcp_max_syn_backlog = 16384
 net.ipv4.tcp_slow_start_after_idle = 0
 net.ipv4.tcp_tw_reuse = 1
@@ -309,6 +307,18 @@ vm.dirty_background_ratio = 2
 fs.file-max = 2097152
 SYSCTL
 
+# Detect and set BBR2 or BBR congestion control
+if grep -q bbr2 /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
+    echo "net.ipv4.tcp_congestion_control = bbr2" >> /etc/sysctl.d/99-openmptcprouter.conf
+    echo -e "${GREEN}Using BBR2 congestion control${NC}"
+elif grep -q bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
+    echo "net.ipv4.tcp_congestion_control = bbr" >> /etc/sysctl.d/99-openmptcprouter.conf
+    echo -e "${YELLOW}BBR2 not available, using BBR${NC}"
+else
+    echo "net.ipv4.tcp_congestion_control = cubic" >> /etc/sysctl.d/99-openmptcprouter.conf
+    echo -e "${YELLOW}BBR not available, using CUBIC${NC}"
+fi
+
 # Apply sysctl settings
 sysctl -p /etc/sysctl.d/99-openmptcprouter.conf > /dev/null
 
@@ -340,12 +350,25 @@ cat > /etc/iptables/rules.v4 << 'IPTABLES'
 # Allow SSH (be careful with this!)
 -A INPUT -p tcp --dport 22 -j ACCEPT
 
-# Allow OpenMPTCProuter ports
+# Allow OpenMPTCProuter ports with rate limiting to prevent DDoS
+# Shadowsocks port - rate limit new connections (10/min per source IP)
+-A INPUT -p tcp --dport 65500 -m conntrack --ctstate NEW -m hashlimit --hashlimit-above 10/min --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name ss_conn -j DROP
 -A INPUT -p tcp --dport 65500 -j ACCEPT
+-A INPUT -p udp --dport 65500 -m hashlimit --hashlimit-above 100/sec --hashlimit-burst 50 --hashlimit-mode srcip --hashlimit-name ss_udp -j DROP
 -A INPUT -p udp --dport 65500 -j ACCEPT
+
+# Glorytun TCP port - rate limit new connections
+-A INPUT -p tcp --dport 65510 -m conntrack --ctstate NEW -m hashlimit --hashlimit-above 10/min --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name gt_tcp_conn -j DROP
 -A INPUT -p tcp --dport 65510 -j ACCEPT
+
+# Glorytun UDP port - rate limit packets
+-A INPUT -p udp --dport 65510 -m hashlimit --hashlimit-above 100/sec --hashlimit-burst 50 --hashlimit-mode srcip --hashlimit-name gt_udp -j DROP
 -A INPUT -p udp --dport 65510 -j ACCEPT
+
+# Additional tunnel ports - rate limit
+-A INPUT -p tcp --dport 65520 -m conntrack --ctstate NEW -m hashlimit --hashlimit-above 10/min --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name tun_tcp -j DROP
 -A INPUT -p tcp --dport 65520 -j ACCEPT
+-A INPUT -p udp --dport 65520 -m hashlimit --hashlimit-above 100/sec --hashlimit-burst 50 --hashlimit-mode srcip --hashlimit-name tun_udp -j DROP
 -A INPUT -p udp --dport 65520 -j ACCEPT
 
 # Allow ICMP (ping)
@@ -362,6 +385,19 @@ cat > /etc/iptables/rules.v4 << 'IPTABLES'
 # Forward traffic from VPN to internet
 -A FORWARD -i tun+ -o INTERFACE_PLACEHOLDER -j ACCEPT
 -A FORWARD -i mlvpn+ -o INTERFACE_PLACEHOLDER -j ACCEPT
+
+COMMIT
+
+*mangle
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+
+# MSS clamping to prevent fragmentation issues with tunnels
+-A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+-A OUTPUT -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 
 COMMIT
 

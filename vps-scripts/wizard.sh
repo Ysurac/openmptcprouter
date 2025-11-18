@@ -428,12 +428,25 @@ cat > /etc/iptables/rules.v4 << IPTABLES
 # Allow SSH
 -A INPUT -p tcp --dport 22 -j ACCEPT
 
-# Allow OpenMPTCProuter ports
+# Allow OpenMPTCProuter ports with rate limiting to prevent DDoS
+# Shadowsocks port - rate limit new connections (10/min per source IP)
+-A INPUT -p tcp --dport 65500 -m conntrack --ctstate NEW -m hashlimit --hashlimit-above 10/min --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name ss_conn -j DROP
 -A INPUT -p tcp --dport 65500 -j ACCEPT
+-A INPUT -p udp --dport 65500 -m hashlimit --hashlimit-above 100/sec --hashlimit-burst 50 --hashlimit-mode srcip --hashlimit-name ss_udp -j DROP
 -A INPUT -p udp --dport 65500 -j ACCEPT
+
+# Glorytun TCP port - rate limit new connections
+-A INPUT -p tcp --dport 65510 -m conntrack --ctstate NEW -m hashlimit --hashlimit-above 10/min --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name gt_tcp_conn -j DROP
 -A INPUT -p tcp --dport 65510 -j ACCEPT
+
+# Glorytun UDP port - rate limit packets
+-A INPUT -p udp --dport 65510 -m hashlimit --hashlimit-above 100/sec --hashlimit-burst 50 --hashlimit-mode srcip --hashlimit-name gt_udp -j DROP
 -A INPUT -p udp --dport 65510 -j ACCEPT
+
+# Additional tunnel ports - rate limit
+-A INPUT -p tcp --dport 65520 -m conntrack --ctstate NEW -m hashlimit --hashlimit-above 10/min --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name tun_tcp -j DROP
 -A INPUT -p tcp --dport 65520 -j ACCEPT
+-A INPUT -p udp --dport 65520 -m hashlimit --hashlimit-above 100/sec --hashlimit-burst 50 --hashlimit-mode srcip --hashlimit-name tun_udp -j DROP
 -A INPUT -p udp --dport 65520 -j ACCEPT
 
 # Allow ICMP (ping)
@@ -451,6 +464,19 @@ cat > /etc/iptables/rules.v4 << IPTABLES
 # Forward traffic from VPN to internet
 -A FORWARD -i tun+ -o $INTERFACE -j ACCEPT
 -A FORWARD -i mlvpn+ -o $INTERFACE -j ACCEPT
+
+COMMIT
+
+*mangle
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+
+# MSS clamping to prevent fragmentation issues with tunnels
+-A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+-A OUTPUT -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 
 COMMIT
 
