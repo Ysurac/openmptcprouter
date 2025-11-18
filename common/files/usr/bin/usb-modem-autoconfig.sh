@@ -7,9 +7,70 @@
 
 LOG_TAG="usb-modem-autoconfig"
 
+# Load USA carrier APN database if available
+if [ -f "/etc/usa-carrier-apns.conf" ]; then
+    . /etc/usa-carrier-apns.conf
+fi
+
 log_msg() {
     logger -t "$LOG_TAG" "$1"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+# Get carrier configuration from UCI or environment
+get_carrier_config() {
+    local wan_name="$1"
+    local carrier=""
+
+    # Priority 1: Per-interface carrier setting
+    carrier=$(uci -q get "network.$wan_name.carrier")
+
+    # Priority 2: Global carrier setting
+    [ -z "$carrier" ] && carrier=$(uci -q get "network.globals.carrier")
+
+    # Priority 3: Environment variable
+    [ -z "$carrier" ] && carrier="$USA_CARRIER"
+
+    echo "$carrier"
+}
+
+# Get APN settings for the configured carrier
+get_apn_settings() {
+    local carrier="$1"
+    local default_apn="internet"
+    local apn="$default_apn"
+    local username=""
+    local password=""
+    local auth_type="PAP"
+
+    # If no carrier specified, use default
+    if [ -z "$carrier" ]; then
+        log_msg "No carrier specified, using default APN: $default_apn"
+        echo "$apn:$username:$password:$auth_type"
+        return
+    fi
+
+    # Get carrier APN from database
+    if type get_carrier_apn >/dev/null 2>&1; then
+        local carrier_data=$(get_carrier_apn "$carrier")
+        if [ $? -eq 0 ] && [ -n "$carrier_data" ]; then
+            log_msg "Found carrier APN for '$carrier'"
+            if type parse_apn_data >/dev/null 2>&1; then
+                parse_apn_data "$carrier_data"
+                apn="$APN_NAME"
+                username="$APN_USERNAME"
+                password="$APN_PASSWORD"
+                auth_type="$APN_AUTH_TYPE"
+                log_msg "Using APN: $apn (auth: $auth_type)"
+            fi
+        else
+            log_msg "WARNING: Carrier '$carrier' not found in database, using default APN"
+        fi
+    else
+        log_msg "WARNING: USA carrier APN database not loaded, using default APN"
+    fi
+
+    echo "$apn:$username:$password:$auth_type"
 }
 
 # Detect USB modems (QMI, MBIM, RNDIS, NCM)
@@ -131,6 +192,14 @@ configure_modem_as_wan() {
     # Get modem info for logging
     local modem_info=$(get_modem_info "$proto" "$iface" "$dev")
     log_msg "Modem info: $modem_info"
+
+    # Get carrier and APN settings
+    local carrier=$(get_carrier_config "$wan_name")
+    local apn_settings=$(get_apn_settings "$carrier")
+    local apn=$(echo "$apn_settings" | cut -d: -f1)
+    local username=$(echo "$apn_settings" | cut -d: -f2)
+    local password=$(echo "$apn_settings" | cut -d: -f3)
+    local auth_type=$(echo "$apn_settings" | cut -d: -f4)
     
     # Configure based on protocol
     case "$proto" in
@@ -140,11 +209,15 @@ configure_modem_as_wan() {
 				set network.$wan_name=interface
 				set network.$wan_name.proto='qmi'
 				set network.$wan_name.device='$dev'
-				set network.$wan_name.apn='internet'
+				set network.$wan_name.apn='$apn'
 				set network.$wan_name.metric='$((wan_num * 10))'
 				set network.$wan_name.multipath='on'
 				set network.$wan_name.auto='1'
 			EOF
+            # Add username and password if provided
+            [ -n "$username" ] && uci -q set "network.$wan_name.username=$username"
+            [ -n "$password" ] && uci -q set "network.$wan_name.password=$password"
+            [ -n "$auth_type" ] && uci -q set "network.$wan_name.auth=$auth_type"
             ;;
         mbim)
             uci -q batch <<-EOF
@@ -152,11 +225,15 @@ configure_modem_as_wan() {
 				set network.$wan_name=interface
 				set network.$wan_name.proto='mbim'
 				set network.$wan_name.device='$dev'
-				set network.$wan_name.apn='internet'
+				set network.$wan_name.apn='$apn'
 				set network.$wan_name.metric='$((wan_num * 10))'
 				set network.$wan_name.multipath='on'
 				set network.$wan_name.auto='1'
 			EOF
+            # Add username and password if provided
+            [ -n "$username" ] && uci -q set "network.$wan_name.username=$username"
+            [ -n "$password" ] && uci -q set "network.$wan_name.password=$password"
+            [ -n "$auth_type" ] && uci -q set "network.$wan_name.auth=$auth_type"
             ;;
         eth)
             # Generic USB ethernet (could be RNDIS, NCM, etc.)
