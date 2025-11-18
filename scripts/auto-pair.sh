@@ -340,17 +340,32 @@ elif [ "$DEVICE_TYPE" = "router" ]; then
         read -r VPS_IP < /dev/tty
         
         echo -e "${CYAN}Fetching configuration from VPS...${NC}"
-        
-        # Try to fetch config from VPS (try HTTPS first, fallback to HTTP)
-        if CONFIG_JSON=$(curl -s --max-time 10 -k "https://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
+
+        # Try to fetch config from VPS with proper SSL verification
+        # SECURITY FIX: Removed -k flag to prevent MITM attacks
+        if CONFIG_JSON=$(curl -s --max-time 10 "https://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
+            echo -e "${GREEN}✓ Secure connection established (HTTPS)${NC}"
             VPS_PORT=$(echo "$CONFIG_JSON" | jq -r '.server_port // empty' 2>/dev/null)
             VPS_PASS=$(echo "$CONFIG_JSON" | jq -r '.password // empty' 2>/dev/null)
         elif CONFIG_JSON=$(curl -s --max-time 10 "http://$VPS_IP:9999/pair.json" 2>/dev/null) && [ -n "$CONFIG_JSON" ]; then
-            echo -e "${YELLOW}Warning: Using insecure HTTP connection${NC}"
+            echo -e "${YELLOW}═══════════════════════════════════════════════════${NC}"
+            echo -e "${YELLOW}⚠  WARNING: INSECURE CONNECTION DETECTED${NC}"
+            echo -e "${YELLOW}═══════════════════════════════════════════════════${NC}"
+            echo -e "${RED}Your credentials will be transmitted in plaintext!${NC}"
+            echo -e "${RED}This connection is vulnerable to interception.${NC}"
+            echo ""
+            echo -e "${CYAN}Consider setting up SSL/TLS on your VPS pairing API.${NC}"
+            echo ""
+            read -p "Continue with insecure HTTP connection? (y/N): " -n 1 -r < /dev/tty
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                echo -e "${YELLOW}Setup cancelled for security reasons.${NC}"
+                exit 1
+            fi
             VPS_PORT=$(echo "$CONFIG_JSON" | jq -r '.server_port // empty' 2>/dev/null)
             VPS_PASS=$(echo "$CONFIG_JSON" | jq -r '.password // empty' 2>/dev/null)
-            
-            echo -e "${GREEN}✓ Configuration auto-discovered!${NC}"
+
+            echo -e "${GREEN}✓ Configuration auto-discovered (insecure)${NC}"
         else
             echo -e "${RED}Error: Could not auto-discover VPS configuration${NC}"
             echo ""
