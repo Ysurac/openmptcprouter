@@ -935,8 +935,8 @@ IMPORTANT: Keep this file secure!
 ENDHTML
 
 # Replace placeholders
-sed -i "s/REPLACE_VPS_IP/$VPS_PUBLIC_IP/g" /var/www/omr-setup/index.html
-sed -i "s/REPLACE_PASSWORD/$SHADOWSOCKS_PASS/g" /var/www/omr-setup/index.html
+sed -i "s|REPLACE_VPS_IP|$VPS_PUBLIC_IP|g" /var/www/omr-setup/index.html
+sed -i "s|REPLACE_PASSWORD|$SHADOWSOCKS_PASS|g" /var/www/omr-setup/index.html
 sed -i "s|REPLACE_PAIRING_CODE|$PAIRING_CODE|g" /var/www/omr-setup/index.html
 
 # Create systemd service for web interface

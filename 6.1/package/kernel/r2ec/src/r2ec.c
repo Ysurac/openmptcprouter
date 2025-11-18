@@ -144,8 +144,10 @@ retry:
   checksum = calc_crc8(data, len - 1);
 
   if (checksum != *(data + len - 1)) {
+    size_t offset = 0;
     for (i = 0; i < len; i++) {
-      snprintf(buffer + strlen(buffer), sizeof(buffer),
+      offset = strlen(buffer);
+      snprintf(buffer + offset, sizeof(buffer) - offset,
          "%02X ", *(data + i));
     }
 
@@ -294,20 +296,20 @@ static int stm32_gpio_write(struct r2ec *gpio, int pin, int val)
   req->data[0] = pin;
   req->data[1] = val;
 
-  i2c_master_send(gpio->client, tmp, sizeof(tmp));
-//  if ((err = i2c_master_send(gpio->client, tmp, sizeof(tmp))) < 0) {
-//    if (err != -ENXIO) {
-//      return err;
-//    }
+  err = i2c_master_send(gpio->client, tmp, sizeof(tmp));
+  if (err < 0) {
+    if (err != -ENXIO) {
+      return err;
+    }
 
     // we need to ignore errors while device is not ready
     // otherwise none of GPIOs/LEDs will be probed by the kernel
-//    if (!gpio->ic_ready) {
-//      err = 0;
-//    }
-//
-//    return err;
-//  }
+    if (!gpio->ic_ready) {
+      err = 0;
+    }
+
+    return err;
+  }
 
   return 0;
 }
