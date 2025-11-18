@@ -77,29 +77,38 @@ get_modem_info() {
     local proto="$1"
     local iface="$2"
     local dev="$3"
-    
+
+    # Validate device path
+    if [ -n "$dev" ] && ! echo "$dev" | grep -qE '^/dev/[a-zA-Z0-9_-]+$'; then
+        echo "Type: $proto (invalid device path)"
+        return
+    fi
+
     local info="Type: $proto"
-    
+
     case "$proto" in
         qmi)
-            if command -v uqmi >/dev/null 2>&1 && [ -n "$dev" ]; then
+            if command -v uqmi >/dev/null 2>&1 && [ -n "$dev" ] && [ -c "$dev" ]; then
                 # Get signal strength
-                local signal=$(uqmi -d "$dev" --get-signal-info 2>/dev/null | grep rssi | cut -d: -f2 | tr -d ' ,')
+                local signal
+                signal=$(uqmi -d "$dev" --get-signal-info 2>/dev/null | grep rssi | cut -d: -f2 | tr -d ' ,')
                 [ -n "$signal" ] && info="$info, Signal: ${signal}dBm"
-                
+
                 # Get network registration
-                local network=$(uqmi -d "$dev" --get-serving-system 2>/dev/null | grep description | cut -d\" -f4)
+                local network
+                network=$(uqmi -d "$dev" --get-serving-system 2>/dev/null | grep description | cut -d\" -f4)
                 [ -n "$network" ] && info="$info, Network: $network"
             fi
             ;;
         mbim)
-            if command -v umbim >/dev/null 2>&1 && [ -n "$dev" ]; then
-                local signal=$(umbim -d "$dev" -n signal 2>/dev/null | grep rssi | cut -d: -f2)
+            if command -v umbim >/dev/null 2>&1 && [ -n "$dev" ] && [ -c "$dev" ]; then
+                local signal
+                signal=$(umbim -d "$dev" -n signal 2>/dev/null | grep rssi | cut -d: -f2)
                 [ -n "$signal" ] && info="$info, Signal: ${signal}dBm"
             fi
             ;;
     esac
-    
+
     echo "$info"
 }
 
@@ -167,14 +176,20 @@ configure_modem_as_wan() {
     # Save modem info to a status file
     local status_dir="/var/run/modem-status"
     mkdir -p "$status_dir"
-    cat > "$status_dir/$wan_name" <<-EOFF
+
+    # Use quoted heredoc to prevent variable expansion issues
+    # Write status file with secure permissions
+    (
+        umask 077
+        cat > "$status_dir/$wan_name" <<-EOFF
 		INTERFACE=$wan_name
 		PHYSICAL_DEVICE=$iface
 		PROTOCOL=$proto
 		CONTROL_DEVICE=$dev
 		INFO=$modem_info
 		CONFIGURED_AT=$(date)
-	EOFF
+		EOFF
+    )
     
     log_msg "$wan_name configured successfully"
     
@@ -185,40 +200,54 @@ configure_modem_as_wan() {
 # Check if a modem is already configured
 is_modem_configured() {
     local iface="$1"
-    
+
+    # Validate interface name
+    if ! echo "$iface" | grep -qE '^[a-zA-Z0-9_/-]+$'; then
+        return 1
+    fi
+
     # Check all WAN interfaces
     for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan" | cut -d. -f2 | cut -d= -f1); do
-        local device=$(uci -q get network.$wan.device)
+        local device
+        device=$(uci -q get "network.$wan.device")
         # Check both device name and physical device
         if [ "$device" = "$iface" ] || [ "$device" = "/dev/cdc-wdm0" ]; then
             return 0
         fi
     done
-    
+
     return 1
 }
 
 # Remove modems that are no longer present
 cleanup_disconnected_modems() {
     log_msg "Checking for disconnected modems..."
-    
+
     for wan in $(uci show network 2>/dev/null | grep "=interface" | grep -E "\.wan[0-9]" | cut -d. -f2 | cut -d= -f1); do
-        local proto=$(uci -q get network.$wan.proto)
-        local device=$(uci -q get network.$wan.device)
-        
+        local proto
+        local device
+        proto=$(uci -q get "network.$wan.proto")
+        device=$(uci -q get "network.$wan.device")
+
+        # Validate device path
+        if [ -n "$device" ] && ! echo "$device" | grep -qE '^/dev/[a-zA-Z0-9_-]+$'; then
+            log_msg "WARNING: Invalid device path for $wan: $device"
+            continue
+        fi
+
         # Check if this is a modem interface
         case "$proto" in
             qmi|mbim)
                 # Check if device still exists
-                if [ ! -c "$device" ]; then
+                if [ -n "$device" ] && [ ! -c "$device" ]; then
                     log_msg "Modem on $wan ($device) is disconnected, removing configuration"
-                    uci delete network.$wan
+                    uci delete "network.$wan"
                     rm -f "/var/run/modem-status/$wan"
                 fi
                 ;;
         esac
     done
-    
+
     uci commit network
 }
 

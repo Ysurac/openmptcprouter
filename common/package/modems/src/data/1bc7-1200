@@ -1,0 +1,11 @@
+{
+	"desc": "Telit LE920 LTE Cat3",
+	"type": "qmi_wwan",
+	"control": 4,
+	"boudrate": 115200,
+	"stop_bits": 8,
+	"ep_iface": 4,
+	"dl_max_size": 16384,
+	"dl_max_datagrams": 32,
+	"carrier_aggregation": 1
+}

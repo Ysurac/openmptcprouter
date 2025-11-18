@@ -17,34 +17,51 @@
 <html lang="<%=luci.i18n.context.lang%>">
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-	<meta name="format-detection" content="telephone=no, email=no"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<!-- Modern color scheme support -->
+	<meta name="color-scheme" content="light dark">
+
+	<!-- Performance and mobile optimizations -->
+	<meta name="format-detection" content="telephone=no, email=no">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="x5-fullscreen" content="true">
 	<meta name="full-screen" content="yes">
 	<meta name="x5-page-mode" content="app">
-	<meta name="browsermode" content="application">
 	<meta name="theme-color" content="#667eea">
 	<meta name="msapplication-tap-highlight" content="no">
 	<meta name="renderer" content="webkit">
-	
+
+	<!-- Security headers -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
 	<title><%=striptags( ((boardinfo and boardinfo.hostname) or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %> - LuCI</title>
-	
-	<link rel="stylesheet" href="<%=media%>/cascade.css">
+
+	<!-- Preload critical CSS for better performance -->
+	<link rel="preload" href="<%=media%>/cascade.css" as="style">
+	<link rel="preload" href="<%=media%>/js/theme.js" as="script">
+
+	<!-- Stylesheets with fetchpriority -->
+	<link rel="stylesheet" href="<%=media%>/cascade.css" fetchpriority="high">
 	<link rel="stylesheet" href="<%=media%>/css/utilities.css">
 	<link rel="stylesheet" href="<%=media%>/css/components.css">
 	<link rel="shortcut icon" href="<%=media%>/images/favicon.ico">
 	<% if node and node.css then %>
 		<link rel="stylesheet" href="<%=resource%>/<%=node.css%>">
 	<% end %>
-	<script src="<%=resource%>/cbi.js"></script>
-	<script src="<%=media%>/js/theme.js"></script>
+
+	<!-- Scripts with defer for better performance -->
+	<script src="<%=resource%>/cbi.js" defer></script>
+	<script src="<%=media%>/js/theme.js" defer></script>
 </head>
 <body class="lang_<%=luci.i18n.context.lang%> <% if node then %><%= striptags( node.title ) %>-page<% end %>" data-page="<%= pcdata(table.concat(disp.context.path, "-")) %>">
+	<!-- Skip to main content for accessibility -->
+	<a href="#main-content" class="sr-only focus-visible">Skip to main content</a>
+
 	<header class="header" role="banner">
 		<div class="container">
-			<a href="<%=controller%>/admin/status/overview" class="brand" aria-label="Home">
+			<a href="<%=controller%>/admin/status/overview" class="brand" aria-label="Navigate to homepage">
 				<div class="brand-icon" aria-hidden="true">🚀</div>
 				<span><%=striptags(hostname or "?")%></span>
 			</a>
@@ -87,7 +104,7 @@
 	</nav>
 	<% end %>
 
-	<main class="main-content" role="main">
+	<main id="main-content" class="main-content" role="main">
 		<% if node and node.title then %>
 			<h1 class="page-title"><%=striptags(node.title)%></h1>
 		<% end %>

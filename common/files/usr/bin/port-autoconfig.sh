@@ -17,22 +17,43 @@ log_msg() {
 # Get list of all physical ethernet ports
 get_all_ports() {
     local ports=""
-    
+
     # Check for eth* interfaces
     for iface in /sys/class/net/eth*; do
-        [ -e "$iface" ] && ports="$ports $(basename "$iface")"
+        if [ -e "$iface" ]; then
+            local port
+            port=$(basename "$iface")
+            # Validate port name
+            if echo "$port" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+                ports="$ports $port"
+            fi
+        fi
     done
 
     # Check for lan* interfaces (common on some devices)
     for iface in /sys/class/net/lan*; do
-        [ -e "$iface" ] && ports="$ports $(basename "$iface")"
+        if [ -e "$iface" ]; then
+            local port
+            port=$(basename "$iface")
+            # Validate port name
+            if echo "$port" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+                ports="$ports $port"
+            fi
+        fi
     done
 
     # Check for wan* interfaces
     for iface in /sys/class/net/wan*; do
-        [ -e "$iface" ] && ports="$ports $(basename "$iface")"
+        if [ -e "$iface" ]; then
+            local port
+            port=$(basename "$iface")
+            # Validate port name
+            if echo "$port" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+                ports="$ports $port"
+            fi
+        fi
     done
-    
+
     echo "$ports" | xargs
 }
 
@@ -104,35 +125,52 @@ apply_port_configuration() {
     
     # Configure WAN if we have one
     if [ -n "$wan_port" ]; then
+        # Validate WAN port name
+        if ! echo "$wan_port" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+            log_msg "ERROR: Invalid WAN port name: $wan_port"
+            return 1
+        fi
+
         log_msg "Configuring WAN on: $wan_port"
-        
-        uci -q batch <<-EOF
+
+        # Use quoted heredoc
+        uci -q batch <<-'EOF'
 			delete network.wan
 			set network.wan=interface
-			set network.wan.device='$wan_port'
 			set network.wan.proto='dhcp'
 			set network.wan.metric='10'
 			set network.wan.multipath='on'
 		EOF
+
+        # Set device separately with validation
+        if ! uci -q set "network.wan.device=$wan_port"; then
+            log_msg "ERROR: Failed to configure WAN device"
+            return 1
+        fi
     else
         log_msg "No WAN port - user can configure later"
     fi
-    
+
     # Configure LAN bridge with remaining ports
     if [ -n "$lan_ports" ]; then
         log_msg "Configuring LAN on: $lan_ports"
-        
-        # Create bridge device
-        uci -q batch <<-EOF
+
+        # Create bridge device - use quoted heredoc
+        uci -q batch <<-'EOF'
 			delete network.@device[0]
 			add network device
 			set network.@device[-1].name='br-lan'
 			set network.@device[-1].type='bridge'
-			set network.@device[-1].ports='$lan_ports'
 		EOF
-        
+
+        # Set ports separately with validation
+        if ! uci -q set "network.@device[-1].ports=$lan_ports"; then
+            log_msg "ERROR: Failed to set LAN ports"
+            return 1
+        fi
+
         # Configure LAN interface
-        uci -q batch <<-EOF
+        uci -q batch <<-'EOF'
 			set network.lan.device='br-lan'
 			set network.lan.proto='static'
 			set network.lan.ipaddr='192.168.2.1'

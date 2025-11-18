@@ -1,0 +1,11 @@
+{
+	"desc": "Fibocom L831-EAU LTE",
+	"type": "cdc_mbim",
+	"control": 4,
+	"boudrate": 115200,
+	"stop_bits": 8,
+	"dl_max_size": 16384,
+	"dl_max_datagrams": 32,
+	"carrier_aggregation": 1,
+	"ca_max_bands": 3
+}
