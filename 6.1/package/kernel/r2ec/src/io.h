@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef R2EC_IO_H
 #define R2EC_IO_H
 

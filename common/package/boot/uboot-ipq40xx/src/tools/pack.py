@@ -1134,7 +1134,8 @@ class Pack(object):
         try:
             os.unlink(self.scr_fname)
         except OSError as e:
-            pass
+            # Log cleanup failure instead of silently ignoring
+            sys.stderr.write("pack: warning: could not remove %s: %s\n" % (self.scr_fname, str(e)))
 
         try:
             bconf_fname = os.path.join(images_dname, brdconfig)
