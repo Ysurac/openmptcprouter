@@ -29,14 +29,28 @@ check_running() {
         old_pid=$(cat "$PID_FILE" 2>/dev/null)
         # Validate PID is a number to prevent command injection
         if echo "$old_pid" | grep -qE '^[0-9]+$'; then
+            # Check if process exists
             if kill -0 "$old_pid" 2>/dev/null; then
-                log_msg "Monitor already running with PID $old_pid"
-                rmdir "$lockdir" 2>/dev/null
-                exit 0
+                # Verify it's actually our script by checking command line
+                local cmdline
+                cmdline=$(cat "/proc/$old_pid/cmdline" 2>/dev/null | tr '\0' ' ')
+                if echo "$cmdline" | grep -q "network-monitor"; then
+                    log_msg "Monitor already running with PID $old_pid"
+                    rmdir "$lockdir" 2>/dev/null
+                    exit 0
+                else
+                    log_msg "PID $old_pid exists but is not network-monitor (PID reused)"
+                    rm -f "$PID_FILE"
+                fi
+            else
+                # Process doesn't exist, remove stale PID file
+                log_msg "Removing stale PID file (process $old_pid not running)"
+                rm -f "$PID_FILE"
             fi
+        else
+            log_msg "Invalid PID in PID file, removing"
+            rm -f "$PID_FILE"
         fi
-        # Stale PID file, remove it
-        rm -f "$PID_FILE"
     fi
 
     # Use atomic write with umask for security
@@ -70,7 +84,7 @@ auto_configure_wifi() {
     if [ -f /etc/wifi-password.txt ]; then
         return 0
     fi
-    
+
     # Check if any WiFi is enabled
     local wifi_enabled=0
     for radio in $(uci show wireless 2>/dev/null | grep "wireless\.radio.*=wifi-device" | cut -d. -f2 | cut -d= -f1); do
@@ -80,13 +94,38 @@ auto_configure_wifi() {
             break
         fi
     done
-    
+
     # If no WiFi is enabled, auto-configure (first boot only)
     if [ $wifi_enabled -eq 0 ]; then
         log_msg "First boot: auto-configuring WiFi"
         if [ -x /usr/bin/wifi-autoconfig.sh ]; then
             /usr/bin/wifi-autoconfig.sh &
         fi
+    fi
+}
+
+# Check WAN connectivity
+check_wan_connectivity() {
+    # Check if any WAN interface has link up
+    local wan_up=0
+    local wan_ifaces=""
+
+    # Find all WAN interfaces (dhcp, qmi, mbim, static with gateway)
+    wan_ifaces=$(uci -q show network | grep -E "proto='dhcp'|proto='qmi'|proto='mbim'|proto='3g'|proto='ncm'" | cut -d. -f2 | cut -d= -f1 | grep -v "^lan$" 2>/dev/null)
+
+    # Check each WAN interface for link status
+    for iface in $wan_ifaces; do
+        local ifname=$(uci -q get network.$iface.device)
+        [ -z "$ifname" ] && ifname=$(uci -q get network.$iface.ifname)
+
+        if [ -n "$ifname" ] && ip link show "$ifname" 2>/dev/null | grep -q "state UP"; then
+            wan_up=1
+            break
+        fi
+    done
+
+    if [ $wan_up -eq 0 ]; then
+        log_msg "WARNING: No WAN interfaces UP"
     fi
 }
 
@@ -103,12 +142,15 @@ main() {
     
     log_msg "Monitoring DHCP and system health"
     
-    # Main loop - just keep services running
+    # Main loop - keep services running and monitor WAN
     while true; do
         sleep $CHECK_INTERVAL
-        
+
         # Ensure DHCP is running
         check_dhcp_server
+
+        # Check WAN connectivity
+        check_wan_connectivity
     done
 }
 

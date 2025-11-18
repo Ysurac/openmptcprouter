@@ -321,8 +321,8 @@ net.ipv4.tcp_congestion_control = bbr2
 net.core.default_qdisc = fq_codel
 
 # Network Performance Tuning - Enhanced for Multi-WAN
-net.core.rmem_max = 134217728
-net.core.wmem_max = 134217728
+net.core.rmem_max = 268435456
+net.core.wmem_max = 268435456
 net.core.rmem_default = 67108864
 net.core.wmem_default = 67108864
 net.core.netdev_max_backlog = 250000
