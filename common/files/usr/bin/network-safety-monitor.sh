@@ -11,6 +11,11 @@ LOG_TAG="network-safety"
 CHECK_INTERVAL=30  # Check every 30 seconds
 EMERGENCY_PORT_FILE="/var/run/emergency-port"
 
+# Recovery retry limiting
+readonly MAX_RECOVERY_ATTEMPTS=3
+RECOVERY_FAILURES=0
+LAST_RECOVERY_ATTEMPT=0
+
 log_msg() {
     logger -t "$LOG_TAG" "$1"
 }
@@ -211,12 +216,23 @@ emergency_recovery() {
 		set network.lan.netmask='255.255.255.0'
 		set network.lan.ip6assign='60'
 	EOF
-    
-    uci commit network
-    
-    # Restart network
-    /etc/init.d/network restart
-    
+
+    if ! uci commit network; then
+        log_msg "CRITICAL: UCI commit failed during emergency recovery"
+        log_msg "System may be in inconsistent state"
+        return 1
+    fi
+
+    # Restart network with verification
+    if ! /etc/init.d/network restart; then
+        log_msg "CRITICAL: Network restart failed during emergency recovery"
+        log_msg "Manual intervention required"
+        return 1
+    fi
+
+    # Wait for network to come up
+    sleep 3
+
     log_msg "═══════════════════════════════════════════════════"
     log_msg "✓ EMERGENCY RECOVERY COMPLETE"
     log_msg "  LAN restored on port: $emergency_port"
@@ -276,37 +292,77 @@ ensure_dhcp_on_lan() {
 main() {
     log_msg "Network safety monitor starting"
     log_msg "Preventing lockouts and APIPA addresses"
-    
+
     # Wait for system to fully boot
     sleep 30
-    
+
     while true; do
+        local current_time=$(date +%s)
+
+        # Reset failure count if enough time has passed (10 minutes)
+        if [ $((current_time - LAST_RECOVERY_ATTEMPT)) -gt 600 ]; then
+            RECOVERY_FAILURES=0
+        fi
+
         # CRITICAL: Ensure LAN is always static
         fix_lan_protocol
-        
+
         # Check for APIPA addresses
         if ! check_interface_ips; then
-            log_msg "APIPA address detected on LAN - triggering recovery"
-            emergency_recovery
-        fi
-        
-        # Check if LAN is accessible
-        if ! check_lan_accessible; then
-            log_msg "WARNING: LAN not accessible - initiating recovery"
-            
-            # Wait a bit to see if network is just restarting
-            sleep 10
-            
-            # Check again
-            if ! check_lan_accessible; then
-                emergency_recovery
+            if [ $RECOVERY_FAILURES -lt $MAX_RECOVERY_ATTEMPTS ]; then
+                log_msg "APIPA address detected on LAN - triggering recovery (attempt $((RECOVERY_FAILURES + 1))/$MAX_RECOVERY_ATTEMPTS)"
+                LAST_RECOVERY_ATTEMPT=$current_time
+                if emergency_recovery; then
+                    log_msg "Emergency recovery succeeded"
+                    RECOVERY_FAILURES=0
+                else
+                    RECOVERY_FAILURES=$((RECOVERY_FAILURES + 1))
+                    log_msg "Emergency recovery failed (failures: $RECOVERY_FAILURES)"
+                    if [ $RECOVERY_FAILURES -ge $MAX_RECOVERY_ATTEMPTS ]; then
+                        log_msg "CRITICAL: Emergency recovery failed $MAX_RECOVERY_ATTEMPTS times"
+                        log_msg "Giving up to prevent infinite loop. Manual intervention required."
+                    fi
+                fi
             fi
         fi
-        
+
+        # Check if LAN is accessible
+        if ! check_lan_accessible; then
+            if [ $RECOVERY_FAILURES -lt $MAX_RECOVERY_ATTEMPTS ]; then
+                log_msg "WARNING: LAN not accessible - initiating recovery"
+
+                # Wait a bit to see if network is just restarting
+                sleep 10
+
+                # Check again
+                if ! check_lan_accessible; then
+                    LAST_RECOVERY_ATTEMPT=$current_time
+                    if emergency_recovery; then
+                        RECOVERY_FAILURES=0
+                    else
+                        RECOVERY_FAILURES=$((RECOVERY_FAILURES + 1))
+                        if [ $RECOVERY_FAILURES -ge $MAX_RECOVERY_ATTEMPTS ]; then
+                            log_msg "CRITICAL: Recovery failed $MAX_RECOVERY_ATTEMPTS times, giving up"
+                        fi
+                    fi
+                fi
+            fi
+        fi
+
         # Ensure DHCP is running
         ensure_dhcp_on_lan
-        
-        sleep $CHECK_INTERVAL
+
+        # Exponential backoff if failures
+        local sleep_time=$CHECK_INTERVAL
+        if [ $RECOVERY_FAILURES -gt 0 ]; then
+            sleep_time=$((CHECK_INTERVAL * (2 ** RECOVERY_FAILURES)))
+            if [ $sleep_time -gt 300 ]; then
+                sleep_time=300  # Cap at 5 minutes
+            fi
+            log_msg "Sleeping ${sleep_time}s before next check (backoff due to failures)"
+        fi
+
+        sleep $sleep_time
     done
 }
 

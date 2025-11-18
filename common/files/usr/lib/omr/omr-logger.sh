@@ -27,9 +27,8 @@ OMR_LOG_FILE="/var/log/omr.log"
 readonly LOG_MAX_SIZE=1024
 
 # Rate limiting to prevent log spam
-declare -A _omr_log_last_time
-declare -A _omr_log_count
 readonly LOG_RATE_LIMIT=5  # Max 5 identical messages per minute
+readonly LOG_RATE_DIR="/var/run/omr-log-rate"
 
 # Core logging function
 omr_log() {
@@ -40,21 +39,36 @@ omr_log() {
 	# Skip if below log level
 	[ "$level" -gt "$OMR_LOG_LEVEL" ] && return 0
 
-	# Rate limiting check
-	local msg_hash=$(echo "$message" | md5sum | cut -d' ' -f1)
+	# Rate limiting check (file-based for POSIX sh compatibility)
+	local msg_hash=$(echo "$message" | md5sum | cut -d' ' -f1 | head -c 8)
 	local current_time=$(date +%s)
-	local last_time=${_omr_log_last_time[$msg_hash]:-0}
+
+	# Create rate limit directory if needed
+	mkdir -p "$LOG_RATE_DIR" 2>/dev/null
+
+	local rate_file="$LOG_RATE_DIR/$msg_hash"
+	local last_time=0
+	local count=0
+
+	# Read existing rate limit data
+	if [ -f "$rate_file" ]; then
+		read last_time count < "$rate_file" 2>/dev/null || true
+	fi
+
 	local time_diff=$((current_time - last_time))
 
 	if [ "$time_diff" -lt 60 ]; then
-		_omr_log_count[$msg_hash]=$((${_omr_log_count[$msg_hash]:-0} + 1))
-		if [ "${_omr_log_count[$msg_hash]}" -gt "$LOG_RATE_LIMIT" ]; then
+		count=$((count + 1))
+		if [ "$count" -gt "$LOG_RATE_LIMIT" ]; then
 			return 0  # Rate limited, skip
 		fi
 	else
-		_omr_log_count[$msg_hash]=1
-		_omr_log_last_time[$msg_hash]=$current_time
+		count=1
+		last_time=$current_time
 	fi
+
+	# Update rate limit data atomically
+	echo "$last_time $count" > "$rate_file.tmp" && mv "$rate_file.tmp" "$rate_file"
 
 	# Convert level to priority name
 	local priority
@@ -126,24 +140,6 @@ omr_log_critical() {
 	omr_log "$LOG_CRIT" "$1" "${2:-$OMR_COMPONENT}"
 }
 
-# Smart diagnostic function - only logs when something is wrong
-omr_check_and_log() {
-	local check_name=$1
-	local check_command=$2
-	local success_msg=$3
-	local failure_msg=$4
-
-	if eval "$check_command" >/dev/null 2>&1; then
-		# Only log success at debug level
-		[ -n "$success_msg" ] && omr_log_debug "$check_name: $success_msg"
-		return 0
-	else
-		# Log failure at warning level
-		omr_log_warning "$check_name: $failure_msg"
-		return 1
-	fi
-}
-
 # Export functions for use by other scripts
 export -f omr_log
 export -f omr_log_debug
@@ -152,4 +148,3 @@ export -f omr_log_notice
 export -f omr_log_warning
 export -f omr_log_error
 export -f omr_log_critical
-export -f omr_check_and_log
