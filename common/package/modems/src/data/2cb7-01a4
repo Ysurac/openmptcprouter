@@ -1,0 +1,14 @@
+{
+	"desc": "Fibocom FM101-GL 5G M.2 (Debug mode)",
+	"type": "cdc_mbim",
+	"control": 4,
+	"boudrate": 115200,
+	"stop_bits": 8,
+	"dl_max_size": 32768,
+	"dl_max_datagrams": 64,
+	"rx_urb_size": 32768,
+	"5g_capable": 1,
+	"carrier_aggregation": 1,
+	"ca_max_bands": 4,
+	"endc_support": 1
+}
