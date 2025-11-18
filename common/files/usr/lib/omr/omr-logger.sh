@@ -29,7 +29,9 @@ readonly LOG_MAX_SIZE=1024
 # Rate limiting to prevent log spam
 declare -A _omr_log_last_time
 declare -A _omr_log_count
-readonly LOG_RATE_LIMIT=5  # Max 5 identical messages per minute
+# Configurable rate limit (default 5 msgs/min, override via OMR_LOG_RATE_LIMIT env var)
+# Set to 0 to disable rate limiting
+readonly LOG_RATE_LIMIT=${OMR_LOG_RATE_LIMIT:-5}
 
 # Core logging function
 omr_log() {
@@ -40,20 +42,23 @@ omr_log() {
 	# Skip if below log level
 	[ "$level" -gt "$OMR_LOG_LEVEL" ] && return 0
 
-	# Rate limiting check
-	local msg_hash=$(echo "$message" | md5sum | cut -d' ' -f1)
-	local current_time=$(date +%s)
-	local last_time=${_omr_log_last_time[$msg_hash]:-0}
-	local time_diff=$((current_time - last_time))
+	# Rate limiting check (bypass for CRITICAL/ERROR/ALERT/EMERG or if disabled)
+	# Critical messages should never be rate limited
+	if [ "$LOG_RATE_LIMIT" -gt 0 ] && [ "$level" -gt "$LOG_ERR" ]; then
+		local msg_hash=$(echo "$message" | md5sum | cut -d' ' -f1)
+		local current_time=$(date +%s)
+		local last_time=${_omr_log_last_time[$msg_hash]:-0}
+		local time_diff=$((current_time - last_time))
 
-	if [ "$time_diff" -lt 60 ]; then
-		_omr_log_count[$msg_hash]=$((${_omr_log_count[$msg_hash]:-0} + 1))
-		if [ "${_omr_log_count[$msg_hash]}" -gt "$LOG_RATE_LIMIT" ]; then
-			return 0  # Rate limited, skip
+		if [ "$time_diff" -lt 60 ]; then
+			_omr_log_count[$msg_hash]=$((${_omr_log_count[$msg_hash]:-0} + 1))
+			if [ "${_omr_log_count[$msg_hash]}" -gt "$LOG_RATE_LIMIT" ]; then
+				return 0  # Rate limited, skip
+			fi
+		else
+			_omr_log_count[$msg_hash]=1
+			_omr_log_last_time[$msg_hash]=$current_time
 		fi
-	else
-		_omr_log_count[$msg_hash]=1
-		_omr_log_last_time[$msg_hash]=$current_time
 	fi
 
 	# Convert level to priority name
