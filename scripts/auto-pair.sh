@@ -307,7 +307,7 @@ Manual Setup:
 Connection Test:
 ----------------
 From router: ping $VPS_IP
-From router: curl http://$VPS_IP:9999/pair.json
+From router: curl https://$VPS_IP:9999/pair.json
 ENDINFO
     )  # End umask subshell
     

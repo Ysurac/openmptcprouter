@@ -934,10 +934,19 @@ IMPORTANT: Keep this file secure!
 </html>
 ENDHTML
 
-# Replace placeholders
-sed -i "s|REPLACE_VPS_IP|$VPS_PUBLIC_IP|g" /var/www/omr-setup/index.html
-sed -i "s|REPLACE_PASSWORD|$SHADOWSOCKS_PASS|g" /var/www/omr-setup/index.html
-sed -i "s|REPLACE_PAIRING_CODE|$PAIRING_CODE|g" /var/www/omr-setup/index.html
+# Replace placeholders (using safe escaping to prevent command injection)
+# Escape special characters in replacement strings for sed safety
+escape_sed_replacement() {
+    printf '%s\n' "$1" | sed -e 's/[&/\]/\\&/g'
+}
+
+SAFE_VPS_IP=$(escape_sed_replacement "$VPS_PUBLIC_IP")
+SAFE_PASSWORD=$(escape_sed_replacement "$SHADOWSOCKS_PASS")
+SAFE_PAIRING=$(escape_sed_replacement "$PAIRING_CODE")
+
+sed -i "s|REPLACE_VPS_IP|$SAFE_VPS_IP|g" /var/www/omr-setup/index.html
+sed -i "s|REPLACE_PASSWORD|$SAFE_PASSWORD|g" /var/www/omr-setup/index.html
+sed -i "s|REPLACE_PAIRING_CODE|$SAFE_PAIRING|g" /var/www/omr-setup/index.html
 
 # Create systemd service for web interface
 cat > /etc/systemd/system/omr-setup-web.service << 'ENDSERVICE'
