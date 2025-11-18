@@ -74,7 +74,7 @@ Use the automated VPS setup script:
 
 ```bash
 # On your VPS, run:
-wget -O - https://raw.githubusercontent.com/Ysurac/openmptcprouter-vps/master/install.sh | sh
+wget -O - https://raw.githubusercontent.com/spotty118/openmptcprouter/develop/scripts/easy-install.sh | sudo bash
 ```
 
 Follow the prompts to configure your VPS.

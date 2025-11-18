@@ -110,7 +110,7 @@ jobs:
     - name: Build toolchain
       working-directory: ../../omr
       env:
-        OMR_FEED_URL: https://github.com/ysurac/openmptcprouter-feeds
+        OMR_FEED_URL: https://github.com/spotty118/openmptcprouter-feeds
         SOURCE_NAME: ${{ steps.branch_name.outputs.SOURCE_NAME }}
         OMR_TARGET: ${{ matrix.OMR_TARGET }}
         OMR_KERNEL: ${{ matrix.OMR_KERNEL }}
