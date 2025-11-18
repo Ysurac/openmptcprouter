@@ -1,0 +1,317 @@
+#!/bin/sh
+# MPTCP Path Manager - Intelligent Path State Management
+# Implements hysteresis and blacklisting for stable multi-WAN bonding
+# Part of OpenMPTCProuter bonding behavior fixes
+
+HYSTERESIS_TIME=30        # Require 30 seconds of stability before marking path healthy
+CHECK_INTERVAL=5          # Check every 5 seconds
+STATE_DIR="/var/run/mptcp-paths"
+METRICS_DIR="/var/run/mptcp-metrics"
+
+# Blacklisting parameters
+BLACKLIST_THRESHOLD=5     # 5 failures in observation window triggers blacklist
+BLACKLIST_WINDOW=300      # 5-minute observation window
+BLACKLIST_DURATION=300    # Blacklist for 5 minutes
+DEGRADED_THRESHOLD=500    # 5% loss rate (in basis points: 500 = 5.00%)
+DEGRADED_METRIC_PENALTY=50
+
+mkdir -p "$STATE_DIR"
+mkdir -p "$METRICS_DIR"
+
+# Logging helper
+log_info() {
+    logger -t mptcp-path -p daemon.info "$@"
+}
+
+log_warn() {
+    logger -t mptcp-path -p daemon.warning "$@"
+}
+
+# Check if interface is a WAN interface
+is_wan_interface() {
+    local iface=$1
+
+    # Skip non-WAN interfaces
+    case "$iface" in
+        lo|br-*|eth0.1|wlan*client|ifb*|sit*|ip6tnl*) return 1 ;;
+    esac
+
+    # Check if interface has multipath enabled in UCI
+    local multipath=$(uci get network.${iface}.multipath 2>/dev/null)
+    if [ "$multipath" = "on" ]; then
+        return 0
+    fi
+
+    # Check if it's a typical WAN interface name
+    case "$iface" in
+        wan*|wwan*|eth1|eth2|eth3|usb*) return 0 ;;
+    esac
+
+    return 1
+}
+
+# Read path state from file
+read_path_state() {
+    local iface=$1
+    local state_file="$STATE_DIR/$iface"
+
+    if [ -f "$state_file" ]; then
+        # Format: iface|last_failure_time|recovery_start_time|failure_count
+        IFS='|' read -r _ last_failure recovery_start failure_count < "$state_file"
+        echo "$last_failure|$recovery_start|$failure_count"
+    else
+        echo "0|0|0"
+    fi
+}
+
+# Write path state to file
+write_path_state() {
+    local iface=$1
+    local last_failure=$2
+    local recovery_start=$3
+    local failure_count=$4
+
+    echo "$iface|$last_failure|$recovery_start|$failure_count" > "$STATE_DIR/$iface"
+}
+
+# Check if path is currently blacklisted
+is_blacklisted() {
+    local iface=$1
+    [ -f "$STATE_DIR/${iface}.blacklist" ]
+}
+
+# Check if path is currently degraded
+is_degraded() {
+    local iface=$1
+    [ -f "$STATE_DIR/${iface}.degraded" ]
+}
+
+# Count failures within blacklist window
+count_recent_failures() {
+    local iface=$1
+    local now=$2
+    local state_file="$STATE_DIR/$iface"
+
+    if [ ! -f "$state_file" ]; then
+        echo 0
+        return
+    fi
+
+    # Read all failure timestamps from state file
+    # For simplicity, we track failure_count and last_failure
+    # If last_failure is within window, use failure_count
+    IFS='|' read -r _ last_failure _ failure_count < "$state_file"
+
+    local age=$((now - last_failure))
+    if [ "$age" -lt "$BLACKLIST_WINDOW" ]; then
+        echo "$failure_count"
+    else
+        echo 0
+    fi
+}
+
+# Apply metric penalty to interface
+apply_metric_penalty() {
+    local iface=$1
+    local penalty=$2
+    local reason=$3
+
+    local current_metric=$(uci get network.${iface}.metric 2>/dev/null)
+    if [ -z "$current_metric" ]; then
+        # Find interface in UCI
+        local uci_section=$(uci show network | grep "device='$iface'" | cut -d'.' -f2 | cut -d'=' -f1 | head -1)
+        if [ -z "$uci_section" ]; then
+            # Try by ifname
+            uci_section=$(uci show network | grep "ifname='$iface'" | cut -d'.' -f2 | cut -d'=' -f1 | head -1)
+        fi
+
+        if [ -n "$uci_section" ]; then
+            current_metric=$(uci get network.${uci_section}.metric 2>/dev/null || echo 100)
+            local new_metric=$((current_metric + penalty))
+            uci set network.${uci_section}.metric="$new_metric"
+            uci commit network
+            log_warn "Applied $penalty metric penalty to $iface ($uci_section): $reason (metric: $current_metric -> $new_metric)"
+            return 0
+        fi
+    else
+        local new_metric=$((current_metric + penalty))
+        uci set network.${iface}.metric="$new_metric"
+        uci commit network
+        log_warn "Applied $penalty metric penalty to $iface: $reason (metric: $current_metric -> $new_metric)"
+        return 0
+    fi
+
+    log_warn "Could not apply metric penalty to $iface: interface not found in UCI"
+    return 1
+}
+
+# Remove metric penalty from interface
+remove_metric_penalty() {
+    local iface=$1
+    local penalty=$2
+    local reason=$3
+
+    local current_metric=$(uci get network.${iface}.metric 2>/dev/null)
+    if [ -z "$current_metric" ]; then
+        # Find interface in UCI
+        local uci_section=$(uci show network | grep "device='$iface'" | cut -d'.' -f2 | cut -d'=' -f1 | head -1)
+        if [ -z "$uci_section" ]; then
+            uci_section=$(uci show network | grep "ifname='$iface'" | cut -d'.' -f2 | cut -d'=' -f1 | head -1)
+        fi
+
+        if [ -n "$uci_section" ]; then
+            current_metric=$(uci get network.${uci_section}.metric 2>/dev/null || echo 100)
+            local new_metric=$((current_metric - penalty))
+            [ "$new_metric" -lt 1 ] && new_metric=1
+            uci set network.${uci_section}.metric="$new_metric"
+            uci commit network
+            log_info "Removed $penalty metric penalty from $iface ($uci_section): $reason (metric: $current_metric -> $new_metric)"
+            return 0
+        fi
+    else
+        local new_metric=$((current_metric - penalty))
+        [ "$new_metric" -lt 1 ] && new_metric=1
+        uci set network.${iface}.metric="$new_metric"
+        uci commit network
+        log_info "Removed $penalty metric penalty from $iface: $reason (metric: $current_metric -> $new_metric)"
+        return 0
+    fi
+
+    return 1
+}
+
+# FIX 2.1: Check path recovery with hysteresis
+check_path_recovery() {
+    local iface=$1
+    local now=$2
+
+    local oper_state=$(cat /sys/class/net/$iface/operstate 2>/dev/null)
+    [ -z "$oper_state" ] && return
+
+    # Read current state
+    IFS='|' read -r last_failure recovery_start failure_count <<EOF
+$(read_path_state "$iface")
+EOF
+
+    case "$oper_state" in
+        up)
+            # Path is operationally up
+            if [ "$failure_count" -gt 0 ]; then
+                if [ "$recovery_start" -eq 0 ]; then
+                    # Just came back - start recovery timer
+                    recovery_start=$now
+                    log_info "Path $iface RECOVERING (failures: $failure_count, hysteresis: ${HYSTERESIS_TIME}s)"
+                    write_path_state "$iface" "$last_failure" "$recovery_start" "$failure_count"
+                else
+                    # In recovery - check if stable enough
+                    local recovery_duration=$((now - recovery_start))
+                    if [ "$recovery_duration" -ge "$HYSTERESIS_TIME" ]; then
+                        # Stable for required period - mark healthy
+                        log_info "Path $iface STABLE (recovered after ${recovery_duration}s, cleared $failure_count failures)"
+                        failure_count=0
+                        recovery_start=0
+                        write_path_state "$iface" 0 0 0
+                    fi
+                fi
+            fi
+            ;;
+        down|unknown)
+            # Path is down - record failure
+            if [ "$oper_state" = "down" ]; then
+                last_failure=$now
+                failure_count=$((failure_count + 1))
+                recovery_start=0
+                log_warn "Path $iface DOWN (failure #$failure_count)"
+                write_path_state "$iface" "$last_failure" "$recovery_start" "$failure_count"
+            fi
+            ;;
+    esac
+}
+
+# FIX 2.2: Check path blacklisting based on failure patterns
+check_path_blacklisting() {
+    local iface=$1
+    local now=$2
+
+    # Count recent failures
+    local recent_failures=$(count_recent_failures "$iface" "$now")
+
+    if [ "$recent_failures" -ge "$BLACKLIST_THRESHOLD" ]; then
+        # Path should be blacklisted
+        if ! is_blacklisted "$iface"; then
+            log_warn "BLACKLISTING $iface ($recent_failures failures in ${BLACKLIST_WINDOW}s window)"
+            echo "$now" > "$STATE_DIR/${iface}.blacklist"
+            apply_metric_penalty "$iface" 1000 "blacklisted due to repeated failures"
+        fi
+    else
+        # Check if blacklist should be lifted
+        if is_blacklisted "$iface"; then
+            local blacklist_start=$(cat "$STATE_DIR/${iface}.blacklist")
+            local blacklist_age=$((now - blacklist_start))
+
+            if [ "$blacklist_age" -ge "$BLACKLIST_DURATION" ]; then
+                log_info "UNBLACKLISTING $iface (served ${blacklist_age}s penalty, recent_failures: $recent_failures)"
+                rm -f "$STATE_DIR/${iface}.blacklist"
+                remove_metric_penalty "$iface" 1000 "blacklist expired"
+            fi
+        fi
+    fi
+}
+
+# FIX 3.2: Check path degradation based on loss rate
+check_path_degradation() {
+    local iface=$1
+
+    local metrics_file="$METRICS_DIR/${iface}.current"
+    if [ ! -f "$metrics_file" ]; then
+        return
+    fi
+
+    # Read loss rate from metrics
+    # Format: iface|timestamp|rx_packets|tx_packets|rx_bytes|tx_bytes|rx_errors|tx_errors|loss_rate|signal_strength
+    local loss_rate=$(awk -F'|' '{print $9}' "$metrics_file")
+
+    if [ -z "$loss_rate" ] || [ "$loss_rate" = "N/A" ]; then
+        return
+    fi
+
+    # Check if loss rate exceeds threshold
+    if [ "$loss_rate" -ge "$DEGRADED_THRESHOLD" ]; then
+        # Path is degraded - reduce priority
+        if ! is_degraded "$iface"; then
+            local loss_pct=$((loss_rate / 100))
+            log_warn "Path $iface DEGRADED (loss rate: ${loss_pct}.$(printf "%02d" $((loss_rate % 100)))%)"
+            touch "$STATE_DIR/${iface}.degraded"
+            apply_metric_penalty "$iface" "$DEGRADED_METRIC_PENALTY" "degraded link quality"
+        fi
+    else
+        # Path quality is good - restore if was degraded
+        if is_degraded "$iface"; then
+            local loss_pct=$((loss_rate / 100))
+            log_info "Path $iface RECOVERED from degradation (loss rate: ${loss_pct}.$(printf "%02d" $((loss_rate % 100)))%)"
+            rm -f "$STATE_DIR/${iface}.degraded"
+            remove_metric_penalty "$iface" "$DEGRADED_METRIC_PENALTY" "link quality recovered"
+        fi
+    fi
+}
+
+# Monitor all WAN paths
+monitor_paths() {
+    local now=$(date +%s)
+
+    for iface in $(ls /sys/class/net/ 2>/dev/null); do
+        if is_wan_interface "$iface"; then
+            check_path_recovery "$iface" "$now"
+            check_path_blacklisting "$iface" "$now"
+            check_path_degradation "$iface"
+        fi
+    done
+}
+
+# Main monitoring loop
+log_info "MPTCP Path Manager starting (hysteresis: ${HYSTERESIS_TIME}s, check_interval: ${CHECK_INTERVAL}s)"
+
+while true; do
+    monitor_paths
+    sleep "$CHECK_INTERVAL"
+done
