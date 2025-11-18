@@ -1,0 +1,75 @@
+name: Validate Scripts
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    paths:
+      - '**.sh'
+      - 'scripts/**'
+  push:
+    paths:
+      - '**.sh'
+      - 'scripts/**'
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install shellcheck
+      run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+    - name: Run script validation
+      run: ./scripts/validate-scripts.sh
+
+  smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run smoke tests
+      run: ./scripts/smoke-test.sh
+
+  config-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Validate config files exist
+      run: |
+        echo "Checking configuration files..."
+        for config in config config-x86_64 config-bpi-r4 config-rpi4; do
+          if [ ! -f "$config" ]; then
+            echo "ERROR: Missing $config"
+            exit 1
+          fi
+          echo "✓ $config exists"
+        done
+
+    - name: Validate kernel directories
+      run: |
+        echo "Checking kernel directories..."
+        for kernel in 5.4 6.1 6.6 6.12; do
+          if [ ! -d "$kernel" ]; then
+            echo "ERROR: Missing kernel directory $kernel"
+            exit 1
+          fi
+          echo "✓ Kernel $kernel directory exists"
+        done
+
+    - name: Check for syntax errors in build.sh
+      run: |
+        echo "Checking build.sh syntax..."
+        sh -n build.sh
+        echo "✓ build.sh syntax is valid"

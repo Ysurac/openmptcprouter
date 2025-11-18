@@ -39,7 +39,7 @@ All your passwords and settings are:
 ## Router Configuration (3 Steps)
 
 ### Step 1: Access Router
-Open browser to: `http://192.168.100.1`
+Open browser to: `http://192.168.2.1`
 
 ### Step 2: Go to VPN Settings
 Navigate to: **Services → OpenMPTCProuter**

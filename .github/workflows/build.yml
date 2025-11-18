@@ -1,4 +1,10 @@
 name: Build OpenMPTCProuter Optimized Images
+
+permissions:
+  contents: read
+  packages: write
+  actions: read
+
 on:
   push:
   workflow_dispatch:
@@ -52,7 +58,7 @@ on:
         default: 'all'
 
 env:
-  REPO_URL: 'https://github.com/spotty118/openmptcprouter'
+  REPO_URL: ${{ github.server_url }}/${{ github.repository }}
 
 jobs:
   build:
@@ -61,7 +67,7 @@ jobs:
         OMR_TARGET: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target != 'all' && fromJSON(format('["{0}"]', github.event.inputs.target)) || fromJSON('["bpi-r1", "bpi-r2", "bpi-r3", "bpi-r4", "bpi-r4-poe", "bpi-r64", "rpi2", "rpi4", "wrt32x", "espressobin", "r2s", "rpi3", "wrt3200acm", "x86", "x86_64", "ubnt-erx", "r4s", "r7800", "rutx12", "rutx50", "r5s", "qnap-301w", "rpi5", "z8102ax_128m", "z8102ax_64m", "z8102ax-emmc", "gl-mt6000", "gl-mt3000", "gl-mt2500", "r5c", "z8109ax_128m"]') }}
         OMR_KERNEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.kernel != 'all' && fromJSON(format('["{0}"]', github.event.inputs.kernel)) || fromJSON('["6.6", "6.12"]') }}
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # Removed continue-on-error to ensure build failures are properly reported
 
     steps:
     - name: Branch name
@@ -79,6 +85,18 @@ jobs:
       name: Install LLVM
       run: |
         sudo apt-get install llvm clang
+    - name: Cache build dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.ccache
+          /home/runner/work/omr/${{ matrix.OMR_TARGET }}/${{ matrix.OMR_KERNEL }}/dl
+          /home/runner/work/omr/${{ matrix.OMR_TARGET }}/${{ matrix.OMR_KERNEL }}/staging_dir/host
+        key: build-cache-${{ matrix.OMR_TARGET }}-${{ matrix.OMR_KERNEL }}-${{ github.sha }}
+        restore-keys: |
+          build-cache-${{ matrix.OMR_TARGET }}-${{ matrix.OMR_KERNEL }}-
+          build-cache-${{ matrix.OMR_TARGET }}-
+
     - name: Free disk space
       run: |
         df -h
@@ -95,8 +113,8 @@ jobs:
         df -h
     - name: Clone source code
       working-directory: ../../
-      env: 
-        REPO_URL: https://github.com/spotty118/openmptcprouter
+      env:
+        REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         SOURCE_NAME: ${{ steps.branch_name.outputs.SOURCE_NAME }}
         GITHUB_WORKSPACE: ${{ steps.branch_name.outputs.WORKSPACE }}
       run: |
@@ -134,7 +152,10 @@ jobs:
         make IGNORE_ERRORS=m -C $OMR_TARGET/$OMR_KERNEL/source target/install -j$(nproc) || make IGNORE_ERRORS=m -C $OMR_TARGET/$OMR_KERNEL/source target/install -j1 V=s
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
+      if: success()
       with:
         name: ${{ matrix.OMR_TARGET }}-${{ matrix.OMR_KERNEL }}
+        retention-days: 30
+        compression-level: 9
         path: /home/runner/work/omr/${{ matrix.OMR_TARGET }}/${{ matrix.OMR_KERNEL }}/source/bin
         overwrite: true

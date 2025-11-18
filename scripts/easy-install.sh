@@ -301,7 +301,7 @@ cat > /var/www/omr-setup/index.html << 'ENDHTML'
                     <span class="step-number">1</span>
                     <strong>Access your router:</strong><br>
                     Connect to your router's WiFi or via Ethernet, then open browser to:<br>
-                    <code style="background:#f0f0f0;padding:5px;border-radius:3px;display:inline-block;margin-top:5px">http://192.168.100.1</code>
+                    <code style="background:#f0f0f0;padding:5px;border-radius:3px;display:inline-block;margin-top:5px">http://192.168.2.1</code>
                 </div>
 
                 <div class="step">
@@ -366,12 +366,15 @@ cat > /var/www/omr-setup/index.html << 'ENDHTML'
 </html>
 ENDHTML
 
-# Replace placeholders
+
+# Replace placeholders (using | delimiter to prevent injection)
 if [ -f /var/www/omr-setup/index.html ]; then
     sed -i "s|REPLACE_IP|$VPS_IP|g" /var/www/omr-setup/index.html
     if [ -f /etc/openmptcprouter/config.json ]; then
         PASSWORD=$(jq -r '.credentials.shadowsocks_password' /etc/openmptcprouter/config.json 2>/dev/null || echo "check /root/openmptcprouter_credentials.txt")
-        sed -i "s|REPLACE_PASSWORD|$PASSWORD|g" /var/www/omr-setup/index.html
+        # Escape special characters in password for sed (security fix)
+        PASSWORD_ESCAPED=$(printf '%s\n' "$PASSWORD" | sed 's/[&/\]/\\&/g')
+        sed -i "s|REPLACE_PASSWORD|$PASSWORD_ESCAPED|g" /var/www/omr-setup/index.html
     fi
 else
     echo "Warning: /var/www/omr-setup/index.html not found, skipping placeholder replacement"
