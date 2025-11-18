@@ -507,7 +507,8 @@ static int get_stm32_version(struct device *dev, uint8_t type, char *buffer)
 
   res = (struct pt_fw_get_ver *)(&recv[3]);
 
-  sprintf(buffer, "%02d.%02d.%02d rev. %02d\n",
+  /* SECURITY FIX: Use snprintf instead of sprintf to prevent buffer overflow */
+  snprintf(buffer, PAGE_SIZE, "%02d.%02d.%02d rev. %02d\n",
     res->major, res->middle, res->minor, res->rev);
 
 done:

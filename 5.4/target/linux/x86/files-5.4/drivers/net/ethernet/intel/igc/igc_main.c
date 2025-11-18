@@ -4113,17 +4113,18 @@ static int igc_request_msix(struct igc_adapter *adapter)
 
 		q_vector->itr_register = adapter->io_addr + IGC_EITR(vector);
 
+		/* SECURITY FIX: Use snprintf instead of sprintf to prevent buffer overflow */
 		if (q_vector->rx.ring && q_vector->tx.ring)
-			sprintf(q_vector->name, "%s-TxRx-%u", netdev->name,
+			snprintf(q_vector->name, sizeof(q_vector->name), "%s-TxRx-%u", netdev->name,
 				q_vector->rx.ring->queue_index);
 		else if (q_vector->tx.ring)
-			sprintf(q_vector->name, "%s-tx-%u", netdev->name,
+			snprintf(q_vector->name, sizeof(q_vector->name), "%s-tx-%u", netdev->name,
 				q_vector->tx.ring->queue_index);
 		else if (q_vector->rx.ring)
-			sprintf(q_vector->name, "%s-rx-%u", netdev->name,
+			snprintf(q_vector->name, sizeof(q_vector->name), "%s-rx-%u", netdev->name,
 				q_vector->rx.ring->queue_index);
 		else
-			sprintf(q_vector->name, "%s-unused", netdev->name);
+			snprintf(q_vector->name, sizeof(q_vector->name), "%s-unused", netdev->name);
 
 		err = request_irq(adapter->msix_entries[vector].vector,
 				  igc_msix_ring, 0, q_vector->name,

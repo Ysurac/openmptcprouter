@@ -3,6 +3,11 @@
 
 <head>
 	<meta charset="utf-8">
+		<!-- SECURITY FIX: Added security headers -->
+		<meta http-equiv="X-Content-Type-Options" content="nosniff">
+		<meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Update in progress</title>
 	<style>#l{height:70px;width:70px;margin:0 auto 20px;-webkit-animation:r 1s infinite linear;-moz-animation:r 1s infinite linear;-o-animation:r 1s infinite linear;animation:r 1s infinite linear;border-left:7px solid #eaf1ff;border-right:7px solid #eaf1ff;border-bottom:7px solid #eaf1ff;border-top:7px solid #2450ad;border-radius:100%}@-webkit-keyframes r{from{-webkit-transform:rotate(0)}to{-webkit-transform:rotate(359deg)}}@-moz-keyframes r{from{-moz-transform:rotate(0)}to{-moz-transform:rotate(359deg)}}@-o-keyframes r{from{-o-transform:rotate(0)}to{-o-transform:rotate(359deg)}}@keyframes r{from{transform:rotate(0)}to{transform:rotate(359deg)}}
 	</style>

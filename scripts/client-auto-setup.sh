@@ -49,9 +49,24 @@ if [ -z "$VPS_IP" ]; then
     printf "VPS IP Address: "
     read VPS_IP < /dev/tty
 
-    # Validate IP address format
+    # SECURITY FIX: Improved IP address validation
     if ! echo "$VPS_IP" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
         echo -e "${RED}Error: Invalid IP address format${NC}"
+        exit 1
+    fi
+
+    # Validate each octet is 0-255
+    for octet in $(echo "$VPS_IP" | tr '.' ' '); do
+        if [ "$octet" -lt 0 ] 2>/dev/null || [ "$octet" -gt 255 ] 2>/dev/null; then
+            echo -e "${RED}Error: Invalid IP address (octets must be 0-255)${NC}"
+            exit 1
+        fi
+    done
+
+    # Reject reserved IP addresses
+    first_octet=$(echo "$VPS_IP" | cut -d. -f1)
+    if [ "$first_octet" -eq 0 ] || [ "$first_octet" -eq 127 ] || [ "$first_octet" -eq 255 ]; then
+        echo -e "${RED}Error: Reserved IP address not allowed${NC}"
         exit 1
     fi
 
@@ -255,7 +270,10 @@ echo "Connection test complete!"
 TESTEOF
 
 chmod +x /usr/bin/omr-test
-sed -i "s|\$1|$VPS_IP|g" /usr/bin/omr-test
+# SECURITY FIX: Use awk instead of sed to avoid command injection
+awk -v ip="$VPS_IP" '{gsub(/\$1/, ip); print}' /usr/bin/omr-test > /usr/bin/omr-test.tmp
+mv /usr/bin/omr-test.tmp /usr/bin/omr-test
+chmod +x /usr/bin/omr-test
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════╗${NC}"
@@ -265,7 +283,9 @@ echo -e "${GREEN}║                                              ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Save configuration summary
+# SECURITY FIX: Set umask before creating sensitive files
+(
+umask 077
 cat > /etc/omr-config.txt << ENDCONFIG
 OpenMPTCProuter Optimized - Client Configuration
 ================================================
@@ -295,8 +315,7 @@ Run: omr-test
 
 To view this config: cat /etc/omr-config.txt
 ENDCONFIG
-
-chmod 600 /etc/omr-config.txt
+)  # End umask subshell
 
 echo -e "${BLUE}Configuration Summary:${NC}"
 echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

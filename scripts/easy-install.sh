@@ -367,14 +367,21 @@ cat > /var/www/omr-setup/index.html << 'ENDHTML'
 ENDHTML
 
 
-# Replace placeholders (using | delimiter to prevent injection)
+# SECURITY FIX: Use awk instead of sed to prevent command injection
 if [ -f /var/www/omr-setup/index.html ]; then
-    sed -i "s|REPLACE_IP|$VPS_IP|g" /var/www/omr-setup/index.html
     if [ -f /etc/openmptcprouter/config.json ]; then
         PASSWORD=$(jq -r '.credentials.shadowsocks_password' /etc/openmptcprouter/config.json 2>/dev/null || echo "check /root/openmptcprouter_credentials.txt")
-        # Escape special characters in password for sed (security fix)
-        PASSWORD_ESCAPED=$(printf '%s\n' "$PASSWORD" | sed 's/[&/\]/\\&/g')
-        sed -i "s|REPLACE_PASSWORD|$PASSWORD_ESCAPED|g" /var/www/omr-setup/index.html
+        # Use awk for safe variable substitution
+        awk -v ip="$VPS_IP" -v pass="$PASSWORD" '{
+            gsub(/REPLACE_IP/, ip);
+            gsub(/REPLACE_PASSWORD/, pass);
+            print
+        }' /var/www/omr-setup/index.html > /var/www/omr-setup/index.html.tmp
+        mv /var/www/omr-setup/index.html.tmp /var/www/omr-setup/index.html
+    else
+        # If no password available, just replace IP
+        awk -v ip="$VPS_IP" '{gsub(/REPLACE_IP/, ip); print}' /var/www/omr-setup/index.html > /var/www/omr-setup/index.html.tmp
+        mv /var/www/omr-setup/index.html.tmp /var/www/omr-setup/index.html
     fi
 else
     echo "Warning: /var/www/omr-setup/index.html not found, skipping placeholder replacement"
