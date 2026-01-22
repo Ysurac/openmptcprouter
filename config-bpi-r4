@@ -4,6 +4,25 @@ CONFIG_TARGET_mediatek_filogic_DEVICE_bananapi_bpi-r4=y
 CONFIG_KERNEL_ARM64_MODULE_PLTS=y
 CONFIG_KERNEL_TCP_CONG_BBR2=y
 CONFIG_PACKAGE_kmod-mt76=y
+CONFIG_PACKAGE_kmod-mt7996e=y
+CONFIG_PACKAGE_kmod-mt7996-firmware=y
+CONFIG_PACKAGE_kmod-mt7996-233-firmware=y
+CONFIG_PACKAGE_mt7988-wo-firmware=y
 CONFIG_PACKAGE_kmod-thermal=y
 CONFIG_PACKAGE_kmod-hwmon-core=y
+CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
+CONFIG_PACKAGE_kmod-i2c-mux-pca954x=y
+CONFIG_PACKAGE_kmod-eeprom-at24=y
+CONFIG_PACKAGE_kmod-rtc-pcf8563=y
+CONFIG_PACKAGE_kmod-sfp=y
+CONFIG_PACKAGE_kmod-usb3=y
+# 5G Modem support
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
+CONFIG_PACKAGE_kmod-usb-serial-option=y
+CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y
+CONFIG_PACKAGE_kmod-mhi-bus=y
+CONFIG_PACKAGE_kmod-mhi-pci-generic=y
+CONFIG_PACKAGE_kmod-mtk-t7xx=y
+CONFIG_PACKAGE_uqmi=y
+CONFIG_PACKAGE_modemmanager=y
 # CONFIG_TARGET_ROOTFS_INITRAMFS is not set

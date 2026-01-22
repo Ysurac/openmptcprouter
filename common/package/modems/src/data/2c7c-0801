@@ -1,0 +1,11 @@
+{
+	"desc": "Quectel RM551E-GL (ECM/MBIM)",
+	"type": "mbim",
+	"control": 0,
+	"boudrate": 115200,
+	"stop_bits": 8,
+	"gps": 1,
+	"ep_iface": 0,
+	"dl_max_size": 32768,
+	"dl_max_datagrams": 64
+}
