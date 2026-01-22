@@ -1,0 +1,136 @@
+# Universal Drivers Configuration Fragment
+#
+# This config fragment enables comprehensive driver support for:
+# - Wi-Fi 7 (802.11be/EHT) hardware
+# - 5G modems (USB QMI/MBIM and PCIe MHI/WWAN)
+#
+# Usage: Include this fragment in your target config or use as reference
+#   cat config-universal-drivers >> config-<target>
+#
+# Minimum requirements:
+# - Kernel 6.6+ for full Wi-Fi 7 and 5G modem support
+# - OpenWrt 24.10+ baseline
+#
+
+# ============================================
+# Wi-Fi Core Stack
+# ============================================
+CONFIG_PACKAGE_kmod-cfg80211=y
+CONFIG_PACKAGE_kmod-mac80211=y
+CONFIG_PACKAGE_wireless-regdb=y
+CONFIG_PACKAGE_iw-full=y
+CONFIG_PACKAGE_iwinfo=y
+
+# ============================================
+# Wi-Fi 7 - MediaTek MT7996 Family
+# ============================================
+CONFIG_PACKAGE_kmod-mt76=y
+CONFIG_PACKAGE_kmod-mt76-core=y
+CONFIG_PACKAGE_kmod-mt76-connac=y
+CONFIG_PACKAGE_kmod-mt7996e=y
+CONFIG_PACKAGE_kmod-mt7996-firmware=y
+# Uncomment for 233MHz variant (BPi-R4 PoE)
+# CONFIG_PACKAGE_kmod-mt7996-233-firmware=y
+
+# MT7988 SoC support (wireless offload)
+CONFIG_PACKAGE_mt7988-wo-firmware=y
+# Uncomment for 2.5G PHY
+# CONFIG_PACKAGE_mt7988-2p5g-phy-firmware=y
+
+# ============================================
+# Wi-Fi 6/6E - MediaTek MT7915 Family
+# ============================================
+CONFIG_PACKAGE_kmod-mt7915e=y
+# CONFIG_PACKAGE_kmod-mt7915-firmware=y
+
+# ============================================
+# Wi-Fi Userspace (802.11be capable)
+# ============================================
+# Choose ONE of the following:
+# Option 1: hostapd + wpa_supplicant (separate)
+# CONFIG_PACKAGE_hostapd-openssl=y
+# CONFIG_PACKAGE_wpa-supplicant-openssl=y
+# Option 2: wpad (combined, recommended)
+CONFIG_PACKAGE_wpad-openssl=y
+
+# ============================================
+# 5G Modem - USB Core
+# ============================================
+CONFIG_PACKAGE_kmod-usb-core=y
+CONFIG_PACKAGE_kmod-usb2=y
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-wdm=y
+
+# ============================================
+# 5G Modem - USB QMI Protocol
+# ============================================
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
+CONFIG_PACKAGE_uqmi=y
+
+# ============================================
+# 5G Modem - USB MBIM Protocol
+# ============================================
+CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y
+CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
+CONFIG_PACKAGE_umbim=y
+
+# ============================================
+# 5G Modem - USB Serial (AT commands)
+# ============================================
+CONFIG_PACKAGE_kmod-usb-serial=y
+CONFIG_PACKAGE_kmod-usb-serial-option=y
+CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y
+CONFIG_PACKAGE_kmod-usb-serial-wwan=y
+CONFIG_PACKAGE_kmod-usb-acm=y
+
+# ============================================
+# 5G Modem - USB Additional Protocols
+# ============================================
+CONFIG_PACKAGE_kmod-usb-net-rndis=y
+CONFIG_PACKAGE_kmod-usb-net-hso=y
+CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=y
+CONFIG_PACKAGE_kmod-usb-net-sierrawireless=y
+
+# ============================================
+# 5G Modem - PCIe MHI Bus (Qualcomm)
+# ============================================
+CONFIG_PACKAGE_kmod-mhi-bus=y
+CONFIG_PACKAGE_kmod-mhi-pci-generic=y
+
+# ============================================
+# 5G Modem - WWAN Subsystem (PCIe)
+# ============================================
+CONFIG_PACKAGE_kmod-wwan=y
+# The following require kernel 6.18+ for full support
+# CONFIG_PACKAGE_kmod-mhi-wwan-ctrl=y
+# CONFIG_PACKAGE_kmod-mhi-wwan-mbim=y
+# CONFIG_PACKAGE_kmod-mhi-net=y
+
+# ============================================
+# 5G Modem - MediaTek T7xx (PCIe)
+# ============================================
+CONFIG_PACKAGE_kmod-mtk-t7xx=y
+
+# ============================================
+# 5G Modem - Universal Manager
+# ============================================
+CONFIG_PACKAGE_modemmanager=y
+CONFIG_PACKAGE_wwan=y
+CONFIG_PACKAGE_modems=y
+
+# ============================================
+# LuCI Protocol Handlers (optional)
+# ============================================
+# CONFIG_PACKAGE_luci-proto-qmi=y
+# CONFIG_PACKAGE_luci-proto-mbim=y
+# CONFIG_PACKAGE_luci-proto-modemmanager=y
+# CONFIG_PACKAGE_luci-proto-ncm=y
+
+# ============================================
+# Thermal Management (recommended for Wi-Fi 7)
+# ============================================
+CONFIG_PACKAGE_kmod-thermal=y
+CONFIG_PACKAGE_kmod-hwmon-core=y
+CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
