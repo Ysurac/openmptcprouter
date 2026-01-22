@@ -1,0 +1,11 @@
+{
+	"desc": "Quectel RG650V (QMI)",
+	"type": "qmi",
+	"control": 2,
+	"boudrate": 115200,
+	"stop_bits": 8,
+	"gps": 1,
+	"ep_iface": 4,
+	"dl_max_size": 32768,
+	"dl_max_datagrams": 64
+}
