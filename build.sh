@@ -426,10 +426,10 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 		# Add support for distributed switch architecture
 		echo -n "Adding B53 DSA support to kernel ${OMR_KERNEL}..."		
 		for i in B53 B53_MDIO_DRIVER BRIDGE_VLAN_FILTERING MDIO_BUS_MUX_MULTIPLEXER NET_DSA NET_DSA_TAG_8021Q NET_DSA_TAG_BRCM NET_DSA_TAG_BRCM_PREPEND; do
-			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true`
-			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true`
-			
-			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
+			check_sunxi_config=$(grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true)
+			check_cortexa7_config=$(grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true)
+
+			[ "$check_sunxi_config" = "" ] && [ "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
 		done
 		echo "done"
 
@@ -459,17 +459,17 @@ if [ "$OMR_TARGET" = "bpi-r1" ]; then
 	echo -n "Adding LED TRIGGER support to kernel ${OMR_KERNEL}..."
 	if [ "$OMR_FORCE_DSA" != "1" ]; then
 		for i in SWCONFIG_LEDS LED_TRIGGER_PHY; do
-			check_sunxi_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true`
-			check_cortexa7_config=`grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true`
+			check_sunxi_config=$(grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true)
+			check_cortexa7_config=$(grep "CONFIG_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true)
 
-			[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
+			[ "$check_sunxi_config" = "" ] && [ "$check_cortexa7_config" = "" ] && echo "CONFIG_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
 		done
 	fi
 	for i in TIMER ONESHOT DISK MTD HEARTBEAT BACKLIGHT CPU ACTIVITY GPIO DEFAULT_ON TRANSIENT CAMERA PANIC NETDEV PATTERN AUDIO; do
-		check_sunxi_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true`
-		check_cortexa7_config=`grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true`
+		check_sunxi_config=$(grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/config-${OMR_KERNEL}" || true)
+		check_cortexa7_config=$(grep "CONFIG_LEDS_TRIGGER_${i}=y" "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}" || true)
 
-		[ "$check_sunxi_config" = "" -a "$check_cortexa7_config" = "" ] && echo "CONFIG_LEDS_TRIGGER_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
+		[ "$check_sunxi_config" = "" ] && [ "$check_cortexa7_config" = "" ] && echo "CONFIG_LEDS_TRIGGER_${i}=y" >> "$OMR_TARGET/${OMR_KERNEL}/source/target/linux/sunxi/cortexa7/config-${OMR_KERNEL}"
 	done
 	echo "done"
 fi
@@ -835,7 +835,7 @@ if [ "$OMR_KERNEL" = "6.6" ]; then
 	#rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
 	#rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
 	rm -f target/linux/generic/hack-6.6/212-tools_portability.patch
-	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-6.6 ]; then
+	if [ ! -d "target/linux/$(sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n")/patches-6.6" ]; then
 		echo "Sorry but kernel 6.6 is not supported on your arch yet"
 		NOT_SUPPORTED="1"
 	fi
@@ -924,7 +924,7 @@ if [ "$OMR_KERNEL" = "6.12" ]; then
 	echo "CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH=y" >> ".config"
 	echo 'CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves -fno-plt -Wno-stringop-truncation -Wno-stringop-overread -Wno-calloc-transposed-args"' >> ".config"
 	echo 'CONFIG_PACKAGE_apk-openssl=y' >> ".config"
-	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-6.12 ]; then
+	if [ ! -d "target/linux/$(sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n")/patches-6.12" ]; then
 		echo "Sorry but kernel 6.12 is not supported on your arch yet"
 		NOT_SUPPORTED="1"
 	fi
@@ -994,7 +994,7 @@ if [ "$OMR_KERNEL" = "6.18" ]; then
 	#rm -f target/linux/generic/pending-6.12/454-nvmem-implement-block-NVMEM-provider.patch
 	#rm -f toolchain/musl/patches/100-tools-Rework-adding-of-CFI-annotations.patch
 	echo 'CONFIG_PACKAGE_apk-openssl=y' >> ".config"
-	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-6.18 ]; then
+	if [ ! -d "target/linux/$(sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n")/patches-6.18" ]; then
 		echo "Sorry but kernel 6.18 is not supported on your arch yet"
 		NOT_SUPPORTED="1"
 	fi

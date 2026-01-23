@@ -13,6 +13,9 @@ ifneq ($(CONFIG_USE_LLVM_HOST),)
     BPF_PATH:=$(PATH)
   endif
   CLANG:=$(firstword $(shell PATH='$(BPF_PATH)' command -v clang clang-16 clang-13 clang-12 clang-11))
+  ifeq ($(CLANG),)
+    $(warning WARNING: No clang compiler found in PATH. BPF compilation will fail.)
+  endif
   LLVM_VER:=$(subst clang,,$(notdir $(CLANG)))
 endif
 ifneq ($(CONFIG_USE_LLVM_PREBUILT),)
