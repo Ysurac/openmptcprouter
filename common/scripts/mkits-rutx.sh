@@ -76,7 +76,7 @@ if [ -n "${DTB}" ]; then
 					algo = \"crc32\";
 				};
 				hash@2 {
-					algo = \"sha1\";
+					algo = \"sha256\";
 				};
 			};
 "
@@ -97,6 +97,7 @@ if [ -n "${DTB}" ]; then
 		DTB="${DTB##*{}"
 		DTB_CSV="${DTB##*{}"
 		DTB_CSV="${DTB%\}*}"
+		OLD_IFS="$IFS"
 		IFS=,
 		for f in $DTB_CSV; do
 			FDTNUM=$((FDTNUM+1))
@@ -120,7 +121,7 @@ if [ -n "${DTB}" ]; then
 						algo = \"crc32\";
 					};
 					hash@2 {
-						algo = \"sha1\";
+						algo = \"sha256\";
 					};
 				};
 "
@@ -137,6 +138,7 @@ if [ -n "${DTB}" ]; then
 			};
 "
 		done
+		IFS="$OLD_IFS"
 	fi
 fi
 
@@ -161,7 +163,7 @@ DATA="/dts-v1/;
 				algo = \"crc32\";
 			};
 			hash@2 {
-				algo = \"sha1\";
+				algo = \"sha256\";
 			};
 		};
 ${FDT_NODE}

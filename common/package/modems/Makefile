@@ -27,11 +27,11 @@ define Package/modems/install
 	#in order to keep the Lede GIT repo free of filenames with colons,
 	#we name the files xxxx-yyyy
 	# and rename here after copying to the build directory
-	shopt -s nullglob ; \
 	for filevar in $(1)/lib/network/wwan/*-* ; \
 	do \
-		FILENAME=$$$$(basename $$$$filevar) ; \
-		NEWNAME=$$$${FILENAME//-/:} ; \
+		[ -e "$$$$filevar" ] || continue ; \
+		FILENAME=$$$$(basename "$$$$filevar") ; \
+		NEWNAME=$$$$(echo "$$$$FILENAME" | sed 's/-/:/g') ; \
 		mv "$(1)/lib/network/wwan/$$$$FILENAME" "$(1)/lib/network/wwan/$$$$NEWNAME" ; \
 	done
 endef

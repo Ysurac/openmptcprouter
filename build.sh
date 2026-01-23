@@ -46,7 +46,7 @@ SHORTCUT_FE=${SHORTCUT_FE:-no}
 DISABLE_FAILSAFE=${DISABLE_FAILSAFE:-no}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
 #OMR_RELEASE=${OMR_RELEASE:-$(git tag --sort=committerdate | tail -1)}
-OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | tail -1)}
+OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags $(git rev-list --tags --max-count=1) | tail -1)}
 OMR_REPO=${OMR_REPO:-http://$OMR_HOST:$OMR_PORT/release/$OMR_RELEASE-$OMR_KERNEL/$OMR_TARGET}
 
 OMR_FEED_URL="${OMR_FEED_URL:-https://github.com/ysurac/openmptcprouter-feeds}"
@@ -293,7 +293,7 @@ else
 
 fi
 
-if [ -f $OMR_TARGET_CONFIG ]; then
+if [ -f "$OMR_TARGET_CONFIG" ]; then
 	cat "$OMR_TARGET_CONFIG" config -> "$OMR_TARGET/${OMR_KERNEL}/source/.config" <<-EOF
 	CONFIG_IMAGEOPT=y
 	CONFIG_VERSIONOPT=y
@@ -1062,7 +1062,7 @@ fi
 #fi
 
 cd ../..
-[ -d $OMR_FEED/luci-base/po/oc ] && cp -rf $OMR_FEED/luci-base/po/oc feeds/${OMR_KERNEL}/luci/modules/luci-base/po/
+[ -d "$OMR_FEED/luci-base/po/oc" ] && cp -rf "$OMR_FEED/luci-base/po/oc" "feeds/${OMR_KERNEL}/luci/modules/luci-base/po/"
 echo "Done"
 
 cd "$OMR_TARGET/${OMR_KERNEL}/source"

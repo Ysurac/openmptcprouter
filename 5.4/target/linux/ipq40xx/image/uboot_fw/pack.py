@@ -738,14 +738,17 @@ class Pack(object):
                 pad_size = size - img_size
                 filename_abs = os.path.join(self.images_dname, filename)
                 filename_abs_pad = filename_abs + ".padded"
-                cmd = 'cat %s > %s' % (filename_abs, filename_abs_pad)
-                ret = subprocess.call(cmd, shell=True)
-                if ret != 0:
+                try:
+                    import shutil
+                    shutil.copy(filename_abs, filename_abs_pad)
+                except IOError:
                     error("failed to copy image")
-                cmd = 'dd if=/dev/zero count=1 bs=%s %s >> %s' % (pad_size, tr, filename_abs_pad)
-                cmd = '(' + cmd + ') 1>/dev/null 2>/dev/null'
-                ret = subprocess.call(cmd, shell=True)
-                if ret != 0:
+                # Append padding bytes: 0xFF for NAND, 0x00 for EMMC
+                pad_byte = b'\xff' if self.flinfo.type == 'nand' else b'\x00'
+                try:
+                    with open(filename_abs_pad, 'ab') as f:
+                        f.write(pad_byte * pad_size)
+                except IOError:
                     error("failed to create padded image from script")
 
             if self.flinfo.type != "emmc":
