@@ -1,0 +1,62 @@
+From cc70549b762491219220b3f856a7288888f1b381 Mon Sep 17 00:00:00 2001
+From: Pierre-Yves Le Borgne <pylaterreur@gmail.com>
+Date: Mon, 5 Oct 2026 07:32:25 +0100
+Subject: [PATCH 1/2] plugin: close the list pipe's write end in the parent
+
+rpc_plugin_register_exec() keeps both ends of the pipe open in rpcd
+while rpc_plugin_parse_exec() reads the "list" output of an exec
+plugin, and closes them only afterwards. With a write end still open
+in rpcd, read() never returns EOF: when a plugin exits without
+printing a complete JSON object, read() only returns because the
+SIGCHLD handler that uloop_init() installs has no SA_RESTART, so the
+signal interrupts it. If the plugin exits before rpcd has entered
+read(), e.g. because execl() failed right away, nothing interrupts it,
+and rpcd blocks there for good before uloop_run(): it then answers no
+request until it is killed.
+
+Close the write end in the parent right after fork(), so that read()
+returns 0 once the plugin has exited. Also close both ends when fork()
+fails.
+
+Assisted-by: Claude Code (Claude Opus 5.5)
+Signed-off-by: Pierre-Yves Le Borgne <pylaterreur@gmail.com>
+---
+ plugin.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/plugin.c b/plugin.c
+index 4e8fdd4..dcdecbe 100644
+--- a/plugin.c
++++ b/plugin.c
+@@ -433,6 +433,8 @@ rpc_plugin_register_exec(struct ubus_context *ctx, const char *path)
+ 	switch ((pid = fork()))
+ 	{
+ 	case -1:
++		close(fds[0]);
++		close(fds[1]);
+ 		return UBUS_STATUS_UNKNOWN_ERROR;
+ 
+ 	case 0:
+@@ -456,6 +458,11 @@ rpc_plugin_register_exec(struct ubus_context *ctx, const char *path)
+ 			_exit(127);
+ 
+ 	default:
++		/* The write end must only be open in the child, otherwise
++		 * read() never returns EOF when the plugin exits without
++		 * printing a complete JSON object. */
++		close(fds[1]);
++
+ 		plugin = rpc_plugin_parse_exec(name + 1, fds[0]);
+ 
+ 		if (!plugin)
+@@ -465,7 +472,6 @@ rpc_plugin_register_exec(struct ubus_context *ctx, const char *path)
+ 
+ out:
+ 		close(fds[0]);
+-		close(fds[1]);
+ 		waitpid(pid, NULL, 0);
+ 
+ 		return rv;
+-- 
+2.51.0
+
