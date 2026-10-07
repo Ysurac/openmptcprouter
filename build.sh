@@ -507,6 +507,13 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/smsc75xx.patch; then
 fi
 echo "Done"
 
+echo "Checking if grub boot disk patch is set or not"
+if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/grub-boot-disk.patch; then
+	echo "apply..."
+	patch -N -p1 -s < ../../../patches/grub-boot-disk.patch
+fi
+echo "Done"
+
 #echo "Checking if ipt-nat patch is set or not"
 #if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/ipt-nat6.patch; then
 #	echo "apply..."

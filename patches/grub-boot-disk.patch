@@ -1,0 +1,96 @@
+x86: grub2: boot from the disk the firmware booted
+
+The early config built into GRUB's core images loaded grub.cfg from
+(hd0,msdos1) or (hd0,gpt1), and grub-pc.cfg set root to (hd0,msdos1):
+hd0 is the first disk GRUB finds, not always the one the firmware
+booted. Take the boot disk from the firmware instead ($root, and a
+prefix naming only the partition). See #2525.
+
+diff --git a/package/boot/grub2/Makefile b/package/boot/grub2/Makefile
+index 6f5b3d6..43c6d70 100644
+--- a/package/boot/grub2/Makefile
++++ b/package/boot/grub2/Makefile
+@@ -7,7 +7,7 @@ include $(INCLUDE_DIR)/kernel.mk
+ 
+ PKG_NAME:=grub
+ PKG_VERSION:=2.12
+-PKG_RELEASE:=1
++PKG_RELEASE:=2
+ 
+ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+ PKG_SOURCE_URL:=@GNU/grub
+@@ -122,17 +122,16 @@ define Package/grub2/install
+ 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)/grub2
+ 	$(CP) $(PKG_BUILD_DIR)/grub-core/boot.img $(STAGING_DIR_IMAGE)/grub2/
+ 	$(CP) $(PKG_BUILD_DIR)/grub-core/cdboot.img $(STAGING_DIR_IMAGE)/grub2/
+-	sed 's#msdos1#gpt1#g' ./files/grub-early.cfg >$(PKG_BUILD_DIR)/grub-early.cfg
+ 	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+ 		-d $(PKG_BUILD_DIR)/grub-core \
+-		-p /boot/grub \
++		-p '(,gpt1)/boot/grub' \
+ 		-O i386-pc \
+-		-c $(PKG_BUILD_DIR)/grub-early.cfg \
++		-c ./files/grub-early.cfg \
+ 		-o $(STAGING_DIR_IMAGE)/grub2/gpt-core.img \
+ 		at_keyboard biosdisk boot chain configfile fat linux ls part_gpt reboot search serial test vga
+ 	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+ 		-d $(PKG_BUILD_DIR)/grub-core \
+-		-p /boot/grub \
++		-p '(,msdos1)/boot/grub' \
+ 		-O i386-pc \
+ 		-c ./files/grub-early.cfg \
+ 		-o $(STAGING_DIR_IMAGE)/grub2/generic-core.img \
+@@ -146,7 +145,7 @@ define Package/grub2/install
+ 		at_keyboard biosdisk boot chain configfile iso9660 linux ls part_msdos reboot search serial test vga
+ 	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+ 		-d $(PKG_BUILD_DIR)/grub-core \
+-		-p /boot/grub \
++		-p '(,msdos1)/boot/grub' \
+ 		-O i386-pc \
+ 		-c ./files/grub-early.cfg \
+ 		-o $(STAGING_DIR_IMAGE)/grub2/legacy-core.img \
+@@ -154,12 +153,11 @@ define Package/grub2/install
+ endef
+ 
+ define Package/grub2-efi/install
+-	sed 's#msdos1#gpt1#g' ./files/grub-early.cfg >$(PKG_BUILD_DIR)/grub-early.cfg
+ 	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+ 		-d $(PKG_BUILD_DIR)/grub-core \
+ 		-p /boot/grub \
+ 		-O $(CONFIG_ARCH)-efi \
+-		-c $(PKG_BUILD_DIR)/grub-early.cfg \
++		-c ./files/grub-early.cfg \
+ 		-o $(STAGING_DIR_IMAGE)/grub2/boot$(if $(CONFIG_x86_64),x64,ia32).efi \
+ 		at_keyboard boot chain configfile fat linux ls part_gpt reboot serial test efi_gop efi_uga
+ 	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+diff --git a/package/boot/grub2/files/grub-early.cfg b/package/boot/grub2/files/grub-early.cfg
+index 4a5b5a6..d0597aa 100644
+--- a/package/boot/grub2/files/grub-early.cfg
++++ b/package/boot/grub2/files/grub-early.cfg
+@@ -1 +1 @@
+-configfile (hd0,msdos1)/boot/grub/grub.cfg
++configfile ($root)/boot/grub/grub.cfg
+diff --git a/target/linux/x86/image/grub-efi.cfg b/target/linux/x86/image/grub-efi.cfg
+index bbb31f7..6438e80 100644
+--- a/target/linux/x86/image/grub-efi.cfg
++++ b/target/linux/x86/image/grub-efi.cfg
+@@ -3,7 +3,6 @@
+ 
+ set default="0"
+ set timeout="@TIMEOUT@"
+-search -l kernel -s root
+ 
+ menuentry "@TITLE@" {
+ 	linux /boot/vmlinuz @GPT_ROOTPART@ @CMDLINE@ noinitrd
+diff --git a/target/linux/x86/image/grub-pc.cfg b/target/linux/x86/image/grub-pc.cfg
+index 75605bc..b9dc6b0 100644
+--- a/target/linux/x86/image/grub-pc.cfg
++++ b/target/linux/x86/image/grub-pc.cfg
+@@ -3,7 +3,6 @@
+ 
+ set default="0"
+ set timeout="@TIMEOUT@"
+-set root='(hd0,msdos1)'
+ 
+ menuentry "@TITLE@" {
+ 	linux /boot/vmlinuz @ROOTPART@ @CMDLINE@ noinitrd
