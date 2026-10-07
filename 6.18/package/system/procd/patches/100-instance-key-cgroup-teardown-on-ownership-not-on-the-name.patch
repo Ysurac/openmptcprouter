@@ -1,0 +1,67 @@
+From 3f7284bfedab20e421fc7f74c42dbbca2bef4df5 Mon Sep 17 00:00:00 2001
+From: Daniel Golle <daniel@makrotopia.org>
+Date: Sun, 20 Sep 2026 19:49:02 +0100
+Subject: [PATCH] instance: key cgroup teardown on ownership, not on the name
+
+instance_free() reclaims /sys/fs/cgroup/services/<service>/<instance>
+from the service and instance names alone, and the cgroup.kill it
+writes takes down every process in that cgroup and its descendants. A
+service set naming an instance that already exists reaches
+instance_free() through service_instance_update(), which frees the new
+object after instance_update() has merged it into the running one. That
+object is never inserted into the instance vlist, since no_delete makes
+libubox keep the old node, yet it carries the same two names, so
+freeing it kills and removes the cgroup of the live instance: the
+daemon and everything it forked die, and procd, which intended no stop,
+sees a crash and respawns after the backoff.
+
+Record in instance_start() that a fork has claimed the cgroup path and
+reclaim only what was claimed. trigger_del() and watch_del() beside it
+key on the instance pointer and were never affected; only the cgroup
+teardown identified its target by name.
+
+Fixes: f4d512d93a00 ("jail: place container init and exec into the target cgroup via clone3")
+Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+---
+ service/instance.c | 5 ++++-
+ service/instance.h | 1 +
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/service/instance.c b/service/instance.c
+index 9bb137d..eacb523 100644
+--- a/service/instance.c
++++ b/service/instance.c
+@@ -795,6 +795,7 @@ instance_start(struct service_instance *in)
+ 
+ 	P_DEBUG(2, "Started instance %s::%s[%d]\n", in->srv->name, in->name, pid);
+ 	in->proc.pid = pid;
++	in->has_cgroup = true;
+ 	instance_writepid(in);
+ 	clock_gettime(CLOCK_MONOTONIC, &in->start);
+ 	uloop_process_add(&in->proc);
+@@ -1816,7 +1817,9 @@ instance_free(struct service_instance *in)
+ 	uloop_timeout_cancel(&in->watchdog.timeout);
+ 	trigger_del(in);
+ 	watch_del(in);
+-	instance_remove_cgroup(in->srv->name, in->name);
++	if (in->has_cgroup)
++		instance_remove_cgroup(in->srv->name, in->name);
++
+ 	instance_config_cleanup(in);
+ 	free(in->config);
+ 	free(in->data_blob);
+diff --git a/service/instance.h b/service/instance.h
+index db6467d..8d7ea4e 100644
+--- a/service/instance.h
++++ b/service/instance.h
+@@ -79,6 +79,7 @@ struct service_instance {
+ 	char *group;
+ 	gid_t gr_gid;
+ 
++	bool has_cgroup;
+ 	bool halt;
+ 	bool restart;
+ 	bool respawn;
+-- 
+2.51.0
+
