@@ -1,0 +1,71 @@
+From cddf6c54ccd39b9f39e72d17b3e4ce1ff13aea33 Mon Sep 17 00:00:00 2001
+From: Pierre-Yves Le Borgne <pylaterreur@gmail.com>
+Date: Wed, 7 Oct 2026 15:09:03 +0100
+Subject: [PATCH] logd: don't hand out stale entries after the ring wraps
+
+logd keeps the messages in a ring buffer. When a message does not fit
+before the end of the buffer, log_add() writes an end marker (an entry
+of size 0) where the current round ends and starts over at the
+beginning, and "oldest" then points into the entries of the previous
+round. As the new round grows, log_add() pushes "oldest" forward
+through those entries, but nothing stops it at the end marker: the
+entry after a zero-sized one is its header's own end, which is stale
+data of an earlier round. From then on log_list() starts from garbage,
+so "logread" gets entries with random sizes and timestamps, and logd
+can read past the end of the buffer. musl's asctime_r() aborts on such
+a timestamp, which shows up as
+
+  traps: logread[...] general protection fault ... in libc.so
+
+Messages of varying length make it likely, e.g. "logger" with 1 to 100
+characters in a loop next to "logread -l 1" in a loop (FS#4118).
+
+Stop at the end marker: when "oldest" reaches it, the oldest entry is
+the first one of the new round, at the start of the buffer.
+
+Also start over at the beginning when the header of the next entry does
+not fit before the end of the buffer, not only when its first byte does
+not: an entry that starts in the last bytes of the buffer has its header
+cut, and log_list() reads past the end of the buffer there.
+
+Assisted-by: Claude Code (Claude Opus 5.5)
+Signed-off-by: Pierre-Yves Le Borgne <pylaterreur@gmail.com>
+---
+ log/syslog.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/log/syslog.c b/log/syslog.c
+index 7854523..17b7a6d 100644
+--- a/log/syslog.c
++++ b/log/syslog.c
+@@ -89,7 +89,8 @@ log_next(struct log_head *h, int size)
+ {
+ 	struct log_head *n = (struct log_head *) &h->data[PAD(size)];
+ 
+-	return (n >= log_end) ? (log) : (n);
++	/* an entry starts at log when its header doesn't fit before log_end */
++	return (n + 1 > log_end) ? (log) : (n);
+ }
+ 
+ static uint64_t
+@@ -194,8 +195,16 @@ log_add(char *buf, int size, int source)
+ 	/* find new oldest entry */
+ 	next = log_next(newest, size);
+ 	if (next > newest) {
+-		while ((oldest > newest) && (oldest <= next) && (oldest != log))
++		while ((oldest > newest) && (oldest <= next) && (oldest != log)) {
+ 			oldest = log_next(oldest, oldest->size);
++
++			/*
++			 * past the last entry of the previous round, what is left
++			 * is stale data: the oldest entry is at the start
++			 */
++			if ((oldest > newest) && !oldest->size)
++				oldest = log;
++		}
+ 	} else {
+ 		//fprintf(stderr, "Log wrap\n");
+ 		newest->size = 0;
+-- 
+2.51.0
+
