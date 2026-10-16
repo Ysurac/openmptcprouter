@@ -1,0 +1,150 @@
+From 250d9766a984a45f05893a496df6b682c105fbbc Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Fri, 30 Jan 2026 20:24:25 +0100
+Subject: [PATCH] mptcp: implement .read_sock
+
+Current in-kernel TCP sockets -- i.e. from nvme_tcp_try_recv() -- need
+to call .read_sock interface of struct proto_ops, but it's not
+implemented in MPTCP.
+
+This patch implements it with reference to __tcp_read_sock() and
+__mptcp_recvmsg_mskq().
+
+Corresponding to tcp_recv_skb(), a new helper for MPTCP named
+mptcp_recv_skb() is added to peek a skb from sk->sk_receive_queue.
+
+Compared with __mptcp_recvmsg_mskq(), mptcp_read_sock() uses
+sk->sk_rcvbuf as the max read length. The LISTEN status is checked
+before the while loop, and mptcp_recv_skb() and mptcp_cleanup_rbuf()
+are invoked after the loop. In the loop, all flags checks for
+__mptcp_recvmsg_mskq() are removed.
+
+Reviewed-by: Hannes Reinecke <hare@kernel.org>
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260130-net-next-mptcp-splice-v2-2-31332ba70d7f@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+(cherry picked from commit 250d9766a984a45f05893a496df6b682c105fbbc)
+
+[backport notes]
+6.18 has no MPTCP-level RX backlog: msk->backlog_list and
+mptcp_move_skbs() came with the 6.19 backlog rework (ee458a3f314e
+"mptcp: introduce mptcp-level backlog", 6228efe0cc01 "mptcp: leverage
+the backlog for RX packet processing"). So mptcp_recv_skb() pulls data
+from the subflows with __mptcp_move_skbs() when the msk receive queue
+is empty, as 6.18's mptcp_recvmsg() does, and as v12 of this series did
+before it was rebased on the backlog rework:
+https://lore.kernel.org/mptcp/2f159972f4aac7002a46ebc03b9d3898ece4c081.1758975929.git.tanggeliang@kylinos.cn/
+The then unused msk variable is dropped. mptcp_eat_recv_skb() (upstream
+436510df0caf) is already in 6.18.y as 8d38f222795d.
+
+Assisted-by: LLM
+---
+ net/mptcp/protocol.c | 81 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
+
+--- a/net/mptcp/protocol.c
++++ b/net/mptcp/protocol.c
+@@ -4173,6 +4173,85 @@ static __poll_t mptcp_poll(struct file *
+ 	return mask;
+ }
+ 
++static struct sk_buff *mptcp_recv_skb(struct sock *sk, u32 *off)
++{
++	struct sk_buff *skb;
++	u32 offset;
++
++	if (skb_queue_empty(&sk->sk_receive_queue))
++		__mptcp_move_skbs(sk);
++
++	while ((skb = skb_peek(&sk->sk_receive_queue)) != NULL) {
++		offset = MPTCP_SKB_CB(skb)->offset;
++		if (offset < skb->len) {
++			*off = offset;
++			return skb;
++		}
++		mptcp_eat_recv_skb(sk, skb);
++	}
++	return NULL;
++}
++
++/*
++ * Note:
++ *	- It is assumed that the socket was locked by the caller.
++ */
++static int __mptcp_read_sock(struct sock *sk, read_descriptor_t *desc,
++			     sk_read_actor_t recv_actor, bool noack)
++{
++	struct mptcp_sock *msk = mptcp_sk(sk);
++	struct sk_buff *skb;
++	int copied = 0;
++	u32 offset;
++
++	msk_owned_by_me(msk);
++
++	if (sk->sk_state == TCP_LISTEN)
++		return -ENOTCONN;
++	while ((skb = mptcp_recv_skb(sk, &offset)) != NULL) {
++		u32 data_len = skb->len - offset;
++		int count;
++		u32 size;
++
++		size = min_t(size_t, data_len, INT_MAX);
++		count = recv_actor(desc, skb, offset, size);
++		if (count <= 0) {
++			if (!copied)
++				copied = count;
++			break;
++		}
++
++		copied += count;
++
++		msk->bytes_consumed += count;
++		if (count < data_len) {
++			MPTCP_SKB_CB(skb)->offset += count;
++			MPTCP_SKB_CB(skb)->map_seq += count;
++			break;
++		}
++
++		mptcp_eat_recv_skb(sk, skb);
++	}
++
++	if (noack)
++		goto out;
++
++	mptcp_rcv_space_adjust(msk, copied);
++
++	if (copied > 0) {
++		mptcp_recv_skb(sk, &offset);
++		mptcp_cleanup_rbuf(msk, copied);
++	}
++out:
++	return copied;
++}
++
++static int mptcp_read_sock(struct sock *sk, read_descriptor_t *desc,
++			   sk_read_actor_t recv_actor)
++{
++	return __mptcp_read_sock(sk, desc, recv_actor, false);
++}
++
+ static const struct proto_ops mptcp_stream_ops = {
+ 	.family		   = PF_INET,
+ 	.owner		   = THIS_MODULE,
+@@ -4193,6 +4272,7 @@ static const struct proto_ops mptcp_stre
+ 	.recvmsg	   = inet_recvmsg,
+ 	.mmap		   = sock_no_mmap,
+ 	.set_rcvlowat	   = mptcp_set_rcvlowat,
++	.read_sock	   = mptcp_read_sock,
+ };
+ 
+ static struct inet_protosw mptcp_protosw = {
+@@ -4297,6 +4377,7 @@ static const struct proto_ops mptcp_v6_s
+ 	.compat_ioctl	   = inet6_compat_ioctl,
+ #endif
+ 	.set_rcvlowat	   = mptcp_set_rcvlowat,
++	.read_sock	   = mptcp_read_sock,
+ };
+ 
+ static struct proto mptcp_v6_prot;

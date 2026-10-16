@@ -1,0 +1,40 @@
+From c378b1a6f8dd3e02eb08661f4d5d50f236eead03 Mon Sep 17 00:00:00 2001
+From: Gang Yan <yangang@kylinos.cn>
+Date: Tue, 2 Jun 2026 22:14:16 +1000
+Subject: [PATCH] mptcp: check desc->count in read_sock
+
+__tcp_read_sock() checks desc->count after each skb is consumed and
+breaks the loop when it reaches 0. The MPTCP variant lacks this check.
+
+This is a functional bug, other subsystems also rely on this check:
+TLS strparser sets desc->count to 0 once a full TLS record is assembled
+and depends on this break to stop reading.
+
+Add the same desc->count check to __mptcp_read_sock(), mirroring
+__tcp_read_sock().
+
+Fixes: 250d9766a984 ("mptcp: implement .read_sock")
+Cc: stable@vger.kernel.org
+Co-developed-by: Geliang Tang <geliang@kernel.org>
+Signed-off-by: Geliang Tang <geliang@kernel.org>
+Signed-off-by: Gang Yan <yangang@kylinos.cn>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260602-net-mptcp-misc-fixes-7-1-rc7-v2-9-856831229976@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+(cherry picked from commit c378b1a6f8dd3e02eb08661f4d5d50f236eead03)
+---
+ net/mptcp/protocol.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/net/mptcp/protocol.c
++++ b/net/mptcp/protocol.c
+@@ -4231,6 +4231,8 @@ static int __mptcp_read_sock(struct sock
+ 		}
+ 
+ 		mptcp_eat_recv_skb(sk, skb);
++		if (!desc->count)
++			break;
+ 	}
+ 
+ 	if (noack)
