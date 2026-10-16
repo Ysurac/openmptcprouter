@@ -1,0 +1,77 @@
+From 7496cebe8b0c50f259b958ae16a12dcf05898941 Mon Sep 17 00:00:00 2001
+From: Daniel Golle <daniel@makrotopia.org>
+Date: Sun, 20 Sep 2026 15:26:02 +0100
+Subject: [PATCH] jail: make the jail's mount namespace private again
+
+An ordinary jail no longer severs mount propagation to procd's namespace,
+so the umount2(MNT_DETACH) of the old root in enter_jail_fs() is carried
+back to every peer. Any mount marked MS_SHARED in procd's namespace is
+destroyed by the next jailed service start. iproute2 marks /run/netns
+shared on purpose, so a named network namespace loses its nsfs bind
+mount, is freed once nothing else holds it, and takes its interfaces
+with it.
+
+Apply MS_REC|MS_PRIVATE for every jail that creates a mount namespace,
+and keep the inherited /proc,/sys detach on the user namespace paths that
+need it.
+
+Fixes: 3fc9d1199cb1 ("jail: run inherited-mount detach before joining an external userns")
+Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+---
+ jail/jail.c | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/jail/jail.c b/jail/jail.c
+index acae6dc..12a65b6 100644
+--- a/jail/jail.c
++++ b/jail/jail.c
+@@ -1223,19 +1223,14 @@ static int mountinfo_detach_children(const char *prefix)
+ 	return -1;
+ }
+ 
+-/*
+- * Make the mount namespace private and detach inherited /proc,/sys
+- * children before build_jail_fs() mounts its own. Must run before
+- * setns_open(CLONE_NEWUSER) joins an external userns and drops
+- * privilege; see the call site in exec_jail().
+- */
+-static int isolate_mountns_and_detach_inherited(void)
++/* enter_jail_fs() detaches the old root, which propagates to every peer */
++static int isolate_mountns(void)
+ {
+-	if (mount("none", "/", "none", MS_REC|MS_PRIVATE, NULL)) {
+-		ERROR("private mount failed %m\n");
+-		return -1;
+-	}
++	return mount("none", "/", "none", MS_REC|MS_PRIVATE, NULL);
++}
+ 
++static int detach_inherited_mounts(void)
++{
+ 	if ((opts.procfs || opts.ocibundle) && mountinfo_detach_children("/proc"))
+ 		return -1;
+ 	if ((opts.sysfs || opts.ocibundle) && mountinfo_detach_children("/sys"))
+@@ -2854,6 +2849,11 @@ static int exec_jail(void *arg)
+ 		return EXIT_FAILURE;
+ 	}
+ 
++	if ((opts.namespace & CLONE_NEWNS) && isolate_mountns()) {
++		ERROR("private mount failed: %m\n");
++		return EXIT_FAILURE;
++	}
++
+ 	/*
+ 	 * Joining an external userns drops privilege immediately, so this has
+ 	 * to run before it. A userns of our own owns the mount namespace it
+@@ -2862,7 +2862,7 @@ static int exec_jail(void *arg)
+ 	 */
+ 	if ((opts.namespace & CLONE_NEWNS) &&
+ 	    (userns_deferred() || opts.setns.user != -1) &&
+-	    isolate_mountns_and_detach_inherited()) {
++	    detach_inherited_mounts()) {
+ 		ERROR("failed to detach inherited mounts\n");
+ 		return EXIT_FAILURE;
+ 	}
+-- 
+2.51.0
+
