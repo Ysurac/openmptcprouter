@@ -1,14 +1,16 @@
 From: Pierre-Yves Le Borgne <pylaterreur@gmail.com>
-Date: Fri, 16 Oct 2026 13:03:51 +0100
+Date: Fri, 16 Oct 2026 16:16:08 +0100
 Subject: [PATCH] net: gso: complete partial checksums of fraglist segments
 
 Since commit f0b8c3034556 ("udp: do not transition UDP GRO fraglist
 partial checksums to unnecessary"), fraglist GRO keeps CHECKSUM_PARTIAL
 on the packets it aggregates, and skb_segment_list() gives every segment
-the ip_summed of the head. Packets arrive with CHECKSUM_PARTIAL from veth,
-or from virtio-net when the host sets VIRTIO_NET_HDR_F_NEEDS_CSUM, which
-it does for packets that the host itself or another VM on the same bridge
-sent with checksum offload.
+the ip_summed of the head. Before it, UDP fraglist GRO turned them into
+CHECKSUM_UNNECESSARY, which left their checksums unfinished whatever the
+output device. Packets arrive with CHECKSUM_PARTIAL from veth, or from
+virtio-net when the host sets VIRTIO_NET_HDR_F_NEEDS_CSUM, which it does
+for packets that the host itself or another VM on the same bridge sent
+with checksum offload.
 
 validate_xmit_skb() completes CHECKSUM_PARTIAL checksums only for packets
 that need no segmentation, and relies on the GSO callbacks for the
@@ -28,19 +30,22 @@ Complete the checksums of the segments once the protocol code has fixed
 their headers up, as validate_xmit_skb() does for unsegmented packets.
 skb_segment_list() itself is too early for UDP, as
 __udp_gso_segment_list() restores the length in the head's UDP header
-only after it.
+only after it. Segments that are GSO packets themselves, which TCP
+fraglist GRO can chain, are left as they were: skb_checksum_help()
+refuses GSO packets.
 
 Fixes: 9fd1ff5d2ac7 ("udp: Support UDP fraglist GRO/GSO.")
 Fixes: bee88cd5bd83 ("net: add support for segmenting TCP fraglist GSO packets")
-Link: https://github.com/Ysurac/openmptcprouter/issues/4369
-Assisted-by: Claude:claude-opus-5-5
+Cc: stable@vger.kernel.org
+Closes: https://github.com/Ysurac/openmptcprouter/issues/4402
+Assisted-by: LLM
 ---
  include/linux/skbuff.h   |  2 ++
- net/core/skbuff.c        | 35 +++++++++++++++++++++++++++++++++++
+ net/core/skbuff.c        | 40 ++++++++++++++++++++++++++++++++++++++++
  net/ipv4/tcp_offload.c   |  4 +++-
  net/ipv4/udp_offload.c   |  6 ++++--
  net/ipv6/tcpv6_offload.c |  4 +++-
- 5 files changed, 47 insertions(+), 4 deletions(-)
+ 5 files changed, 52 insertions(+), 4 deletions(-)
 
 diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
 index 814c79e..1ef400b 100644
@@ -56,10 +61,10 @@ index 814c79e..1ef400b 100644
  int skb_ensure_writable(struct sk_buff *skb, unsigned int write_len);
  int skb_ensure_writable_head_tail(struct sk_buff *skb, struct net_device *dev);
 diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 415686c..a2a62f2 100644
+index 415686c..d213d99 100644
 --- a/net/core/skbuff.c
 +++ b/net/core/skbuff.c
-@@ -4719,6 +4719,41 @@ struct sk_buff *skb_segment_list(struct sk_buff *skb,
+@@ -4719,6 +4719,46 @@ struct sk_buff *skb_segment_list(struct sk_buff *skb,
  }
  EXPORT_SYMBOL_GPL(skb_segment_list);
  
@@ -72,6 +77,8 @@ index 415686c..a2a62f2 100644
 + * GRO head. If the aggregated packets were CHECKSUM_PARTIAL, e.g. received
 + * from virtio-net or veth, compute the checksums that the output device
 + * can't offload, as skb_segment() does for the segments it builds.
++ * Segments that are GSO packets themselves (TCP fraglist GRO can chain
++ * those) are left alone, as skb_checksum_help() can't handle them.
 + *
 + * Return: @segs, or an error pointer after freeing the segments.
 + */
@@ -81,15 +88,18 @@ index 415686c..a2a62f2 100644
 +	struct sk_buff *seg;
 +	int err;
 +
++	if (segs->ip_summed != CHECKSUM_PARTIAL)
++		return segs;
++
 +	for (seg = segs; seg; seg = seg->next) {
-+		if (seg->ip_summed != CHECKSUM_PARTIAL)
++		if (skb_is_gso(seg))
 +			continue;
 +
 +		err = skb_csum_hwoffload_help(seg, features);
 +		if (err) {
 +			kfree_skb_list(segs->next);
 +			segs->next = NULL;
-+			/* drop the reference skb_segment_list() took on the head */
++			/* drop the extra reference skb_segment_list() took */
 +			kfree_skb(segs);
 +			return ERR_PTR(err);
 +		}
