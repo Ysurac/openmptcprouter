@@ -1,0 +1,77 @@
+From 2d85088d467ffbfa4377881be050937e3f0304bc Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Fri, 30 Jan 2026 20:24:26 +0100
+Subject: [PATCH] tcp: export tcp_splice_state
+
+Export struct tcp_splice_state and tcp_splice_data_recv() in net/tcp.h
+so that they can be used by MPTCP in the next patch.
+
+Suggested-by: Paolo Abeni <pabeni@redhat.com>
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Acked-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Link: https://patch.msgid.link/20260130-net-next-mptcp-splice-v2-3-31332ba70d7f@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+(cherry picked from commit 2d85088d467ffbfa4377881be050937e3f0304bc)
+---
+ include/net/tcp.h | 11 +++++++++++
+ net/ipv4/tcp.c    | 13 ++-----------
+ 2 files changed, 13 insertions(+), 11 deletions(-)
+
+--- a/include/net/tcp.h
++++ b/include/net/tcp.h
+@@ -343,6 +343,15 @@ extern struct proto tcp_prot;
+ #define TCP_DEC_STATS(net, field)	SNMP_DEC_STATS((net)->mib.tcp_statistics, field)
+ #define TCP_ADD_STATS(net, field, val)	SNMP_ADD_STATS((net)->mib.tcp_statistics, field, val)
+ 
++/*
++ * TCP splice context
++ */
++struct tcp_splice_state {
++	struct pipe_inode_info *pipe;
++	size_t len;
++	unsigned int flags;
++};
++
+ void tcp_tsq_work_init(void);
+ 
+ int tcp_v4_err(struct sk_buff *skb, u32);
+@@ -374,6 +383,8 @@ void tcp_rcv_space_adjust(struct sock *s
+ int tcp_twsk_unique(struct sock *sk, struct sock *sktw, void *twp);
+ void tcp_twsk_destructor(struct sock *sk);
+ void tcp_twsk_purge(struct list_head *net_exit_list);
++int tcp_splice_data_recv(read_descriptor_t *rd_desc, struct sk_buff *skb,
++			 unsigned int offset, size_t len);
+ ssize_t tcp_splice_read(struct socket *sk, loff_t *ppos,
+ 			struct pipe_inode_info *pipe, size_t len,
+ 			unsigned int flags);
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -318,15 +318,6 @@ struct percpu_counter tcp_sockets_alloca
+ EXPORT_IPV6_MOD(tcp_sockets_allocated);
+ 
+ /*
+- * TCP splice context
+- */
+-struct tcp_splice_state {
+-	struct pipe_inode_info *pipe;
+-	size_t len;
+-	unsigned int flags;
+-};
+-
+-/*
+  * Pressure flag: try to collapse.
+  * Technical note: it is used by multiple contexts non atomically.
+  * All the __sk_mem_schedule() is of this nature: accounting
+@@ -778,8 +769,8 @@ void tcp_push(struct sock *sk, int flags
+ 	__tcp_push_pending_frames(sk, mss_now, nonagle);
+ }
+ 
+-static int tcp_splice_data_recv(read_descriptor_t *rd_desc, struct sk_buff *skb,
+-				unsigned int offset, size_t len)
++int tcp_splice_data_recv(read_descriptor_t *rd_desc, struct sk_buff *skb,
++			 unsigned int offset, size_t len)
+ {
+ 	struct tcp_splice_state *tss = rd_desc->arg.data;
+ 	int ret;

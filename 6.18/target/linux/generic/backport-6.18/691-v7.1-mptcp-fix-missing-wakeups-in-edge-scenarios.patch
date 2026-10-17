@@ -1,0 +1,45 @@
+From 9d8d28738f24b75616d6ca7a27cb4aed88520343 Mon Sep 17 00:00:00 2001
+From: Paolo Abeni <pabeni@redhat.com>
+Date: Tue, 2 Jun 2026 22:14:08 +1000
+Subject: [PATCH] mptcp: fix missing wakeups in edge scenarios
+
+The mptcp_recvmsg() can fill MPTCP socket receive queue via
+mptcp_move_skbs(), but currently does not try to wakeup any listener,
+because the same process is going to check the receive queue soon.
+
+When multiple threads are reading from the same fd, the above can
+cause stall. Add the missing wakeup.
+
+Fixes: 6771bfd9ee24 ("mptcp: update mptcp ack sequence from work queue")
+Cc: stable@vger.kernel.org
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260602-net-mptcp-misc-fixes-7-1-rc7-v2-1-856831229976@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+(cherry picked from commit 9d8d28738f24b75616d6ca7a27cb4aed88520343)
+
+[backport notes]
+6.18 has no mptcp_move_skbs(): the wakeup goes at the end of
+__mptcp_move_skbs(), as in the 6.18.y backport Sasha Levin posted on
+2026-06-16, which was never queued (6.18.57 still lacks it):
+https://lore.kernel.org/stable/20260616001959.2587348-1-sashal@kernel.org/
+The 6.12.y and 6.6.y backports put it in the same place.
+---
+ net/mptcp/protocol.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/net/mptcp/protocol.c
++++ b/net/mptcp/protocol.c
+@@ -2187,6 +2187,10 @@ static bool __mptcp_move_skbs(struct soc
+ 	__mptcp_ofo_queue(msk);
+ 	if (ret)
+ 		mptcp_check_data_fin((struct sock *)msk);
++
++	if (ret && mptcp_epollin_ready(sk))
++		sk->sk_data_ready(sk);
++
+ 	return ret;
+ }
+ 

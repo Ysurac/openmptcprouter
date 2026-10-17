@@ -1,0 +1,43 @@
+From 2f2dc84645fb25960a0f52aff4d754fce43edea4 Mon Sep 17 00:00:00 2001
+From: Geliang Tang <tanggeliang@kylinos.cn>
+Date: Fri, 30 Jan 2026 20:24:29 +0100
+Subject: [PATCH] selftests: mptcp: connect: cover splice mode
+
+The "splice" alternate mode for mptcp_connect.sh/.c is available now,
+this patch adds mptcp_connect_splice.sh to test it in the MPTCP CI by
+default.
+
+Note that this mode is also supported by stable kernel versions, but
+optimised in this patch series.
+
+Suggested-by: Matthieu Baerts <matttbe@kernel.org>
+Signed-off-by: Geliang Tang <tanggeliang@kylinos.cn>
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260130-net-next-mptcp-splice-v2-6-31332ba70d7f@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+(cherry picked from commit 2f2dc84645fb25960a0f52aff4d754fce43edea4)
+---
+ tools/testing/selftests/net/mptcp/Makefile                | 1 +
+ tools/testing/selftests/net/mptcp/mptcp_connect_splice.sh | 5 +++++
+ 2 files changed, 6 insertions(+)
+ create mode 100755 tools/testing/selftests/net/mptcp/mptcp_connect_splice.sh
+
+--- a/tools/testing/selftests/net/mptcp/Makefile
++++ b/tools/testing/selftests/net/mptcp/Makefile
+@@ -10,6 +10,7 @@ TEST_PROGS := \
+ 	mptcp_connect_checksum.sh \
+ 	mptcp_connect_mmap.sh \
+ 	mptcp_connect_sendfile.sh \
++	mptcp_connect_splice.sh \
+ 	mptcp_join.sh \
+ 	mptcp_sockopt.sh \
+ 	pm_netlink.sh \
+--- /dev/null
++++ b/tools/testing/selftests/net/mptcp/mptcp_connect_splice.sh
+@@ -0,0 +1,5 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++
++MPTCP_LIB_KSFT_TEST="$(basename "${0}" .sh)" \
++	"$(dirname "${0}")/mptcp_connect.sh" -m splice "${@}"
