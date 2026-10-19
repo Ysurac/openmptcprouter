@@ -1,0 +1,178 @@
+name: Help wanted
+description: Help needed for configuration/installation of OpenMPTCProuter
+title: "[Help]: "
+labels: ["help wanted"]
+body:
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: "Tell us what should happen"
+      placeholder: "In English please"
+    validations:
+      required: true
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: "Tell us what happens instead of the expected behavior"
+      placeholder: "Did you check the log? In Status->System log"
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## Specifications
+  - type: dropdown
+    id: version
+    attributes:
+      label: OpenMPTCProuter version
+      description: "What version of OpenMPTCProuter router part are you running ?"
+      options:
+        - v0.64.2
+        - v0.64.1
+        - v0.64
+        - v0.63
+        - v0.62
+        - v0.61
+        - v0.60
+        - v0.59.1
+        - v0.59
+        - latest snapshot
+        - latest beta
+        - older
+        - other
+    validations:
+      required: true
+  - type: input
+    id: version-other
+    attributes:
+      label: If "other", please specify the OpenMPTCProuter version
+      placeholder: "e.g. v0.45"
+    validations:
+      required: false
+  - type: dropdown
+    id: vps-version
+    attributes:
+      label: OpenMPTCProuter VPS version
+      description: "What version of OpenMPTCProuter VPS/Server part are you running ?"
+      options:
+        - current
+        - snapshot
+        - older
+    validations:
+      required: true
+  - type: dropdown
+    id: vps-provider
+    attributes:
+      label: OpenMPTCProuter VPS provider
+      description: "What provider is your OpenMPTCProuter VPS/Server hosted on ?"
+      options:
+        - OVH
+        - Vultr
+        - DigitalOcean
+        - Scaleway
+        - Hetzner
+        - AWS
+        - Self-hosted/Home server
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: vps-provider-other
+    attributes:
+      label: If "other", please specify the VPS provider
+      placeholder: "e.g. Linode"
+    validations:
+      required: false
+  - type: dropdown
+    id: vps-arch
+    attributes:
+      label: OpenMPTCProuter VPS arch
+      description: "What CPU architecture is your OpenMPTCProuter VPS/Server running on ?"
+      options:
+        - X86
+        - ARM64
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: What platform are you seeing the problem on?
+      multiple: true
+      options:
+        - x86_64
+        - x86
+        - ARMSR64
+        - BPI-R1
+        - BPI-R2
+        - BPI-R3
+        - BPI-R3 Mini
+        - BPI-R4
+        - BPI-R4 PoE
+        - BPI-R4 Pro 8X
+        - BPI-R64
+        - Cudy TR3000 (256MB v1)
+        - CZ.NIC Turris Omnia
+        - EspressoBin
+        - GL.iNet AX1800
+        - GL.iNet MT2500
+        - GL.iNet MT2500 Airoha
+        - GL.iNet MT3000
+        - GL.iNet MT3600BE
+        - GL.iNet MT5000
+        - GL.iNet MT6000
+        - GL.iNet X3000
+        - GL.iNet XE3000
+        - IPQ6018
+        - P2W R619AC
+        - QNAP-301W
+        - R2S
+        - R3S
+        - R4S
+        - R5C
+        - R5S
+        - R6C
+        - R6S
+        - R7800
+        - RPI2
+        - RPI3
+        - RPI4
+        - RPI5
+        - RUTX
+        - RUTX12
+        - RUTX50
+        - Ubiquiti Edgerouter X
+        - WRT3200ACM
+        - WRT32X
+        - Z8102AX 128M
+        - Z8102AX 64M
+        - Z8102AX eMMC
+        - Z8109AX 128M
+        - Z8109AX 512M
+        - Z8802BE 128M
+        - Z8803BE
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: platform-other
+    attributes:
+      label: If "Other", please specify the platform
+      placeholder: "e.g. Banana Pi BPI-R3 Mini"
+    validations:
+      required: false
+  - type: input
+    id: country
+    attributes:
+      label: Country
+      description: "What country is your internet connection (ISP) located in ?"
+      placeholder: "e.g. France"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: "Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks."
+      render: shell

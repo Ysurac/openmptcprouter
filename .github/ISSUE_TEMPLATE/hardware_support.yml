@@ -1,0 +1,25 @@
+name: Hardware Support
+description: Suggest adding hardware support
+labels: ["hardware support"]
+body:
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Is this request related to a missing driver support for a particular hardware platform, SoC or board? Please describe.
+      description: "Describe in details the hardware support being requested and why this support benefits OpenMPTCProuter."
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Describe why you are asking for this support?
+      description: "Describe why you are asking for this support."
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: "Add any other context or graphics (drag-and-drop an image) about the hardware here."
+    validations:
+      required: false
