@@ -105,7 +105,7 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "a08b85e2494838316ea740383c671f92474c4c21"
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "b2097c85bef85251364f59a6b2a3ed1f9f5c0c21"
 		elif [ "$OMR_KERNEL" = "6.18" ]; then
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "328acd4e9d3407758c55917484823bc1726df64a"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "7a29a6bf6b8c6c6962d1795221637c16a0c9145e"
 			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "6e46ddbe2ddaee2b4381dbf1a5046ef942b8265b"
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "7c91cb278d7cf19878069a44d5d1992f65c4e315"
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "4b9891b9136259f93294a424507ed24c5e8c1cbd"
