@@ -425,3 +425,26 @@ index 23b35629d4d99..5facd9e4bb3f2 100644
  struct sock *__mptcp_nmpc_sk(struct mptcp_sock *msk);
  bool __mptcp_close(struct sock *sk, long timeout);
  void mptcp_cancel_work(struct sock *sk);
+diff --git a/net/mptcp/pm.c b/net/mptcp/pm.c
+--- a/net/mptcp/pm.c
++++ b/net/mptcp/pm.c
+@@ -1021,7 +1021,7 @@
+ 	return mptcp_pm_nl_is_backup(msk, &skc_local);
+ }
+ 
+-static void
++void
+ mptcp_pm_subflow_chk_stale(const struct mptcp_sock *msk, struct sock *ssk)
+ {
+ 	struct mptcp_subflow_context *iter, *subflow = mptcp_subflow_ctx(ssk);
+diff --git a/net/mptcp/protocol.h b/net/mptcp/protocol.h
+--- a/net/mptcp/protocol.h
++++ b/net/mptcp/protocol.h
+@@ -1061,6 +1061,7 @@
+ 				  const struct mptcp_addr_info *loc,
+ 				  const struct mptcp_addr_info *rem);
+ void mptcp_pm_chk_stale(const struct mptcp_sock *msk);
++void mptcp_pm_subflow_chk_stale(const struct mptcp_sock *msk, struct sock *ssk);
+ void mptcp_pm_new_connection(struct mptcp_sock *msk, const struct sock *ssk, int server_side);
+ void mptcp_pm_fully_established(struct mptcp_sock *msk, const struct sock *ssk);
+ bool mptcp_pm_allow_new_subflow(struct mptcp_sock *msk);
