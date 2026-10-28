@@ -42,7 +42,7 @@ UPSTREAM=${UPSTREAM:-no}
 #SYSLOG=${SYSLOG:-busybox-syslogd}
 #SYSLOG=${SYSLOG:-syslog-ng}
 SYSLOG=${SYSLOG:-logd}
-OMR_KERNEL=${OMR_KERNEL:-6.6}
+OMR_KERNEL=${OMR_KERNEL:-6.18}
 SHORTCUT_FE=${SHORTCUT_FE:-no}
 DISABLE_FAILSAFE=${DISABLE_FAILSAFE:-no}
 #OMR_RELEASE=${OMR_RELEASE:-$(git describe --tags `git rev-list --tags --max-count=1` | sed 's/^\([0-9.]*\).*/\1/')}
@@ -92,22 +92,10 @@ fi
 if [ "$ONLY_PREPARE" != "yes" ]; then
 	#_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 	if [ "$OMR_OPENWRT" = "default" ]; then
-		if [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.11" ]; then
-			# Use OpenWRT 24.10 for 6.6 kernel
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "0b392b925fa16c40dccc487753a4412bd054cd63"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "234806df39e38734ce5a3dfe0d94f8811cb57440"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "be769afc62310631509826e41863ec7a71e764a4"
-			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "f2ee837d3714f86e9d636302e9f69612c71029cb"
-		elif [ "$OMR_KERNEL" = "6.12" ]; then
-			# Use OpenWRT 25.12 for 6.12 kernel
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "42ea240132a32c0d67a28b6d0ae590e584485ba5"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "66ab3f7728dfcce93877db3d3d12f2a66fe4d682"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "a08b85e2494838316ea740383c671f92474c4c21"
-			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "b2097c85bef85251364f59a6b2a3ed1f9f5c0c21"
-		elif [ "$OMR_KERNEL" = "6.18" ]; then
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "328acd4e9d3407758c55917484823bc1726df64a"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "6e46ddbe2ddaee2b4381dbf1a5046ef942b8265b"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "7c91cb278d7cf19878069a44d5d1992f65c4e315"
+		if [ "$OMR_KERNEL" = "6.18" ]; then
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "3c3a4150694ca9ea4b8a44c12273bd4780bbf7d0"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "f9faf3fc2826ee55616ddffa59ecc170561d25a4"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "4bfd1102236f7f737da4257ca7f6e56146fc80f6"
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "4b9891b9136259f93294a424507ed24c5e8c1cbd"
 		fi
 	elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then
@@ -158,16 +146,6 @@ rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/files" "$OMR_TARGET/${OMR_KERNEL}/sourc
 #rm -rf "$OMR_TARGET/${OMR_KERNEL}/source/package/boot/arm-trusted-firmware-mediatek"
 echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
 rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-mvebu"
-[ "${OMR_KERNEL}" = "6.6" ] || [ "${OMR_KERNEL}" = "6.11" ] || [ "${OMR_KERNEL}" = "6.12" ] && {
-	echo "rm -rf $OMR_TARGET/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
-	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/boot/uboot-ipq40xx"
-}
-#[ "${OMR_KERNEL}" = "6.6" ] && {
-#	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/libs/mbedtls"
-#}
-#[ "${OMR_KERNEL}" = "6.12" ] && {
-#	rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/package/libs/mbedtls"
-#}
 
 # Remove current dwarves directory to replace with fixed package
 #rm -rf "${OMR_TARGET}/${OMR_KERNEL}/source/tools/dwarves"
@@ -209,7 +187,7 @@ if [ -n "$CUSTOM_FEED" ]; then
 	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf"
 fi
 
-if [ "$OMR_KERNEL" != "6.12" ] && [ "$OMR_KERNEL" != "6.18" ]; then
+if [ "$OMR_KERNEL" != "6.18" ]; then
 	if [ "$OMR_DIST" = "openmptcprouter" ]; then
 		cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<-EOF
 		src/gz openwrt_luci http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
@@ -359,9 +337,6 @@ if [ "$OMR_TARGET" != "x86_64" ] && [ "$OMR_TARGET" != "x86" ]; then
 #	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 	echo "CONFIG_PACKAGE_kmod-r8168=m" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
-if [ "$OMR_KERNEL" = "6.6" ] || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ]; then
-	echo "# CONFIG_PACKAGE_kmod-rtl8812au-ct is not set" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
-fi
 
 if [ "$OMR_TARGET" = "bpi-r1" -a "$OMR_OPENWRT" = "master" ]; then
 	# We disable mc in master, because it leads to unknown compilation errors on bpi-r1 target
@@ -465,7 +440,7 @@ cd "$OMR_TARGET/${OMR_KERNEL}/source"
 #	echo "Done"
 #fi
 
-if [ "$OMR_KERNEL" != "6.6" ] && [ "$OMR_KERNEL" != "6.11" ] && [ "$OMR_KERNEL" != "6.12" ] && [ "$OMR_KERNEL" != "6.18" ]; then
+if [ "$OMR_KERNEL" != "6.18" ]; then
 	echo "Checking if No check patch is set or not"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.patch; then
 		echo "apply..."
@@ -549,93 +524,6 @@ fi
 
 NOT_SUPPORTED="0"
 
-if [ "$OMR_KERNEL" = "6.6" ]; then
-	#[ -d target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom ] && mv -f target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom/* target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/ && rm -fr target/linux/ipq40xx/files-6.6/arch/arm/boot/dts/qcom
-	#echo "CONFIG_VERSION_CODE=6.6" >> ".config"
-	#echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-vfio is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-vfio-pci is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
-	#echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
-	if [ "$OMR_TARGET" != "ubnt-erx" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "bpi-r1" ] && [ "$OMR_TARGET" != "bpi-r2" ] && [ "$OMR_TARGET" != "rutx50" ]; then
-		echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
-		echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
-		echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
-		echo "CONFIG_KERNEL_DEBUG_INFO=y" >> ".config"
-		echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> ".config"
-		echo "CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES=y" >> ".config"
-		echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> ".config"
-		echo "CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH=y" >> ".config"
-	else
-		echo "CONFIG_BPF_TOOLCHAIN_NONE=y" >> ".config"
-	fi
-	# Remove for now packages that doesn't compile
-	#rm -rf package/kernel/mt76
-	#rm -rf package/kernel/rtl8812au-ct
-	# Remove not needed patches
-	#rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
-	#rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
-	#rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
-	#rm -f package/kernel/rtl8812au-ct/patches/099-cut-linkid-linux-version-code-conditionals.patch
-	#rm -f package/kernel/rtl8812au-ct/patches/100-api_update.patch
-	rm -f target/linux/generic/hack-6.6/212-tools_portability.patch
-	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-6.6 ]; then
-		echo "Sorry but kernel 6.6 is not supported on your arch yet"
-		NOT_SUPPORTED="1"
-	fi
-fi
-if [ "$OMR_KERNEL" = "6.12" ]; then
-	echo "Set to kernel 6.12 for x86 arch"
-	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
-	echo "Done"
-	echo "Set to kernel 6.12 for mediatek"
-	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
-	echo "Done"
-	echo "Set to kernel 6.12 for bcm27xx"
-	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
-	echo "Done"
-	echo "Set to kernel 6.12 for qualcommax"
-	find target/linux/qualcommax -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
-	echo "Done"
-	echo "Set to kernel 6.12 for ipq40xx"
-	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
-	echo "Done"
-	echo "Set to kernel 6.12 for ipq806x"
-	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.12%g' {} \;
-	echo "Done"
-	echo "CONFIG_VERSION_CODE=6.12" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
-#	echo "# CONFIG_PACKAGE_kmod-r8125 is not set" >> ".config"
-#	echo "# CONFIG_PACKAGE_kmod-r8125-rss is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-r8126 is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-r8126-rss is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-trelay is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_464xlat is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-nat46 is not set" >> ".config"
-	echo "# CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers is not set" >> ".config"
-	echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
-	echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
-	echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
-	echo "CONFIG_KERNEL_DEBUG_INFO=y" >> ".config"
-	echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> ".config"
-	echo "CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES=y" >> ".config"
-	echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> ".config"
-	echo "CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH=y" >> ".config"
-	echo 'CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves -fno-plt -Wno-stringop-truncation -Wno-stringop-overread -Wno-calloc-transposed-args"' >> ".config"
-	echo 'CONFIG_PACKAGE_apk-openssl=y' >> ".config"
-	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-6.12 ]; then
-		echo "Sorry but kernel 6.12 is not supported on your arch yet"
-		NOT_SUPPORTED="1"
-	fi
-fi
 if [ "$OMR_KERNEL" = "6.18" ]; then
 	echo "Set to kernel 6.18 for x86 arch"
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.6%KERNEL_PATCHVER:=6.18%g' {} \;
@@ -719,11 +607,8 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 
 if [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ]; then
 	rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
-elif [ "$OMR_KERNEL" = "6.6" ]  || [ "$OMR_KERNEL" = "6.11" ] || [ "$OMR_KERNEL" = "6.12" ] || [ "$OMR_KERNEL" = "6.18" ]; then
+elif [ "$OMR_KERNEL" = "6.18" ]; then
 	cd feeds/${OMR_KERNEL}
-	#if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-6.6.patch; then
-	#	patch -N -p1 -s < ../../patches/luci-syslog-6.6.patch
-	#fi
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-wrapper.patch; then
 		patch -N -p1 -s < ../../patches/luci-syslog-wrapper.patch
 	fi
@@ -754,7 +639,6 @@ fi
 [ -d ${OMR_FEED}/openvpn ] && rm -rf feeds/${OMR_KERNEL}/packages/net/openvpn
 [ -d ${OMR_FEED}/iproute2 ] && rm -rf feeds/${OMR_KERNEL}/packages/network/utils/iproute2
 [ -d ${CUSTOM_FEED}/syslog-ng ] && rm -rf feeds/${OMR_KERNEL}/packages/admin/syslog-ng
-([ "$OMR_KERNEL" = "6.6" ] ) && [ -d ${OMR_FEED}/xtables-addons ] && rm -rf feeds/${OMR_KERNEL}/packages/net/xtables-addons
 
 echo "Add Occitan translation support"
 cd feeds/${OMR_KERNEL}
