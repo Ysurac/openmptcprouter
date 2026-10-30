@@ -579,6 +579,18 @@ if [ "$OMR_KERNEL" = "6.18" ]; then
 	rm -rf package/kernel/r8101
 	rm -rf package/utils/bcm27xx-utils
 	# Remove not needed patches
+	# Already included in kernel 6.18.59
+	rm -f target/linux/generic/backport-6.18/438-v7.3-mtd-spinand-Do-not-update-the-QE-bit-on-devices-without-one.patch
+	rm -f target/linux/generic/backport-6.18/782-v7.3-USB-serial-option-add-Quectel-EG060W.patch
+	rm -f target/linux/generic/backport-6.18/787-v7.3-net-usb-qmi_wwan-add-Quectel-EG120K-EA.patch
+	rm -f target/linux/generic/backport-6.18/948-v7.1-net-dsa-mt7530-fix-.get_stats64-sleeping-in-atomic-c.patch
+	rm -f target/linux/generic/backport-6.18/950-v7.3-cgroup-fix-spurious-SIGKILL-of-CLONE_INTO_CGROUP-children.patch
+	rm -f target/linux/bcm27xx/patches-6.18/0008-of-overlay-Correct-symbol-path-fixups.patch
+	rm -f target/linux/bcm27xx/patches-6.18/0783-drm-vc4-hdmi-Move-packet-RAM-enable-to-pm_runtime.patch
+	rm -f target/linux/qualcommax/patches-6.18/0092-v7.3-pinctrl-qcom-ipq5018-add-missing-pwm3-function-on-gpio13.patch
+	rm -f target/linux/rockchip/patches-6.18/045-15-v7.0-media-v4l2-mem2mem-Add-a-kref-to-the-v4l2_m2m_dev-structure.patch
+	rm -f target/linux/rockchip/patches-6.18/045-16-v7.0-media-verisilicon-Avoid-G2-bus-error-while-decoding-H.264-an.patch
+	rm -f target/linux/rockchip/patches-6.18/045-43-v7.0-media-verisilicon-Fix-kernel-panic-due-to-__initconst-misuse.patch
 	#rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
 	#rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
 	#rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
