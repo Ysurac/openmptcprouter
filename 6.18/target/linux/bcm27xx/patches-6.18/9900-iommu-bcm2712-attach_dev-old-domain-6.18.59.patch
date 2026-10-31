@@ -1,0 +1,15 @@
+Linux 6.18.59 backported the extra old domain argument of
+iommu_domain_ops attach_dev, update the BCM2712 IOMMU driver for it.
+
+--- a/drivers/iommu/bcm2712-iommu.c
++++ b/drivers/iommu/bcm2712-iommu.c
+@@ -234,7 +234,8 @@
+ 	return 0;
+ }
+ 
+-static int bcm2712_iommu_attach_dev(struct iommu_domain *domain, struct device *dev)
++static int bcm2712_iommu_attach_dev(struct iommu_domain *domain, struct device *dev,
++				    struct iommu_domain *old)
+ {
+ 	struct bcm2712_iommu *mmu = dev ? dev_iommu_priv_get(dev) : 0;
+ 	struct bcm2712_iommu_domain *mydomain =
