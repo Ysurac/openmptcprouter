@@ -566,7 +566,7 @@ if [ "$OMR_KERNEL" = "6.18" ]; then
 	echo "# CONFIG_PACKAGE_464xlat is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-nat46 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers is not set" >> ".config"
-	if [ "$OMR_TARGET" != "ubnt-erx" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "bpi-r1" ] && [ "$OMR_TARGET" != "bpi-r2" ] && [ "$OMR_TARGET" != "rutx50" ]; then
+	if [ "$OMR_TARGET" != "ubnt-erx" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "bpi-r1" ] && [ "$OMR_TARGET" != "bpi-r2" ]; then
 		echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
 		echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
 		echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
@@ -636,7 +636,7 @@ if [ "$OMR_KERNEL" = "7.4" ]; then
 	echo "# CONFIG_PACKAGE_464xlat is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-nat46 is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers is not set" >> ".config"
-	if [ "$OMR_TARGET" != "ubnt-erx" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "bpi-r1" ] && [ "$OMR_TARGET" != "bpi-r2" ] && [ "$OMR_TARGET" != "rutx50" ]; then
+	if [ "$OMR_TARGET" != "ubnt-erx" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "bpi-r1" ] && [ "$OMR_TARGET" != "bpi-r2" ]; then
 		echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
 		echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
 		echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
