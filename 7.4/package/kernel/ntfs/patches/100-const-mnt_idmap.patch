@@ -1,0 +1,177 @@
+Linux 7.4 passes const struct mnt_idmap pointers to the inode and xattr
+operations.
+
+--- a/ea.c
++++ b/ea.c
+@@ -875,7 +875,7 @@
+ 
+ #if LINUX_VERSION_CODE > KERNEL_VERSION(6, 3, 0)
+ static int ntfs_setxattr(const struct xattr_handler *handler,
+-		struct mnt_idmap *idmap, struct dentry *unused,
++		const struct mnt_idmap *idmap, struct dentry *unused,
+ 		struct inode *inode, const char *name, const void *value,
+ 		size_t size, int flags)
+ #else
+@@ -979,7 +979,7 @@
+ 
+ #ifdef CONFIG_NTFS_FS_POSIX_ACL
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+-struct posix_acl *ntfs_get_acl(struct mnt_idmap *idmap, struct dentry *dentry,
++struct posix_acl *ntfs_get_acl(const struct mnt_idmap *idmap, struct dentry *dentry,
+ 			       int type)
+ {
+ 	struct inode *inode = d_inode(dentry);
+@@ -1028,7 +1028,7 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-static noinline int ntfs_set_acl_ex(struct mnt_idmap *idmap,
++static noinline int ntfs_set_acl_ex(const struct mnt_idmap *idmap,
+ 				    struct inode *inode, struct posix_acl *acl,
+ 				    int type, bool init_acl)
+ #else
+@@ -1134,7 +1134,7 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-int ntfs_set_acl(struct mnt_idmap *idmap, struct dentry *dentry,
++int ntfs_set_acl(const struct mnt_idmap *idmap, struct dentry *dentry,
+ 		 struct posix_acl *acl, int type)
+ {
+ 	return ntfs_set_acl_ex(idmap, d_inode(dentry), acl, type, false);
+@@ -1148,7 +1148,7 @@
+ #endif
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-int ntfs_init_acl(struct mnt_idmap *idmap, struct inode *inode,
++int ntfs_init_acl(const struct mnt_idmap *idmap, struct inode *inode,
+ 		  struct inode *dir)
+ #else
+ int ntfs_init_acl(struct user_namespace *mnt_userns, struct inode *inode,
+--- a/ea.h
++++ b/ea.h
+@@ -18,15 +18,15 @@
+ 
+ #ifdef CONFIG_NTFS_FS_POSIX_ACL
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+-struct posix_acl *ntfs_get_acl(struct mnt_idmap *idmap, struct dentry *dentry,
++struct posix_acl *ntfs_get_acl(const struct mnt_idmap *idmap, struct dentry *dentry,
+ 			       int type);
+ #else
+ struct posix_acl *ntfs_get_acl(struct inode *inode, int type, bool rcu);
+ #endif
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-int ntfs_set_acl(struct mnt_idmap *idmap, struct dentry *dentry,
++int ntfs_set_acl(const struct mnt_idmap *idmap, struct dentry *dentry,
+ 		 struct posix_acl *acl, int type);
+-int ntfs_init_acl(struct mnt_idmap *idmap, struct inode *inode,
++int ntfs_init_acl(const struct mnt_idmap *idmap, struct inode *inode,
+ 		  struct inode *dir);
+ #else
+ int ntfs_set_acl(struct user_namespace *mnt_userns, struct inode *inode,
+--- a/file.c
++++ b/file.c
+@@ -341,7 +341,7 @@
+  * encrypted files.
+  */
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-int ntfs_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
++int ntfs_setattr(const struct mnt_idmap *idmap, struct dentry *dentry,
+ 		 struct iattr *attr)
+ #else
+ int ntfs_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+@@ -428,7 +428,7 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-int ntfs_getattr(struct mnt_idmap *idmap, const struct path *path,
++int ntfs_getattr(const struct mnt_idmap *idmap, const struct path *path,
+ 		struct kstat *stat, unsigned int request_mask,
+ 		unsigned int query_flags)
+ #else
+--- a/inode.h
++++ b/inode.h
+@@ -339,7 +339,7 @@
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-int ntfs_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
++int ntfs_setattr(const struct mnt_idmap *idmap, struct dentry *dentry,
+ 		 struct iattr *attr);
+ #else
+ int ntfs_setattr(struct user_namespace *mnt_userns,
+@@ -350,7 +350,7 @@
+ #endif
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-int ntfs_getattr(struct mnt_idmap *idmap, const struct path *path,
++int ntfs_getattr(const struct mnt_idmap *idmap, const struct path *path,
+ 		struct kstat *stat, unsigned int request_mask,
+ 		unsigned int query_flags);
+ #else
+--- a/namei.c
++++ b/namei.c
+@@ -392,7 +392,7 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-static struct ntfs_inode *__ntfs_create(struct mnt_idmap *idmap, struct inode *dir,
++static struct ntfs_inode *__ntfs_create(const struct mnt_idmap *idmap, struct inode *dir,
+ 		__le16 *name, u8 name_len, mode_t mode, dev_t dev,
+ 		const char *target, int target_len)
+ #else
+@@ -771,11 +771,11 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 3, 0)
+-static int ntfs_create(struct mnt_idmap *idmap, struct inode *dir,
++static int ntfs_create(const struct mnt_idmap *idmap, struct inode *dir,
+ 		struct dentry *dentry, umode_t mode)
+ #else
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-static int ntfs_create(struct mnt_idmap *idmap, struct inode *dir,
++static int ntfs_create(const struct mnt_idmap *idmap, struct inode *dir,
+ 		struct dentry *dentry, umode_t mode, bool excl)
+ #else
+ static int ntfs_create(struct user_namespace *mnt_userns, struct inode *dir,
+@@ -1114,11 +1114,11 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+-static struct dentry *ntfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
++static struct dentry *ntfs_mkdir(const struct mnt_idmap *idmap, struct inode *dir,
+ 		struct dentry *dentry, umode_t mode)
+ #else
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-static int ntfs_mkdir(struct mnt_idmap *idmap, struct inode *dir,
++static int ntfs_mkdir(const struct mnt_idmap *idmap, struct inode *dir,
+ 		struct dentry *dentry, umode_t mode)
+ #else
+ static int ntfs_mkdir(struct user_namespace *mnt_userns, struct inode *dir,
+@@ -1373,7 +1373,7 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-static int ntfs_rename(struct mnt_idmap *idmap, struct inode *old_dir,
++static int ntfs_rename(const struct mnt_idmap *idmap, struct inode *old_dir,
+ 		struct dentry *old_dentry, struct inode *new_dir,
+ 		struct dentry *new_dentry, unsigned int flags)
+ #else
+@@ -1548,7 +1548,7 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-static int ntfs_symlink(struct mnt_idmap *idmap, struct inode *dir,
++static int ntfs_symlink(const struct mnt_idmap *idmap, struct inode *dir,
+ 		struct dentry *dentry, const char *symname)
+ #else
+ static int ntfs_symlink(struct user_namespace *mnt_userns, struct inode *dir,
+@@ -1606,7 +1606,7 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
+-static int ntfs_mknod(struct mnt_idmap *idmap, struct inode *dir,
++static int ntfs_mknod(const struct mnt_idmap *idmap, struct inode *dir,
+ 		struct dentry *dentry, umode_t mode, dev_t rdev)
+ #else
+ static int ntfs_mknod(struct user_namespace *mnt_userns, struct inode *dir,
