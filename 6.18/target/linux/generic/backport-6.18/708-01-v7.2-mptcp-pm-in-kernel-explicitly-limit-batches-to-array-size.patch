@@ -1,0 +1,151 @@
+From 9031e5e31d5de2c7b147a01b0a744606375ff56e Mon Sep 17 00:00:00 2001
+From: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Date: Fri, 08 May 2026 17:40:46 +0200
+Subject: [PATCH] mptcp: pm: in-kernel: explicitly limit batches to array size
+
+The in-kernel PM can create subflows in reply to ADD_ADDR by batch of
+maximum 8 subflows for the moment. Same when adding new "subflow"
+endpoints with the fullmesh flag. This limit is linked to the arrays
+used during these steps.
+
+There was no explicit limit to the arrays size (8), because the limit of
+extra subflows is the same (8). It seems safer to use an explicit limit,
+but also these two sizes are going to be different in the next commit.
+
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260508-net-next-mptcp-pm-inc-limits-v1-1-c84e3fdf9b6a@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+[ adapt to 6.18: fill_local_addresses_vec() still calls the fullmesh
+  helper unconditionally ]
+---
+ net/mptcp/pm_kernel.c |   34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
+
+diff --git a/net/mptcp/pm_kernel.c b/net/mptcp/pm_kernel.c
+index fa34a33..891d441 100644
+--- a/net/mptcp/pm_kernel.c
++++ b/net/mptcp/pm_kernel.c
+@@ -192,7 +192,8 @@ fill_remote_addr(struct mptcp_sock *msk, struct mptcp_addr_info *local,
+ static unsigned int
+ fill_remote_addresses_fullmesh(struct mptcp_sock *msk,
+ 			       struct mptcp_addr_info *local,
+-			       struct mptcp_addr_info *addrs)
++			       struct mptcp_addr_info *addrs,
++			       int addrs_size)
+ {
+ 	u8 limit_extra_subflows = mptcp_pm_get_limit_extra_subflows(msk);
+ 	bool deny_id0 = READ_ONCE(msk->pm.remote_deny_join_id0);
+@@ -227,7 +228,8 @@ fill_remote_addresses_fullmesh(struct mptcp_sock *msk,
+ 		msk->pm.extra_subflows++;
+ 		i++;
+ 
+-		if (msk->pm.extra_subflows >= limit_extra_subflows)
++		if (msk->pm.extra_subflows >= limit_extra_subflows ||
++		    i == addrs_size)
+ 			break;
+ 	}
+ 
+@@ -239,7 +241,8 @@ fill_remote_addresses_fullmesh(struct mptcp_sock *msk,
+  */
+ static unsigned int
+ fill_remote_addresses_vec(struct mptcp_sock *msk, struct mptcp_addr_info *local,
+-			  bool fullmesh, struct mptcp_addr_info *addrs)
++			  bool fullmesh, struct mptcp_addr_info *addrs,
++			  int addrs_size)
+ {
+ 	/* Non-fullmesh: fill in the single entry corresponding to the primary
+ 	 * MPC subflow remote address, and return 1, corresponding to 1 entry.
+@@ -248,7 +251,7 @@ fill_remote_addresses_vec(struct mptcp_sock *msk, struct mptcp_addr_info *local,
+ 		return fill_remote_addr(msk, local, addrs);
+ 
+ 	/* Fullmesh endpoint: fill all possible remote addresses */
+-	return fill_remote_addresses_fullmesh(msk, local, addrs);
++	return fill_remote_addresses_fullmesh(msk, local, addrs, addrs_size);
+ }
+ 
+ static struct mptcp_pm_addr_entry *
+@@ -399,7 +402,8 @@ subflow:
+ 		else /* local_addr_used is not decr for ID 0 */
+ 			msk->pm.local_addr_used++;
+ 
+-		nr = fill_remote_addresses_vec(msk, &local.addr, fullmesh, addrs);
++		nr = fill_remote_addresses_vec(msk, &local.addr, fullmesh,
++					       addrs, ARRAY_SIZE(addrs));
+ 		if (nr == 0)
+ 			continue;
+ 
+@@ -436,6 +440,7 @@ static unsigned int
+ fill_local_addresses_vec_fullmesh(struct mptcp_sock *msk,
+ 				  struct mptcp_addr_info *remote,
+ 				  struct mptcp_pm_local *locals,
++				  int locals_size,
+ 				  bool c_flag_case)
+ {
+ 	u8 limit_extra_subflows = mptcp_pm_get_limit_extra_subflows(msk);
+@@ -477,7 +482,8 @@ fill_local_addresses_vec_fullmesh(struct mptcp_sock *msk,
+ 		msk->pm.extra_subflows++;
+ 		i++;
+ 
+-		if (msk->pm.extra_subflows >= limit_extra_subflows)
++		if (msk->pm.extra_subflows >= limit_extra_subflows ||
++		    i == locals_size)
+ 			break;
+ 	}
+ 	rcu_read_unlock();
+@@ -548,7 +554,8 @@ fill_local_laminar_endp(struct mptcp_sock *msk, struct mptcp_addr_info *remote,
+ static unsigned int
+ fill_local_addresses_vec_c_flag(struct mptcp_sock *msk,
+ 				struct mptcp_addr_info *remote,
+-				struct mptcp_pm_local *locals)
++				struct mptcp_pm_local *locals,
++				int locals_size)
+ {
+ 	u8 limit_extra_subflows = mptcp_pm_get_limit_extra_subflows(msk);
+ 	struct pm_nl_pernet *pernet = pm_nl_get_pernet_from_msk(msk);
+@@ -575,7 +582,8 @@ fill_local_addresses_vec_c_flag(struct mptcp_sock *msk,
+ 		msk->pm.extra_subflows++;
+ 		i++;
+ 
+-		if (msk->pm.extra_subflows >= limit_extra_subflows)
++		if (msk->pm.extra_subflows >= limit_extra_subflows ||
++		    i == locals_size)
+ 			break;
+ 	}
+ 
+@@ -609,13 +617,14 @@ fill_local_address_any(struct mptcp_sock *msk, struct mptcp_addr_info *remote,
+  */
+ static unsigned int
+ fill_local_addresses_vec(struct mptcp_sock *msk, struct mptcp_addr_info *remote,
+-			 struct mptcp_pm_local *locals)
++			 struct mptcp_pm_local *locals, int locals_size)
+ {
+ 	bool c_flag_case = remote->id && mptcp_pm_add_addr_c_flag_case(msk);
+ 	int i;
+ 
+ 	/* If there is at least one MPTCP endpoint with a fullmesh flag */
+-	i = fill_local_addresses_vec_fullmesh(msk, remote, locals, c_flag_case);
++	i = fill_local_addresses_vec_fullmesh(msk, remote, locals, locals_size,
++					      c_flag_case);
+ 	if (i)
+ 		return i;
+ 
+@@ -627,7 +636,8 @@ fill_local_addresses_vec(struct mptcp_sock *msk, struct mptcp_addr_info *remote,
+ 	 * limits are used -- accepting no ADD_ADDR -- and use subflow endpoints
+ 	 */
+ 	if (c_flag_case)
+-		return fill_local_addresses_vec_c_flag(msk, remote, locals);
++		return fill_local_addresses_vec_c_flag(msk, remote, locals,
++						       locals_size);
+ 
+ 	/* No special case: fill in the single 'IPADDRANY' local address */
+ 	return fill_local_address_any(msk, remote, &locals[0]);
+@@ -662,7 +672,7 @@ static void mptcp_pm_nl_add_addr_received(struct mptcp_sock *msk)
+ 	/* connect to the specified remote address, using whatever
+ 	 * local address the routing configuration will pick.
+ 	 */
+-	nr = fill_local_addresses_vec(msk, &remote, locals);
++	nr = fill_local_addresses_vec(msk, &remote, locals, ARRAY_SIZE(locals));
+ 	if (nr == 0)
+ 		return;
+ 

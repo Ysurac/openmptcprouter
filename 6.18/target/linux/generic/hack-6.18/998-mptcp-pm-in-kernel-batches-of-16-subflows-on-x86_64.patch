@@ -1,0 +1,36 @@
+From: "Ycarus (Yannick Chabanois)" <ycarus@zugaina.org>
+Subject: [PATCH] mptcp: pm: in-kernel: batches of 16 subflows on x86_64
+
+Since the in-kernel PM limits were raised to 64 subflows and 255
+endpoints, subflows created in reply to an ADD_ADDR, or for the fullmesh
+endpoints, still come in a single batch of at most MPTCP_PM_ADDR_MAX (8),
+the size of the arrays on the stack.
+
+OpenMPTCProuter on x86_64 aggregates up to 16 WANs: use batches of 16
+there. That makes the frames of mptcp_pm_nl_add_addr_received() and
+mptcp_pm_create_subflow_or_signal_addr() 632 and 520 bytes, which is fine
+with the 16KiB x86_64 stacks. The other targets keep 8.
+---
+ net/mptcp/pm_kernel.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/net/mptcp/pm_kernel.c b/net/mptcp/pm_kernel.c
+index 18216db..ec76e18 100644
+--- a/net/mptcp/pm_kernel.c
++++ b/net/mptcp/pm_kernel.c
+@@ -28,7 +28,15 @@ struct pm_nl_pernet {
+ 	DECLARE_BITMAP(id_bitmap, MPTCP_PM_MAX_ADDR_ID + 1);
+ };
+ 
++/* Size of the batches in which subflows are created in reply to an ADD_ADDR
++ * or for the fullmesh endpoints. x86_64 routers can aggregate 16 WANs, and
++ * have the stack for it: create all their subflows in one batch.
++ */
++#ifdef CONFIG_X86_64
++#define MPTCP_PM_ADDR_MAX	16
++#else
+ #define MPTCP_PM_ADDR_MAX	8
++#endif
+ #define MPTCP_PM_SUBFLOWS_MAX	64
+ 
+ static struct pm_nl_pernet *pm_nl_get_pernet(const struct net *net)

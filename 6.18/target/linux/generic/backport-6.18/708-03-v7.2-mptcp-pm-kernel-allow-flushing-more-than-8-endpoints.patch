@@ -1,0 +1,97 @@
+From 607f16ab462beaa4e84a3ce00a80c91e00d28a41 Mon Sep 17 00:00:00 2001
+From: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Date: Fri, 08 May 2026 17:40:48 +0200
+Subject: [PATCH] mptcp: pm: kernel: allow flushing more than 8 endpoints
+
+The mptcp_rm_list structure contains an array of IDs of 8 entries: to be
+able to send a RM_ADDR with 8 IDs. This limitation was OK so far because
+there could maximum 8 endpoints.
+
+But this is going to change in the next commit. To cope with that, if
+one of the arrays is full, the iteration stops, the lists are processed,
+then the iteration continues where it previously stopped.
+
+Note that if there are many endpoints to remove, and multiple RM_ADDR to
+send, it might be more likely that some of these RM_ADDRs are dropped or
+lost. This is a known limitation: RM_ADDR are not retransmitted in
+MPTCPv1.
+
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260508-net-next-mptcp-pm-inc-limits-v1-3-c84e3fdf9b6a@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+[ adapt to 6.18: the subflow and ADD_ADDR lookups are already named
+  mptcp_pm_has_subflow_saddr() and mptcp_pm_announced_remove() ]
+---
+ net/mptcp/pm_kernel.c |   38 +++++++++++++++++++++++++++-----------
+ 1 file changed, 27 insertions(+), 11 deletions(-)
+
+diff --git a/net/mptcp/pm_kernel.c b/net/mptcp/pm_kernel.c
+index abfa420..ed95b3c 100644
+--- a/net/mptcp/pm_kernel.c
++++ b/net/mptcp/pm_kernel.c
+@@ -1214,19 +1214,30 @@ int mptcp_pm_nl_del_addr_doit(struct sk_buff *skb, struct genl_info *info)
+ }
+ 
+ static void mptcp_pm_flush_addrs_and_subflows(struct mptcp_sock *msk,
+-					      struct list_head *rm_list)
++					      struct list_head *rm_list,
++					      struct mptcp_pm_addr_entry *entry)
+ {
+-	struct mptcp_rm_list alist = { .nr = 0 }, slist = { .nr = 0 };
+-	struct mptcp_pm_addr_entry *entry;
++	struct mptcp_rm_list alist, slist;
++	bool more;
++
++again:
++	alist.nr = 0;
++	slist.nr = 0;
++	more = false;
+ 
+-	list_for_each_entry(entry, rm_list, list) {
+-		if (slist.nr < MPTCP_RM_IDS_MAX &&
+-		    mptcp_pm_has_subflow_saddr(msk, &entry->addr))
++	entry = list_prepare_entry(entry, rm_list, list);
++	list_for_each_entry_continue(entry, rm_list, list) {
++		if (mptcp_pm_has_subflow_saddr(msk, &entry->addr))
+ 			slist.ids[slist.nr++] = mptcp_endp_get_local_id(msk, &entry->addr);
+ 
+-		if (alist.nr < MPTCP_RM_IDS_MAX &&
+-		    mptcp_pm_announced_remove(msk, &entry->addr))
++		if (mptcp_pm_announced_remove(msk, &entry->addr))
+ 			alist.ids[alist.nr++] = mptcp_endp_get_local_id(msk, &entry->addr);
++
++		if (slist.nr == MPTCP_RM_IDS_MAX ||
++		    alist.nr == MPTCP_RM_IDS_MAX) {
++			more = !list_is_last(&entry->list, rm_list);
++			break;
++		}
+ 	}
+ 
+ 	spin_lock_bh(&msk->pm.lock);
+@@ -1237,9 +1248,14 @@ static void mptcp_pm_flush_addrs_and_subflows(struct mptcp_sock *msk,
+ 	if (slist.nr)
+ 		mptcp_pm_rm_subflow(msk, &slist);
+ 	/* Reset counters: maybe some subflows have been removed before */
+-	bitmap_fill(msk->pm.id_avail_bitmap, MPTCP_PM_MAX_ADDR_ID + 1);
+-	msk->pm.local_addr_used = 0;
++	if (!more) {
++		bitmap_fill(msk->pm.id_avail_bitmap, MPTCP_PM_MAX_ADDR_ID + 1);
++		msk->pm.local_addr_used = 0;
++	}
+ 	spin_unlock_bh(&msk->pm.lock);
++
++	if (more)
++		goto again;
+ }
+ 
+ static void mptcp_nl_flush_addrs_list(struct net *net,
+@@ -1256,7 +1272,7 @@ static void mptcp_nl_flush_addrs_list(struct net *net,
+ 
+ 		if (!mptcp_pm_is_userspace(msk)) {
+ 			lock_sock(sk);
+-			mptcp_pm_flush_addrs_and_subflows(msk, rm_list);
++			mptcp_pm_flush_addrs_and_subflows(msk, rm_list, NULL);
+ 			release_sock(sk);
+ 		}
+ 
