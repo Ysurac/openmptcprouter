@@ -67,27 +67,33 @@ if [ ! -f "$OMR_TARGET_CONFIG" ]; then
 	#exit 1
 fi
 
-if [ "$OMR_TARGET" = "rpi4" ]; then
-	OMR_REAL_TARGET="aarch64_cortex-a72"
-elif [ "$OMR_TARGET" = "rpi5" ]; then
-	OMR_REAL_TARGET="aarch64_cortex-a76"
-elif [ "$OMR_TARGET" = "wrt3200acm" ] || [ "$OMR_TARGET" = "wrt32x" ]; then
-	OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16"
-elif [ "$OMR_TARGET" = "rpi2" ] || [ "$OMR_TARGET" = "bpi-r1" ] || [ "$OMR_TARGET" = "bpi-r2" ] || [ "$OMR_TARGET" = "rutx" ] || [ "$OMR_TARGET" = "rutx12" ] || [ "$OMR_TARGET" = "rutx50" ] || [ "$OMR_TARGET" = "p2w_r619ac" ]; then
-	OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4"
-elif [ "$OMR_TARGET" = "rpi3" ] || [ "$OMR_TARGET" = "bpi-r3" ] || [ "$OMR_TARGET" = "bpi-r3-mini" ] || [ "$OMR_TARGET" = "bpi-r4" ] || [ "$OMR_TARGET" = "bpi-r4-poe" ] || [ "$OMR_TARGET" = "bpi-r64" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "z8102ax_128m" ] || [ "$OMR_TARGET" = "z8102ax_64m" ] || [ "$OMR_TARGET" = "z8109ax_128m" ] || [ "$OMR_TARGET" = "bpi-r4" ] || [ "$OMR_TARGET" = "bpi-r4-poe" ] || [ "$OMR_TARGET" = "bpi-r3" ] || [ "$OMR_TARGET" = "bpi-r3-mini" ] || [ "$OMR_TARGET" = "espressobin" ] || [ "$OMR_TARGET" = "gl-mt2500" ] || [ "$OMR_TARGET" = "gl-mt6000" ] || [ "$OMR_TARGET" = "bpi-r4-pro-4e" ] || [ "$OMR_TARGET" = "bpi-r4-pro-8x" ]; then
-	OMR_REAL_TARGET="aarch64_cortex-a53"
-elif [ "$OMR_TARGET" = "x86" ]; then
-	OMR_REAL_TARGET="i386_pentium4"
-elif [ "$OMR_TARGET" = "x86_64" ]; then
-	OMR_REAL_TARGET="x86_64"
-elif [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "r5s" ] || [ "$OMR_TARGET" = "armsr64" ]; then
-	OMR_REAL_TARGET="aarch64_generic"
-elif [ "$OMR_TARGET" = "ubnt-erx" ]; then
-	OMR_REAL_TARGET="mipsel_24kc"
-else
-	OMR_REAL_TARGET=${OMR_TARGET}
-fi
+# Package architecture, from the OpenWrt subtarget of the target config:
+# a new device of a known subtarget gets the right package repository
+OMR_SUBTARGET=$(sed -n 's/^CONFIG_TARGET_\([a-z0-9]*_[a-z0-9]*\)=y$/\1/p' "$OMR_TARGET_CONFIG" 2>/dev/null | head -n 1)
+case "$OMR_SUBTARGET" in
+	bcm27xx_bcm2709|ipq40xx_generic|mediatek_mt7623|sunxi_cortexa7)
+		OMR_REAL_TARGET="arm_cortex-a7_neon-vfpv4" ;;
+	bcm27xx_bcm2710|mediatek_filogic|mediatek_mt7622|mvebu_cortexa53|qualcommax_ipq807x)
+		OMR_REAL_TARGET="aarch64_cortex-a53" ;;
+	bcm27xx_bcm2711)
+		OMR_REAL_TARGET="aarch64_cortex-a72" ;;
+	bcm27xx_bcm2712)
+		OMR_REAL_TARGET="aarch64_cortex-a76" ;;
+	armsr_armv8|rockchip_armv8)
+		OMR_REAL_TARGET="aarch64_generic" ;;
+	ipq806x_generic)
+		OMR_REAL_TARGET="arm_cortex-a15_neon-vfpv4" ;;
+	mvebu_cortexa9)
+		OMR_REAL_TARGET="arm_cortex-a9_vfpv3-d16" ;;
+	ramips_mt7621)
+		OMR_REAL_TARGET="mipsel_24kc" ;;
+	x86_generic)
+		OMR_REAL_TARGET="i386_pentium4" ;;
+	x86_64)
+		OMR_REAL_TARGET="x86_64" ;;
+	*)
+		OMR_REAL_TARGET=${OMR_TARGET} ;;
+esac
 
 if [ "$ONLY_PREPARE" != "yes" ]; then
 	#_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
