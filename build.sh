@@ -289,7 +289,7 @@ if [ "$OMR_IMG" = "yes" ] && [ "$OMR_TARGET" = "x86_64" ]; then
 	echo 'CONFIG_QCOW2_IMAGES=y' >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 
-if [ "$OMR_TARGET" = "x86" ] || [ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r3s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "r5s" ] || [ "$OMR_TARGET" = "r5c" ] || [ "$OMR_TARGET" = "rpi2" ] || [ "$OMR_TARGET" = "rpi3" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "rpi5" ] || [ "$OMR_TARGET" = "espressobin" ]; then
+if [ "$OMR_TARGET" = "x86" ] || [ "$OMR_TARGET" = "x86_64" ] || [ "$OMR_TARGET" = "r2s" ] || [ "$OMR_TARGET" = "r3s" ] || [ "$OMR_TARGET" = "r4s" ] || [ "$OMR_TARGET" = "r5s" ] || [ "$OMR_TARGET" = "r5c" ] || [ "$OMR_TARGET" = "rockchip-armv8" ] || [ "$OMR_TARGET" = "rpi2" ] || [ "$OMR_TARGET" = "rpi3" ] || [ "$OMR_TARGET" = "rpi4" ] || [ "$OMR_TARGET" = "rpi5" ] || [ "$OMR_TARGET" = "espressobin" ]; then
 	echo "CONFIG_TARGET_ROOTFS_PARTSIZE=${OMR_PARTSIZE}" >> "$OMR_TARGET/${OMR_KERNEL}/source/.config"
 fi
 

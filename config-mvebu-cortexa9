@@ -1,0 +1,17 @@
+CONFIG_TARGET_mvebu=y
+CONFIG_TARGET_mvebu_cortexa9=y
+CONFIG_TARGET_MULTI_PROFILE=y
+CONFIG_TARGET_PER_DEVICE_ROOTFS=y
+CONFIG_TARGET_DEVICE_mvebu_cortexa9_DEVICE_cznic_turris-omnia=y
+CONFIG_TARGET_DEVICE_PACKAGES_mvebu_cortexa9_DEVICE_cznic_turris-omnia="kmod-ath10k-ct kmod-ath9k"
+CONFIG_TARGET_DEVICE_mvebu_cortexa9_DEVICE_linksys_wrt3200acm=y
+CONFIG_TARGET_DEVICE_PACKAGES_mvebu_cortexa9_DEVICE_linksys_wrt3200acm="kmod-6lowpan"
+CONFIG_TARGET_DEVICE_mvebu_cortexa9_DEVICE_linksys_wrt32x=y
+CONFIG_TARGET_DEVICE_PACKAGES_mvebu_cortexa9_DEVICE_linksys_wrt32x="kmod-6lowpan"
+# The Linksys kernel partition is 6 MB
+# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set
+CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_KERNEL_ARM_MODULE_PLTS=y
+CONFIG_PACKAGE_kmod-ath10k-ct=m
+CONFIG_PACKAGE_kmod-ath9k=m
+CONFIG_PACKAGE_kmod-6lowpan=m
