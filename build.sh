@@ -98,8 +98,8 @@ esac
 if [ "$ONLY_PREPARE" != "yes" ]; then
 	#_get_repo source https://github.com/ysurac/openmptcprouter-source "master"
 	if [ "$OMR_OPENWRT" = "default" ]; then
-		if [ "$OMR_KERNEL" = "6.18" ] || [ "$OMR_KERNEL" = "7.4" ]; then
-			# Kernel 7.4 use the same OpenWRT as 6.18, generic kernel patches are in 7.4/
+		if [ "$OMR_KERNEL" = "6.18" ] || [ "$OMR_KERNEL" = "7.3" ] || [ "$OMR_KERNEL" = "7.4" ]; then
+			# Kernels 7.3 and 7.4 use the same OpenWRT as 6.18, generic kernel patches are in 7.3/ and 7.4/
 			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "3c3a4150694ca9ea4b8a44c12273bd4780bbf7d0"
 			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "f9faf3fc2826ee55616ddffa59ecc170561d25a4"
 			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "4bfd1102236f7f737da4257ca7f6e56146fc80f6"
@@ -194,7 +194,7 @@ if [ -n "$CUSTOM_FEED" ]; then
 	echo "src-link ${OMR_DIST} $(readlink -f ${CUSTOM_FEED})" >> "$OMR_TARGET/${OMR_KERNEL}/source/feeds.conf"
 fi
 
-if [ "$OMR_KERNEL" != "6.18" ] && [ "$OMR_KERNEL" != "7.4" ]; then
+if [ "$OMR_KERNEL" != "6.18" ] && [ "$OMR_KERNEL" != "7.3" ] && [ "$OMR_KERNEL" != "7.4" ]; then
 	if [ "$OMR_DIST" = "openmptcprouter" ]; then
 		cat > "$OMR_TARGET/${OMR_KERNEL}/source/package/system/opkg/files/customfeeds.conf" <<-EOF
 		src/gz openwrt_luci http://packages.openmptcprouter.com/${OMR_RELEASE}/${OMR_REAL_TARGET}/luci
@@ -447,7 +447,7 @@ cd "$OMR_TARGET/${OMR_KERNEL}/source"
 #	echo "Done"
 #fi
 
-if [ "$OMR_KERNEL" != "6.18" ] && [ "$OMR_KERNEL" != "7.4" ]; then
+if [ "$OMR_KERNEL" != "6.18" ] && [ "$OMR_KERNEL" != "7.3" ] && [ "$OMR_KERNEL" != "7.4" ]; then
 	echo "Checking if No check patch is set or not"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nocheck.patch; then
 		echo "apply..."
@@ -463,7 +463,7 @@ else
 	echo "Done"
 fi
 
-if [ "$OMR_KERNEL" != "6.18" ] && [ "$OMR_KERNEL" != "7.4" ]; then
+if [ "$OMR_KERNEL" != "6.18" ] && [ "$OMR_KERNEL" != "7.3" ] && [ "$OMR_KERNEL" != "7.4" ]; then
 	echo "Checking if Nanqinlang patch is set or not"
 	if ! patch -Rf -N -p1 -s --dry-run < ../../../patches/nanqinlang.patch; then
 		echo "apply..."
@@ -619,6 +619,81 @@ if [ "$OMR_KERNEL" = "6.18" ]; then
 		NOT_SUPPORTED="1"
 	fi
 fi
+if [ "$OMR_KERNEL" = "7.3" ]; then
+	echo "Set to kernel 7.3 for x86 arch"
+	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for armsr"
+	find target/linux/armsr -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for mediatek"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for bcm27xx"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	# vc04_services drivers moved out of staging in rpi-7.3.y
+	sed -i -e 's%staging/vc04_services/bcm2835-isp/%media/platform/broadcom/bcm2835-isp/%' \
+		-e 's%staging/vc04_services/vc-sm-cma/%platform/raspberrypi/vc-sm-cma/%' \
+		-e 's%staging/vc04_services/vchiq-mmal/%platform/raspberrypi/vchiq-mmal/%' target/linux/bcm27xx/modules/video.mk
+	echo "Done"
+	echo "Set to kernel 7.3 for qualcommax"
+	find target/linux/qualcommax -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for ipq40xx"
+	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for ipq806x"
+	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for mvebu"
+	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for rockchip"
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for sunxi"
+	find target/linux/sunxi -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.3 for ramips"
+	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.3%g' {} \;
+	echo "Done"
+	echo "CONFIG_VERSION_CODE=7.3" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-gpio-nct5104d is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8168 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8126 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-r8126-rss is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-button-hotplug is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-cryptodev is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-trelay is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_464xlat is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-nat46 is not set" >> ".config"
+	echo "# CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers is not set" >> ".config"
+	if [ "$OMR_TARGET" != "ubnt-erx" ] && [ "$OMR_TARGET" != "r7800" ] && [ "$OMR_TARGET" != "bpi-r1" ] && [ "$OMR_TARGET" != "bpi-r2" ]; then
+		echo "CONFIG_BPF_TOOLCHAIN=y" >> ".config"
+		echo "CONFIG_BPF_TOOLCHAIN_HOST=y" >> ".config"
+		echo "CONFIG_KERNEL_BPF_EVENTS=y" >> ".config"
+		echo "CONFIG_KERNEL_DEBUG_INFO=y" >> ".config"
+		echo "CONFIG_KERNEL_DEBUG_INFO_BTF=y" >> ".config"
+		echo "CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES=y" >> ".config"
+		echo "# CONFIG_KERNEL_DEBUG_INFO_REDUCED is not set" >> ".config"
+		echo "CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH=y" >> ".config"
+	else
+		echo "CONFIG_BPF_TOOLCHAIN_NONE=y" >> ".config"
+		rm -f target/linux/generic/hack-7.3/999-mptcp-bpf-scheduler.patch
+	fi
+	echo 'CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves -fno-plt -Wno-stringop-truncation -Wno-stringop-overread -Wno-calloc-transposed-args -Wno-error=int-conversion"' >> ".config"
+	# Remove for now packages that doesn't compile
+	rm -rf package/kernel/rtl8812au-ct
+	rm -rf package/kernel/r8101
+	rm -rf package/utils/bcm27xx-utils
+	echo 'CONFIG_PACKAGE_apk-openssl=y' >> ".config"
+	if [ ! -d target/linux/`sed -nE 's/CONFIG_TARGET_([a-z0-9]*)=y/\1/p' ".config" | tr -d "\n"`/patches-7.3 ]; then
+		echo "Sorry but kernel 7.3 is not supported on your arch yet"
+		NOT_SUPPORTED="1"
+	fi
+fi
 if [ "$OMR_KERNEL" = "7.4" ]; then
 	echo "Set to kernel 7.4 for x86 arch"
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
@@ -667,7 +742,7 @@ rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-network
 
 if [ -d feeds/${OMR_KERNEL}/${OMR_DIST}/luci-mod-status ]; then
 	rm -rf feeds/${OMR_KERNEL}/luci/modules/luci-mod-status
-elif [ "$OMR_KERNEL" = "6.18" ] || [ "$OMR_KERNEL" = "7.4" ]; then
+elif [ "$OMR_KERNEL" = "6.18" ] || [ "$OMR_KERNEL" = "7.3" ] || [ "$OMR_KERNEL" = "7.4" ]; then
 	cd feeds/${OMR_KERNEL}
 	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-syslog-wrapper.patch; then
 		patch -N -p1 -s < ../../patches/luci-syslog-wrapper.patch

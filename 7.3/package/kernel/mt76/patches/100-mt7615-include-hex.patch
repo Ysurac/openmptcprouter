@@ -1,0 +1,12 @@
+mac_pton() is declared in linux/hex.h, which linux/kernel.h does not
+include anymore since Linux 7.3.
+
+--- a/mt7615/debugfs.c
++++ b/mt7615/debugfs.c
+@@ -1,5 +1,6 @@
+ // SPDX-License-Identifier: BSD-3-Clause-Clear
+ 
++#include <linux/hex.h>
+ #include "mt7615.h"
+ 
+ static int

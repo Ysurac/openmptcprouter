@@ -1,0 +1,17 @@
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dtsi
+@@ -18,6 +18,13 @@
+ #include "rk3399-nanopi4.dtsi"
+ 
+ / {
++	aliases {
++		led-boot = &sys_led;
++		led-failsafe = &sys_led;
++		led-running = &sys_led;
++		led-upgrade = &sys_led;
++	};
++
+ 	/delete-node/ display-subsystem;
+ 
+ 	gpio-leds {

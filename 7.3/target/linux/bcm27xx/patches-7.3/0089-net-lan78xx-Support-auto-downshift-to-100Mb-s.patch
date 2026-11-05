@@ -1,0 +1,55 @@
+From 34a952e4a1d4d30ea04c07fa6e19486c88084188 Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.org>
+Date: Mon, 26 Nov 2018 19:46:58 +0000
+Subject: [PATCH] net: lan78xx: Support auto-downshift to 100Mb/s
+
+Ethernet cables with faulty or missing pairs (specifically pairs C and
+D) allow auto-negotiation to 1000Mbs, but do not support the successful
+establishment of a link. Add a DT property, "microchip,downshift-after",
+to configure the number of auto-negotiation failures after which it
+falls back to 100Mbs. Valid values are 2, 3, 4, 5 and 0, where 0 means
+never downshift.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.org>
+---
+ .../bindings/net/microchip,lan78xx.txt        |  3 +++
+ drivers/net/phy/microchip.c                   | 27 +++++++++++++++++++
+ include/linux/microchipphy.h                  |  8 ++++++
+ 3 files changed, 38 insertions(+)
+[7.4: upstream lan88xx has the downshift tunable; the DT property now only sets priv->downshift_cnt, applied by config_init. Binding .txt is gone upstream, doc hunk dropped]
+
+--- a/drivers/net/phy/microchip.c
++++ b/drivers/net/phy/microchip.c
+@@ -267,6 +267,7 @@ static int lan88xx_probe(struct phy_device *phydev)
+ 	struct device *dev = &phydev->mdio.dev;
+ 	struct lan88xx_priv *priv;
+ 	u32 led_modes[4];
++	u32 downshift_after = 0;
+ 	int len;
+ 
+ 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+@@ -297,6 +298,24 @@ static int lan88xx_probe(struct phy_device *phydev)
+ 		return -EINVAL;
+ 	}
+ 
++	if (!of_property_read_u32(dev->of_node,
++				  "microchip,downshift-after",
++				  &downshift_after)) {
++		switch (downshift_after) {
++		case 2:
++		case 3:
++		case 4:
++		case 5:
++			priv->downshift_cnt = downshift_after;
++			break;
++		case 0: // Disable completely
++			priv->downshift_cnt = DOWNSHIFT_DEV_DISABLE;
++			break;
++		default:
++			return -EINVAL;
++		}
++	}
++
+ 	/* these values can be used to identify internal PHY */
+ 	priv->chip_id = phy_read_mmd(phydev, 3, LAN88XX_MMD3_CHIP_ID);
+ 	priv->chip_rev = phy_read_mmd(phydev, 3, LAN88XX_MMD3_CHIP_REV);
