@@ -1,0 +1,140 @@
+From cd909b668132acd6f846336f15abf5185cfc4dbc Mon Sep 17 00:00:00 2001
+From: Sebastian Kropatsch <seb-dev@mail.de>
+Date: Wed, 12 Jun 2024 22:48:11 +0200
+Subject: [PATCH 2/5] arm64: dts: rockchip: Fix regulators, gmac and naming on
+ NanoPi R6C/R6S
+
+Fix the alphabetical ordering in some nodes and rename some regulators
+and pins to match the schematics [1][2] as well as to adhere to
+preferred naming schemes.
+
+In addition to that:
+* vcc_3v3_sd_s0: Fix voltage to be 3.3V
+* vcc3v3_pcie:
+    - Move to NanoPi R6C, this power switch is not available on R6S
+    - Fix vin-supply (is vcc_5v0 per schematics)
+    - Add gpios/pincrtl to enable power
+* vcc5v0_usb: Remove this regulator since according to the schematics,
+  vcc5v0_host_20 and vcc5v0_usb_otg0 are directly powered by vcc_5v0
+* gmac1: Add rx_delay of 0 (no delay since phy-mode = "rgmii-rxid")
+* rgmii_phy1: Add phy-supply as seen in schematics
+* pcie2*:
+    - Add pinctrl reset pins
+    - Update vpcie3v3-supply to match the schematics
+* sdhci: Add vmmc-supply and vqmmc-supply
+
+Links:
+[1] https://wiki.friendlyelec.com/wiki/images/f/f7/NanoPi_R6C_2302_SCH.PDF
+[2] https://wiki.friendlyelec.com/wiki/images/2/2f/NanoPi_R6S_2208_SCH.PDF
+
+Fixes: f1b11f43b3e9 ("arm64: dts: rockchip: Add support for NanoPi R6S")
+Signed-off-by: Sebastian Kropatsch <seb-dev@mail.de>
+---
+ .../boot/dts/rockchip/rk3588s-nanopi-r6.dtsi  | 169 +++++++++---------
+ .../boot/dts/rockchip/rk3588s-nanopi-r6c.dts  |  28 +++
+ .../boot/dts/rockchip/rk3588s-nanopi-r6s.dts  |   5 +
+ 3 files changed, 122 insertions(+), 80 deletions(-)
+[7.4: R6 common nodes moved to rk3588s-nanopi.dtsi upstream (shared with M6) which already has the pcie perst pins, pcie/usb supply fixes; remaining fixes (sd 3.3V, gmac1 rx_delay, phy/eMMC supplies, npu always-on, R6C M.2 power switch) added as R6-only overrides, label renames dropped]
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -9,10 +9,10 @@ gpio-keys {
+ 		pinctrl-0 = <&key1_pin>;
+ 
+ 		button-user {
+-			label = "User";
+-			linux,code = <BTN_1>;
+-			gpios = <&gpio1 RK_PC0 GPIO_ACTIVE_LOW>;
+ 			debounce-interval = <50>;
++			gpios = <&gpio1 RK_PC0 GPIO_ACTIVE_LOW>;
++			label = "User Button";
++			linux,code = <BTN_1>;
+ 		};
+ 	};
+ 
+@@ -61,6 +61,10 @@ vcc5v0_usb_otg0: regulator-vcc5v0-usb-otg0 {
+ 	};
+ };
+ 
++&gmac1 {
++	rx_delay = <0x00>;
++};
++
+ &pinctrl {
+ 	gpio-key {
+ 		key1_pin: key1-pin {
+@@ -96,3 +100,24 @@ typec5v_pwren: typec5v-pwren {
+ 		};
+ 	};
+ };
++
++/* RTL8211F-CG Ethernet */
++&rgmii_phy1 {
++	phy-supply = <&vcc_3v3_s0>;
++};
++
++/* eMMC */
++&sdhci {
++	vmmc-supply = <&vcc_3v3_s3>;
++	vqmmc-supply = <&vcc_1v8_s3>;
++};
++
++&vcc_3v3_sd_s0 {
++	regulator-max-microvolt = <3300000>;
++	regulator-min-microvolt = <3300000>;
++};
++
++&vdd_npu_s0 {
++	regulator-always-on;
++	regulator-boot-on;
++};
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6c.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6c.dts
+@@ -7,8 +7,36 @@
+ / {
+ 	model = "FriendlyElec NanoPi R6C";
+ 	compatible = "friendlyarm,nanopi-r6c", "rockchip,rk3588s";
++
++	/* MP2143DJ power switch (U9536 in schematics) */
++	vcc3v3_pcie: regulator-vcc3v3-pcie {
++		compatible = "regulator-fixed";
++		enable-active-high;
++		gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_HIGH>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pcie20x1_2_con_pwren>;
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-name = "vcc3v3_pcie";
++		vin-supply = <&vcc5v0_sys>;
++	};
+ };
+ 
+ &lan2_led {
+ 	label = "user_led";
+ };
++
++/* M.2 M-Key socket */
++&pcie2x1l2 {
++	vpcie3v3-supply = <&vcc3v3_pcie>;
++};
++
++&pinctrl {
++	pcie {
++		pcie20x1_2_con_pwren: pcie20x1-2-con-pwren {
++			rockchip,pins = <3 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++};
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts
+@@ -12,3 +12,8 @@ / {
+ &lan2_led {
+ 	label = "lan2_led";
+ };
++
++/* RTL8125BG Ethernet */
++&pcie2x1l2 {
++	vpcie3v3-supply = <&vcc_3v3_s3>;
++};

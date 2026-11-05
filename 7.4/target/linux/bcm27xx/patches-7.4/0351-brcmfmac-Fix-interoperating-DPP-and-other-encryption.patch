@@ -1,0 +1,38 @@
+From a0afc80dea8b8133398734a7049b911e85f9762d Mon Sep 17 00:00:00 2001
+From: Kurt Lee <kurt.lee@cypress.com>
+Date: Thu, 20 Aug 2020 03:07:02 -0500
+Subject: [PATCH] brcmfmac: Fix interoperating DPP and other encryption network
+ access
+
+1. If firmware supports 4-way handshake offload but not supports DPP
+4-way offload, when user first connects encryption network, driver will
+set "sup_wpa 1" to firmware, but it will further result in DPP
+connection failure since firmware won't send EAPOL frame to host.
+
+2. Fix DPP AP mode handling action frames.
+
+3. For some firmware without fwsup support, the join procedure will be
+skipped due to "sup_wpa" iovar returning not-support. Check the fwsup
+feature before do such iovar.
+
+Signed-off-by: Kurt Lee <kurt.lee@cypress.com>
+Signed-off-by: Double Lo <double.lo@cypress.com>
+Signed-off-by: Chi-hsien Lin <chi-hsien.lin@cypress.com>
+---
+ .../broadcom/brcm80211/brcmfmac/cfg80211.c    | 67 ++++++++++---------
+ .../broadcom/brcm80211/brcmfmac/p2p.c         |  5 ++
+ 2 files changed, 42 insertions(+), 30 deletions(-)
+[7.4: conflicts resolved as in rpi-7.4.y 078aa464d4fb]
+
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
+@@ -2534,6 +2534,9 @@ brcmf_cfg80211_connect(struct wiphy *wiphy, struct net_device *ndev,
+ 				err = -EINVAL;
+ 				goto done;
+ 			}
++		} else if (!sme->crypto.psk &&
++			   profile->use_fwsup != BRCMF_PROFILE_FWSUP_1X) {
++			profile->use_fwsup = BRCMF_PROFILE_FWSUP_NONE;
+ 		}
+ 		if (profile->use_fwsup != BRCMF_PROFILE_FWSUP_NONE) {
+ 			/* enable firmware supplicant for this interface */

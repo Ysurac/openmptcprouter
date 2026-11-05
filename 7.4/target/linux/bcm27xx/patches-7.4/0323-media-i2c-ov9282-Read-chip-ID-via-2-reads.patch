@@ -1,0 +1,39 @@
+From 43b59830919e10364eb025369b353c649bfd1579 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Wed, 11 Oct 2023 11:12:41 +0100
+Subject: [PATCH] media: i2c: ov9282: Read chip ID via 2 reads
+
+Vision Components have made an OV9281 module which blocks reading
+back the majority of registers to comply with NDAs, and in doing
+so doesn't allow auto-increment register reading as used when
+reading the chip ID.
+
+Use two reads and manually combine the results.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/media/i2c/ov9282.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+[7.4: conflicts resolved as in rpi-7.4.y 27e3de3a91b6]
+
+--- a/drivers/media/i2c/ov9282.c
++++ b/drivers/media/i2c/ov9282.c
+@@ -975,12 +975,16 @@ static int ov9282_disable_streams(struct v4l2_subdev *sd,
+ static int ov9282_detect(struct ov9282 *ov9282)
+ {
+ 	int ret;
+-	u64 val;
++	u64 val, msb;
+ 
+-	ret = cci_read(ov9282->regmap, OV9282_REG_ID, &val, NULL);
++	ret = cci_read(ov9282->regmap, CCI_REG8(0x300b), &val, NULL);
++	if (ret)
++		return ret;
++	ret = cci_read(ov9282->regmap, CCI_REG8(0x300a), &msb, NULL);
+ 	if (ret)
+ 		return ret;
+ 
++	val |= (msb << 8);
+ 	if (val != OV9282_ID) {
+ 		dev_err(ov9282->dev, "chip id mismatch: %x!=%llx",
+ 			OV9282_ID, val);

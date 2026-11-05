@@ -325,11 +325,8 @@ $(eval $(call KernelPackage,crypto-gf128))
 define KernelPackage/crypto-ghash
   TITLE:=GHASH digest CryptoAPI module
   DEPENDS:=+kmod-crypto-gf128 +kmod-crypto-hash
-  KCONFIG:= \
-	CONFIG_CRYPTO_GHASH \
-	CONFIG_CRYPTO_GHASH_ARM_CE
-  FILES:=$(LINUX_DIR)/crypto/ghash-generic.ko
-  AUTOLOAD:=$(call AutoLoad,09,ghash-generic)
+  # generic GHASH moved to lib/crypto (CRYPTO_LIB_GF128HASH), only the arch drivers are left
+  KCONFIG:=CONFIG_CRYPTO_GHASH_ARM_CE
   $(call AddDepends/crypto)
 endef
 

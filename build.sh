@@ -698,6 +698,40 @@ if [ "$OMR_KERNEL" = "7.4" ]; then
 	echo "Set to kernel 7.4 for x86 arch"
 	find target/linux/x86 -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
 	echo "Done"
+	echo "Set to kernel 7.4 for armsr"
+	find target/linux/armsr -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.4 for mediatek"
+	find target/linux/mediatek -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.4 for bcm27xx"
+	find target/linux/bcm27xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	# vc04_services drivers moved out of staging in rpi-7.4.y
+	sed -i -e 's%staging/vc04_services/bcm2835-isp/%media/platform/broadcom/bcm2835-isp/%' \
+		-e 's%staging/vc04_services/vc-sm-cma/%platform/raspberrypi/vc-sm-cma/%' \
+		-e 's%staging/vc04_services/vchiq-mmal/%platform/raspberrypi/vchiq-mmal/%' target/linux/bcm27xx/modules/video.mk
+	echo "Done"
+	echo "Set to kernel 7.4 for qualcommax"
+	find target/linux/qualcommax -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.4 for ipq40xx"
+	find target/linux/ipq40xx -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.4 for ipq806x"
+	find target/linux/ipq806x -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.4 for mvebu"
+	find target/linux/mvebu -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.4 for rockchip"
+	find target/linux/rockchip -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.4 for sunxi"
+	find target/linux/sunxi -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
+	echo "Set to kernel 7.4 for ramips"
+	find target/linux/ramips -type f -name Makefile -exec sed -i 's%KERNEL_PATCHVER:=6.18%KERNEL_PATCHVER:=7.4%g' {} \;
+	echo "Done"
 	echo "CONFIG_VERSION_CODE=7.4" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-gpio-button-hotplug is not set" >> ".config"
 	echo "# CONFIG_PACKAGE_kmod-meraki-mx100 is not set" >> ".config"

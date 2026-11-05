@@ -12,7 +12,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
 ---
 --- a/drivers/remoteproc/qcom_q6v5_wcss_sec.c
 +++ b/drivers/remoteproc/qcom_q6v5_wcss_sec.c
-@@ -25,6 +25,8 @@
+@@ -26,6 +26,8 @@
  
  #define Q6_WAIT_TIMEOUT			(5 * HZ)
  
@@ -21,7 +21,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  struct wcss_sec {
  	struct device *dev;
  	struct qcom_rproc_glink glink_subdev;
-@@ -35,6 +37,7 @@ struct wcss_sec {
+@@ -36,6 +38,7 @@ struct wcss_sec {
  	void *mem_region;
  	size_t mem_size;
  	const struct wcss_data *desc;
@@ -29,7 +29,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  
  	struct mbox_client mbox_client;
  	struct mbox_chan *mbox_chan;
-@@ -137,7 +140,8 @@ static int wcss_sec_load(struct rproc *rproc, const struct firmware *fw)
+@@ -138,7 +141,8 @@ static int wcss_sec_load(struct rproc *rproc, const struct firmware *fw)
  {
  	struct wcss_sec *wcss = rproc->priv;
  	struct device *dev = wcss->dev;
@@ -39,7 +39,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  
  	if (wcss->desc->use_tmelcom) {
  		wcss->metadata = qcom_mdt_read_metadata(fw, &wcss->metadata_len,
-@@ -161,6 +165,28 @@ static int wcss_sec_load(struct rproc *rproc, const struct firmware *fw)
+@@ -162,6 +166,28 @@ static int wcss_sec_load(struct rproc *rproc, const struct firmware *fw)
  				    wcss->mem_phys, wcss->mem_size, &wcss->mem_reloc);
  		if (ret)
  			return ret;
@@ -68,7 +68,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  	}
  
  	qcom_pil_info_store("wcss", wcss->mem_phys, wcss->mem_size);
-@@ -291,17 +317,20 @@ static int wcss_sec_probe(struct platform_device *pdev)
+@@ -292,17 +318,20 @@ static int wcss_sec_probe(struct platform_device *pdev)
  	struct wcss_sec *wcss;
  	struct clk *sleep_clk;
  	struct clk *int_clk;
@@ -93,7 +93,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  	if (!rproc) {
  		dev_err(&pdev->dev, "failed to allocate rproc\n");
  		return -ENOMEM;
-@@ -310,6 +339,7 @@ static int wcss_sec_probe(struct platform_device *pdev)
+@@ -311,6 +340,7 @@ static int wcss_sec_probe(struct platform_device *pdev)
  	wcss = rproc->priv;
  	wcss->dev = &pdev->dev;
  	wcss->desc = desc;
