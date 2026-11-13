@@ -1,0 +1,129 @@
+From 789e6a844b51bf6362a7e7f551553ba988f3dc92 Mon Sep 17 00:00:00 2001
+From: Paolo Abeni <pabeni@redhat.com>
+Date: Fri, 7 Aug 2026 15:49:01 +0200
+Subject: [PATCH] mptcp: move the retrans loop to a separate helper
+
+This is a cleanup in order to make the next patch simpler.
+
+No functional change intended.
+
+Tested-by: Gang Yan <yangang@kylinos.cn>
+Tested-by: Geliang Tang <geliang@kernel.org>
+Acked-by: Geliang Tang <geliang@kernel.org>
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260807-net-next-mptcp-oooq-pruning-v3-1-dbc1eb853cc3@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+[ adapt to 6.18: 6.18.y already has "mptcp: move the stale logic out of
+  retrans scheduler", __mptcp_retrans() keeps calling mptcp_pm_chk_stale()
+  first ]
+---
+ net/mptcp/protocol.c | 76 +++++++++++++++++++++++++-------------------
+ 1 file changed, 44 insertions(+), 32 deletions(-)
+
+diff --git a/net/mptcp/protocol.c b/net/mptcp/protocol.c
+index df09dcf..ba34171 100644
+--- a/net/mptcp/protocol.c
++++ b/net/mptcp/protocol.c
+@@ -2677,42 +2677,14 @@ static void mptcp_check_fastclose(struct mptcp_sock *msk)
+ 	sk_error_report(sk);
+ }
+ 
+-static void __mptcp_retrans(struct sock *sk)
++/* Retransmit the specified data fragment on all the selected subflows. */
++static int __mptcp_push_retrans(struct sock *sk, struct mptcp_data_frag *dfrag)
+ {
+ 	struct mptcp_sendmsg_info info = { .data_lock_held = true, };
+ 	struct mptcp_sock *msk = mptcp_sk(sk);
+ 	struct mptcp_subflow_context *subflow;
+-	struct mptcp_data_frag *dfrag;
+ 	struct sock *ssk;
+-	int ret, err;
+-	u16 len = 0;
+-
+-	mptcp_pm_chk_stale(msk);
+-
+-	mptcp_clean_una_wakeup(sk);
+-
+-	err = mptcp_sched_get_retrans(msk);
+-	dfrag = mptcp_rtx_head(sk);
+-	if (!dfrag) {
+-		if (mptcp_data_fin_enabled(msk)) {
+-			struct inet_connection_sock *icsk = inet_csk(sk);
+-
+-			WRITE_ONCE(icsk->icsk_retransmits,
+-				   icsk->icsk_retransmits + 1);
+-			mptcp_set_datafin_timeout(sk);
+-			mptcp_send_ack(msk);
+-
+-			goto reset_timer;
+-		}
+-
+-		if (!mptcp_send_head(sk))
+-			goto clear_scheduled;
+-
+-		goto reset_timer;
+-	}
+-
+-	if (err)
+-		goto reset_timer;
++	int ret, len = 0;
+ 
+ 	mptcp_for_each_subflow(msk, subflow) {
+ 		if (READ_ONCE(subflow->scheduled)) {
+@@ -2740,7 +2712,7 @@ static void __mptcp_retrans(struct sock *sk)
+ 			    !msk->allow_subflows) {
+ 				spin_unlock_bh(&msk->fallback_lock);
+ 				release_sock(ssk);
+-				goto clear_scheduled;
++				return -1;
+ 			}
+ 
+ 			while (info.sent < info.limit) {
+@@ -2763,6 +2735,46 @@ static void __mptcp_retrans(struct sock *sk)
+ 			release_sock(ssk);
+ 		}
+ 	}
++	return len;
++}
++
++static void __mptcp_retrans(struct sock *sk)
++{
++	struct mptcp_sock *msk = mptcp_sk(sk);
++	struct mptcp_subflow_context *subflow;
++	struct mptcp_data_frag *dfrag;
++	int err, len;
++
++	mptcp_pm_chk_stale(msk);
++
++	mptcp_clean_una_wakeup(sk);
++
++	err = mptcp_sched_get_retrans(msk);
++	dfrag = mptcp_rtx_head(sk);
++	if (!dfrag) {
++		if (mptcp_data_fin_enabled(msk)) {
++			struct inet_connection_sock *icsk = inet_csk(sk);
++
++			WRITE_ONCE(icsk->icsk_retransmits,
++				   icsk->icsk_retransmits + 1);
++			mptcp_set_datafin_timeout(sk);
++			mptcp_send_ack(msk);
++
++			goto reset_timer;
++		}
++
++		if (!mptcp_send_head(sk))
++			goto clear_scheduled;
++
++		goto reset_timer;
++	}
++
++	if (err)
++		goto reset_timer;
++
++	len = __mptcp_push_retrans(sk, dfrag);
++	if (len < 0)
++		goto clear_scheduled;
+ 
+ 	msk->bytes_retrans += len;
+ 	dfrag->already_sent = max(dfrag->already_sent, len);
