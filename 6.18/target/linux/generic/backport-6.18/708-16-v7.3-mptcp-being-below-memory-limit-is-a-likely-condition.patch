@@ -1,0 +1,34 @@
+From a4257a91af7a77a8347d33413ec9e54106f7ff48 Mon Sep 17 00:00:00 2001
+From: Paolo Abeni <pabeni@redhat.com>
+Date: Tue, 8 Sep 2026 16:07:19 +0200
+Subject: [PATCH] mptcp: being below memory limit is a likely() condition
+
+The current compiler hint annotation is wrong, due to inverted
+logic in the previous revision of the relevant code.
+
+Fixes: e468d371180d ("mptcp: implemented OoO queue pruning")
+Cc: stable@vger.kernel.org
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260908-net-mptcp-misc-fixes-7-3-rc1-v2-14-df1de70348b6@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+---
+ net/mptcp/protocol.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/mptcp/protocol.c b/net/mptcp/protocol.c
+index fd457d3..4c82ead 100644
+--- a/net/mptcp/protocol.c
++++ b/net/mptcp/protocol.c
+@@ -287,8 +287,8 @@ static void mptcp_prune_ofo_queue(struct sock *sk,
+  */
+ static bool mptcp_can_ingest(const struct sock *sk)
+ {
+-	return unlikely(sk_rmem_alloc_get(sk) <= READ_ONCE(sk->sk_rcvbuf)) ||
+-			__mptcp_check_fallback(mptcp_sk(sk));
++	return likely(sk_rmem_alloc_get(sk) <= READ_ONCE(sk->sk_rcvbuf)) ||
++	       __mptcp_check_fallback(mptcp_sk(sk));
+ }
+ 
+ static bool mptcp_try_rmem_schedule(struct sock *sk, const struct sk_buff *skb)
