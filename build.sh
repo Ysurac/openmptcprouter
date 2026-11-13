@@ -803,6 +803,13 @@ if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-occitan.patch; then
 	patch -N -p1 -s < ../../patches/luci-occitan.patch
 	#sh feeds/luci/build/i18n-add-language.sh oc
 fi
+# openwrt/luci#8893: wifi-iface sections spanning several radios (MLO), used by
+# the multi-radio wireless.js in the OMR luci-mod-network. Not on 6.6, whose
+# older LuCI the patch doesn't fit: single-radio networks work without it
+if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-wifi-multi-radio.patch >/dev/null 2>&1 && \
+   patch -N -p1 -s --dry-run < ../../patches/luci-wifi-multi-radio.patch >/dev/null 2>&1; then
+	patch -N -p1 -s < ../../patches/luci-wifi-multi-radio.patch
+fi
 #if [ -d luci/modules/luci-mod-status ]; then
 #	if ! patch -Rf -N -p1 -s --dry-run < ../../patches/luci-nftables.patch; then
 #		patch -N -p1 -s < ../../patches/luci-nftables.patch
