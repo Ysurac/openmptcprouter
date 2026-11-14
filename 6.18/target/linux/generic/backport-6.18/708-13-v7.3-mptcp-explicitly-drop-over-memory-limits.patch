@@ -1,0 +1,158 @@
+From e0e4d56b050597a690b4dd1c281af532469b0636 Mon Sep 17 00:00:00 2001
+From: Paolo Abeni <pabeni@redhat.com>
+Date: Fri, 7 Aug 2026 15:49:04 +0200
+Subject: [PATCH] mptcp: explicitly drop over memory limits
+
+Currently the enforcement of the rcvbuf constraint is implemented
+when moving the skbs into the msk receive or OoO queue, keeping the
+incoming skbs in the subflow queue when over limits.
+
+Under significant memory pressure the above can cause permanent data
+transfer stalls, as the skb needed to make forward progress can be
+stuck in a subflow queue.
+
+Over memory limits, drop the incoming skb, relying on MPTCP-level
+retransmissions.
+
+Note that fallback socket must perform the limit before the skb reaches
+the subflow-level queue, as dropping an in-sequence already acked skb
+would break the stream.
+
+This is not a complete fix for the stall issue, as the drop strategy
+needs refinements that will come in the next patches.
+
+Signed-off-by: Paolo Abeni <pabeni@redhat.com>
+Reviewed-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260807-net-next-mptcp-oooq-pruning-v3-4-dbc1eb853cc3@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+[ adapt to 6.18: no MPTCP-level RX backlog (added in 6.19): the
+  __mptcp_add_backlog() and mptcp_can_spool_backlog() hunks and the
+  BacklogDrop counter are left out, mptcp_over_limit() only checks
+  sk_rmem_alloc, and the "stop while over sk_rcvbuf" checks removed are the
+  ones of __mptcp_move_skbs_from_subflow() and __mptcp_move_skbs(): data no
+  longer waits in the subflow receive queues ]
+---
+ net/mptcp/mib.c      |  1 +
+ net/mptcp/mib.h      |  1 +
+ net/mptcp/options.c  | 30 +++++++++++++++++++++++++++---
+ net/mptcp/protocol.c | 20 ++++++++++----------
+ 4 files changed, 39 insertions(+), 13 deletions(-)
+
+diff --git a/net/mptcp/mib.c b/net/mptcp/mib.c
+index f23fda0..fad2343 100644
+--- a/net/mptcp/mib.c
++++ b/net/mptcp/mib.c
+@@ -85,6 +85,7 @@ static const struct snmp_mib mptcp_snmp_list[] = {
+ 	SNMP_MIB_ITEM("SimultConnectFallback", MPTCP_MIB_SIMULTCONNFALLBACK),
+ 	SNMP_MIB_ITEM("FallbackFailed", MPTCP_MIB_FALLBACKFAILED),
+ 	SNMP_MIB_ITEM("WinProbe", MPTCP_MIB_WINPROBE),
++	SNMP_MIB_ITEM("RcvPruned", MPTCP_MIB_RCVPRUNED),
+ };
+ 
+ /* mptcp_mib_alloc - allocate percpu mib counters
+diff --git a/net/mptcp/mib.h b/net/mptcp/mib.h
+index 812218b..152337f 100644
+--- a/net/mptcp/mib.h
++++ b/net/mptcp/mib.h
+@@ -88,6 +88,7 @@ enum linux_mptcp_mib_field {
+ 	MPTCP_MIB_SIMULTCONNFALLBACK,	/* Simultaneous connect */
+ 	MPTCP_MIB_FALLBACKFAILED,	/* Can't fallback due to msk status */
+ 	MPTCP_MIB_WINPROBE,		/* MPTCP-level zero window probe */
++	MPTCP_MIB_RCVPRUNED,		/* Dropped due to memory constraints */
+ 	__MPTCP_MIB_MAX
+ };
+ 
+diff --git a/net/mptcp/options.c b/net/mptcp/options.c
+index a7f048a..65c6637 100644
+--- a/net/mptcp/options.c
++++ b/net/mptcp/options.c
+@@ -1207,8 +1207,32 @@ static bool add_addr_hmac_valid(struct mptcp_sock *msk,
+ 	return hmac == mp_opt->ahmac;
+ }
+ 
+-/* Return false in case of error (or subflow has been reset),
+- * else return true.
++static bool mptcp_over_limit(struct sock *sk, struct sock *ssk,
++			     const struct sk_buff *skb)
++{
++	u32 rcvbuf = READ_ONCE(sk->sk_rcvbuf);
++
++	if (likely((u32)sk_rmem_alloc_get(sk) <= rcvbuf))
++		return false;
++
++	/* Avoid silently dropping pure acks, fin, rst or already-acked segm. */
++	if (TCP_SKB_CB(skb)->seq == TCP_SKB_CB(skb)->end_seq ||
++	    TCP_SKB_CB(skb)->tcp_flags & (TCPHDR_FIN | TCPHDR_RST) ||
++	    !after(TCP_SKB_CB(skb)->end_seq, tcp_sk(ssk)->rcv_nxt))
++		return false;
++
++	/* Dropped due to memory constraints, schedule an ack. */
++	inet_csk(ssk)->icsk_ack.pending |= ICSK_ACK_NOMEM | ICSK_ACK_NOW;
++	inet_csk_schedule_ack(ssk);
++
++	/* Plain TCP (fallback) and skb is dropped before the TCP recv queue. */
++	NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPRCVQDROP);
++
++	return true;
++}
++
++/* Return false when the caller must drop the packet, i.e. in case of error,
++ * subflow has been reset, or over memory limits.
+  */
+ bool mptcp_incoming_options(struct sock *sk, struct sk_buff *skb)
+ {
+@@ -1234,7 +1258,7 @@ bool mptcp_incoming_options(struct sock *sk, struct sk_buff *skb)
+ 
+ 		__mptcp_data_acked(subflow->conn);
+ 		mptcp_data_unlock(subflow->conn);
+-		return true;
++		return !mptcp_over_limit(subflow->conn, sk, skb);
+ 	}
+ 
+ 	mptcp_get_options(skb, &mp_opt);
+diff --git a/net/mptcp/protocol.c b/net/mptcp/protocol.c
+index 08d5258..4675f7f 100644
+--- a/net/mptcp/protocol.c
++++ b/net/mptcp/protocol.c
+@@ -386,6 +386,16 @@ static bool __mptcp_move_skb(struct sock *sk, struct sk_buff *skb)
+ 
+ 	mptcp_borrow_fwdmem(sk, skb);
+ 
++	/* Can't drop packets for fallback socket this late, or the stream
++	 * will break.
++	 */
++	if (unlikely(sk_rmem_alloc_get(sk) > READ_ONCE(sk->sk_rcvbuf)) &&
++	    !__mptcp_check_fallback(msk)) {
++		MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_RCVPRUNED);
++		mptcp_drop(sk, skb);
++		return false;
++	}
++
+ 	if (MPTCP_SKB_CB(skb)->map_seq == msk->ack_seq) {
+ 		/* in sequence */
+ 		msk->bytes_received += copy_len;
+@@ -689,9 +699,6 @@ static bool __mptcp_move_skbs_from_subflow(struct mptcp_sock *msk,
+ 		struct sk_buff *skb;
+ 		bool fin;
+ 
+-		if (sk_rmem_alloc_get(sk) > sk->sk_rcvbuf)
+-			break;
+-
+ 		/* try to move as much data as available */
+ 		map_remaining = subflow->map_data_len -
+ 				mptcp_subflow_get_map_offset(subflow);
+@@ -2158,13 +2165,6 @@ static bool __mptcp_move_skbs(struct sock *sk)
+ 		struct sock *ssk;
+ 		bool slowpath;
+ 
+-		/*
+-		 * As an optimization avoid traversing the subflows list
+-		 * and ev. acquiring the subflow socket lock before baling out
+-		 */
+-		if (sk_rmem_alloc_get(sk) > sk->sk_rcvbuf)
+-			break;
+-
+ 		subflow = __mptcp_first_ready_from(msk, subflow);
+ 		if (!subflow)
+ 			break;
