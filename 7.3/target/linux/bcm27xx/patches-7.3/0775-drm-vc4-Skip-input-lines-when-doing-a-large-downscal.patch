@@ -1,0 +1,325 @@
+From 11d29aa43f179653e0a128f2c8d9a45c25afbfd0 Mon Sep 17 00:00:00 2001
+From: Dave Stevenson <dave.stevenson@raspberrypi.com>
+Date: Tue, 13 Jan 2026 18:15:33 +0000
+Subject: [PATCH] drm/vc4: Skip input lines when doing a large downscale
+
+The TPZ filter wants ideally 3 lines of image to give good quality
+downscaling. More than that leads to excessive SDRAM bandwidth
+for no gain.
+
+If the downsample factor allows for it, reduce the programmed image
+height and increase the pitch to compensate.
+
+This currently does not handle T-format images where we need to
+configure it slightly differently.
+
+Signed-off-by: Dave Stevenson <dave.stevenson@raspberrypi.com>
+---
+ drivers/gpu/drm/vc4/vc4_drv.h   |  5 +++
+ drivers/gpu/drm/vc4/vc4_plane.c | 63 ++++++++++++++++++++++++++-------
+ drivers/gpu/drm/vc4/vc4_regs.h  |  4 +++
+ 3 files changed, 59 insertions(+), 13 deletions(-)
+
+--- a/drivers/gpu/drm/vc4/vc4_drv.h
++++ b/drivers/gpu/drm/vc4/vc4_drv.h
+@@ -459,6 +459,11 @@ struct vc4_plane_state {
+ 	 */
+ 	bool is_yuv444_unity;
+ 
++	/* Skip lines on large downscales to avoid consuming too much SDRAM
++	 * bandwidth
++	 */
++	unsigned int vdownsample;
++
+ 	/* Our allocation in LBM for temporary storage during scaling. */
+ 	unsigned int lbm_handle;
+ 
+--- a/drivers/gpu/drm/vc4/vc4_plane.c
++++ b/drivers/gpu/drm/vc4/vc4_plane.c
+@@ -686,36 +686,18 @@ static void vc4_write_tpz(struct vc4_plane_state *vc4_state, u32 src, u32 dst)
+ #define PHASE_BITS 6
+ 
+ static void vc4_write_ppf(struct vc4_plane_state *vc4_state, u32 src, u32 dst,
+-			  u32 xy, int channel, int chroma_offset,
+-			  bool no_interpolate)
++			  u32 xy, int channel, unsigned int subsample,
++			  int chroma_offset, bool no_interpolate)
+ {
+ 	struct vc4_dev *vc4 = to_vc4_dev(vc4_state->base.plane->dev);
++	unsigned int sub_shift = subsample == 2 ? 1 : 0;
+ 	u32 scale = src / dst;
+ 	s32 offset, offset2;
+ 	s32 phase;
+ 
+ 	WARN_ON_ONCE(vc4->gen > VC4_GEN_6_D);
+ 
+-	/*
+-	 * Start the phase at 1/2 pixel from the 1st pixel at src_x.
+-	 * 1/4 pixel for YUV, plus the offset for chroma siting.
+-	 */
+-	if (channel) {
+-		/*
+-		 * The phase is relative to scale_src->x, so shift it for
+-		 * display list's x value
+-		 */
+-		offset = (xy & 0x1ffff) >> (16 - PHASE_BITS) >> 1;
+-		offset -= chroma_offset >> (17 - PHASE_BITS);
+-		offset += -(1 << PHASE_BITS >> 2);
+-	} else {
+-		/*
+-		 * The phase is relative to scale_src->x, so shift it for
+-		 * display list's x value
+-		 */
+-		offset = (xy & 0xffff) >> (16 - PHASE_BITS);
+-		offset += -(1 << PHASE_BITS >> 1);
+-
++	if (!channel) {
+ 		/*
+ 		 * This is a kludge to make sure the scaling factors are
+ 		 * consistent with YUV's luma scaling. We lose 1-bit precision
+@@ -724,6 +706,25 @@ static void vc4_write_ppf(struct vc4_plane_state *vc4_state, u32 src, u32 dst,
+ 		scale &= ~1;
+ 	}
+ 
++	/*
++	 * Start the phase at 1/2 pixel from the 1st pixel at src_x, less the
++	 * chroma siting offset. The phase is relative to scale_src->x, so
++	 * shift it for the display list's x value. Everything is computed in
++	 * luma pixels and then converted to this channel's pixels, so that a
++	 * subsampled chroma channel lands on the same position as the luma.
++	 */
++	offset = (xy & ((0x10000 << sub_shift) - 1)) >> (16 - PHASE_BITS);
++	offset -= chroma_offset >> (16 - PHASE_BITS);
++	offset -= 1 << PHASE_BITS >> 1;
++	offset >>= sub_shift;
++
++	/*
++	 * Output pixel r samples the source at (r + 1/2) * scale - 1/2, so the
++	 * phase the first output pixel starts at needs half a destination
++	 * pixel's worth of source added to it.
++	 */
++	offset += (s32)(scale >> (17 - PHASE_BITS));
++
+ 	/*
+ 	 * There may be a also small error introduced by precision of scale.
+ 	 * Add half of that as a compromise
+@@ -928,7 +929,13 @@ static void vc4_write_scaling_parameters(struct drm_plane_state *state,
+ {
+ 	struct vc4_dev *vc4 = to_vc4_dev(state->plane->dev);
+ 	struct vc4_plane_state *vc4_state = to_vc4_plane_state(state);
++	const struct drm_format_info *info = state->fb->format;
+ 	bool no_interpolate = state->scaling_filter == DRM_SCALING_FILTER_NEAREST_NEIGHBOR;
++	unsigned int hsub = channel ? info->hsub : 1;
++	unsigned int vsub = channel ? info->vsub : 1;
++	/* Chroma siting only has any meaning on a subsampled axis */
++	int siting_h = hsub > 1 ? state->chroma_siting_h : 0;
++	int siting_v = vsub > 1 ? state->chroma_siting_v : 0;
+ 
+ 	if (vc4_state->is_yuv444_unity)
+ 		no_interpolate = 1;
+@@ -939,16 +946,14 @@ static void vc4_write_scaling_parameters(struct drm_plane_state *state,
+ 	if (vc4_state->x_scaling[channel] == VC4_SCALING_PPF) {
+ 		vc4_write_ppf(vc4_state, vc4_state->src_w[channel],
+ 			      vc4_state->crtc_w, vc4_state->src_x, channel,
+-			      state->chroma_siting_h,
+-			      no_interpolate);
++			      hsub, siting_h, no_interpolate);
+ 	}
+ 
+ 	/* Ch0 V-PPF Words 0-1: Scaling Parameters, Context */
+ 	if (vc4_state->y_scaling[channel] == VC4_SCALING_PPF) {
+ 		vc4_write_ppf(vc4_state, vc4_state->src_h[channel],
+ 			      vc4_state->crtc_h, vc4_state->src_y, channel,
+-			      state->chroma_siting_v,
+-			      no_interpolate);
++			      vsub, siting_v, no_interpolate);
+ 		vc4_dlist_write(vc4_state, 0xc0c0c0c0);
+ 	}
+ 
+@@ -960,7 +965,7 @@ static void vc4_write_scaling_parameters(struct drm_plane_state *state,
+ 
+ 	/* Ch0 V-TPZ Words 0-2: Scaling Parameters, Recip, Context */
+ 	if (vc4_state->y_scaling[channel] == VC4_SCALING_TPZ) {
+-		vc4_write_tpz(vc4_state, vc4_state->src_h[channel],
++		vc4_write_tpz(vc4_state, vc4_state->src_h[channel] / vc4_state->vdownsample,
+ 			      vc4_state->crtc_h);
+ 		vc4_dlist_write(vc4_state, 0xc0c0c0c0);
+ 	}
+@@ -1325,7 +1330,8 @@ static u32 vc4_hvs5_get_alpha_blend_mode(struct drm_plane_state *state)
+ 		}
+ 	case VC4_GEN_6_D:
+ 		/* 2712-D configures fixed alpha mode in CTL0 */
+-		return state->pixel_blend_mode == DRM_MODE_BLEND_PREMULTI ?
++		return state->fb->format->has_alpha &&
++		       state->pixel_blend_mode == DRM_MODE_BLEND_PREMULTI ?
+ 			SCALER5_CTL2_ALPHA_PREMULT : 0;
+ 	}
+ }
+@@ -1385,6 +1391,17 @@ static int vc4_plane_mode_set(struct drm_plane *plane,
+ 		return 0;
+ 	}
+ 
++	if (vc4_state->y_scaling[0] == VC4_SCALING_TPZ  &&
++	    vc4_state->src_h[0] / vc4_state->crtc_h > (3 << 16)) {
++		/* Downscaling by more than x3. Reduce the number of lines read
++		 * to avoid exceeding SDRAM bandwidth.
++		 */
++		vc4_state->vdownsample = ((vc4_state->src_h[0] /
++					  (vc4_state->crtc_h * 3)) >> 16) + 1;
++	} else {
++		vc4_state->vdownsample = 1;
++	}
++
+ 	width = vc4_state->src_w[0] >> 16;
+ 	height = vc4_state->src_h[0] >> 16;
+ 
+@@ -1430,6 +1447,9 @@ static int vc4_plane_mode_set(struct drm_plane *plane,
+ 		break;
+ 
+ 	case DRM_FORMAT_MOD_BROADCOM_VC4_T_TILED: {
++		/* Line skipping decimation currently not supported for T-format */
++		vc4_state->vdownsample = 1;
++
+ 		u32 tile_size_shift = 12; /* T tiles are 4kb */
+ 		/* Whole-tile offsets, mostly for setting the pitch. */
+ 		u32 tile_w_shift = fb->format->cpp[0] == 2 ? 6 : 5;
+@@ -1582,6 +1602,9 @@ static int vc4_plane_mode_set(struct drm_plane *plane,
+ 			offsets[i] += pitch[i] * tile * tile_width;
+ 			offsets[i] += src_y / (i ? v_subsample : 1) * tile_width;
+ 			offsets[i] += x_off & ~(i ? 1 : 0);
++
++			pitch[i] |= VC4_SET_FIELD(vc4_state->vdownsample - 1,
++						  SCALER_TILE_SKIP_0);
+ 		}
+ 		break;
+ 	}
+@@ -1659,7 +1682,8 @@ static int vc4_plane_mode_set(struct drm_plane *plane,
+ 				(mix_plane_alpha ? SCALER_POS2_ALPHA_MIX : 0) |
+ 				vc4_hvs4_get_alpha_blend_mode(state) |
+ 				VC4_SET_FIELD(width, SCALER_POS2_WIDTH) |
+-				VC4_SET_FIELD(height, SCALER_POS2_HEIGHT));
++				VC4_SET_FIELD(height / vc4_state->vdownsample,
++					      SCALER_POS2_HEIGHT));
+ 
+ 		/* Position Word 3: Context.  Written by the HVS. */
+ 		vc4_dlist_write(vc4_state, 0xc0c0c0c0);
+@@ -1713,7 +1737,8 @@ static int vc4_plane_mode_set(struct drm_plane *plane,
+ 		vc4_state->pos2_offset = vc4_state->dlist_count;
+ 		vc4_dlist_write(vc4_state,
+ 				VC4_SET_FIELD(width, SCALER5_POS2_WIDTH) |
+-				VC4_SET_FIELD(height, SCALER5_POS2_HEIGHT));
++				VC4_SET_FIELD(height / vc4_state->vdownsample,
++					      SCALER5_POS2_HEIGHT));
+ 
+ 		/* Position Word 3: Context.  Written by the HVS. */
+ 		vc4_dlist_write(vc4_state, 0xc0c0c0c0);
+@@ -1737,18 +1762,22 @@ static int vc4_plane_mode_set(struct drm_plane *plane,
+ 		vc4_dlist_write(vc4_state, 0xc0c0c0c0);
+ 
+ 	/* Pitch word 0 */
+-	vc4_dlist_write(vc4_state, pitch[0]);
++	if (hvs_format != HVS_PIXEL_FORMAT_H264 &&
++	    hvs_format != HVS_PIXEL_FORMAT_YCBCR_10BIT)
++		vc4_dlist_write(vc4_state, pitch[0] * vc4_state->vdownsample);
++	else
++		vc4_dlist_write(vc4_state, pitch[0]);
+ 
+ 	/* Pitch word 1/2 */
+ 	for (i = 1; i < num_planes; i++) {
+ 		if (hvs_format != HVS_PIXEL_FORMAT_H264 &&
+-		    hvs_format != HVS_PIXEL_FORMAT_YCBCR_10BIT) {
++		    hvs_format != HVS_PIXEL_FORMAT_YCBCR_10BIT)
+ 			vc4_dlist_write(vc4_state,
+-					VC4_SET_FIELD(fb->pitches[i],
++					VC4_SET_FIELD(fb->pitches[i] /
++							 vc4_state->vdownsample,
+ 						      SCALER_SRC_PITCH));
+-		} else {
+-			vc4_dlist_write(vc4_state, pitch[1]);
+-		}
++		else
++			vc4_dlist_write(vc4_state, pitch[i]);
+ 	}
+ 
+ 	/* Colorspace conversion words */
+@@ -1962,6 +1991,17 @@ static int vc6_plane_mode_set(struct drm_plane *plane,
+ 	width = vc4_state->src_w[0] >> 16;
+ 	height = vc4_state->src_h[0] >> 16;
+ 
++	if (vc4_state->y_scaling[0] == VC4_SCALING_TPZ &&
++	    vc4_state->src_h[0] / vc4_state->crtc_h > (3 << 16)) {
++		/* Downscaling by more than x3. Reduce the number of lines read
++		 * to avoid exceeding SDRAM bandwidth.
++		 */
++		vc4_state->vdownsample = ((vc4_state->src_h[0] /
++					   (vc4_state->crtc_h * 3)) >> 16) + 1;
++	} else {
++		vc4_state->vdownsample = 1;
++	}
++
+ 	/* SCL1 is used for Cb/Cr scaling of planar formats.  For RGB
+ 	 * and 4:4:4, scl1 should be set to scl0 so both channels of
+ 	 * the scaler do the same thing.  For YUV, the Y plane needs
+@@ -2114,8 +2154,11 @@ static int vc6_plane_mode_set(struct drm_plane *plane,
+ 			 * Finished using the pitch as a pitch, so pack it as the
+ 			 * register value.
+ 			 */
+-			pitch[i] = VC4_SET_FIELD(pitch[i], SCALER6_PTR2_PITCH) |
+-				   VC4_SET_FIELD(fetch_count - 1, SCALER6_PTR2_FETCH_COUNT);
++			pitch[i] = VC4_SET_FIELD(pitch[i], SCALER6_PTR2_TILE_HEIGHT) |
++				   VC4_SET_FIELD(fetch_count - 1,
++						 SCALER6_PTR2_TILE_FETCH_COUNT) |
++				   VC4_SET_FIELD(vc4_state->vdownsample - 1,
++						 SCALER6_PTR2_TILE_LSKIP);
+ 		}
+ 
+ 		break;
+@@ -2138,7 +2181,8 @@ static int vc6_plane_mode_set(struct drm_plane *plane,
+ 	 * In any case we use the alpha property value as the fixed alpha.
+ 	 */
+ 	mix_plane_alpha = state->alpha != DRM_BLEND_ALPHA_OPAQUE &&
+-			  fb->format->has_alpha;
++			  fb->format->has_alpha &&
++			  state->pixel_blend_mode != DRM_MODE_BLEND_PIXEL_NONE;
+ 
+ 	/* Control Word 0: Scaling Configuration & Element Validity*/
+ 	vc4_dlist_write(vc4_state,
+@@ -2176,7 +2220,7 @@ static int vc6_plane_mode_set(struct drm_plane *plane,
+ 	/* Position Word 2: Source Image Size */
+ 	vc4_state->pos2_offset = vc4_state->dlist_count;
+ 	vc4_dlist_write(vc4_state,
+-			VC4_SET_FIELD(height - 1,
++			VC4_SET_FIELD((height / vc4_state->vdownsample) - 1,
+ 				      SCALER6_POS2_SRC_LINES) |
+ 			VC4_SET_FIELD(width - 1,
+ 				      SCALER6_POS2_SRC_WIDTH));
+@@ -2211,7 +2255,7 @@ static int vc6_plane_mode_set(struct drm_plane *plane,
+ 		if (base_format_mod != DRM_FORMAT_MOD_BROADCOM_SAND128 &&
+ 		    base_format_mod != DRM_FORMAT_MOD_BROADCOM_SAND256) {
+ 			vc4_dlist_write(vc4_state,
+-					VC4_SET_FIELD(fb->pitches[i],
++					VC4_SET_FIELD((fb->pitches[i] * vc4_state->vdownsample),
+ 						      SCALER6_PTR2_PITCH));
+ 		} else {
+ 			vc4_dlist_write(vc4_state, pitch[i]);
+@@ -2798,7 +2842,8 @@ struct drm_plane *vc4_plane_init(struct drm_device *dev,
+ 						 BIT(DRM_SCALING_FILTER_DEFAULT) |
+ 						 BIT(DRM_SCALING_FILTER_NEAREST_NEIGHBOR));
+ 
+-	drm_plane_create_chroma_siting_properties(plane, 0, 0);
++	/* MPEG-2 / H.264 / HEVC 4:2:0 siting: H cosited, V interstitial */
++	drm_plane_create_chroma_siting_properties(plane, 0, 0x8000);
+ 
+ 	if (type == DRM_PLANE_TYPE_PRIMARY)
+ 		drm_plane_create_zpos_immutable_property(plane, 0);
+--- a/drivers/gpu/drm/vc4/vc4_regs.h
++++ b/drivers/gpu/drm/vc4/vc4_regs.h
+@@ -1437,4 +1437,8 @@ enum hvs_pixel_format {
+ #define SCALER6_PTR2_PITCH_MASK			VC4_MASK(16, 0)
+ #define SCALER6_PTR2_FETCH_COUNT_MASK		VC4_MASK(26, 16)
+ 
++#define SCALER6_PTR2_TILE_LSKIP_MASK		VC4_MASK(31, 29)
++#define SCALER6_PTR2_TILE_FETCH_COUNT_MASK	VC4_MASK(26, 16)
++#define SCALER6_PTR2_TILE_HEIGHT_MASK		VC4_MASK(16, 0)
++
+ #endif /* VC4_REGS_H */

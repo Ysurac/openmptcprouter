@@ -1,0 +1,25 @@
+From 16393073f36102ddc927b712dd1aba94f86f6c6d Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 20 Feb 2024 10:17:12 +0000
+Subject: [PATCH] Bluetooth: btbcm: Add entry for BCM43439 UART BT
+
+This patch adds the device ID for the BCM4343A2 module, found e.g. in
+the Infineon (Cypress) CYW43439 chip. The required firmware file is
+named 'BCM4343A2.hcd'.
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/bluetooth/btbcm.c | 1 +
+ 1 file changed, 1 insertion(+)
+[7.4: conflicts resolved as in rpi-7.4.y 88ab2fd490f5]
+
+--- a/drivers/bluetooth/btbcm.c
++++ b/drivers/bluetooth/btbcm.c
+@@ -525,6 +525,7 @@ static const struct bcm_subver_table bcm_uart_subver_table[] = {
+ 	{ 0x2119, "BCM4373A0"	},	/* 001.001.025 */
+ 	{ 0x2128, "BCM4384A0"	},	/* 001.001.040 */
+ 	{ 0x4119, "BCM4384B0"	},	/* 002.001.025 */
++	{ 0x2310, "BCM4343A2"	},	/* 001.003.016 */
+ 	{ }
+ };
+ 

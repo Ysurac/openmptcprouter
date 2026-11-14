@@ -3387,8 +3387,8 @@ diff --git a/net/ipv4/tcp_timer.c b/net/ipv4/tcp_timer.c
 index 2dd73a4e8e51..3d35afdbf803 100644
 --- a/net/ipv4/tcp_timer.c
 +++ b/net/ipv4/tcp_timer.c
-@@ -702,6 +702,7 @@ void tcp_write_timer_handler(struct sock *sk)
- 			       icsk_timeout(icsk));
+@@ -705,6 +705,7 @@ void tcp_write_timer_handler(struct sock *sk)
+ 			       tcp_timeout_expires(sk));
  		return;
  	}
 +	tcp_rate_check_app_limited(sk);

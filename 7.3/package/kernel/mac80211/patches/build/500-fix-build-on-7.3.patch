@@ -1,0 +1,13 @@
+mac_pton() is declared in linux/hex.h, which linux/kernel.h does not
+include anymore since Linux 7.3.
+
+--- a/net/wireless/sysfs.c
++++ b/net/wireless/sysfs.c
+@@ -9,6 +9,7 @@
+  */
+ 
+ #include <linux/device.h>
++#include <linux/hex.h>
+ #include <linux/module.h>
+ #include <linux/netdevice.h>
+ #include <linux/nl80211.h>

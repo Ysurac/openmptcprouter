@@ -1,0 +1,23 @@
+From 0213c19b32f991ee52f994f38125bc18c38b289b Mon Sep 17 00:00:00 2001
+From: Phil Elwell <phil@raspberrypi.com>
+Date: Tue, 7 Mar 2023 21:47:58 +0000
+Subject: [PATCH] hwmon: (sht3x) Add DT compatible string
+
+Signed-off-by: Phil Elwell <phil@raspberrypi.com>
+---
+ drivers/hwmon/sht3x.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+[7.4: conflicts resolved as in rpi-7.4.y d217e6f43136]
+
+--- a/drivers/hwmon/sht3x.c
++++ b/drivers/hwmon/sht3x.c
+@@ -943,6 +943,9 @@ MODULE_DEVICE_TABLE(i2c, sht3x_ids);
+ static const struct of_device_id sht3x_of_match[] = {
+ 	{ .compatible = "sensirion,sht30", .data = (void *)(uintptr_t)sht3x },
+ 	{ .compatible = "sensirion,sts30", .data = (void *)(uintptr_t)sts3x },
++	{ .compatible = "sensirion,sht3x", .data = (void *)(uintptr_t)sht3x },
++	{ .compatible = "sensirion,sts3x", .data = (void *)(uintptr_t)sts3x },
++	{ .compatible = "sensirion,sht85", .data = (void *)(uintptr_t)sht3x },
+ 	{ }
+ };
+ 

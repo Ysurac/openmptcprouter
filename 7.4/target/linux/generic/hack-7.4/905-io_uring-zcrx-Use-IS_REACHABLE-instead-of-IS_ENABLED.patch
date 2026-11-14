@@ -1,0 +1,107 @@
+From 6f6357583c491b451fb510071e39b6c56a521f95 Mon Sep 17 00:00:00 2001
+From: Robert Marko <robert.marko@sartura.hr>
+Date: Tue, 31 Mar 2026 18:37:02 +0200
+Subject: [PATCH] io_uring: zcrx: Use IS_REACHABLE() instead of IS_ENABLED()
+
+We patch DMA_BUF to make it tristate, so once ALL_KMODS is selected it will
+be built as a module even if previously disabled in the config.
+
+So, since IO_URING_ZCRX does not depend on DMA_BUF linking will fail with:
+aarch64-openwrt-linux-musl-ld: Unexpected GOT/PLT entries detected!
+aarch64-openwrt-linux-musl-ld: Unexpected run-time procedure linkages detected!
+aarch64-openwrt-linux-musl-ld: io_uring/zcrx.o: in function `io_release_dmabuf':
+io_uring/zcrx.c:94:(.text+0x20): undefined reference to `dma_buf_unmap_attachment_unlocked'
+aarch64-openwrt-linux-musl-ld: io_uring/zcrx.c:97:(.text+0x30): undefined reference to `dma_buf_detach'
+aarch64-openwrt-linux-musl-ld: io_uring/zcrx.c:99:(.text+0x3c): undefined reference to `dma_buf_put'
+aarch64-openwrt-linux-musl-ld: io_uring/zcrx.o: in function `io_import_dmabuf':
+io_uring/zcrx.c:125:(.text+0x1b20): undefined reference to `dma_buf_get'
+aarch64-openwrt-linux-musl-ld: io_uring/zcrx.c:132:(.text+0x1b34): undefined reference to `dma_buf_attach'
+aarch64-openwrt-linux-musl-ld: io_uring/zcrx.c:139:(.text+0x1b48): undefined reference to `dma_buf_map_attachment_unlocked'
+make[6]: *** [scripts/Makefile.vmlinux:72: vmlinux.unstripped] Error 1
+
+So, lets use IS_REACHABLE() to check for CONFIG_DMA_SHARED_BUFFER instead
+to avoid adding a dependency to CONFIG_DMA_SHARED_BUFFER.
+
+Signed-off-by: Robert Marko <robert.marko@sartura.hr>
+---
+ io_uring/zcrx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+[7.4: also io_uring/dma-buf.h and io_release_dmabuf(), io_uring/dma-buf.o only with a built-in DMA_SHARED_BUFFER]
+
+--- a/io_uring/Makefile
++++ b/io_uring/Makefile
+@@ -26,4 +26,6 @@ obj-$(CONFIG_PROC_FS) += fdinfo.o
+ obj-$(CONFIG_IO_URING_MOCK_FILE) += mock_file.o
+ obj-$(CONFIG_IO_URING_BPF) += bpf_filter.o
+ obj-$(CONFIG_IO_URING_BPF_OPS) += bpf-ops.o
+-obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o
++ifeq ($(CONFIG_DMA_SHARED_BUFFER),y)
++obj-y += dma-buf.o
++endif
+--- a/io_uring/dma-buf.h
++++ b/io_uring/dma-buf.h
+@@ -18,7 +18,7 @@ int __io_register_dmabuf(struct io_ring_ctx *ctx,
+ 
+ static inline void io_detach_dmabuf_map(struct io_kiocb *req)
+ {
+-	if (!IS_ENABLED(CONFIG_DMA_SHARED_BUFFER))
++	if (!IS_REACHABLE(CONFIG_DMA_SHARED_BUFFER))
+ 		return;
+ 	if (!(req->flags & REQ_F_DMABUF) || !req->dmabuf_map)
+ 		return;
+@@ -36,7 +36,7 @@ static inline int io_attach_dmabuf_map(struct io_kiocb *req,
+ 
+ 	if (!(req->flags & REQ_F_DMABUF))
+ 		return 0;
+-	if (!IS_ENABLED(CONFIG_DMA_SHARED_BUFFER))
++	if (!IS_REACHABLE(CONFIG_DMA_SHARED_BUFFER))
+ 		return -EOPNOTSUPP;
+ 
+ 	bd = req->buf_node->buf->priv;
+@@ -55,7 +55,7 @@ static inline int io_import_dmabuf_map(struct io_kiocb *req,
+ {
+ 	struct io_buf_dma *bd = imu->priv;
+ 
+-	if (!IS_ENABLED(CONFIG_DMA_SHARED_BUFFER))
++	if (!IS_REACHABLE(CONFIG_DMA_SHARED_BUFFER))
+ 		return -EOPNOTSUPP;
+ 	if (req->file != bd->target_file)
+ 		return -EBADF;
+@@ -68,7 +68,7 @@ static inline int io_register_dmabuf(struct io_ring_ctx *ctx,
+ 			struct io_uring_regbuf_desc *desc,
+ 			struct io_mapped_ubuf *imu)
+ {
+-	if (!IS_ENABLED(CONFIG_DMA_SHARED_BUFFER))
++	if (!IS_REACHABLE(CONFIG_DMA_SHARED_BUFFER))
+ 		return -EOPNOTSUPP;
+ 	return __io_register_dmabuf(ctx, desc, imu);
+ }
+--- a/io_uring/zcrx.c
++++ b/io_uring/zcrx.c
+@@ -129,7 +129,7 @@ static int io_populate_area_dma(struct io_zcrx_ifq *ifq,
+ 
+ static void io_unmap_dmabuf(struct io_zcrx_mem *mem)
+ {
+-	if (!IS_ENABLED(CONFIG_DMA_SHARED_BUFFER))
++	if (!IS_REACHABLE(CONFIG_DMA_SHARED_BUFFER))
+ 		return;
+ 	if (mem->sgt)
+ 		dma_buf_unmap_attachment_unlocked(mem->attach, mem->sgt,
+@@ -142,7 +142,7 @@ static void io_unmap_dmabuf(struct io_zcrx_mem *mem)
+ 
+ static void io_release_dmabuf(struct io_zcrx_mem *mem)
+ {
+-	if (!IS_ENABLED(CONFIG_DMA_SHARED_BUFFER))
++	if (!IS_REACHABLE(CONFIG_DMA_SHARED_BUFFER))
+ 		return;
+ 	if (mem->dmabuf)
+ 		dma_buf_put(mem->dmabuf);
+@@ -164,7 +164,7 @@ static int io_import_dmabuf(struct io_zcrx_ifq *ifq,
+ 		return -EINVAL;
+ 	if (off)
+ 		return -EINVAL;
+-	if (!IS_ENABLED(CONFIG_DMA_SHARED_BUFFER))
++	if (!IS_REACHABLE(CONFIG_DMA_SHARED_BUFFER))
+ 		return -EINVAL;
+ 
+ 	mem->is_dmabuf = true;

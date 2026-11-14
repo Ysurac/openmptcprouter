@@ -1,0 +1,61 @@
+From c8646664fbf1c0beb0990cef391cb52d3c909e78 Mon Sep 17 00:00:00 2001
+From: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Date: Fri, 08 May 2026 17:40:47 +0200
+Subject: [PATCH] mptcp: pm: in-kernel: increase all limits to 64
+
+This means switching the maximum from 8 to 64 for the number of subflows
+and accepted ADD_ADDR.
+
+The previous limit of 8 subflows makes sense in most cases. Using more
+subflows will very likely *not* improve the situation, and could even
+decrease the performances. But there are no technical limitations nor
+performance impact to raise this limit, so let's do it: this will allow
+people with very specific use-cases, and researchers to easily create
+more subflows, and measure the performance impact by themselves.
+
+The theoretical limit is 255 -- the ID is written in a u8 on the wire --
+but 64 is more than enough. With so many subflows, it will be costly to
+iterate over all of them when operations are done in bottom half.
+
+Note that the in-kernel PM will continue to create subflows in reply to
+ADD_ADDR with a single batch of maximum 8 subflows. Same when adding new
+"subflow" endpoints with the fullmesh flag. Increasing those batch
+limits would have a memory impact, and it looks fine not to cover these
+cases with larger batches for the moment. If more is needed later, the
+position of the last subflow from the list could be remembered, and the
+list iteration could continue later.
+
+Closes: https://github.com/multipath-tcp/mptcp_net-next/issues/434
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260508-net-next-mptcp-pm-inc-limits-v1-2-c84e3fdf9b6a@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+---
+ net/mptcp/pm_kernel.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/mptcp/pm_kernel.c b/net/mptcp/pm_kernel.c
+index 891d441..abfa420 100644
+--- a/net/mptcp/pm_kernel.c
++++ b/net/mptcp/pm_kernel.c
+@@ -29,6 +29,7 @@ struct pm_nl_pernet {
+ };
+ 
+ #define MPTCP_PM_ADDR_MAX	8
++#define MPTCP_PM_SUBFLOWS_MAX	64
+ 
+ static struct pm_nl_pernet *pm_nl_get_pernet(const struct net *net)
+ {
+@@ -1371,10 +1372,10 @@ static int parse_limit(struct genl_info *info, int id, unsigned int *limit)
+ 		return 0;
+ 
+ 	*limit = nla_get_u32(attr);
+-	if (*limit > MPTCP_PM_ADDR_MAX) {
++	if (*limit > MPTCP_PM_SUBFLOWS_MAX) {
+ 		NL_SET_ERR_MSG_ATTR_FMT(info->extack, attr,
+ 					"limit greater than maximum (%u)",
+-					MPTCP_PM_ADDR_MAX);
++					MPTCP_PM_SUBFLOWS_MAX);
+ 		return -EINVAL;
+ 	}
+ 	return 0;

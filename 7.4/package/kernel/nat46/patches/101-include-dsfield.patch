@@ -1,0 +1,13 @@
+ipv4_get_dsfield() and ipv6_get_dsfield() come from net/dsfield.h, which
+the other headers do not pull in anymore on Linux 7.4.
+
+--- a/nat46/modules/nat46-core.c
++++ b/nat46/modules/nat46-core.c
+@@ -23,6 +23,7 @@
+ #else
+ #include <net/ipv6_frag.h>
+ #endif
++#include <net/dsfield.h>
+ #if IS_ENABLED(CONFIG_NF_CONNTRACK)
+ #include <net/netfilter/nf_conntrack.h>
+ #endif

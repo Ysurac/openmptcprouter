@@ -1,0 +1,38 @@
+From e845e6397d78bf6b842cfa8b5818ca8189f7e22e Mon Sep 17 00:00:00 2001
+From: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Date: Fri, 08 May 2026 17:40:49 +0200
+Subject: [PATCH] mptcp: pm: in-kernel: increase endpoints limit
+
+The endpoints are managed in a list which was limited to 8 entries.
+
+This limit can be too small in some cases: by having the same limit as
+the number of subflows, it might not allow creating all expected
+subflows when having a mix of v4 and v6 addresses that can all use MPTCP
+on v4/v6 only networks.
+
+While increasing the limit above the new subflows one, why not using the
+technical limit: 255. Indeed, the endpoint will each have an ID that
+will be used on the wire, limited to u8, and the ID 0 is reserved to the
+initial subflow.
+
+Reviewed-by: Mat Martineau <martineau@kernel.org>
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20260508-net-next-mptcp-pm-inc-limits-v1-4-c84e3fdf9b6a@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+---
+ net/mptcp/pm_kernel.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/mptcp/pm_kernel.c b/net/mptcp/pm_kernel.c
+index ed95b3c..18216db 100644
+--- a/net/mptcp/pm_kernel.c
++++ b/net/mptcp/pm_kernel.c
+@@ -736,7 +736,7 @@ static int mptcp_pm_nl_append_new_local_addr(struct pm_nl_pernet *pernet,
+ 	 */
+ 	if (pernet->next_id == MPTCP_PM_MAX_ADDR_ID)
+ 		pernet->next_id = 1;
+-	if (pernet->endpoints >= MPTCP_PM_ADDR_MAX) {
++	if (pernet->endpoints == MPTCP_PM_MAX_ADDR_ID) {
+ 		ret = -ERANGE;
+ 		goto out;
+ 	}
