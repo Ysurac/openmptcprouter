@@ -451,7 +451,7 @@ diff --git a/net/mptcp/protocol.h b/net/mptcp/protocol.h
 diff --git a/net/mptcp/protocol.h b/net/mptcp/protocol.h
 --- a/net/mptcp/protocol.h
 +++ b/net/mptcp/protocol.h
-@@ -551,6 +551,14 @@
+@@ -550,6 +550,14 @@
  	bool	scheduled;
  	bool	pm_listener;	    /* a listener managed by the kernel PM? */
  	bool	fully_established;  /* path validated */
@@ -463,9 +463,9 @@ diff --git a/net/mptcp/protocol.h b/net/mptcp/protocol.h
 +				     * the redundant copies; protected by the
 +				     * msk data lock
 +				     */
- 	u32	lent_mem_frag;
- 	u32	remote_nonce;
- 	u64	thmac;
+ 	bool	close_event_done;   /* has done the post-closed part,
+ 				     * protected by msk socket lock
+ 				     */
 diff --git a/net/mptcp/protocol.c b/net/mptcp/protocol.c
 --- a/net/mptcp/protocol.c
 +++ b/net/mptcp/protocol.c

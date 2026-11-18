@@ -586,6 +586,18 @@ if [ "$OMR_KERNEL" = "6.18" ]; then
 	rm -rf package/kernel/r8101
 	rm -rf package/utils/bcm27xx-utils
 	# Remove not needed patches
+	# Already included in kernel 6.18.64
+	rm -f target/linux/generic/backport-6.18/439-v7.4-mtd-spi-nor-macronix-Restore-fallback-parameters-for.patch
+	rm -f target/linux/generic/backport-6.18/441-v7.4-spi-spi-qpic-snand-publish-the-ECC-context-to-snandc.patch
+	rm -f target/linux/generic/backport-6.18/503-01-v7.3-ksmbd-enable-tcp-keepalive-for-accepted-connections.patch
+	rm -f target/linux/generic/backport-6.18/734-v7.3-net-ethernet-mtk_wed-increase-WED-v2-WDMA-RESV_BUFF-.patch
+	rm -f target/linux/generic/backport-6.18/755-v7.3-net-sfp-add-quirk-for-HORACO-copper-SFP-module.patch
+	rm -f target/linux/generic/backport-6.18/856-01-v7.3-xhci-include-all-root-port-children-in-recovery-prevention-on-link-error.patch
+	rm -f target/linux/bcm27xx/patches-6.18/0451-drm-vc4-Implement-vc6_hdmi_phy_disable.patch
+	rm -f target/linux/mediatek/patches-6.18/197-arm64-dts-mediatek-mt7986-correct-timer-frequency.patch
+	# imx219 fix and its revert cancel out, and the fix no longer applies on 6.18.64
+	rm -f target/linux/bcm27xx/patches-6.18/0545-media-i2c-imx219-fix-binning-and-rate_factor-for-480.patch
+	rm -f target/linux/bcm27xx/patches-6.18/0746-Revert-media-i2c-imx219-fix-binning-and-rate_factor-.patch
 	#rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
 	#rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
 	#rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
