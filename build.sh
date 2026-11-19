@@ -598,6 +598,8 @@ if [ "$OMR_KERNEL" = "6.18" ]; then
 	# imx219 fix and its revert cancel out, and the fix no longer applies on 6.18.64
 	rm -f target/linux/bcm27xx/patches-6.18/0545-media-i2c-imx219-fix-binning-and-rate_factor-for-480.patch
 	rm -f target/linux/bcm27xx/patches-6.18/0746-Revert-media-i2c-imx219-fix-binning-and-rate_factor-.patch
+	# 6.18.64 dropped the struct sockaddr_unsized backport from 6.18.57, backports must define it again
+	rm -f package/kernel/mac80211/patches/build/160-backports-sockaddr_unsized-is-in-6.18.57.patch
 	#rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
 	#rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
 	#rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
