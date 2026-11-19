@@ -1,0 +1,20 @@
+From: John Crispin <john@phrozen.org>
+Subject: [PATCH] dt-bindings: input: touchscreen: trivial-touch: add CST3530
+
+The Hynitron CST3530 is a single touch controller on I2C with an
+interrupt line and a reset GPIO, the same set of resources as the
+CST340. Its register protocol differs, so it gets a driver of its own,
+but the binding fits as it is.
+
+Signed-off-by: John Crispin <john@phrozen.org>
+---
+--- a/Documentation/devicetree/bindings/input/touchscreen/trivial-touch.yaml
++++ b/Documentation/devicetree/bindings/input/touchscreen/trivial-touch.yaml
+@@ -22,6 +22,7 @@ properties:
+       - himax,hx83112b
+       # Hynitron cstxxx series touchscreen controller
+       - hynitron,cst340
++      - hynitron,cst3530
+       # Ilitek I2C Touchscreen Controller
+       - ilitek,ili2130
+       - ilitek,ili2131
