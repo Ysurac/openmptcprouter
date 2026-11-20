@@ -1,0 +1,104 @@
+From: Abdul Wasey <w453y.me@gmail.com>
+Date: Sat, 24 Oct 2026 11:18:41 +0000
+Subject: [PATCH mptcp-net v8 1/2] mptcp: pm: in-kernel: fullmesh: skip closed subflows
+
+With fullmesh endpoints, if the endpoint used by the initial subflow is
+removed and then added back, no new subflow is created from it: the
+connection never uses this local address again.
+
+The initial subflow is kept in the conn_list once closed. If it was
+still established when closed, it keeps the local ID 0, which is also
+the ID used by the re-added endpoint, and
+fill_remote_addresses_fullmesh() then marks its remote ID as
+unavailable. If it was already in TCP_CLOSE, e.g. after a reset, it is
+disconnected and its context is reset: the 'closing' flag and the remote
+ID are cleared, and its destination port is zeroed. It is then picked as
+a remote address, with the port 0 and the ID 0, which also marks the
+remote ID 0 as unavailable. In both cases, when the peer has a single
+address, all subflows use the remote ID 0, and no valid remote address
+is left.
+
+Skip the subflows being closed or in TCP_CLOSE state, both when looking
+for the remote IDs already in use and when picking the remote addresses.
+__mptcp_subflow_active() cannot be used here: subflows still being
+established have to keep their remote ID marked as in use, to avoid
+creating duplicated subflows.
+
+When no subflow is left to take the remote ID 0 address from, e.g. when
+the initial subflow was the only one, use the remote address of the MPTCP
+socket, as fill_remote_addr() does for non-fullmesh endpoints. Before,
+re-adding the initial endpoint created no subflow in this case either,
+and another endpoint only worked by picking the closed initial subflow.
+
+Without the fullmesh flag, the remote address is taken from the MPTCP
+socket, so this issue is specific to fullmesh endpoints.
+
+Fixes: 045e9d812868 ("mptcp: fix duplicate subflow creation")
+Cc: stable@vger.kernel.org
+Signed-off-by: Abdul Wasey <w453y.me@gmail.com>
+Link: https://lore.kernel.org/mptcp/20261024111842.1069878-2-w453y.me@gmail.com/
+---
+ net/mptcp/pm_kernel.c | 33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/net/mptcp/pm_kernel.c b/net/mptcp/pm_kernel.c
+--- a/net/mptcp/pm_kernel.c
++++ b/net/mptcp/pm_kernel.c
+@@ -190,6 +190,16 @@
+ 	return 1;
+ }
+ 
++/* Closed subflows can stay in the conn_list, e.g. the initial one: their
++ * addresses and IDs are not reliable, possibly even reset.
++ */
++static bool mptcp_subflow_is_closed(struct mptcp_subflow_context *subflow)
++{
++	struct sock *ssk = mptcp_subflow_tcp_sock(subflow);
++
++	return subflow->closing || inet_sk_state_load(ssk) == TCP_CLOSE;
++}
++
+ static unsigned int
+ fill_remote_addresses_fullmesh(struct mptcp_sock *msk,
+ 			       struct mptcp_addr_info *local,
+@@ -207,11 +217,18 @@
+ 	 * already created by incoming ADD_ADDR
+ 	 */
+ 	bitmap_zero(unavail_id, MPTCP_PM_MAX_ADDR_ID + 1);
+-	mptcp_for_each_subflow(msk, subflow)
++	mptcp_for_each_subflow(msk, subflow) {
++		if (mptcp_subflow_is_closed(subflow))
++			continue;
++
+ 		if (READ_ONCE(subflow->local_id) == local->id)
+ 			__set_bit(subflow->remote_id, unavail_id);
++	}
+ 
+ 	mptcp_for_each_subflow(msk, subflow) {
++		if (mptcp_subflow_is_closed(subflow))
++			continue;
++
+ 		ssk = mptcp_subflow_tcp_sock(subflow);
+ 		mptcp_remote_address((struct sock_common *)ssk, &addrs[i]);
+ 		addrs[i].id = READ_ONCE(subflow->remote_id);
+@@ -234,6 +251,20 @@
+ 			break;
+ 	}
+ 
++	/* The initial subflow can be closed: like fill_remote_addr(), use the
++	 * remote address of the MPTCP socket for the remote ID 0.
++	 */
++	if (!deny_id0 && !test_bit(0, unavail_id) && i < addrs_size &&
++	    msk->pm.extra_subflows < limit_extra_subflows) {
++		struct mptcp_addr_info remote = { 0 };
++
++		mptcp_remote_address((struct sock_common *)sk, &remote);
++		if (mptcp_pm_addr_families_match(sk, local, &remote)) {
++			addrs[i++] = remote;
++			msk->pm.extra_subflows++;
++		}
++	}
++
+ 	return i;
+ }
+ 
