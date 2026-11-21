@@ -45,14 +45,14 @@ Changes in v2:
 
 --- a/Documentation/userspace-api/media/v4l/meta-formats.rst
 +++ b/Documentation/userspace-api/media/v4l/meta-formats.rst
-@@ -21,6 +21,7 @@ These formats are used for the :ref:`metadata` interface only.
+@@ -19,6 +19,7 @@ These formats are used for the :ref:`metadata` interface only.
+     metafmt-generic
+     metafmt-intel-ipu3
      metafmt-pisp-be
++    metafmt-rkisp2
      metafmt-pisp-fe
      metafmt-rkisp1
-+    metafmt-rkisp2
      metafmt-rppx1
-     metafmt-uvc
-     metafmt-uvc-msxu-1-5
 --- /dev/null
 +++ b/Documentation/userspace-api/media/v4l/metafmt-rkisp2.rst
 @@ -0,0 +1,70 @@

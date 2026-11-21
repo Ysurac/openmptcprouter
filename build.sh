@@ -100,9 +100,9 @@ if [ "$ONLY_PREPARE" != "yes" ]; then
 	if [ "$OMR_OPENWRT" = "default" ]; then
 		if [ "$OMR_KERNEL" = "6.18" ] || [ "$OMR_KERNEL" = "7.3" ] || [ "$OMR_KERNEL" = "7.4" ]; then
 			# Kernels 7.3 and 7.4 use the same OpenWRT as 6.18, generic kernel patches are in 7.3/ and 7.4/
-			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "dd72c4c198330e208c2357625693a03996cae741"
-			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "1cc5d4c5b8b6e57fde9dac55ab9e3367407b0160"
-			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "4a3d16e914564ccf239802ad8dd57026c3860dd0"
+			_get_repo "$OMR_TARGET/${OMR_KERNEL}/source" ${OMR_OPENWRT_GIT}/openwrt/openwrt "93f90a53853b53b95cbbabf7405771c7218fd4c8"
+			_get_repo feeds/${OMR_KERNEL}/packages ${OMR_OPENWRT_GIT}/openwrt/packages "7dc08e9f6b96c2fb8a09fe337b1a7a6bfafd1a71"
+			_get_repo feeds/${OMR_KERNEL}/luci ${OMR_OPENWRT_GIT}/openwrt/luci "1854572d9ab6af8d09b03ed6d1dbf4a42425ff1f"
 			_get_repo feeds/${OMR_KERNEL}/routing ${OMR_OPENWRT_GIT}/openwrt/routing "ea8633da9c461a9bdc62a0323439d31180762e03"
 		fi
 	elif [ "$OMR_OPENWRT" = "coolsnowwolfmix" ]; then

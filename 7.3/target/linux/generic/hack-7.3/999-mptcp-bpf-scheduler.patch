@@ -563,7 +563,7 @@
  					keep_pushing = false;
 --- a/net/mptcp/protocol.h
 +++ b/net/mptcp/protocol.h
-@@ -591,6 +591,14 @@ struct mptcp_subflow_context {
+@@ -590,6 +590,14 @@ struct mptcp_subflow_context {
  	bool	scheduled;
  	bool	pm_listener;	    /* a listener managed by the kernel PM? */
  	bool	fully_established;  /* path validated */
@@ -575,10 +575,10 @@
 +				     * the redundant copies; protected by the
 +				     * msk data lock
 +				     */
- 	u32	lent_mem_frag;
- 	u32	remote_nonce;
- 	u64	thmac;
-@@ -827,6 +835,8 @@ void __mptcp_subflow_send_ack(struct sock *ssk);
+ 	bool	close_event_done;   /* has done the post-closed part,
+ 				     * protected by msk socket lock
+ 				     */
+@@ -829,6 +835,8 @@ void __mptcp_subflow_send_ack(struct sock *ssk);
  void mptcp_subflow_reset(struct sock *ssk);
  void mptcp_subflow_queue_clean(struct sock *sk, struct sock *ssk);
  void mptcp_sock_graft(struct sock *sk, struct socket *parent);
@@ -587,7 +587,7 @@
  struct sock *__mptcp_nmpc_sk(struct mptcp_sock *msk);
  bool __mptcp_close(struct sock *sk, long timeout);
  void mptcp_cancel_work(struct sock *sk);
-@@ -1109,6 +1119,7 @@ bool mptcp_pm_addr_families_match(const struct sock *sk,
+@@ -1113,6 +1123,7 @@ bool mptcp_pm_addr_families_match(const struct sock *sk,
  				  const struct mptcp_addr_info *loc,
  				  const struct mptcp_addr_info *rem);
  void mptcp_pm_chk_stale(const struct mptcp_sock *msk);

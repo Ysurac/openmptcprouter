@@ -34,10 +34,10 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
 +		reg = <0xfe870100 0x20>;
 +	};
 +
- 	qos_ispp_m0: qos@fe880000 {
- 		compatible = "rockchip,rv1126-qos", "syscon";
- 		reg = <0xfe880000 0x20>;
-@@ -472,6 +487,17 @@ power-domain@RV1126_PD_VO {
+ 	gic: interrupt-controller@feff0000 {
+ 		compatible = "arm,gic-400";
+ 		interrupt-controller;
+@@ -451,6 +466,17 @@ power-domain@RV1126_PD_VO {
  					 <&qos_iep>;
  				#power-domain-cells = <0>;
  			};
@@ -55,7 +55,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  		};
  	};
  
-@@ -1315,6 +1341,34 @@ vpu_mmu: iommu@ffb90800 {
+@@ -1263,6 +1289,34 @@ vpu_mmu: iommu@ffb90800 {
  		status = "disabled";
  	};
  

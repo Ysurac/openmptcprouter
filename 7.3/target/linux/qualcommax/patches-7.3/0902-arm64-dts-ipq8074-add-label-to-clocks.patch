@@ -19,6 +19,6 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  
 -	clocks {
 +	clocks: clocks {
- 		sleep_clk: sleep_clk {
+ 		ref_48mhz_clk: ref-48mhz-clk {
  			compatible = "fixed-clock";
- 			clock-frequency = <32768>;
+ 			clock-frequency = <48000000>;
