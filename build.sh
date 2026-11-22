@@ -544,6 +544,28 @@ for rutx_file in etc/board.d/02_network etc/hotplug.d/firmware/11-ath10k-caldata
 done
 echo "Done"
 
+echo "Add Teltonika RUTM devices to ramips"
+# Image definitions and DTS are in common/target/linux/ramips, each board joins
+# the case of the upstream RUTM board (rutm11/30/50) it is closest to
+if ! grep -q "mt7621-teltonika.mk" target/linux/ramips/image/mt7621.mk; then
+	sed -i 's/^include \.\/common-tp-link\.mk$/&\ninclude .\/mt7621-teltonika.mk/' target/linux/ramips/image/mt7621.mk
+fi
+grep -q "mt7621-teltonika.mk" target/linux/ramips/image/mt7621.mk || echo "WARNING: RUTM images not hooked in target/linux/ramips/image/mt7621.mk"
+RUTM_MODEM="teltonika,rutm09|teltonika,rutm12|teltonika,rutm13|teltonika,rutm16|teltonika,rutm20|teltonika,rutm51|teltonika,rutm52|teltonika,rutm54|teltonika,rutm54-v4|teltonika,rutm55|teltonika,rutm56|teltonika,rutm59"
+while read -r rutm_file rutm_anchor rutm_boards; do
+	rutm_file="target/linux/ramips/mt7621/base-files/$rutm_file"
+	rutm_first="${rutm_boards%%|*}"
+	grep -q "${rutm_first}[|)]" "$rutm_file" || sed -i "s/${rutm_anchor}\([|)]\)/${rutm_anchor}|${rutm_boards}\1/" "$rutm_file"
+	grep -q "${rutm_first}[|)]" "$rutm_file" || echo "WARNING: RUTM boards not added to $rutm_file"
+done <<EOF
+lib/upgrade/platform.sh teltonika,rutm50 teltonika,rutm08|teltonika,rutm10|$RUTM_MODEM
+etc/init.d/bootcount teltonika,rutm50 teltonika,rutm08|teltonika,rutm10|$RUTM_MODEM
+etc/board.d/03_gpio_switches teltonika,rutm50 $RUTM_MODEM
+etc/board.d/02_network teltonika,rutm11 teltonika,rutm08|teltonika,rutm09|teltonika,rutm10|teltonika,rutm13|teltonika,rutm55
+etc/board.d/02_network teltonika,rutm30 teltonika,rutm20
+EOF
+echo "Done"
+
 NOT_SUPPORTED="0"
 
 if [ "$OMR_KERNEL" = "6.18" ]; then

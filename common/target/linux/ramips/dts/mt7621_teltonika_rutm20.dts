@@ -1,0 +1,150 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Teltonika RUTM20: GPIO and LED pin map from the hardware description
+ * shipped in Teltonika RUTM_R_SDK_00.07.26.3.
+ */
+
+#include "mt7621_teltonika_rutm-common.dtsi"
+
+/ {
+	compatible = "teltonika,rutm20", "mediatek,mt7621-soc";
+	model = "Teltonika RUTM20";
+
+	gpio-export {
+		compatible = "gpio-export";
+
+		gpio_modem_reset {
+			gpio-export,name = "modem_reset";
+			gpio-export,output = <0>;
+			gpios = <&gpio 13 GPIO_ACTIVE_HIGH>;
+		};
+
+		gpio_modem_power {
+			gpio-export,name = "modem_power";
+			gpio-export,output = <1>;
+			gpios = <&gpio 17 GPIO_ACTIVE_HIGH>;
+		};
+
+		gpio_sim_select {
+			gpio-export,name = "sim_select";
+			gpio-export,output = <0>;
+			gpios = <&gpio 5 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		gsm_red {
+			function = LED_FUNCTION_MOBILE;
+			color = <LED_COLOR_ID_RED>;
+			gpios = <&gpio 12 GPIO_ACTIVE_LOW>;
+		};
+
+		gsm_green {
+			function = LED_FUNCTION_MOBILE;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
+		};
+
+		gsm_blue {
+			function = LED_FUNCTION_MOBILE;
+			color = <LED_COLOR_ID_BLUE>;
+			gpios = <&gpio 7 GPIO_ACTIVE_LOW>;
+		};
+
+		rssi_red {
+			label = "red:rssi";
+			color = <LED_COLOR_ID_RED>;
+			gpios = <&gpio 46 GPIO_ACTIVE_LOW>;
+		};
+
+		rssi_green {
+			label = "green:rssi";
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&gpio 48 GPIO_ACTIVE_LOW>;
+		};
+
+		rssi_blue {
+			label = "blue:rssi";
+			color = <LED_COLOR_ID_BLUE>;
+			gpios = <&gpio 47 GPIO_ACTIVE_LOW>;
+		};
+
+		lan-g {
+			function = LED_FUNCTION_LAN;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&gpio 43 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mt7530-0:01:1Gbps";
+		};
+
+		lan-y {
+			function = LED_FUNCTION_LAN;
+			color = <LED_COLOR_ID_AMBER>;
+			gpios = <&gpio 42 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mt7530-0:01:100Mbps";
+		};
+
+		wan-g {
+			function = LED_FUNCTION_WAN;
+			color = <LED_COLOR_ID_GREEN>;
+			gpios = <&gpio 41 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mt7530-0:00:1Gbps";
+		};
+
+		wan-y {
+			function = LED_FUNCTION_WAN;
+			color = <LED_COLOR_ID_AMBER>;
+			gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "mt7530-0:00:100Mbps";
+		};
+	};
+};
+
+&switch0 {
+	ports {
+		port@1 {
+			status = "okay";
+			label = "lan";
+		};
+	};
+};
+
+&gmac1 {
+	phy-handle = <&ethphy0>;
+};
+
+&ethphy0 {
+	/delete-property/ interrupts;
+};
+
+&pcie {
+	status = "okay";
+};
+
+&pcie0 {
+	wifi@0,0 {
+		compatible = "mediatek,mt76";
+		reg = <0x0000 0 0 0 0>;
+		nvmem-cells = <&eeprom_factory_0>;
+		nvmem-cell-names = "eeprom";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		band@0 {
+			reg = <0>;
+			nvmem-cells = <&macaddr_config_0 2>;
+			nvmem-cell-names = "mac-address";
+		};
+
+		band@1 {
+			reg = <1>;
+			nvmem-cells = <&macaddr_config_0 3>;
+			nvmem-cell-names = "mac-address";
+		};
+
+		led {
+			status = "disabled";
+		};
+	};
+};
