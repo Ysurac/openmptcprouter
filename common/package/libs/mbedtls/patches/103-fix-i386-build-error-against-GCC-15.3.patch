@@ -1,0 +1,20 @@
+Subject: [PATCH] fix i386 build errors against GCC 15.3
+
+Same false-positive -Warray-bounds in mbedtls_xor_no_simd() as on arm32
+(see 102-fix-arm32-build-error-against-GCC-15.3.patch), hit on x86 pentium4.
+
+---
+ library/common.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/library/common.h
++++ b/library/common.h
+@@ -333,7 +333,7 @@ static inline void mbedtls_xor_no_simd(u
+         mbedtls_put_unaligned_uint32(r + i, x);
+     }
+ #if defined(__IAR_SYSTEMS_ICC__) || \
+-    (defined(MBEDTLS_ARCH_IS_ARM32) && defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION >= 150300)
++    ((defined(MBEDTLS_ARCH_IS_ARM32) || defined(MBEDTLS_ARCH_IS_X86)) && defined(MBEDTLS_COMPILER_IS_GCC) && MBEDTLS_GCC_VERSION >= 150300)
+     if (n % 4 == 0) {
+         return;
+     }
