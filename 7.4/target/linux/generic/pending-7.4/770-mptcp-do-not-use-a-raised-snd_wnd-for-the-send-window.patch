@@ -1,0 +1,86 @@
+From ec7cb74c1a7e6c81d8647f73be2b711b5fc1a7a4 Mon Sep 17 00:00:00 2001
+From: "Matthieu Baerts (NGI0)" <matttbe@kernel.org>
+Date: Mon, 16 Nov 2026 23:06:08 +0100
+Subject: [PATCH] mptcp: do not use a raised snd_wnd for the send window
+
+ack_update_msk() sets the right edge of the MPTCP send window from the
+DATA_ACK and tcp_sk(ssk)->snd_wnd, but this is not always what the peer
+announced: mptcp_check_allowed_size() raises it to
+window_end - data_seq, so that TCP lets through what the MPTCP-level
+window allows.
+
+That is fine for new data. For data sent again, data_seq can be below
+snd_una, and snd_wnd ends up too large by the difference. TCP only
+overwrites it when an ACK moves things forward on this subflow, see
+tcp_may_update_window(). If a DATA_ACK moved by another subflow comes in
+on this subflow before that, wnd_end goes past what the peer offered. It
+only moves forward, so it stays there.
+
+The sender then transmits data beyond the peer's window: the peer drops
+it (MPTCP_MIB_NODSSWINDOW) after TCP acked it, and only an MPTCP-level
+retransmission can recover it, which raises snd_wnd again. The
+connection can then stay stuck at a low rate for several seconds, with
+nothing in flight on any subflow.
+
+This raise has been added by commit b713d0067574 ("mptcp: really share
+subflow snd_wnd"), but snd_wnd could already be too large before: when
+nothing moves at the TCP level, tcp_may_update_window() ignores a lower
+non-zero window, while the peer can announce one with a DATA_ACK that
+moved, keeping the same right edge.
+
+Use the window announced in the packet carrying the DATA_ACK instead.
+
+In my case with BBR, a small TCP rmem, and a second path with a much
+higher latency, a lower throughput and some losses, this small change
+can double the throughput in the worst cases.
+
+The issue has been reproduced with a new Packetdrill test, on a single
+subflow: the data is acked by TCP, then by MPTCP with a lower window,
+keeping the same right edge. Without this patch, the 2000 bytes written
+next were sent, instead of the 1280 bytes up to this right edge:
+
+  dss_dack_window_server.pkt:23: error handling packet: live packet payload: expected 1280 bytes vs actual 2000 bytes
+
+Fixes: 6f8a612a33e4 ("mptcp: keep track of advertised windows right edge")
+Cc: stable@vger.kernel.org
+Signed-off-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+Link: https://patch.msgid.link/20261116-net-mptcp-misc-fixes-7-4-rc4-v1-1-bf7656de653e@kernel.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+---
+--- a/net/mptcp/options.c
++++ b/net/mptcp/options.c
+@@ -1120,9 +1120,11 @@
+ 
+ static void ack_update_msk(struct mptcp_sock *msk,
+ 			   struct sock *ssk,
++			   const struct sk_buff *skb,
+ 			   struct mptcp_options_received *mp_opt)
+ {
+ 	u64 new_wnd_end, new_snd_una, snd_nxt = READ_ONCE(msk->snd_nxt);
++	u32 win = ntohs(tcp_hdr(skb)->window);
+ 	struct sock *sk = (struct sock *)msk;
+ 	u64 old_snd_una;
+ 
+@@ -1139,7 +1141,12 @@
+ 	if (unlikely(after64(new_snd_una, snd_nxt)))
+ 		new_snd_una = old_snd_una;
+ 
+-	new_wnd_end = new_snd_una + tcp_sk(ssk)->snd_wnd;
++	/* What the peer announced: tcp_sk(ssk)->snd_wnd can be larger, see
++	 * mptcp_check_allowed_size(), and is not always updated.
++	 */
++	if (likely(!tcp_hdr(skb)->syn))
++		win <<= tcp_sk(ssk)->rx_opt.snd_wscale;
++	new_wnd_end = new_snd_una + win;
+ 
+ 	if (after64(new_wnd_end, msk->wnd_end))
+ 		WRITE_ONCE(msk->wnd_end, new_wnd_end);
+@@ -1309,7 +1316,7 @@
+ 	 * monodirectional flows will stuck
+ 	 */
+ 	if (mp_opt.use_ack)
+-		ack_update_msk(msk, sk, &mp_opt);
++		ack_update_msk(msk, sk, skb, &mp_opt);
+ 	rwin_update(msk, sk, skb);
+ 
+ 	/* Zero-data-length packets are dropped by the caller and not
