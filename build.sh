@@ -529,6 +529,21 @@ fi
 #fi
 #echo "Done"
 
+echo "Add Teltonika RUTX devices to ipq40xx"
+# Image definitions and DTS are in common/target/linux/ipq40xx, the boards
+# share the teltonika,rutx50 cases of the upstream base-files scripts
+if ! grep -q "generic-teltonika.mk" target/linux/ipq40xx/image/Makefile; then
+	sed -i 's/^include generic-tp-link.mk$/&\ninclude generic-teltonika.mk/' target/linux/ipq40xx/image/Makefile
+fi
+grep -q "generic-teltonika.mk" target/linux/ipq40xx/image/Makefile || echo "WARNING: RUTX images not hooked in target/linux/ipq40xx/image/Makefile"
+RUTX_BOARDS="teltonika,rutx08|teltonika,rutx09|teltonika,rutx09-stm32|teltonika,rutx10|teltonika,rutx10-stm32|teltonika,rutx11|teltonika,rutx11-stm32|teltonika,rutx12|teltonika,rutx12-stm32|teltonika,rutx14|teltonika,rutx14-stm32|teltonika,rutx50-v4"
+for rutx_file in etc/board.d/02_network etc/hotplug.d/firmware/11-ath10k-caldata lib/preinit/05_set_iface_mac_ipq40xx.sh lib/upgrade/platform.sh; do
+	rutx_file="target/linux/ipq40xx/base-files/$rutx_file"
+	grep -q "teltonika,rutx50-v4" "$rutx_file" || sed -i "s/teltonika,rutx50\([|)]\)/teltonika,rutx50|${RUTX_BOARDS}\1/" "$rutx_file"
+	grep -q "teltonika,rutx50-v4" "$rutx_file" || echo "WARNING: RUTX boards not added to $rutx_file"
+done
+echo "Done"
+
 NOT_SUPPORTED="0"
 
 if [ "$OMR_KERNEL" = "6.18" ]; then

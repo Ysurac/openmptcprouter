@@ -1,0 +1,130 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+#include "qcom-ipq4018-rutx-dsa.dtsi"
+
+/ {
+	model = "Teltonika RUTX11";
+	compatible = "teltonika,rutx11";
+
+	aliases {
+		led-boot = &led_rssi0;
+		led-failsafe = &led_rssi0;
+		led-running = &led_rssi0;
+		led-upgrade = &led_rssi0;
+	};
+
+	soc {
+		gpio-export {
+			compatible = "gpio-export";
+
+			modem_reset {
+				gpio-export,name = "modem_reset";
+				gpio-export,output = <0>;
+				gpios = <&shift_io 1 GPIO_ACTIVE_HIGH>;
+			};
+
+			modem_power {
+				gpio-export,name = "modem_power";
+				gpio-export,output = <1>;
+				gpios = <&shift_io 2 GPIO_ACTIVE_HIGH>;
+			};
+
+			sim_sel {
+				gpio-export,name = "sim_sel";
+				gpio-export,output = <0>;
+				gpios = <&shift_io 3 GPIO_ACTIVE_HIGH>;
+			};
+
+			sim_sel2 {
+				gpio-export,name = "sim_sel2";
+				gpio-export,output = <0>;
+				gpios = <&shift_io 7 GPIO_ACTIVE_HIGH>;
+			};
+		};
+
+		leds {
+			compatible = "gpio-leds";
+
+			led-0 {
+				label = "green:sim1";
+				gpios = <&shift_io 21 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-1 {
+				label = "green:sim2";
+				gpios = <&shift_io 22 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-2 {
+				label = "green:eth";
+				gpios = <&shift_io 13 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-3 {
+				label = "green:wifi";
+				gpios = <&shift_io 20 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-4 {
+				label = "green:3g";
+				gpios = <&shift_io 8 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-5 {
+				label = "green:4g";
+				gpios = <&shift_io 9 GPIO_ACTIVE_HIGH>;
+			};
+
+			led_rssi0: led-6 {
+				label = "green:rssi0";
+				gpios = <&shift_io 10 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-7 {
+				label = "green:rssi1";
+				gpios = <&shift_io 11 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-8 {
+				label = "green:rssi2";
+				gpios = <&shift_io 12 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-9 {
+				label = "green:rssi3";
+				gpios = <&shift_io 14 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-10 {
+				label = "green:rssi4";
+				gpios = <&shift_io 15 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-11 {
+				label = "green:wifi2g";
+				gpios = <&shift_io 5 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "phy0tpt";
+			};
+
+			led-12 {
+				label = "green:wifi5g";
+				gpios = <&shift_io 6 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "phy1tpt";
+			};
+		};
+	};
+};
+
+&ext_io {
+	status = "okay";
+};
+
+&wifi0 {
+	status = "okay";
+	qcom,ath10k-calibration-variant = "Teltonika-RUTX10";
+};
+
+&wifi1 {
+	status = "okay";
+	qcom,ath10k-calibration-variant = "Teltonika-RUTX10";
+};

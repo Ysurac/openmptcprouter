@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+#include "qcom-ipq4018-rutx-dsa.dtsi"
+
+/ {
+	model = "Teltonika RUTX10";
+	compatible = "teltonika,rutx10";
+
+	soc {
+		leds {
+			compatible = "gpio-leds";
+
+			led-0 {
+				label = "green:wifi2g";
+				gpios = <&shift_io 5 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "phy0tpt";
+			};
+
+			led-1 {
+				label = "green:wifi5g";
+				gpios = <&shift_io 6 GPIO_ACTIVE_HIGH>;
+				linux,default-trigger = "phy1tpt";
+			};
+		};
+	};
+};
+
+&ext_io {
+	status = "okay";
+};
+
+&wifi0 {
+	status = "okay";
+	qcom,ath10k-calibration-variant = "Teltonika-RUTX10";
+};
+
+&wifi1 {
+	status = "okay";
+	qcom,ath10k-calibration-variant = "Teltonika-RUTX10";
+};

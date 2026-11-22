@@ -1,0 +1,100 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+/*
+ * Teltonika RUTX50 from hardware version 4.00: a third 74HC595 with its
+ * output enable on tlmm 5, and new LED, modem and SIM select pins.
+ * Pin map from the hardware description shipped in Teltonika
+ * RUTX_R_SDK_00.07.26.3.
+ */
+
+#include "qcom-ipq4018-rutx50.dts"
+
+/ {
+	model = "Teltonika RUTX50 (v4)";
+	compatible = "teltonika,rutx50-v4";
+
+	aliases {
+		led-boot = &led_power;
+		led-failsafe = &led_power;
+		led-running = &led_power;
+		led-upgrade = &led_power;
+	};
+
+	soc {
+		gpio-export {
+			gpio_modem_reset {
+				gpios = <&shift_io 16 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio_modem_power {
+				gpios = <&shift_io 17 GPIO_ACTIVE_HIGH>;
+			};
+
+			gpio_out_1 {
+				gpios = <&shift_io 20 GPIO_ACTIVE_HIGH>;
+			};
+		};
+
+		leds {
+			led_power: led-power {
+				label = "green:power";
+				gpios = <&shift_io 1 GPIO_ACTIVE_LOW>;
+				default-state = "on";
+			};
+
+			led-0 {
+				gpios = <&shift_io 18 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-1 {
+				gpios = <&shift_io 19 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-2 {
+				gpios = <&shift_io 14 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-3 {
+				gpios = <&shift_io 15 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-4 {
+				gpios = <&shift_io 13 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-5 {
+				gpios = <&shift_io 12 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-6 {
+				gpios = <&shift_io 11 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-7 {
+				gpios = <&shift_io 8 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-8 {
+				gpios = <&shift_io 9 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-9 {
+				gpios = <&shift_io 10 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-10 {
+				gpios = <&shift_io 2 GPIO_ACTIVE_HIGH>;
+			};
+
+			led-11 {
+				gpios = <&shift_io 3 GPIO_ACTIVE_HIGH>;
+			};
+		};
+
+		spi-gpio {
+			shift_io@0 {
+				registers-number = <3>;
+				enable-gpios = <&tlmm 5 GPIO_ACTIVE_LOW>;
+			};
+		};
+	};
+};
