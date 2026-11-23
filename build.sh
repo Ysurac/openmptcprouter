@@ -551,6 +551,11 @@ if ! grep -q "mt7621-teltonika.mk" target/linux/ramips/image/mt7621.mk; then
 	sed -i 's/^include \.\/common-tp-link\.mk$/&\ninclude .\/mt7621-teltonika.mk/' target/linux/ramips/image/mt7621.mk
 fi
 grep -q "mt7621-teltonika.mk" target/linux/ramips/image/mt7621.mk || echo "WARNING: RUTM images not hooked in target/linux/ramips/image/mt7621.mk"
+# The kernel is in a UBI volume, the 4096k of Device/nand is only a check and the OMR kernel is bigger
+if ! grep -A1 "^  KERNEL_IN_UBI := 1$" target/linux/ramips/image/mt7621.mk | grep -q "^  KERNEL_SIZE := 8192k$"; then
+	sed -i '/^define Device\/teltonika_rutm_common$/,/^endef$/s/^  KERNEL_IN_UBI := 1$/&\n  KERNEL_SIZE := 8192k/' target/linux/ramips/image/mt7621.mk
+fi
+grep -A1 "^  KERNEL_IN_UBI := 1$" target/linux/ramips/image/mt7621.mk | grep -q "^  KERNEL_SIZE := 8192k$" || echo "WARNING: RUTM kernel size not raised in target/linux/ramips/image/mt7621.mk"
 RUTM_MODEM="teltonika,rutm09|teltonika,rutm12|teltonika,rutm13|teltonika,rutm16|teltonika,rutm20|teltonika,rutm51|teltonika,rutm52|teltonika,rutm54|teltonika,rutm54-v4|teltonika,rutm55|teltonika,rutm56|teltonika,rutm59"
 while read -r rutm_file rutm_anchor rutm_boards; do
 	rutm_file="target/linux/ramips/mt7621/base-files/$rutm_file"
