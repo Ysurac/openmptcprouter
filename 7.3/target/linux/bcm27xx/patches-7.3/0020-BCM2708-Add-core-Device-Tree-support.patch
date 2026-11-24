@@ -45936,7 +45936,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +};
 --- a/arch/arm64/boot/dts/broadcom/bcm2712-rpi-5-b-base.dtsi
 +++ /dev/null
-@@ -1,255 +0,0 @@
+@@ -1,290 +0,0 @@
 -// SPDX-License-Identifier: (GPL-2.0 OR MIT)
 -/dts-v1/;
 -
@@ -46041,6 +46041,18 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -		startup-delay-us = <150000>;
 -		enable-active-high;
 -	};
+-};
+-
+-&ddc0 {
+-	status = "okay";
+-};
+-
+-&ddc1 {
+-	status = "okay";
+-};
+-
+-&disp_intr {
+-	status = "okay";
 -};
 -
 -&pinctrl {
@@ -46169,16 +46181,27 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -&hvs {
 -	clocks = <&firmware_clocks 4>, <&firmware_clocks 16>;
 -	clock-names = "core", "disp";
+-	status = "okay";
 -};
 -
 -&hdmi0 {
 -	clocks = <&firmware_clocks 13>, <&firmware_clocks 14>, <&dvp 0>, <&clk_27MHz>;
 -	clock-names = "hdmi", "bvb", "audio", "cec";
+-	status = "okay";
 -};
 -
 -&hdmi1 {
 -	clocks = <&firmware_clocks 13>, <&firmware_clocks 14>, <&dvp 1>, <&clk_27MHz>;
 -	clock-names = "hdmi", "bvb", "audio", "cec";
+-	status = "okay";
+-};
+-
+-&mop {
+-	status = "okay";
+-};
+-
+-&moplet {
+-	status = "okay";
 -};
 -
 -&pcie1 {
@@ -46189,8 +46212,20 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -	status = "okay";
 -};
 -
+-&pixelvalve0 {
+-	status = "okay";
+-};
+-
+-&pixelvalve1 {
+-	status = "okay";
+-};
+-
 -&v3d {
 -	clocks = <&firmware_clocks 5>;
+-};
+-
+-&vc4 {
+-	status = "okay";
 -};
 --- a/arch/arm64/boot/dts/broadcom/bcm2712-rpi-5-b.dts
 +++ b/arch/arm64/boot/dts/broadcom/bcm2712-rpi-5-b.dts
@@ -48603,7 +48638,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  		gicv2: interrupt-controller@7fff9000 {
  			compatible = "arm,gic-400";
  			reg = <0x7fff9000 0x1000>,
-@@ -509,6 +453,10 @@ axi: axi {
+@@ -518,6 +462,10 @@ axi: axi {
  			     <0x18 0x00000000  0x18 0x00000000  0x04 0x00000000>,
  			     <0x1c 0x00000000  0x1c 0x00000000  0x04 0x00000000>;
  
@@ -48614,7 +48649,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  		pcie0: pcie@1000100000 {
  			compatible = "brcm,bcm2712-pcie";
  			reg = <0x10 0x00100000 0x00 0x9310>;
-@@ -643,30 +591,6 @@ mip1: msi-controller@1000131000 {
+@@ -652,31 +600,6 @@ mip1: msi-controller@1000131000 {
  			msi-ranges = <&gicv2 GIC_SPI 247 IRQ_TYPE_EDGE_RISING 8>;
  			brcm,msi-offset = <8>;
  		};
@@ -48642,14 +48677,16 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -
 -	vc4: gpu {
 -		compatible = "brcm,bcm2712-vc6";
+-		status = "disabled";
  	};
  
  	timer {
-@@ -701,5 +625,6 @@ hvs: hvs@107c580000 {
+@@ -711,6 +634,7 @@ hvs: hvs@107c580000 {
  		interrupt-parent = <&disp_intr>;
  		interrupts = <2>, <9>, <16>;
  		interrupt-names = "ch0-eof", "ch1-eof", "ch2-eof";
 +		iommus = <&iommu4>;
+ 		status = "disabled";
  	};
  };
 --- /dev/null

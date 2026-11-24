@@ -20,21 +20,35 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	ctlhi = CH_CTL_H_LLI_VALID;
  
  	if (chan->chip->dw->hdata->restrict_axi_burst_len) {
--		burst_len = chan->chip->dw->hdata->axi_rw_burst_len;
-+		burst_len = chan->chip->dw->hdata->axi_rw_burst_len[chan->id];
+-		burst_len = chan->chip->dw->hdata->axi_rw_burst_len - 1;
++		burst_len = chan->chip->dw->hdata->axi_rw_burst_len[chan->id] - 1;
  		ctlhi |= CH_CTL_H_ARLEN_EN | CH_CTL_H_AWLEN_EN |
  			 burst_len << CH_CTL_H_ARLEN_POS |
  			 burst_len << CH_CTL_H_AWLEN_POS;
-@@ -1090,7 +1090,7 @@ dma_chan_prep_dma_memcpy(struct dma_chan *dchan, dma_addr_t dst_adr,
+@@ -837,10 +837,11 @@ static int dw_axi_dma_set_hw_desc(struct axi_dma_chan *chan,
+ 
+ 	hw_desc->len = len;
+ 
+-	if (burst_len && (chan->config.src_maxburst > burst_len))
++	/* burst_len holds the ARLEN/AWLEN encoding, i.e. beats - 1 */
++	if (burst_len && (chan->config.src_maxburst > burst_len + 1))
+ 		dev_warn_ratelimited(chan2dev(chan),
+ 				     "%s: requested source burst length %u exceeds supported burst length %u - data may be lost\n",
+-				     axi_chan_name(chan), chan->config.src_maxburst, burst_len);
++				     axi_chan_name(chan), chan->config.src_maxburst, burst_len + 1);
+ 
+ 	return 0;
+ }
+@@ -1090,7 +1091,7 @@ dma_chan_prep_dma_memcpy(struct dma_chan *dchan, dma_addr_t dst_adr,
  
  		reg = CH_CTL_H_LLI_VALID;
  		if (chan->chip->dw->hdata->restrict_axi_burst_len) {
--			u32 burst_len = chan->chip->dw->hdata->axi_rw_burst_len;
-+			u32 burst_len = chan->chip->dw->hdata->axi_rw_burst_len[chan->id];
+-			u32 burst_len = chan->chip->dw->hdata->axi_rw_burst_len - 1;
++			u32 burst_len = chan->chip->dw->hdata->axi_rw_burst_len[chan->id] - 1;
  
  			reg |= (CH_CTL_H_ARLEN_EN |
  				burst_len << CH_CTL_H_ARLEN_POS |
-@@ -1479,13 +1479,39 @@ static int __maybe_unused axi_dma_runtime_resume(struct device *dev)
+@@ -1471,13 +1472,39 @@ static int __maybe_unused axi_dma_runtime_resume(struct device *dev)
  	return axi_dma_resume(chip);
  }
  
@@ -74,7 +88,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  
  	if (dw->hdata->use_handshake_as_channel_number) {
  		if (handshake >= dw->hdata->nr_channels)
-@@ -1493,16 +1519,59 @@ static struct dma_chan *dw_axi_dma_of_xlate(struct of_phandle_args *dma_spec,
+@@ -1485,16 +1512,59 @@ static struct dma_chan *dw_axi_dma_of_xlate(struct of_phandle_args *dma_spec,
  
  		chan = &dw->chan[handshake];
  		dchan = dma_get_slave_channel(&chan->vc.chan);
@@ -141,7 +155,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	return dchan;
  }
  
-@@ -1510,6 +1579,7 @@ static int parse_device_properties(struct axi_dma_chip *chip)
+@@ -1502,6 +1572,7 @@ static int parse_device_properties(struct axi_dma_chip *chip)
  {
  	struct device *dev = chip->dev;
  	u32 tmp, carr[DMAC_MAX_CHANNELS];
@@ -149,7 +163,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	int ret;
  
  	ret = device_property_read_u32(dev, "dma-channels", &tmp);
-@@ -1566,17 +1636,32 @@ static int parse_device_properties(struct axi_dma_chip *chip)
+@@ -1558,17 +1629,32 @@ static int parse_device_properties(struct axi_dma_chip *chip)
  	}
  
  	/* axi-max-burst-len is optional property */
@@ -190,7 +204,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  	return 0;
  }
  
-@@ -1690,7 +1775,7 @@ static int dw_probe(struct platform_device *pdev)
+@@ -1680,7 +1766,7 @@ static int dw_probe(struct platform_device *pdev)
  	dma_cap_set(DMA_CYCLIC, dw->dma.cap_mask);
  
  	/* DMA capabilities */
