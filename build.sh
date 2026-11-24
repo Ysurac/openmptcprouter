@@ -628,6 +628,13 @@ if [ "$OMR_KERNEL" = "6.18" ]; then
 	rm -rf package/kernel/r8101
 	rm -rf package/utils/bcm27xx-utils
 	# Remove not needed patches
+	# Already included in kernel 6.18.65
+	rm -f target/linux/generic/backport-6.18/500-v6.19-ksmbd-server-avoid-busy-polling-in-accept-loop.patch
+	rm -f target/linux/generic/backport-6.18/504-v7.3-ksmbd-fix-listener-task-lifetime-on-netdev-events.patch
+	rm -f target/linux/generic/backport-6.18/706-04-v7.3-netfilter-flowtable-use-the-vlan-id-not-the-full-tci.patch
+	rm -f target/linux/generic/pending-6.18/880-leds-st1202-add-hardware-accelerated-blink-support.patch
+	rm -f target/linux/mvebu/patches-6.18/303-mvebu-armada-38x-errata.patch
+	rm -f target/linux/rockchip/patches-6.18/104-phy-rockchip-naneng-combphy-Fix-TX-detect-RX.patch
 	#rm -f package/kernel/mac80211/patches/build/200-Revert-wifi-iwlwifi-Use-generic-thermal_zone_get_tri.patch
 	#rm -f package/kernel/mac80211/patches/build/210-revert-split-op.patch
 	#rm -f package/kernel/mac80211/patches/subsys/301-mac80211-sta-randomize-BA-session-dialog-token-alloc.patch
